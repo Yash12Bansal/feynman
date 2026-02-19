@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://feynman.dev/schemas/visuals",
+  "title": "Feynman Visual Instructions",
+  "description": "Protocol for visual instructions sent from backend to frontend",
+  "definitions": {
+    "VisualType": {
+      "type": "string",
+      "enum": [
+        "clear",
+        "draw_diagram",
+        "show_equation",
+        "show_text",
+        "show_graph",
+        "animate",
+        "highlight"
+      ]
+    },
+    "VisualInstruction": {
+      "type": "object",
+      "properties": {
+        "type": { "$ref": "#/definitions/VisualType" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "duration_ms": {
+          "type": ["integer", "null"]
+        }
+      },
+      "required": ["type"]
+    },
+    "VisualFrame": {
+      "type": "object",
+      "properties": {
+        "sequence": { "type": "integer" },
+        "instructions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/VisualInstruction" }
+        }
+      },
+      "required": ["sequence", "instructions"]
+    }
+  }
+}
