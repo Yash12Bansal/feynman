@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import type { VisualInstruction } from "../types/visuals";
 import { renderInstruction, resetRenderer } from "./renderer";
 
@@ -8,40 +8,40 @@ interface CanvasProps {
 
 export function Canvas({ instructions }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  useEffect(() => {
+  const redraw = useCallback((instrs: VisualInstruction[]) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctxRef.current = ctx;
 
-    const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    resetRenderer();
+    for (const instruction of instrs) {
+      renderInstruction(ctx, instruction);
+    }
   }, []);
 
   useEffect(() => {
-    const ctx = ctxRef.current;
-    const canvas = canvasRef.current;
-    if (!ctx || !canvas) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    resetRenderer();
-    for (const instruction of instructions) {
-      renderInstruction(ctx, instruction);
-    }
-  }, [instructions]);
+    redraw(instructions);
+  }, [instructions, redraw]);
+
+  useEffect(() => {
+    const handleResize = () => redraw(instructions);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [instructions, redraw]);
 
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: "100%", height: "100%", background: "#111" }}
+      style={{ width: "100%", height: "100%", background: "#0a0a0a" }}
     />
   );
 }
