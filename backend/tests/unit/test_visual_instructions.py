@@ -456,3 +456,84 @@ class TestDrawDiagramToolParsing:
         assert instr.nodes == []
         assert instr.edges == []
         assert instr.description == "A conceptual diagram of photosynthesis."
+
+
+# ── Show graph tool JSON parsing ─────────────────────────────
+
+
+class TestShowGraphToolParsing:
+    """Simulates the JSON parsing that show_graph tool does."""
+
+    def test_series_json_parsing(self) -> None:
+        series_json = '[{"label": "Scores", "points": [{"x": 1, "y": 85, "label": "Math"}, {"x": 2, "y": 92, "label": "Science"}], "color": "#60a5fa"}]'
+        raw = json.loads(series_json)
+        series = [DataSeries(**s) for s in raw]
+        assert len(series) == 1
+        assert series[0].label == "Scores"
+        assert len(series[0].points) == 2
+        assert series[0].points[0].label == "Math"
+        assert series[0].points[1].y == 92
+        assert series[0].color == "#60a5fa"
+
+    def test_functions_json_parsing(self) -> None:
+        functions_json = '[{"expression": "x^2 - 4", "label": "f(x)", "color": "#a78bfa"}, {"expression": "sin(x)", "domain_min": -3.14, "domain_max": 3.14}]'
+        raw = json.loads(functions_json)
+        functions = [FunctionDef(**f) for f in raw]
+        assert len(functions) == 2
+        assert functions[0].expression == "x^2 - 4"
+        assert functions[0].color == "#a78bfa"
+        assert functions[1].domain_min == -3.14
+        assert functions[1].domain_max == 3.14
+
+    def test_full_instruction_from_tool_params(self) -> None:
+        """Simulate what show_graph tool does: parse JSON strings into a valid instruction."""
+        series_json = '[{"label": "Temperature", "points": [{"x": 0, "y": 20}, {"x": 1, "y": 22}, {"x": 2, "y": 25}]}]'
+        functions_json = ""
+
+        series = [DataSeries(**s) for s in json.loads(series_json)] if series_json else []
+        functions = [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
+        gtype = GraphType("line")
+        x_axis = AxisConfig(label="Time (hours)", min=0, max=5)
+        y_axis = AxisConfig(label="Temperature (°C)")
+
+        instr = ShowGraphInstruction(
+            graph_type=gtype,
+            title="Temperature Over Time",
+            x_axis=x_axis,
+            y_axis=y_axis,
+            series=series,
+            functions=functions,
+            animated=True,
+        )
+        assert instr.type == "show_graph"
+        assert instr.graph_type == GraphType.LINE
+        assert instr.title == "Temperature Over Time"
+        assert len(instr.series) == 1
+        assert len(instr.series[0].points) == 3
+        assert instr.x_axis.label == "Time (hours)"
+        assert instr.x_axis.min == 0
+        assert instr.y_axis.label == "Temperature (°C)"
+        assert instr.animated is True
+
+    def test_empty_json_strings_require_data(self) -> None:
+        """When neither series nor functions JSON is provided, validation fails."""
+        with pytest.raises(ValidationError, match="series or functions"):
+            ShowGraphInstruction(
+                graph_type=GraphType.SCATTER,
+                title="Empty",
+                series=[],
+                functions=[],
+            )
+
+    def test_multi_series_bar_chart(self) -> None:
+        """Parse multiple series for a grouped bar chart."""
+        series_json = '[{"label": "2024", "points": [{"x": 1, "y": 80, "label": "Math"}, {"x": 2, "y": 90, "label": "Science"}]}, {"label": "2025", "points": [{"x": 1, "y": 85, "label": "Math"}, {"x": 2, "y": 88, "label": "Science"}]}]'
+        series = [DataSeries(**s) for s in json.loads(series_json)]
+        instr = ShowGraphInstruction(
+            graph_type=GraphType.BAR,
+            title="Year Comparison",
+            series=series,
+        )
+        assert len(instr.series) == 2
+        assert instr.series[0].points[0].label == "Math"
+        assert instr.series[1].label == "2025"

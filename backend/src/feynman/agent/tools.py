@@ -6,14 +6,19 @@ import structlog
 from livekit.agents import RunContext, function_tool
 
 from feynman.visuals.schemas import (
+    AxisConfig,
     ClearInstruction,
+    DataSeries,
     DiagramEdge,
     DiagramNode,
     DiagramType,
     DrawDiagramInstruction,
     EquationAnimation,
     EquationStep,
+    FunctionDef,
+    GraphType,
     ShowEquationInstruction,
+    ShowGraphInstruction,
     ShowTextInstruction,
     StepEquationInstruction,
     _BaseInstruction,
@@ -123,6 +128,64 @@ async def step_equation(ctx: RunContext, steps_json: str, title: str = "") -> st
     instruction = StepEquationInstruction(title=title, steps=steps)
     await _publish_visual(ctx, instruction)
     return f"Displayed step-by-step equation: {title or steps[-1].latex}"
+
+
+@function_tool()
+async def show_graph(
+    ctx: RunContext,
+    graph_type: str = "line",
+    title: str = "",
+    x_axis_label: str = "",
+    x_min: float | None = None,
+    x_max: float | None = None,
+    y_axis_label: str = "",
+    y_min: float | None = None,
+    y_max: float | None = None,
+    series_json: str = "",
+    functions_json: str = "",
+    animated: bool = True,
+) -> str:
+    """Display a graph or chart on the classroom screen — line charts, bar charts, scatter plots, or function plots.
+
+    Args:
+        graph_type: Chart style. Options: "line" (default), "bar", "scatter", "function".
+        title: Optional heading displayed above the chart.
+        x_axis_label: Label for the x-axis (e.g., "Time (s)").
+        x_min: Optional minimum value for the x-axis.
+        x_max: Optional maximum value for the x-axis.
+        y_axis_label: Label for the y-axis (e.g., "Height (m)").
+        y_min: Optional minimum value for the y-axis.
+        y_max: Optional maximum value for the y-axis.
+        series_json: A JSON array of data series. Each series has:
+            - "label" (optional): Legend label for this series.
+            - "points" (required): Array of data points, each with "x" (number), "y" (number), and optional "label" (string, for bar chart category labels).
+            - "color" (optional): Hex color for this series (e.g., "#60a5fa").
+            Example: [{"label": "Scores", "points": [{"x": 1, "y": 85, "label": "Math"}, {"x": 2, "y": 92, "label": "Science"}]}]
+        functions_json: A JSON array of function definitions for function plots. Each function has:
+            - "expression" (required): Math expression using variable x (e.g., "x^2", "sin(x)", "2*x + 3", "sqrt(x)").
+            - "label" (optional): Legend label.
+            - "color" (optional): Hex color.
+            - "domain_min" (optional): Minimum x value to plot.
+            - "domain_max" (optional): Maximum x value to plot.
+            Example: [{"expression": "x^2 - 4", "label": "f(x) = x² - 4"}, {"expression": "2*x", "label": "g(x) = 2x", "color": "#60a5fa"}]
+        animated: Whether to animate the chart drawing in (default true).
+    """
+    series = [DataSeries(**s) for s in json.loads(series_json)] if series_json else []
+    functions = [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
+    gtype = GraphType(graph_type)
+    x_axis = AxisConfig(label=x_axis_label, min=x_min, max=x_max)
+    y_axis = AxisConfig(label=y_axis_label, min=y_min, max=y_max)
+    instruction = ShowGraphInstruction(
+        graph_type=gtype,
+        title=title,
+        x_axis=x_axis,
+        y_axis=y_axis,
+        series=series,
+        functions=functions,
+        animated=animated,
+    )
+    await _publish_visual(ctx, instruction)
+    return f"Displayed graph: {title or graph_type}"
 
 
 @function_tool()

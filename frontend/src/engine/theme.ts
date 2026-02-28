@@ -19,6 +19,8 @@ export const COLORS = {
   equationBg: "#1a1a2e",
   diagramBg: "#0f1a14",
   diagramBorder: "#1a3a28",
+  graphBg: "#151020",
+  graphBorder: "#1e1a35",
 } as const;
 
 export const LAYOUT = {
@@ -61,6 +63,8 @@ export function injectThemeVars(el: HTMLElement): void {
     "--color-equation-bg": COLORS.equationBg,
     "--color-diagram-bg": COLORS.diagramBg,
     "--color-diagram-border": COLORS.diagramBorder,
+    "--color-graph-bg": COLORS.graphBg,
+    "--color-graph-border": COLORS.graphBorder,
     "--layout-card-padding": `${LAYOUT.cardPadding}px`,
     "--layout-card-gap": `${LAYOUT.cardGap}px`,
     "--layout-card-radius": `${LAYOUT.cardRadius}px`,
