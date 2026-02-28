@@ -1,9 +1,17 @@
-"""LLM function tools for visual instructions via LiveKit data channel."""
+"""LLM function tools — visual instructions + teaching state management."""
+
+from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import structlog
 from livekit.agents import RunContext, function_tool
+
+from feynman.agent.prompts import build_teaching_prompt
+
+if TYPE_CHECKING:
+    from feynman.agent.teaching_context import TeachingContext
 
 from feynman.visuals.schemas import (
     AxisConfig,
@@ -194,3 +202,103 @@ async def clear_board(ctx: RunContext) -> str:
     instruction = ClearInstruction()
     await _publish_visual(ctx, instruction)
     return "Board cleared"
+
+
+# ---------------------------------------------------------------------------
+# State management tools
+# ---------------------------------------------------------------------------
+
+
+async def _update_agent_prompt(ctx: RunContext) -> None:
+    """Rebuild and set the agent's system prompt from current teaching state."""
+    tc: TeachingContext = ctx.userdata
+    prompt = build_teaching_prompt(tc.lesson_plan, tc)
+    ctx.session.current_agent.update_instructions(prompt)
+
+
+@function_tool()
+async def advance_concept(ctx: RunContext) -> str:
+    """Signal that you've finished teaching the current concept and are ready to move on.
+
+    Call this when the class has understood the current concept and you're ready
+    for the next one. Returns information about the next concept to teach.
+    """
+    tc: TeachingContext = ctx.userdata
+
+    if tc.lesson_plan is None:
+        return "No lesson plan — teaching in free-form mode."
+
+    next_concept = tc.advance()
+    await _update_agent_prompt(ctx)
+
+    if next_concept is None:
+        logger.info("lesson.complete", session_id=str(tc.session_id))
+        return (
+            "All concepts covered! Summarize the key takeaways from today's lesson, "
+            "ask if there are any final questions, and wrap up."
+        )
+
+    logger.info(
+        "concept.advanced",
+        session_id=str(tc.session_id),
+        concept=next_concept.title,
+        progress=tc.progress_summary,
+    )
+    return (
+        f"Moving to: {next_concept.title}\n"
+        f"Description: {next_concept.description}\n"
+        f"Key points: {', '.join(next_concept.key_points)}\n"
+        f"Visual suggestions: {', '.join(next_concept.visual_suggestions)}"
+    )
+
+
+@function_tool()
+async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
+    """A student has a doubt — branch off to address it without losing your place.
+
+    Args:
+        related_concept: Brief description of what the doubt is about (e.g., "why negative times negative is positive").
+    """
+    tc: TeachingContext = ctx.userdata
+
+    branch = await tc.state_machine.push_branch(concept=related_concept)
+    await _update_agent_prompt(ctx)
+
+    logger.info(
+        "doubt.started",
+        session_id=str(tc.session_id),
+        branch_id=str(branch.id),
+        concept=related_concept,
+        depth=tc.state_machine.depth,
+    )
+    return (
+        f"Doubt branch opened about: {related_concept}\n"
+        f"Address this thoroughly. When done, call resolve_doubt() to return to the main lesson."
+    )
+
+
+@function_tool()
+async def resolve_doubt(ctx: RunContext) -> str:
+    """The doubt has been addressed — return to the main lesson flow.
+
+    Call this after you've fully answered the student's question and
+    are ready to continue where you left off.
+    """
+    tc: TeachingContext = ctx.userdata
+
+    if tc.state_machine.depth <= 1:
+        return "Not in a doubt branch — already on the main lesson flow."
+
+    popped = await tc.state_machine.pop_branch()
+    await _update_agent_prompt(ctx)
+
+    current = tc.current_concept
+    continue_msg = f"Continue teaching: {current.title}" if current else "Lesson complete"
+
+    logger.info(
+        "doubt.resolved",
+        session_id=str(tc.session_id),
+        resolved_concept=popped.concept,
+        depth=tc.state_machine.depth,
+    )
+    return f"Doubt about '{popped.concept}' resolved. {continue_msg}"

@@ -3,35 +3,126 @@
 cd backend && uv run python -m feynman.livekit.worker dev
 """
 
+from __future__ import annotations
+
+import json
+from uuid import uuid4
+
 import structlog
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 
-from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT
-from feynman.agent.tools import clear_board, draw_diagram, show_equation, show_text
+from feynman.agent.lesson_plan import generate_lesson_plan
+from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
+from feynman.agent.state_machine import TeachingStateMachine
+from feynman.agent.teaching_context import TeachingContext
+from feynman.agent.tools import (
+    advance_concept,
+    clear_board,
+    draw_diagram,
+    resolve_doubt,
+    show_equation,
+    show_graph,
+    show_text,
+    start_doubt_branch,
+    step_equation,
+)
 from feynman.common.logging import setup_logging
+from feynman.common.types import Subject
 from feynman.config import settings
 from feynman.livekit.pipeline import create_llm, create_stt, create_tts, create_vad
 
 setup_logging(settings.log_level)
 logger = structlog.get_logger()
 
+# All tools the agent can use — visual + state management
+ALL_TOOLS = [
+    show_text,
+    show_equation,
+    draw_diagram,
+    step_equation,
+    show_graph,
+    clear_board,
+    advance_concept,
+    start_doubt_branch,
+    resolve_doubt,
+]
+
 
 class FeynmanAgent(Agent):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        teaching_ctx: TeachingContext,
+        topic: str = "",
+        subject: Subject | None = None,
+        grade_level: str = "",
+    ) -> None:
+        self._teaching_ctx = teaching_ctx
+        self._topic = topic
+        self._subject = subject
+        self._grade_level = grade_level
+
         super().__init__(
             instructions=TEACHING_SYSTEM_PROMPT,
-            tools=[show_text, show_equation, draw_diagram, clear_board],
+            tools=ALL_TOOLS,
         )
 
     async def on_enter(self) -> None:
-        logger.info("agent.entered_room")
-        self.session.generate_reply(
-            instructions=(
+        logger.info("agent.entered_room", topic=self._topic)
+
+        # Generate lesson plan if a topic was provided
+        if self._topic:
+            try:
+                plan = await generate_lesson_plan(
+                    topic=self._topic,
+                    subject=self._subject,
+                    grade_level=self._grade_level,
+                )
+                self._teaching_ctx.lesson_plan = plan
+                logger.info(
+                    "agent.lesson_plan_ready",
+                    topic=self._topic,
+                    num_concepts=plan.total_concepts,
+                )
+            except Exception:
+                logger.exception("agent.lesson_plan_failed", topic=self._topic)
+                # Continue without a plan — free-form teaching mode
+
+        # Update instructions with lesson context
+        prompt = build_teaching_prompt(
+            self._teaching_ctx.lesson_plan,
+            self._teaching_ctx,
+        )
+        self.update_instructions(prompt)
+
+        # Generate greeting
+        plan = self._teaching_ctx.lesson_plan
+        if plan:
+            greeting_instructions = (
+                f"Greet the class warmly. Introduce yourself as Feynman, their AI teacher. "
+                f"Tell them today's topic is '{plan.topic}' and briefly share the objective: "
+                f"'{plan.objective}'. Keep it enthusiastic — two or three sentences max. "
+                f"Use the show_text tool to display a welcome message with today's topic."
+            )
+        else:
+            greeting_instructions = (
                 "Greet the class warmly. Introduce yourself as Feynman, their AI teacher. "
                 "Keep it brief and enthusiastic — two or three sentences max. "
                 "Use the show_text tool to display a welcome message on the board."
-            ),
-        )
+            )
+
+        self.session.generate_reply(instructions=greeting_instructions)
+
+
+def _parse_room_metadata(ctx: JobContext) -> dict:
+    """Extract topic/subject/grade_level from room metadata set by the API."""
+    raw = ctx.room.metadata
+    if not raw:
+        return {}
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning("worker.invalid_room_metadata", raw=raw)
+        return {}
 
 
 server = AgentServer(
@@ -46,16 +137,45 @@ async def entrypoint(ctx: JobContext) -> None:
     logger.info("worker.session_start", room_name=ctx.room.name)
     await ctx.connect()
 
-    agent = FeynmanAgent()
+    # Parse room metadata for lesson configuration
+    meta = _parse_room_metadata(ctx)
+    topic = meta.get("topic", "")
+    subject_str = meta.get("subject")
+    subject = Subject(subject_str) if subject_str else None
+    grade_level = meta.get("grade_level", "")
+
+    # Create teaching state machine and context
+    session_id = uuid4()
+    state_machine = TeachingStateMachine(session_id=session_id)
+    teaching_ctx = TeachingContext(
+        session_id=session_id,
+        state_machine=state_machine,
+    )
+
+    # Create agent with teaching context
+    agent = FeynmanAgent(
+        teaching_ctx=teaching_ctx,
+        topic=topic,
+        subject=subject,
+        grade_level=grade_level,
+    )
+
+    # Start the session with teaching context as userdata
     session = AgentSession(
         stt=create_stt(),
         llm=create_llm(),
         tts=create_tts(),
         vad=create_vad(),
+        userdata=teaching_ctx,
     )
 
     await session.start(agent=agent, room=ctx.room)
-    logger.info("worker.session_started", room_name=ctx.room.name)
+    logger.info(
+        "worker.session_started",
+        room_name=ctx.room.name,
+        topic=topic,
+        subject=subject,
+    )
 
 
 if __name__ == "__main__":

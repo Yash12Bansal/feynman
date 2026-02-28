@@ -1,10 +1,12 @@
 """Session management endpoints — create sessions and generate LiveKit tokens."""
 
+import json
 from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, HTTPException, Request
-from livekit.api import AccessToken, VideoGrants
+from livekit.api import AccessToken, LiveKitAPI, VideoGrants
+from livekit.protocol.room import CreateRoomRequest
 
 from feynman.common.exceptions import SessionNotFoundError
 from feynman.config import settings
@@ -41,6 +43,36 @@ def _create_livekit_token(room_name: str, identity: str) -> str:
     )
 
 
+async def _create_livekit_room(
+    room_name: str,
+    topic: str,
+    subject: str | None,
+    grade_level: str,
+) -> None:
+    """Pre-create the LiveKit room with metadata so the worker can read the topic."""
+    metadata = {}
+    if topic:
+        metadata["topic"] = topic
+    if subject:
+        metadata["subject"] = subject
+    if grade_level:
+        metadata["grade_level"] = grade_level
+
+    if not metadata:
+        return
+
+    lk = LiveKitAPI(
+        url=settings.livekit_url,
+        api_key=settings.livekit_api_key,
+        api_secret=settings.livekit_api_secret,
+    )
+    try:
+        await lk.room.create_room(CreateRoomRequest(name=room_name, metadata=json.dumps(metadata)))
+        logger.info("livekit.room_created", room_name=room_name, metadata=metadata)
+    finally:
+        await lk.aclose()
+
+
 @router.post("", response_model=CreateSessionResponse)
 async def create_session(
     request: Request,
@@ -48,6 +80,12 @@ async def create_session(
 ) -> CreateSessionResponse:
     manager = _get_manager(request)
     session = await manager.create_session(body)
+
+    # Pre-create LiveKit room with topic metadata for the worker to read
+    topic = body.topic if body else ""
+    subject = body.subject.value if body and body.subject else None
+    grade_level = body.grade_level if body else ""
+    await _create_livekit_room(session.room_name, topic, subject, grade_level)
 
     token = _create_livekit_token(
         room_name=session.room_name,

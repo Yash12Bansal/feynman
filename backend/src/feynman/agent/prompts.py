@@ -1,5 +1,13 @@
 """LLM system prompts for the teaching agent."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from feynman.agent.lesson_plan import LessonPlan
+    from feynman.agent.teaching_context import TeachingContext
+
 TEACHING_SYSTEM_PROMPT = """\
 You are Feynman, an AI teacher inspired by Richard Feynman — "The Great Explainer."
 
@@ -22,3 +30,93 @@ You have visual tools available — use them actively:
 
 Keep your speaking natural, warm, and engaging. You're talking to real students.
 """
+
+STATE_TOOL_INSTRUCTIONS = """\
+
+## Lesson Flow Tools
+
+You have tools to manage your position in the lesson:
+
+- **advance_concept()**: Call this when you've finished teaching the current concept \
+and the class is ready to move on. This marks the concept as done and gives you the next one.
+- **start_doubt_branch(related_concept)**: Call this when a student asks a question or \
+expresses confusion. Pass a short description of what the doubt is about. This branches \
+off the main lesson so you can address the doubt fully without losing your place.
+- **resolve_doubt()**: Call this when you've fully addressed a doubt and are ready to \
+return to the main lesson flow.
+
+**Important**: YOU decide when to advance — the lesson plan is guidance, not a script. \
+Spend more time on concepts the class finds difficult. Skip ahead if they already know something. \
+Use your judgment as a teacher.
+"""
+
+
+def build_teaching_prompt(
+    lesson_plan: LessonPlan | None,
+    teaching_ctx: TeachingContext,
+) -> str:
+    """Compose the full system prompt from base + lesson context + state tools.
+
+    Called after every state change to keep the LLM's context fresh.
+    """
+    parts = [TEACHING_SYSTEM_PROMPT]
+
+    if lesson_plan is None:
+        parts.append(
+            "\nYou are in free-form teaching mode — no structured lesson plan. "
+            "Teach based on what the students ask about."
+        )
+        return "".join(parts)
+
+    # State tool instructions (only when we have a plan to navigate)
+    parts.append(STATE_TOOL_INSTRUCTIONS)
+
+    # Lesson overview
+    parts.append(f"\n## Current Lesson\n\n**Topic**: {lesson_plan.topic}")
+    if lesson_plan.grade_level:
+        parts.append(f" ({lesson_plan.grade_level})")
+    parts.append(f"\n**Objective**: {lesson_plan.objective}\n")
+
+    # Concept list with progress markers
+    parts.append("\n### Concept Sequence\n")
+    for i, concept in enumerate(lesson_plan.concepts):
+        if i in teaching_ctx.completed_indices:
+            marker = "[DONE]"
+        elif i == teaching_ctx.current_concept_index:
+            marker = "[>> CURRENT]"
+        else:
+            marker = "[    ]"
+        parts.append(f"{marker} {i + 1}. {concept.title}\n")
+
+    # Current concept details
+    current = teaching_ctx.current_concept
+    if current and not teaching_ctx.is_lesson_complete:
+        parts.append(f"\n### Now Teaching: {current.title}\n")
+        parts.append(f"{current.description}\n")
+        parts.append("\n**Key points to cover:**\n")
+        for point in current.key_points:
+            parts.append(f"- {point}\n")
+        if current.visual_suggestions:
+            parts.append("\n**Visual suggestions:**\n")
+            for suggestion in current.visual_suggestions:
+                parts.append(f"- {suggestion}\n")
+
+    # Branch context
+    depth = teaching_ctx.state_machine.depth
+    if depth > 1:
+        branch = teaching_ctx.state_machine.current
+        parts.append(f"\n### DOUBT BRANCH (depth {depth})\n")
+        parts.append(
+            f"You are addressing a student doubt about: **{branch.concept}**\n"
+            "Address this thoroughly, then call resolve_doubt() to return to the main lesson.\n"
+        )
+
+    # Lesson complete
+    if teaching_ctx.is_lesson_complete:
+        parts.append(
+            "\n### LESSON COMPLETE\n"
+            "All concepts have been covered! Summarize the key takeaways, "
+            "ask if there are any final questions, and wrap up the session.\n"
+        )
+
+    return "".join(parts)

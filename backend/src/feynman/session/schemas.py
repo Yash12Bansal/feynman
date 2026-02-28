@@ -22,6 +22,8 @@ class SessionCreate(BaseModel):
     """Input for creating a new teaching session."""
 
     subject: Subject | None = None
+    topic: str = ""
+    grade_level: str = ""
 
 
 class SessionInfo(BaseModel):
