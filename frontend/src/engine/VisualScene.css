@@ -64,6 +64,13 @@
 .visual-card[data-type="show_equation"] {
   background: var(--color-equation-bg);
 }
+.visual-card[data-type="show_equation"] .katex {
+  color: var(--color-text-primary);
+  font-size: 2rem;
+}
+.visual-card[data-type="show_equation"] .katex-display {
+  margin: 0;
+}
 .visual-card[data-type="draw_diagram"] {
   background: var(--color-diagram-bg);
   border-color: var(--color-diagram-border);

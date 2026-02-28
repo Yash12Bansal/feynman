@@ -8,6 +8,7 @@ from livekit.agents import RunContext, function_tool
 from feynman.visuals.schemas import (
     ClearInstruction,
     DrawDiagramInstruction,
+    EquationAnimation,
     ShowEquationInstruction,
     ShowTextInstruction,
     _BaseInstruction,
@@ -37,14 +38,19 @@ async def show_text(ctx: RunContext, text: str, title: str = "") -> str:
 
 
 @function_tool()
-async def show_equation(ctx: RunContext, latex: str, label: str = "") -> str:
+async def show_equation(
+    ctx: RunContext, latex: str, label: str = "", animation: str = "fade_in"
+) -> str:
     """Display a math equation on the classroom screen. Use LaTeX notation.
 
     Args:
         latex: The equation in LaTeX format (e.g., "E = mc^2", "\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}").
+            Use \\htmlId{term-1}{content} to tag individual terms for term_by_term animation.
         label: Optional label (e.g., "Newton's Second Law").
+        animation: How the equation appears. Options: "none", "fade_in" (default), "term_by_term", "write_on".
     """
-    instruction = ShowEquationInstruction(latex=latex, label=label)
+    eq_animation = EquationAnimation(animation)
+    instruction = ShowEquationInstruction(latex=latex, label=label, animation=eq_animation)
     await _publish_visual(ctx, instruction)
     return f"Displayed equation: {latex}"
 
