@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-backend dev-frontend dev-worker test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset
+.PHONY: setup dev dev-backend dev-frontend dev-worker test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset migrate migrate-create
 
 # =============================================================================
 # Feynman — Development Commands
@@ -12,6 +12,7 @@ setup:
 	docker compose up -d
 	@echo "Waiting for services..."
 	@sleep 3
+	cd backend && uv run alembic upgrade head
 	@echo "Done! Run 'make dev' to start."
 
 # --- Development ---
@@ -52,6 +53,13 @@ format:
 	cd backend && uv run ruff format src/ tests/
 	cd backend && uv run ruff check --fix src/ tests/
 	cd frontend && pnpm format
+
+# --- Migrations ---
+migrate:
+	cd backend && uv run alembic upgrade head
+
+migrate-create:
+	cd backend && uv run alembic revision --autogenerate -m "$(msg)"
 
 # --- Docker / Database ---
 db-up:

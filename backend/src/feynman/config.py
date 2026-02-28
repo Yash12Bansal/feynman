@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     cartesia_api_key: str = ""
 
     # Database
-    database_url: str = "postgresql+asyncpg://feynman:feynman@localhost:5432/feynman"
+    database_url: str = "postgresql+asyncpg://feynman:feynman@localhost:5433/feynman"
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"
