@@ -1,12 +1,17 @@
 /**
- * Visual instruction renderer for the classroom screen.
+ * @deprecated Phase 2 replaced Canvas rendering with VisualScene.tsx (React components).
+ * Kept as design token reference and rollback safety net until Phase 3 is verified.
+ * Do not add new functionality here — use theme.ts for tokens, VisualScene for rendering.
  *
- * Renders typed instructions from the backend onto an HTML5 Canvas.
- * Card-based layout with type-specific styling designed for readability
- * from across a classroom (large fonts, high contrast, generous spacing).
+ * Original: Canvas 2D renderer for visual instructions.
  */
 
-import type { VisualInstruction } from "../types/visuals";
+import type {
+  DrawDiagramInstruction,
+  ShowEquationInstruction,
+  ShowTextInstruction,
+  VisualInstruction,
+} from "../types/visuals";
 
 // ---------------------------------------------------------------------------
 // Design tokens
@@ -134,10 +139,6 @@ function drawCard(
   }
 }
 
-/**
- * Wrap text into lines that fit within maxWidth.
- * Returns array of lines and their total height.
- */
 function wrapLines(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -166,7 +167,7 @@ function wrapLines(
 }
 
 // ---------------------------------------------------------------------------
-// Compute layout dimensions (used for card content area)
+// Compute layout dimensions
 // ---------------------------------------------------------------------------
 
 function contentArea(logicalWidth: number): {
@@ -185,22 +186,19 @@ function contentArea(logicalWidth: number): {
 
 function renderShowText(
   ctx: CanvasRenderingContext2D,
-  payload: Record<string, unknown>,
+  instr: ShowTextInstruction,
   logicalWidth: number,
 ): void {
-  const title = (payload.title as string) ?? "";
-  const text = (payload.text as string) ?? "";
   const { x: cardX, width: cardWidth } = contentArea(logicalWidth);
   const innerWidth = cardWidth - LAYOUT.cardPadding * 2;
 
-  // Pre-calculate height
   let contentHeight = 0;
-  if (title) {
+  if (instr.title) {
     contentHeight += LINE_HEIGHTS.title + 8;
   }
   const wrapped = wrapLines(
     ctx,
-    text,
+    instr.text,
     FONTS.body,
     innerWidth,
     LINE_HEIGHTS.body,
@@ -209,19 +207,17 @@ function renderShowText(
 
   const cardHeight = contentHeight + LAYOUT.cardPadding * 2;
 
-  // Draw card
   drawCard(ctx, cardX, cursorY, cardWidth, cardHeight, {
     accentColor: COLORS.accentBlue,
   });
 
-  // Draw content
   let textY = cursorY + LAYOUT.cardPadding;
   const textX = cardX + LAYOUT.cardPadding;
 
-  if (title) {
+  if (instr.title) {
     ctx.fillStyle = COLORS.accentBlue;
     ctx.font = FONTS.title;
-    ctx.fillText(title, textX, textY + 26);
+    ctx.fillText(instr.title, textX, textY + 26);
     textY += LINE_HEIGHTS.title + 8;
   }
 
@@ -237,23 +233,19 @@ function renderShowText(
 
 function renderShowEquation(
   ctx: CanvasRenderingContext2D,
-  payload: Record<string, unknown>,
+  instr: ShowEquationInstruction,
   logicalWidth: number,
 ): void {
-  const equation = (payload.equation as string) ?? "";
-  const label = (payload.label as string) ?? "";
   const { x: cardX, width: cardWidth } = contentArea(logicalWidth);
 
-  // Pre-calculate height
   let contentHeight = 0;
-  if (label) {
+  if (instr.label) {
     contentHeight += 28 + 12;
   }
-  contentHeight += LINE_HEIGHTS.equation + 16; // equation + bottom padding
+  contentHeight += LINE_HEIGHTS.equation + 16;
 
   const cardHeight = contentHeight + LAYOUT.cardPadding * 2;
 
-  // Draw card with equation-specific styling
   drawCard(ctx, cardX, cursorY, cardWidth, cardHeight, {
     fillColor: COLORS.equationBg,
     accentColor: COLORS.accentAmber,
@@ -262,37 +254,34 @@ function renderShowEquation(
   let textY = cursorY + LAYOUT.cardPadding;
   const textX = cardX + LAYOUT.cardPadding;
 
-  // Label
-  if (label) {
+  if (instr.label) {
     ctx.fillStyle = COLORS.accentPurple;
     ctx.font = FONTS.equationLabel;
-    ctx.fillText(label, textX, textY + 16);
+    ctx.fillText(instr.label, textX, textY + 16);
     textY += 28 + 12;
   }
 
-  // Equation — centered
+  // Render LaTeX as monospace text (KaTeX rendering comes in Phase 3)
   ctx.fillStyle = COLORS.accentAmber;
   ctx.font = FONTS.equation;
-  const eqWidth = ctx.measureText(equation).width;
+  const eqWidth = ctx.measureText(instr.latex).width;
   const eqX = cardX + (cardWidth - eqWidth) / 2;
-  ctx.fillText(equation, eqX, textY + 26);
+  ctx.fillText(instr.latex, eqX, textY + 26);
 
   cursorY += cardHeight + LAYOUT.cardGap;
 }
 
 function renderDrawDiagram(
   ctx: CanvasRenderingContext2D,
-  payload: Record<string, unknown>,
+  instr: DrawDiagramInstruction,
   logicalWidth: number,
 ): void {
-  const description = (payload.description as string) ?? "";
+  const description = instr.description ?? instr.title ?? "";
   const { x: cardX, width: cardWidth } = contentArea(logicalWidth);
   const innerWidth = cardWidth - LAYOUT.cardPadding * 2;
 
-  // Diagram placeholder box height
   const placeholderHeight = 160;
 
-  // Description text
   const wrapped = wrapLines(
     ctx,
     description,
@@ -304,7 +293,6 @@ function renderDrawDiagram(
   const cardHeight =
     LAYOUT.cardPadding * 2 + placeholderHeight + 16 + wrapped.height;
 
-  // Draw card
   drawCard(ctx, cardX, cursorY, cardWidth, cardHeight, {
     fillColor: COLORS.diagramBg,
     borderColor: COLORS.diagramBorder,
@@ -333,22 +321,17 @@ function renderDrawDiagram(
   ctx.globalAlpha = 0.4;
   ctx.lineWidth = 2;
 
-  // Simple diagram icon: three connected nodes
   const nodeR = 6;
   const spread = 30;
-  // Top node
   ctx.beginPath();
   ctx.arc(iconCX, iconCY - spread, nodeR, 0, Math.PI * 2);
   ctx.stroke();
-  // Bottom-left node
   ctx.beginPath();
   ctx.arc(iconCX - spread, iconCY + spread * 0.6, nodeR, 0, Math.PI * 2);
   ctx.stroke();
-  // Bottom-right node
   ctx.beginPath();
   ctx.arc(iconCX + spread, iconCY + spread * 0.6, nodeR, 0, Math.PI * 2);
   ctx.stroke();
-  // Lines connecting them
   ctx.beginPath();
   ctx.moveTo(iconCX, iconCY - spread + nodeR);
   ctx.lineTo(iconCX - spread, iconCY + spread * 0.6 - nodeR);
@@ -360,7 +343,7 @@ function renderDrawDiagram(
 
   ctx.globalAlpha = 1;
 
-  // "Diagram" badge
+  // "DIAGRAM" badge
   ctx.fillStyle = COLORS.accentGreen;
   ctx.globalAlpha = 0.6;
   ctx.font = FONTS.badge;
@@ -385,7 +368,6 @@ function renderDrawDiagram(
 
   innerY += placeholderHeight + 16;
 
-  // Description text
   ctx.fillStyle = COLORS.textSecondary;
   ctx.font = FONTS.diagramDesc;
   for (const line of wrapped.lines) {
@@ -398,10 +380,12 @@ function renderDrawDiagram(
 
 function renderHighlight(
   ctx: CanvasRenderingContext2D,
-  payload: Record<string, unknown>,
+  _instr: VisualInstruction & { type: "highlight" },
   logicalWidth: number,
 ): void {
-  const text = (payload.text as string) ?? "";
+  // Highlight targets an existing element by target_id — placeholder rendering
+  // for now until incremental rendering (Phase 2) enables element lookup.
+  const text = `Highlight: ${_instr.target_id}`;
   const { x: cardX, width: cardWidth } = contentArea(logicalWidth);
   const innerWidth = cardWidth - LAYOUT.cardPadding * 2;
 
@@ -414,7 +398,6 @@ function renderHighlight(
   );
   const cardHeight = wrapped.height + LAYOUT.cardPadding * 2;
 
-  // Highlight card has a warmer background
   drawCard(ctx, cardX, cursorY, cardWidth, cardHeight, {
     fillColor: "#1a1a10",
     borderColor: "#3a3a20",
@@ -449,22 +432,23 @@ export function renderInstruction(
       cursorY = LAYOUT.topMargin;
       break;
     case "show_text":
-      renderShowText(ctx, instruction.payload ?? {}, logicalWidth);
+      renderShowText(ctx, instruction, logicalWidth);
       break;
     case "show_equation":
-      renderShowEquation(ctx, instruction.payload ?? {}, logicalWidth);
+      renderShowEquation(ctx, instruction, logicalWidth);
       break;
     case "draw_diagram":
-      renderDrawDiagram(ctx, instruction.payload ?? {}, logicalWidth);
+      renderDrawDiagram(ctx, instruction, logicalWidth);
       break;
     case "highlight":
-      renderHighlight(ctx, instruction.payload ?? {}, logicalWidth);
+      renderHighlight(ctx, instruction, logicalWidth);
       break;
     case "show_graph":
-    case "animate":
       console.warn(`Visual type "${instruction.type}" not yet implemented`);
       break;
     default:
-      console.warn(`Unknown visual type: ${instruction.type}`);
+      console.warn(
+        `Unknown visual type: ${(instruction as { type: string }).type}`,
+      );
   }
 }

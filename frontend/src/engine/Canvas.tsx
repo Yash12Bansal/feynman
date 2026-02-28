@@ -1,3 +1,9 @@
+/**
+ * @deprecated Phase 2 replaced this with VisualScene.tsx (React component tree).
+ * Kept for visual reference and rollback until Phase 3 is verified.
+ * Use VisualScene instead of Canvas for all new work.
+ */
+
 import { useRef, useEffect, useCallback } from "react";
 import type { VisualInstruction } from "../types/visuals";
 import { renderInstruction, resetRenderer } from "./renderer";

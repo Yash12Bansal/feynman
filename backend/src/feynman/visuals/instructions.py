@@ -1,28 +1,46 @@
-"""Visual instruction models — typed commands sent to frontend."""
+"""Visual instruction models — typed commands sent to frontend.
+
+The `VisualInstruction` type is a discriminated union of all visual instruction
+schemas, tagged by the `type` field. Pydantic automatically routes deserialization
+to the correct model based on the type tag.
+
+Wire format is flattened — no nested `payload` dict:
+    {"type": "show_equation", "latex": "E = mc^2", "label": "Einstein"}
+
+This replaces the previous untyped {"type": ..., "payload": dict[str, Any]} format.
+"""
 
 from __future__ import annotations
 
-from enum import StrEnum
-from typing import Any
+from typing import Annotated
 
-from pydantic import BaseModel
+from pydantic import Discriminator
 
+from feynman.visuals.schemas import (
+    ClearInstruction,
+    DrawDiagramInstruction,
+    HighlightInstruction,
+    ShowEquationInstruction,
+    ShowGraphInstruction,
+    ShowTextInstruction,
+)
 
-class VisualType(StrEnum):
-    """Types of visual instructions the backend can send."""
+VisualInstruction = Annotated[
+    ClearInstruction
+    | ShowTextInstruction
+    | ShowEquationInstruction
+    | DrawDiagramInstruction
+    | ShowGraphInstruction
+    | HighlightInstruction,
+    Discriminator("type"),
+]
 
-    CLEAR = "clear"
-    DRAW_DIAGRAM = "draw_diagram"
-    SHOW_EQUATION = "show_equation"
-    SHOW_TEXT = "show_text"
-    SHOW_GRAPH = "show_graph"
-    ANIMATE = "animate"
-    HIGHLIGHT = "highlight"
-
-
-class VisualInstruction(BaseModel):
-    """A single visual instruction to be rendered by the frontend."""
-
-    type: VisualType
-    payload: dict[str, Any] = {}
-    duration_ms: int | None = None
+__all__ = [
+    "ClearInstruction",
+    "DrawDiagramInstruction",
+    "HighlightInstruction",
+    "ShowEquationInstruction",
+    "ShowGraphInstruction",
+    "ShowTextInstruction",
+    "VisualInstruction",
+]

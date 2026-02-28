@@ -2,44 +2,668 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://feynman.dev/schemas/visuals",
   "title": "Feynman Visual Instructions",
-  "description": "Protocol for visual instructions sent from backend to frontend",
-  "definitions": {
-    "VisualType": {
-      "type": "string",
-      "enum": [
-        "clear",
-        "draw_diagram",
-        "show_equation",
-        "show_text",
-        "show_graph",
-        "animate",
-        "highlight"
-      ]
-    },
-    "VisualInstruction": {
-      "type": "object",
+  "$defs": {
+    "AxisConfig": {
       "properties": {
-        "type": { "$ref": "#/definitions/VisualType" },
-        "payload": {
-          "type": "object",
-          "additionalProperties": true
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max"
+        }
+      },
+      "title": "AxisConfig",
+      "type": "object"
+    },
+    "ClearInstruction": {
+      "description": "Clear the board \u2014 all elements or a specific target.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
         },
         "duration_ms": {
-          "type": ["integer", "null"]
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "type": {
+          "const": "clear",
+          "default": "clear",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
         }
       },
-      "required": ["type"]
+      "title": "ClearInstruction",
+      "type": "object"
+    },
+    "DataPoint": {
+      "properties": {
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": ["x", "y"],
+      "title": "DataPoint",
+      "type": "object"
+    },
+    "DataSeries": {
+      "properties": {
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "points": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DataPoint"
+          },
+          "title": "Points",
+          "type": "array"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "title": "DataSeries",
+      "type": "object"
+    },
+    "DiagramEdge": {
+      "properties": {
+        "from_id": {
+          "title": "From Id",
+          "type": "string"
+        },
+        "to_id": {
+          "title": "To Id",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "style": {
+          "$ref": "#/$defs/EdgeStyle",
+          "default": "solid"
+        },
+        "directed": {
+          "default": true,
+          "title": "Directed",
+          "type": "boolean"
+        }
+      },
+      "required": ["from_id", "to_id"],
+      "title": "DiagramEdge",
+      "type": "object"
+    },
+    "DiagramNode": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "shape": {
+          "$ref": "#/$defs/NodeShape",
+          "default": "rounded"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": ["id", "label"],
+      "title": "DiagramNode",
+      "type": "object"
+    },
+    "DiagramType": {
+      "enum": [
+        "flowchart",
+        "concept_map",
+        "force_diagram",
+        "tree",
+        "cycle",
+        "comparison",
+        "free_form"
+      ],
+      "title": "DiagramType",
+      "type": "string"
+    },
+    "DrawDiagramInstruction": {
+      "description": "Draw a structured diagram with nodes and edges.\n\nEither `description` (text fallback for unstructured diagrams) or `nodes`\n(structured data for real rendering) must be provided. When both are present,\n`nodes` takes precedence and `description` is used as accessible alt-text.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "type": {
+          "const": "draw_diagram",
+          "default": "draw_diagram",
+          "title": "Type",
+          "type": "string"
+        },
+        "diagram_type": {
+          "$ref": "#/$defs/DiagramType",
+          "default": "free_form"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "nodes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DiagramNode"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "edges": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DiagramEdge"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "progressive": {
+          "default": true,
+          "title": "Progressive",
+          "type": "boolean"
+        }
+      },
+      "title": "DrawDiagramInstruction",
+      "type": "object"
+    },
+    "EdgeStyle": {
+      "enum": ["solid", "dashed", "dotted"],
+      "title": "EdgeStyle",
+      "type": "string"
+    },
+    "EquationAnimation": {
+      "enum": ["none", "fade_in", "term_by_term", "write_on"],
+      "title": "EquationAnimation",
+      "type": "string"
+    },
+    "FunctionDef": {
+      "description": "A mathematical function to plot, e.g. f(x) = x^2 + 2x - 3.",
+      "properties": {
+        "expression": {
+          "title": "Expression",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        },
+        "domain_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain Min"
+        },
+        "domain_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain Max"
+        }
+      },
+      "required": ["expression"],
+      "title": "FunctionDef",
+      "type": "object"
+    },
+    "GraphType": {
+      "enum": ["line", "bar", "scatter", "function"],
+      "title": "GraphType",
+      "type": "string"
+    },
+    "HighlightInstruction": {
+      "description": "Highlight an existing element on the board.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "type": {
+          "const": "highlight",
+          "default": "highlight",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        },
+        "style": {
+          "$ref": "#/$defs/HighlightStyle",
+          "default": "glow"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": ["target_id"],
+      "title": "HighlightInstruction",
+      "type": "object"
+    },
+    "HighlightStyle": {
+      "enum": ["glow", "underline", "box", "pulse"],
+      "title": "HighlightStyle",
+      "type": "string"
+    },
+    "NodeShape": {
+      "enum": ["rectangle", "rounded", "circle", "diamond", "ellipse"],
+      "title": "NodeShape",
+      "type": "string"
+    },
+    "ShowEquationInstruction": {
+      "description": "Display a LaTeX equation with optional animation metadata.\n\nThe `latex` field may contain \\htmlId{id}{content} tags for per-term\nanimation targeting (used by GSAP in the frontend renderer).",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "type": {
+          "const": "show_equation",
+          "default": "show_equation",
+          "title": "Type",
+          "type": "string"
+        },
+        "latex": {
+          "title": "Latex",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "animation": {
+          "$ref": "#/$defs/EquationAnimation",
+          "default": "fade_in"
+        }
+      },
+      "required": ["latex"],
+      "title": "ShowEquationInstruction",
+      "type": "object"
+    },
+    "ShowGraphInstruction": {
+      "description": "Display a graph or chart.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "type": {
+          "const": "show_graph",
+          "default": "show_graph",
+          "title": "Type",
+          "type": "string"
+        },
+        "graph_type": {
+          "$ref": "#/$defs/GraphType"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "x_axis": {
+          "$ref": "#/$defs/AxisConfig",
+          "default": {
+            "label": "",
+            "min": null,
+            "max": null
+          }
+        },
+        "y_axis": {
+          "$ref": "#/$defs/AxisConfig",
+          "default": {
+            "label": "",
+            "min": null,
+            "max": null
+          }
+        },
+        "series": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DataSeries"
+          },
+          "title": "Series",
+          "type": "array"
+        },
+        "functions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FunctionDef"
+          },
+          "title": "Functions",
+          "type": "array"
+        },
+        "animated": {
+          "default": true,
+          "title": "Animated",
+          "type": "boolean"
+        }
+      },
+      "required": ["graph_type"],
+      "title": "ShowGraphInstruction",
+      "type": "object"
+    },
+    "ShowTextInstruction": {
+      "description": "Display text on the classroom screen.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "type": {
+          "const": "show_text",
+          "default": "show_text",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "style": {
+          "$ref": "#/$defs/TextStyle",
+          "default": "default"
+        }
+      },
+      "required": ["text"],
+      "title": "ShowTextInstruction",
+      "type": "object"
+    },
+    "TextStyle": {
+      "enum": ["default", "definition", "key_point", "example"],
+      "title": "TextStyle",
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "VisualInstruction": {
+      "discriminator": {
+        "mapping": {
+          "clear": "#/$defs/ClearInstruction",
+          "draw_diagram": "#/$defs/DrawDiagramInstruction",
+          "highlight": "#/$defs/HighlightInstruction",
+          "show_equation": "#/$defs/ShowEquationInstruction",
+          "show_graph": "#/$defs/ShowGraphInstruction",
+          "show_text": "#/$defs/ShowTextInstruction"
+        },
+        "propertyName": "type"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ClearInstruction"
+        },
+        {
+          "$ref": "#/$defs/ShowTextInstruction"
+        },
+        {
+          "$ref": "#/$defs/ShowEquationInstruction"
+        },
+        {
+          "$ref": "#/$defs/DrawDiagramInstruction"
+        },
+        {
+          "$ref": "#/$defs/ShowGraphInstruction"
+        },
+        {
+          "$ref": "#/$defs/HighlightInstruction"
+        }
+      ]
     },
     "VisualFrame": {
-      "type": "object",
+      "description": "A batch of visual instructions (for future batching support).",
       "properties": {
-        "sequence": { "type": "integer" },
+        "sequence": {
+          "title": "Sequence",
+          "type": "integer"
+        },
         "instructions": {
-          "type": "array",
-          "items": { "$ref": "#/definitions/VisualInstruction" }
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "clear": "#/$defs/ClearInstruction",
+                "draw_diagram": "#/$defs/DrawDiagramInstruction",
+                "highlight": "#/$defs/HighlightInstruction",
+                "show_equation": "#/$defs/ShowEquationInstruction",
+                "show_graph": "#/$defs/ShowGraphInstruction",
+                "show_text": "#/$defs/ShowTextInstruction"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ClearInstruction"
+              },
+              {
+                "$ref": "#/$defs/ShowTextInstruction"
+              },
+              {
+                "$ref": "#/$defs/ShowEquationInstruction"
+              },
+              {
+                "$ref": "#/$defs/DrawDiagramInstruction"
+              },
+              {
+                "$ref": "#/$defs/ShowGraphInstruction"
+              },
+              {
+                "$ref": "#/$defs/HighlightInstruction"
+              }
+            ]
+          },
+          "title": "Instructions",
+          "type": "array"
         }
       },
-      "required": ["sequence", "instructions"]
+      "required": ["sequence", "instructions"],
+      "title": "VisualFrame",
+      "type": "object"
     }
   }
 }

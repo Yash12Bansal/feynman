@@ -1,9 +1,31 @@
+import { useState, useEffect } from "react";
 import { useSession } from "./hooks/useSession";
 import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
+import { DevHarness } from "./screens/DevHarness";
 import { WaitingScreen } from "./screens/WaitingScreen";
 
+function useHash(): string {
+  const [hash, setHash] = useState(window.location.hash);
+  useEffect(() => {
+    const onHashChange = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+  return hash;
+}
+
 export function App() {
+  const hash = useHash();
+
+  if (hash === "#/dev") {
+    return <DevHarness />;
+  }
+
+  return <MainApp />;
+}
+
+function MainApp() {
   const { token, livekitUrl, status, error, startSession } = useSession();
 
   if (status === "connected" && token && livekitUrl) {

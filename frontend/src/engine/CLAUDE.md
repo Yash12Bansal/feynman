@@ -1,24 +1,62 @@
 # Visual Rendering Engine
 
-Renders visual instructions from the backend onto the classroom screen.
+React component architecture for rendering visual instructions on the classroom screen.
 
-## How It Works
+## Architecture (Phase 2+)
 
-1. Backend sends `VisualFrame` messages over WebSocket
-2. Each frame contains a list of `VisualInstruction` objects
-3. `renderer.ts` interprets each instruction and draws on the Canvas
-4. `Canvas.tsx` manages the HTML5 Canvas element and resize handling
+The engine uses **HTML-first rendering** — HTML divs for layout/cards, with SVG and Canvas embedded inside specific cards that need them.
 
-## Supported Instructions
+```
+<VisualScene instructions={[...]}>
+  <ElementRegistryProvider>
+    <div.scene-viewport>
+      <div.scene-content>
+        <VisualCard> → <InstructionSwitch> → <TextContent>
+        <VisualCard> → <InstructionSwitch> → <EquationContent>
+        <VisualCard> → <InstructionSwitch> → <DiagramContent>
+        ...
+      </div>
+    </div>
+    <HighlightOverlay />  (headless — applies CSS to target card)
+  </ElementRegistryProvider>
+</VisualScene>
+```
 
-- `clear` — wipe the canvas
-- `show_text` — render text
-- `draw_diagram` — structured diagrams (planned)
-- `show_equation` — LaTeX equations (planned)
-- `show_graph` — data visualizations (planned)
-- `animate` — animation sequences (planned)
-- `highlight` — highlight existing elements (planned)
+## File Map
 
-## Future
+| File                           | Purpose                                                               |
+| ------------------------------ | --------------------------------------------------------------------- |
+| `VisualScene.tsx`              | Root component. Separates elements from effects, manages auto-scroll. |
+| `VisualScene.css`              | Scene/card/highlight styles. CSS custom properties from theme.        |
+| `VisualCard.tsx`               | Card wrapper with accent stripe. Registers in element registry.       |
+| `InstructionSwitch.tsx`        | Dispatches `instruction.type` to content component.                   |
+| `elements.ts`                  | Element registry (React Context + `useRef<Map>`). No re-renders.      |
+| `theme.ts`                     | Design tokens (colors, layout, fonts) + CSS variable injection.       |
+| `content/TextContent.tsx`      | `show_text` — title + body with style variants.                       |
+| `content/EquationContent.tsx`  | `show_equation` — monospace placeholder (KaTeX in Phase 3).           |
+| `content/DiagramContent.tsx`   | `draw_diagram` — placeholder (SVG in Phase 5).                        |
+| `content/GraphContent.tsx`     | `show_graph` — placeholder (Chart.js in Phase 6).                     |
+| `content/HighlightOverlay.tsx` | Headless. Applies CSS highlight class to target element via registry. |
 
-The engine will evolve from Canvas 2D to WebGL for richer animations.
+## Deprecated Files
+
+| File          | Status                                                                   |
+| ------------- | ------------------------------------------------------------------------ |
+| `Canvas.tsx`  | Replaced by `VisualScene.tsx`. Kept for rollback until Phase 3 verified. |
+| `renderer.ts` | Replaced. Design token source during migration — now use `theme.ts`.     |
+
+## Key Patterns
+
+- **Element registry**: VisualCard registers on mount, unregisters on unmount. HighlightOverlay and future GSAP animations look up targets by ID.
+- **Incremental rendering**: React reconciliation handles it. Array grows → new cards append. Existing DOM untouched.
+- **`clear` instruction**: Handled in `useVisualChannel` (data layer), not in the renderer. Resets or filters the instructions array.
+- **Highlight**: CSS-based via `data-highlight` attribute. Animations defined in `VisualScene.css`.
+- **Theme**: Single source of truth in `theme.ts`. Injected as CSS custom properties on the viewport.
+
+## Adding a New Visual Type
+
+1. Add TypeScript types in `types/visuals.ts`
+2. Create `content/FooContent.tsx`
+3. Add case to `InstructionSwitch.tsx`
+4. Add accent color to `TYPE_ACCENT` in `theme.ts`
+5. Add `data-type` CSS rules in `VisualScene.css` if needed

@@ -1,7 +1,10 @@
-"""Backend↔Frontend visual contract.
+"""Backend-Frontend visual protocol.
 
-Defines the protocol for streaming visual instructions from the backend
-to the frontend. The frontend renders these instructions on the classroom screen.
+Defines the framing for streaming visual instructions from the backend
+to the frontend over the LiveKit data channel (topic="visuals").
+
+Currently, individual instructions are published directly (not batched
+into frames). The VisualFrame type is defined for future batching support.
 """
 
 from __future__ import annotations
@@ -12,7 +15,7 @@ from feynman.visuals.instructions import VisualInstruction
 
 
 class VisualFrame(BaseModel):
-    """A frame of visual instructions sent over WebSocket."""
+    """A batch of visual instructions (for future batching support)."""
 
     sequence: int
     instructions: list[VisualInstruction]
