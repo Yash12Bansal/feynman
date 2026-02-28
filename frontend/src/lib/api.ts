@@ -14,6 +14,7 @@ export interface CreateSessionResponse {
   session_id: string;
   token: string;
   livekit_url: string;
+  room_name: string;
 }
 
 export async function createSession(): Promise<CreateSessionResponse> {
