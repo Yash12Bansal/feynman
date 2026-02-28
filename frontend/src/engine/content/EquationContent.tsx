@@ -4,6 +4,7 @@ import "katex/dist/katex.min.css";
 import gsap from "gsap";
 import type { ShowEquationInstruction } from "../../types/visuals";
 import { COLORS } from "../theme";
+import { useSyncManager } from "../useSyncManager";
 
 export function EquationContent({
   instruction,
@@ -12,6 +13,8 @@ export function EquationContent({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const syncManager = useSyncManager();
 
   // Render KaTeX on mount / when latex changes
   useEffect(() => {
@@ -40,8 +43,10 @@ export function EquationContent({
     const animation = instruction.animation ?? "fade_in";
     const durationSec = (instruction.duration_ms ?? 800) / 1000;
 
-    // Kill any previous animation
+    // Kill any previous animation and cleanup sync registrations
     timelineRef.current?.kill();
+    cleanupRef.current?.();
+    cleanupRef.current = null;
 
     if (animation === "none") return;
 
@@ -60,13 +65,47 @@ export function EquationContent({
           tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: durationSec });
           break;
         }
-        const stagger = durationSec / terms.length;
         gsap.set(terms, { opacity: 0 });
-        tl.to(terms, {
-          opacity: 1,
-          duration: 0.3,
-          stagger,
-        });
+
+        if (
+          instruction.sync_mode === "term_sync" &&
+          instruction.term_hints &&
+          syncManager
+        ) {
+          // SYNC MODE: terms reveal when trigger words are spoken
+          const syncId = instruction.element_id ?? `eq-${Date.now()}`;
+          const callbacks = new Map<string, () => void>();
+          terms.forEach((term) => {
+            callbacks.set(term.id, () => {
+              gsap.to(term, {
+                opacity: 1,
+                duration: 0.25,
+                ease: "power2.out",
+              });
+            });
+          });
+          const unregister = syncManager.register(
+            syncId,
+            instruction.term_hints,
+            callbacks,
+          );
+          // Fallback: auto-reveal after duration if sync doesn't match all terms
+          const fallbackTimer = window.setTimeout(() => {
+            syncManager.revealAll(syncId);
+          }, instruction.duration_ms ?? 8000);
+          cleanupRef.current = () => {
+            unregister();
+            clearTimeout(fallbackTimer);
+          };
+        } else {
+          // NON-SYNC MODE: auto-stagger (existing behavior)
+          const stagger = durationSec / terms.length;
+          tl.to(terms, {
+            opacity: 1,
+            duration: 0.3,
+            stagger,
+          });
+        }
         break;
       }
 
@@ -81,8 +120,18 @@ export function EquationContent({
 
     return () => {
       tl.kill();
+      cleanupRef.current?.();
+      cleanupRef.current = null;
     };
-  }, [instruction.latex, instruction.animation, instruction.duration_ms]);
+  }, [
+    instruction.latex,
+    instruction.animation,
+    instruction.duration_ms,
+    instruction.sync_mode,
+    instruction.term_hints,
+    instruction.element_id,
+    syncManager,
+  ]);
 
   return (
     <div>

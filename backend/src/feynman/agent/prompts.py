@@ -31,6 +31,27 @@ You have visual tools available — use them actively:
 Keep your speaking natural, warm, and engaging. You're talking to real students.
 """
 
+VISUAL_SYNC_INSTRUCTIONS = """\
+
+## Visual-Voice Synchronization
+
+Structure your speech so visuals appear at natural moments:
+
+1. **Lead-in before every visual**: Say something like "Let me show you..." or "Look at this \
+equation..." BEFORE calling a visual tool. The visual appears after your sentence finishes. \
+Never call a visual tool as your very first action without speaking first.
+
+2. **Term-by-term equations**: When showing an equation with animation="term_by_term", provide \
+term_hints_json mapping each \\htmlId term to the words you will say next. Then speak naturally \
+about each term in order. The terms reveal as you say each word.
+
+3. **One visual per thought**: Don't batch multiple visual tools. Show one thing, talk about it, \
+then show the next. Each visual deserves spoken context.
+
+4. **Clear board with intent**: clear_board happens immediately. Use it between major topic \
+transitions, not mid-explanation.
+"""
+
 STATE_TOOL_INSTRUCTIONS = """\
 
 ## Lesson Flow Tools
@@ -59,7 +80,7 @@ def build_teaching_prompt(
 
     Called after every state change to keep the LLM's context fresh.
     """
-    parts = [TEACHING_SYSTEM_PROMPT]
+    parts = [TEACHING_SYSTEM_PROMPT, VISUAL_SYNC_INSTRUCTIONS]
 
     if lesson_plan is None:
         parts.append(

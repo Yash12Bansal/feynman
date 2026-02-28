@@ -41,7 +41,14 @@ export type GraphType = "line" | "bar" | "scatter" | "function";
 
 export type HighlightStyle = "glow" | "underline" | "box" | "pulse";
 
+export type SyncMode = "immediate" | "on_playout" | "term_sync";
+
 // ── Sub-models ────────────────────────────────────────────────
+
+export interface TermSyncHint {
+  term_id: string;
+  trigger_words: string[];
+}
 
 export interface DiagramNode {
   id: string;
@@ -95,6 +102,8 @@ export interface EquationStep {
 interface BaseInstruction {
   element_id?: string;
   duration_ms?: number;
+  sync_mode?: SyncMode;
+  term_hints?: TermSyncHint[];
 }
 
 export interface ClearInstruction extends BaseInstruction {

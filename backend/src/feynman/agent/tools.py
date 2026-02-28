@@ -29,13 +29,26 @@ from feynman.visuals.schemas import (
     ShowGraphInstruction,
     ShowTextInstruction,
     StepEquationInstruction,
+    SyncMode,
+    TermSyncHint,
     _BaseInstruction,
 )
 
 logger = structlog.get_logger()
 
 
-async def _publish_visual(ctx: RunContext, instruction: _BaseInstruction) -> None:
+async def _publish_visual(
+    ctx: RunContext,
+    instruction: _BaseInstruction,
+    *,
+    wait_for_speech: bool = True,
+) -> None:
+    if wait_for_speech:
+        try:
+            await ctx.wait_for_playout()
+        except Exception:
+            logger.warning("visual.playout_wait_failed", type=instruction.type, exc_info=True)
+
     room = ctx.session.room_io.room
     data = json.dumps(instruction.model_dump(exclude_none=True))
     await room.local_participant.publish_data(data, reliable=True, topic="visuals")
@@ -57,7 +70,11 @@ async def show_text(ctx: RunContext, text: str, title: str = "") -> str:
 
 @function_tool()
 async def show_equation(
-    ctx: RunContext, latex: str, label: str = "", animation: str = "fade_in"
+    ctx: RunContext,
+    latex: str,
+    label: str = "",
+    animation: str = "fade_in",
+    term_hints_json: str = "",
 ) -> str:
     """Display a math equation on the classroom screen. Use LaTeX notation.
 
@@ -66,9 +83,25 @@ async def show_equation(
             Use \\htmlId{term-1}{content} to tag individual terms for term_by_term animation.
         label: Optional label (e.g., "Newton's Second Law").
         animation: How the equation appears. Options: "none", "fade_in" (default), "term_by_term", "write_on".
+        term_hints_json: JSON array mapping term IDs to trigger words for voice sync.
+            Example: [{"term_id": "term-F", "trigger_words": ["force", "F"]},
+                       {"term_id": "term-m", "trigger_words": ["mass", "m"]}]
+            When provided with animation="term_by_term", terms reveal as you speak.
     """
     eq_animation = EquationAnimation(animation)
-    instruction = ShowEquationInstruction(latex=latex, label=label, animation=eq_animation)
+    term_hints = None
+    sync_mode = SyncMode.ON_PLAYOUT
+    if term_hints_json:
+        term_hints = [TermSyncHint(**h) for h in json.loads(term_hints_json)]
+        if eq_animation == EquationAnimation.TERM_BY_TERM:
+            sync_mode = SyncMode.TERM_SYNC
+    instruction = ShowEquationInstruction(
+        latex=latex,
+        label=label,
+        animation=eq_animation,
+        sync_mode=sync_mode,
+        term_hints=term_hints,
+    )
     await _publish_visual(ctx, instruction)
     return f"Displayed equation: {latex}"
 
@@ -199,8 +232,8 @@ async def show_graph(
 @function_tool()
 async def clear_board(ctx: RunContext) -> str:
     """Clear everything from the classroom screen to start fresh."""
-    instruction = ClearInstruction()
-    await _publish_visual(ctx, instruction)
+    instruction = ClearInstruction(sync_mode=SyncMode.IMMEDIATE)
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
     return "Board cleared"
 
 

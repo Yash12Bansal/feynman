@@ -65,6 +65,25 @@
           "default": null,
           "title": "Duration Ms"
         },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
         "type": {
           "const": "clear",
           "default": "clear",
@@ -224,6 +243,25 @@
           "default": null,
           "title": "Duration Ms"
         },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
         "type": {
           "const": "draw_diagram",
           "default": "draw_diagram",
@@ -278,6 +316,31 @@
       "enum": ["none", "fade_in", "term_by_term", "write_on"],
       "title": "EquationAnimation",
       "type": "string"
+    },
+    "EquationStep": {
+      "description": "A single step in a multi-step equation solve.",
+      "properties": {
+        "latex": {
+          "title": "Latex",
+          "type": "string"
+        },
+        "annotation": {
+          "default": "",
+          "title": "Annotation",
+          "type": "string"
+        },
+        "highlight_terms": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Highlight Terms",
+          "type": "array"
+        }
+      },
+      "required": ["latex"],
+      "title": "EquationStep",
+      "type": "object"
     },
     "FunctionDef": {
       "description": "A mathematical function to plot, e.g. f(x) = x^2 + 2x - 3.",
@@ -357,6 +420,25 @@
           "default": null,
           "title": "Duration Ms"
         },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
         "type": {
           "const": "highlight",
           "default": "highlight",
@@ -418,6 +500,25 @@
           "default": null,
           "title": "Duration Ms"
         },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
         "type": {
           "const": "show_equation",
           "default": "show_equation",
@@ -468,6 +569,25 @@
           ],
           "default": null,
           "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
         },
         "type": {
           "const": "show_graph",
@@ -552,6 +672,25 @@
           "default": null,
           "title": "Duration Ms"
         },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
         "type": {
           "const": "show_text",
           "default": "show_text",
@@ -574,31 +713,6 @@
       },
       "required": ["text"],
       "title": "ShowTextInstruction",
-      "type": "object"
-    },
-    "EquationStep": {
-      "description": "A single step in a multi-step equation solve.",
-      "properties": {
-        "latex": {
-          "title": "Latex",
-          "type": "string"
-        },
-        "annotation": {
-          "default": "",
-          "title": "Annotation",
-          "type": "string"
-        },
-        "highlight_terms": {
-          "default": [],
-          "items": {
-            "type": "string"
-          },
-          "title": "Highlight Terms",
-          "type": "array"
-        }
-      },
-      "required": ["latex"],
-      "title": "EquationStep",
       "type": "object"
     },
     "StepEquationInstruction": {
@@ -628,6 +742,25 @@
           "default": null,
           "title": "Duration Ms"
         },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
         "type": {
           "const": "step_equation",
           "default": "step_equation",
@@ -643,13 +776,36 @@
           "items": {
             "$ref": "#/$defs/EquationStep"
           },
-          "minItems": 1,
           "title": "Steps",
           "type": "array"
         }
       },
       "required": ["steps"],
       "title": "StepEquationInstruction",
+      "type": "object"
+    },
+    "SyncMode": {
+      "enum": ["immediate", "on_playout", "term_sync"],
+      "title": "SyncMode",
+      "type": "string"
+    },
+    "TermSyncHint": {
+      "description": "Maps a tagged equation term to the spoken words that trigger its reveal.",
+      "properties": {
+        "term_id": {
+          "title": "Term Id",
+          "type": "string"
+        },
+        "trigger_words": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trigger Words",
+          "type": "array"
+        }
+      },
+      "required": ["term_id", "trigger_words"],
+      "title": "TermSyncHint",
       "type": "object"
     },
     "TextStyle": {

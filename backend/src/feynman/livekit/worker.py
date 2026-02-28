@@ -167,6 +167,7 @@ async def entrypoint(ctx: JobContext) -> None:
         tts=create_tts(),
         vad=create_vad(),
         userdata=teaching_ctx,
+        use_tts_aligned_transcript=True,
     )
 
     await session.start(agent=agent, room=ctx.room)

@@ -76,6 +76,12 @@ class HighlightStyle(StrEnum):
     PULSE = "pulse"
 
 
+class SyncMode(StrEnum):
+    IMMEDIATE = "immediate"
+    ON_PLAYOUT = "on_playout"
+    TERM_SYNC = "term_sync"
+
+
 # ──────────────────────────────────────────────
 # Sub-models (used inside instruction payloads)
 # ──────────────────────────────────────────────
@@ -118,6 +124,13 @@ class FunctionDef(BaseModel):
     domain_max: float | None = None
 
 
+class TermSyncHint(BaseModel):
+    """Maps a tagged equation term to the spoken words that trigger its reveal."""
+
+    term_id: str
+    trigger_words: list[str]
+
+
 class AxisConfig(BaseModel):
     label: str = ""
     min: float | None = None
@@ -134,6 +147,8 @@ class _BaseInstruction(BaseModel):
 
     element_id: str | None = None
     duration_ms: int | None = None
+    sync_mode: SyncMode = SyncMode.ON_PLAYOUT
+    term_hints: list[TermSyncHint] | None = None
 
 
 # ──────────────────────────────────────────────

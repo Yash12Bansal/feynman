@@ -306,10 +306,10 @@ class TestSerialization:
         assert parsed.edges[1].style == EdgeStyle.DASHED
 
     def test_clear_minimal_json(self) -> None:
-        """ClearInstruction should produce minimal JSON."""
+        """ClearInstruction should produce minimal JSON (type + sync_mode default)."""
         instr = ClearInstruction()
         data = instr.model_dump(exclude_none=True)
-        assert data == {"type": "clear"}
+        assert data == {"type": "clear", "sync_mode": "on_playout"}
 
     def test_step_equation_roundtrip(self) -> None:
         original = StepEquationInstruction(
