@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-backend dev-frontend test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset
+.PHONY: setup dev dev-backend dev-frontend dev-worker test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset
 
 # =============================================================================
 # Feynman — Development Commands
@@ -24,6 +24,9 @@ dev-backend:
 
 dev-frontend:
 	cd frontend && pnpm dev
+
+dev-worker:
+	cd backend && uv run python -m feynman.livekit.worker dev
 
 # --- Testing ---
 test: test-backend test-frontend

@@ -27,11 +27,22 @@ def setup_logging(log_level: str = "DEBUG") -> None:
         cache_logger_on_first_use=True,
     )
 
+    # foreign_pre_chain handles log records NOT originating from structlog
+    # (e.g. LiveKit's subprocess log forwarding sends plain-string messages).
+    # Without this, ProcessorFormatter crashes on record.msg.copy() because
+    # it expects a dict but gets a string.
+    foreign_pre_chain: list[structlog.types.Processor] = [
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
+        structlog.processors.TimeStamper(fmt="iso"),
+    ]
+
     formatter = structlog.stdlib.ProcessorFormatter(
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
             structlog.dev.ConsoleRenderer(),
         ],
+        foreign_pre_chain=foreign_pre_chain,
     )
 
     handler = logging.StreamHandler(sys.stdout)

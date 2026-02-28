@@ -1,6 +1,9 @@
 import { Canvas } from "../engine/Canvas";
+import { useVisualChannel } from "../livekit/useVisualChannel";
 
 export function ClassroomScreen() {
+  const { instructions } = useVisualChannel();
+
   return (
     <div
       style={{
@@ -11,7 +14,7 @@ export function ClassroomScreen() {
         justifyContent: "center",
       }}
     >
-      <Canvas />
+      <Canvas instructions={instructions} />
     </div>
   );
 }
