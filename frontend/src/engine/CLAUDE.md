@@ -24,19 +24,21 @@ The engine uses **HTML-first rendering** — HTML divs for layout/cards, with SV
 
 ## File Map
 
-| File                           | Purpose                                                               |
-| ------------------------------ | --------------------------------------------------------------------- |
-| `VisualScene.tsx`              | Root component. Separates elements from effects, manages auto-scroll. |
-| `VisualScene.css`              | Scene/card/highlight styles. CSS custom properties from theme.        |
-| `VisualCard.tsx`               | Card wrapper with accent stripe. Registers in element registry.       |
-| `InstructionSwitch.tsx`        | Dispatches `instruction.type` to content component.                   |
-| `elements.ts`                  | Element registry (React Context + `useRef<Map>`). No re-renders.      |
-| `theme.ts`                     | Design tokens (colors, layout, fonts) + CSS variable injection.       |
-| `content/TextContent.tsx`      | `show_text` — title + body with style variants.                       |
-| `content/EquationContent.tsx`  | `show_equation` — monospace placeholder (KaTeX in Phase 3).           |
-| `content/DiagramContent.tsx`   | `draw_diagram` — placeholder (SVG in Phase 5).                        |
-| `content/GraphContent.tsx`     | `show_graph` — placeholder (Chart.js in Phase 6).                     |
-| `content/HighlightOverlay.tsx` | Headless. Applies CSS highlight class to target element via registry. |
+| File                              | Purpose                                                               |
+| --------------------------------- | --------------------------------------------------------------------- |
+| `VisualScene.tsx`                 | Root component. Separates elements from effects, manages auto-scroll. |
+| `VisualScene.css`                 | Scene/card/highlight styles. CSS custom properties from theme.        |
+| `VisualCard.tsx`                  | Card wrapper with accent stripe. Registers in element registry.       |
+| `InstructionSwitch.tsx`           | Dispatches `instruction.type` to content component.                   |
+| `elements.ts`                     | Element registry (React Context + `useRef<Map>`). No re-renders.      |
+| `theme.ts`                        | Design tokens (colors, layout, fonts) + CSS variable injection.       |
+| `content/TextContent.tsx`         | `show_text` — title + body with style variants.                       |
+| `content/EquationContent.tsx`     | `show_equation` — KaTeX rendering + GSAP animation.                   |
+| `content/StepEquationContent.tsx` | `step_equation` — multi-step equation solve with progressive reveal.  |
+| `content/DiagramContent.tsx`      | `draw_diagram` — SVG renderer with auto-layout + GSAP animation.      |
+| `layout/diagram-layout.ts`        | Pure layout engine (dagre, circular, radial, two-column). No React.   |
+| `content/GraphContent.tsx`        | `show_graph` — placeholder (Chart.js in Phase 6).                     |
+| `content/HighlightOverlay.tsx`    | Headless. Applies CSS highlight class to target element via registry. |
 
 ## Deprecated Files
 

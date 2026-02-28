@@ -396,3 +396,63 @@ class TestEdgeCases:
         assert DiagramType.FORCE_DIAGRAM == "force_diagram"
         assert GraphType.FUNCTION == "function"
         assert HighlightStyle.GLOW == "glow"
+
+
+# ── Draw diagram tool JSON parsing ────────────────────────────
+
+
+class TestDrawDiagramToolParsing:
+    """Simulates the JSON parsing that draw_diagram tool does."""
+
+    def test_nodes_json_parsing(self) -> None:
+        nodes_json = (
+            '[{"id": "a", "label": "Start", "shape": "circle"}, {"id": "b", "label": "Process"}]'
+        )
+        raw = json.loads(nodes_json)
+        nodes = [DiagramNode(**n) for n in raw]
+        assert len(nodes) == 2
+        assert nodes[0].shape == NodeShape.CIRCLE
+        assert nodes[1].shape == NodeShape.ROUNDED  # default
+
+    def test_edges_json_parsing(self) -> None:
+        edges_json = '[{"from_id": "a", "to_id": "b", "label": "next"}, {"from_id": "b", "to_id": "c", "style": "dashed", "directed": false}]'
+        raw = json.loads(edges_json)
+        edges = [DiagramEdge(**e) for e in raw]
+        assert len(edges) == 2
+        assert edges[0].directed is True  # default
+        assert edges[1].style == EdgeStyle.DASHED
+        assert edges[1].directed is False
+
+    def test_full_instruction_from_tool_params(self) -> None:
+        """Simulate what draw_diagram tool does: parse JSON strings into a valid instruction."""
+        nodes_json = '[{"id": "hub", "label": "Hub", "shape": "circle", "color": "#60a5fa"}, {"id": "s1", "label": "Spoke 1"}, {"id": "s2", "label": "Spoke 2"}]'
+        edges_json = '[{"from_id": "hub", "to_id": "s1", "label": "link"}, {"from_id": "hub", "to_id": "s2"}]'
+
+        nodes = [DiagramNode(**n) for n in json.loads(nodes_json)]
+        edges = [DiagramEdge(**e) for e in json.loads(edges_json)]
+        dtype = DiagramType("force_diagram")
+
+        instr = DrawDiagramInstruction(
+            diagram_type=dtype,
+            title="Network",
+            description="A hub-and-spoke network.",
+            nodes=nodes,
+            edges=edges,
+            progressive=True,
+        )
+        assert instr.type == "draw_diagram"
+        assert instr.diagram_type == DiagramType.FORCE_DIAGRAM
+        assert len(instr.nodes) == 3
+        assert len(instr.edges) == 2
+        assert instr.nodes[0].color == "#60a5fa"
+        assert instr.edges[0].label == "link"
+        assert instr.progressive is True
+
+    def test_empty_json_strings_produce_description_only(self) -> None:
+        """When no nodes/edges JSON provided, falls back to description-only."""
+        instr = DrawDiagramInstruction(
+            description="A conceptual diagram of photosynthesis.",
+        )
+        assert instr.nodes == []
+        assert instr.edges == []
+        assert instr.description == "A conceptual diagram of photosynthesis."

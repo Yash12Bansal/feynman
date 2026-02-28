@@ -7,6 +7,9 @@ from livekit.agents import RunContext, function_tool
 
 from feynman.visuals.schemas import (
     ClearInstruction,
+    DiagramEdge,
+    DiagramNode,
+    DiagramType,
     DrawDiagramInstruction,
     EquationAnimation,
     EquationStep,
@@ -58,15 +61,49 @@ async def show_equation(
 
 
 @function_tool()
-async def draw_diagram(ctx: RunContext, description: str) -> str:
-    """Draw a diagram on the classroom screen to illustrate a concept.
+async def draw_diagram(
+    ctx: RunContext,
+    diagram_type: str = "free_form",
+    title: str = "",
+    description: str = "",
+    nodes_json: str = "",
+    edges_json: str = "",
+    progressive: bool = True,
+) -> str:
+    """Draw a structured diagram on the classroom screen — flowcharts, force diagrams, concept maps, etc.
 
     Args:
-        description: What the diagram shows (e.g., "Free body diagram of a block on an incline").
+        diagram_type: Layout style. Options: "flowchart", "concept_map", "force_diagram", "tree", "cycle", "comparison", "free_form" (default).
+        title: Optional heading displayed above the diagram.
+        description: Text description. Used as alt-text when nodes are provided, or as the primary content when they are not.
+        nodes_json: A JSON array of node objects. Each node has:
+            - "id" (required): Unique identifier.
+            - "label" (required): Display text.
+            - "shape" (optional): "rectangle", "rounded" (default), "circle", "diamond", "ellipse".
+            - "color" (optional): Hex color for the node (e.g., "#60a5fa").
+            Example: [{"id": "a", "label": "Start", "shape": "circle"}, {"id": "b", "label": "Process"}]
+        edges_json: A JSON array of edge objects. Each edge has:
+            - "from_id" (required): Source node ID.
+            - "to_id" (required): Target node ID.
+            - "label" (optional): Edge label text.
+            - "style" (optional): "solid" (default), "dashed", "dotted".
+            - "directed" (optional): true (default) for arrow, false for plain line.
+            Example: [{"from_id": "a", "to_id": "b", "label": "next"}]
+        progressive: Whether to animate nodes and edges appearing progressively (default true).
     """
-    instruction = DrawDiagramInstruction(description=description)
+    nodes = [DiagramNode(**n) for n in json.loads(nodes_json)] if nodes_json else []
+    edges = [DiagramEdge(**e) for e in json.loads(edges_json)] if edges_json else []
+    dtype = DiagramType(diagram_type)
+    instruction = DrawDiagramInstruction(
+        diagram_type=dtype,
+        title=title,
+        description=description,
+        nodes=nodes,
+        edges=edges,
+        progressive=progressive,
+    )
     await _publish_visual(ctx, instruction)
-    return f"Drew diagram: {description}"
+    return f"Drew diagram: {title or description or diagram_type}"
 
 
 @function_tool()

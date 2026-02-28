@@ -70,6 +70,65 @@ export const FIXTURE_DRAW_DIAGRAM: VisualInstruction = {
   progressive: true,
 };
 
+export const FIXTURE_DRAW_DIAGRAM_FLOWCHART: VisualInstruction = {
+  type: "draw_diagram",
+  element_id: "algorithm-flowchart",
+  diagram_type: "flowchart",
+  title: "Is the Number Even or Odd?",
+  nodes: [
+    { id: "start", label: "Start", shape: "circle", color: "#4ade80" },
+    { id: "input", label: "Read N", shape: "rounded" },
+    { id: "check", label: "N mod 2 = 0?", shape: "diamond", color: "#fbbf24" },
+    { id: "even", label: "Print Even", shape: "rounded", color: "#60a5fa" },
+    { id: "odd", label: "Print Odd", shape: "rounded", color: "#ef4444" },
+    { id: "end", label: "End", shape: "circle", color: "#4ade80" },
+  ],
+  edges: [
+    { from_id: "start", to_id: "input", directed: true },
+    { from_id: "input", to_id: "check", directed: true },
+    { from_id: "check", to_id: "even", label: "Yes", directed: true },
+    { from_id: "check", to_id: "odd", label: "No", directed: true },
+    { from_id: "even", to_id: "end", directed: true },
+    { from_id: "odd", to_id: "end", directed: true },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_DIAGRAM_CYCLE: VisualInstruction = {
+  type: "draw_diagram",
+  element_id: "water-cycle",
+  diagram_type: "cycle",
+  title: "The Water Cycle",
+  description:
+    "Water moves through evaporation, condensation, precipitation, and collection in a continuous loop.",
+  nodes: [
+    { id: "evap", label: "Evaporation", shape: "rounded", color: "#60a5fa" },
+    { id: "cond", label: "Condensation", shape: "rounded", color: "#a78bfa" },
+    {
+      id: "precip",
+      label: "Precipitation",
+      shape: "rounded",
+      color: "#4ade80",
+    },
+    { id: "collect", label: "Collection", shape: "rounded", color: "#fbbf24" },
+  ],
+  edges: [
+    { from_id: "evap", to_id: "cond", label: "rises", directed: true },
+    { from_id: "cond", to_id: "precip", label: "cools", directed: true },
+    { from_id: "precip", to_id: "collect", label: "falls", directed: true },
+    { from_id: "collect", to_id: "evap", label: "heats", directed: true },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_DIAGRAM_DESCRIPTION_ONLY: VisualInstruction = {
+  type: "draw_diagram",
+  element_id: "cell-diagram",
+  diagram_type: "free_form",
+  description:
+    "A typical animal cell showing the nucleus at the center, surrounded by cytoplasm containing mitochondria, endoplasmic reticulum, and Golgi apparatus, all enclosed by the cell membrane.",
+};
+
 export const FIXTURE_SHOW_GRAPH: VisualInstruction = {
   type: "show_graph",
   element_id: "projectile-motion",
@@ -136,7 +195,12 @@ export const FIXTURES_BY_TYPE: Record<string, VisualInstruction[]> = {
   show_text: [FIXTURE_SHOW_TEXT, FIXTURE_SHOW_TEXT_KEY_POINT],
   show_equation: [FIXTURE_SHOW_EQUATION, FIXTURE_SHOW_EQUATION_COMPLEX],
   step_equation: [FIXTURE_STEP_EQUATION],
-  draw_diagram: [FIXTURE_DRAW_DIAGRAM],
+  draw_diagram: [
+    FIXTURE_DRAW_DIAGRAM,
+    FIXTURE_DRAW_DIAGRAM_FLOWCHART,
+    FIXTURE_DRAW_DIAGRAM_CYCLE,
+    FIXTURE_DRAW_DIAGRAM_DESCRIPTION_ONLY,
+  ],
   show_graph: [FIXTURE_SHOW_GRAPH],
   highlight: [FIXTURE_HIGHLIGHT],
   clear: [FIXTURE_CLEAR],
