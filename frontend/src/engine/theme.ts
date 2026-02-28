@@ -41,6 +41,7 @@ export const FONTS = {
 export const TYPE_ACCENT: Record<string, string> = {
   show_text: COLORS.accentBlue,
   show_equation: COLORS.accentAmber,
+  step_equation: COLORS.accentAmber,
   draw_diagram: COLORS.accentGreen,
   show_graph: COLORS.accentPurple,
 };

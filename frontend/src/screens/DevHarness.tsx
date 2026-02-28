@@ -6,6 +6,7 @@ import { ALL_FIXTURES, FIXTURES_BY_TYPE } from "./dev-fixtures";
 const INSTRUCTION_TYPES: VisualType[] = [
   "show_text",
   "show_equation",
+  "step_equation",
   "draw_diagram",
   "show_graph",
   "highlight",
@@ -14,6 +15,7 @@ const INSTRUCTION_TYPES: VisualType[] = [
 const TYPE_LABELS: Record<VisualType, string> = {
   show_text: "Text",
   show_equation: "Equation",
+  step_equation: "Step Equation",
   draw_diagram: "Diagram",
   show_graph: "Graph",
   highlight: "Highlight",
@@ -23,6 +25,7 @@ const TYPE_LABELS: Record<VisualType, string> = {
 const TYPE_COLORS: Record<VisualType, string> = {
   show_text: "#60a5fa",
   show_equation: "#fbbf24",
+  step_equation: "#fbbf24",
   draw_diagram: "#4ade80",
   show_graph: "#a78bfa",
   highlight: "#fb923c",

@@ -45,6 +45,7 @@ Wire format is **flattened** — no nested `payload`:
 | `clear`         | `ClearInstruction`        | (none — clears everything)          |
 | `show_text`     | `ShowTextInstruction`     | `text`                              |
 | `show_equation` | `ShowEquationInstruction` | `latex`                             |
+| `step_equation` | `StepEquationInstruction` | `steps` (≥1 `EquationStep`)         |
 | `draw_diagram`  | `DrawDiagramInstruction`  | `description` OR `nodes`            |
 | `show_graph`    | `ShowGraphInstruction`    | `graph_type` + `series`/`functions` |
 | `highlight`     | `HighlightInstruction`    | `target_id`                         |

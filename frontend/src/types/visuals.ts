@@ -84,6 +84,12 @@ export interface AxisConfig {
   max?: number;
 }
 
+export interface EquationStep {
+  latex: string;
+  annotation?: string;
+  highlight_terms?: string[];
+}
+
 // ── Instruction types ─────────────────────────────────────────
 
 interface BaseInstruction {
@@ -131,6 +137,12 @@ export interface ShowGraphInstruction extends BaseInstruction {
   animated?: boolean;
 }
 
+export interface StepEquationInstruction extends BaseInstruction {
+  type: "step_equation";
+  title?: string;
+  steps: EquationStep[];
+}
+
 export interface HighlightInstruction extends BaseInstruction {
   type: "highlight";
   target_id: string;
@@ -144,6 +156,7 @@ export type VisualInstruction =
   | ClearInstruction
   | ShowTextInstruction
   | ShowEquationInstruction
+  | StepEquationInstruction
   | DrawDiagramInstruction
   | ShowGraphInstruction
   | HighlightInstruction;

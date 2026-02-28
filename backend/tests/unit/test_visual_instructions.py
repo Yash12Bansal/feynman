@@ -19,6 +19,7 @@ from feynman.visuals.schemas import (
     DrawDiagramInstruction,
     EdgeStyle,
     EquationAnimation,
+    EquationStep,
     FunctionDef,
     GraphType,
     HighlightInstruction,
@@ -27,6 +28,7 @@ from feynman.visuals.schemas import (
     ShowEquationInstruction,
     ShowGraphInstruction,
     ShowTextInstruction,
+    StepEquationInstruction,
     TextStyle,
 )
 
@@ -149,6 +151,47 @@ class TestConstruction:
         with pytest.raises(ValidationError):
             HighlightInstruction()  # type: ignore[call-arg]
 
+    def test_step_equation_basic(self) -> None:
+        instr = StepEquationInstruction(
+            steps=[
+                EquationStep(latex="2x + 4 = 10"),
+                EquationStep(
+                    latex="2x = 6",
+                    annotation="Subtract 4 from both sides",
+                    highlight_terms=["term-result"],
+                ),
+                EquationStep(
+                    latex="x = 3",
+                    annotation="Divide both sides by 2",
+                ),
+            ],
+        )
+        assert instr.type == "step_equation"
+        assert len(instr.steps) == 3
+        assert instr.title == ""
+
+    def test_step_equation_requires_steps(self) -> None:
+        with pytest.raises(ValidationError, match="At least one step"):
+            StepEquationInstruction(steps=[])
+
+    def test_step_equation_highlight_terms(self) -> None:
+        step = EquationStep(
+            latex="x = 3",
+            highlight_terms=["term-x", "term-result"],
+        )
+        assert step.highlight_terms == ["term-x", "term-result"]
+
+    def test_step_equation_defaults(self) -> None:
+        instr = StepEquationInstruction(
+            title="Solving for x",
+            steps=[EquationStep(latex="x = 1")],
+        )
+        assert instr.title == "Solving for x"
+        assert instr.steps[0].annotation == ""
+        assert instr.steps[0].highlight_terms == []
+        assert instr.element_id is None
+        assert instr.duration_ms is None
+
 
 # ── Discriminated union parsing ────────────────────────────────
 
@@ -195,6 +238,20 @@ class TestDiscriminatedUnion:
             }
         )
         assert isinstance(instr, HighlightInstruction)
+
+    def test_parse_step_equation(self) -> None:
+        instr = _ta.validate_python(
+            {
+                "type": "step_equation",
+                "title": "Solving for x",
+                "steps": [
+                    {"latex": "2x + 4 = 10"},
+                    {"latex": "2x = 6", "annotation": "Subtract 4"},
+                ],
+            }
+        )
+        assert isinstance(instr, StepEquationInstruction)
+        assert len(instr.steps) == 2
 
     def test_parse_unknown_type_rejected(self) -> None:
         with pytest.raises(ValidationError):
@@ -253,6 +310,35 @@ class TestSerialization:
         instr = ClearInstruction()
         data = instr.model_dump(exclude_none=True)
         assert data == {"type": "clear"}
+
+    def test_step_equation_roundtrip(self) -> None:
+        original = StepEquationInstruction(
+            title="Solving for x",
+            steps=[
+                EquationStep(latex="2x + 4 = 10"),
+                EquationStep(
+                    latex="2x = 6",
+                    annotation="Subtract 4 from both sides",
+                    highlight_terms=["term-result"],
+                ),
+                EquationStep(
+                    latex="x = 3",
+                    annotation="Divide both sides by 2",
+                ),
+            ],
+            element_id="step-eq-1",
+        )
+        data = original.model_dump(exclude_none=True)
+        assert data["type"] == "step_equation"
+        assert len(data["steps"]) == 3
+        assert "duration_ms" not in data
+
+        json_str = json.dumps(data)
+        parsed = _ta.validate_json(json_str)
+        assert isinstance(parsed, StepEquationInstruction)
+        assert parsed.title == "Solving for x"
+        assert parsed.steps[1].annotation == "Subtract 4 from both sides"
+        assert parsed.steps[1].highlight_terms == ["term-result"]
 
     def test_show_graph_roundtrip(self) -> None:
         original = ShowGraphInstruction(

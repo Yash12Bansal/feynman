@@ -9,8 +9,10 @@ from feynman.visuals.schemas import (
     ClearInstruction,
     DrawDiagramInstruction,
     EquationAnimation,
+    EquationStep,
     ShowEquationInstruction,
     ShowTextInstruction,
+    StepEquationInstruction,
     _BaseInstruction,
 )
 
@@ -65,6 +67,25 @@ async def draw_diagram(ctx: RunContext, description: str) -> str:
     instruction = DrawDiagramInstruction(description=description)
     await _publish_visual(ctx, instruction)
     return f"Drew diagram: {description}"
+
+
+@function_tool()
+async def step_equation(ctx: RunContext, steps_json: str, title: str = "") -> str:
+    """Show a step-by-step equation solve on the classroom screen. Perfect for walking through algebra, simplification, or any multi-step derivation.
+
+    Args:
+        steps_json: A JSON array of step objects. Each step has:
+            - "latex" (required): The equation at this step in LaTeX.
+            - "annotation" (optional): What was done (e.g., "Subtract 4 from both sides").
+            - "highlight_terms" (optional): List of htmlId refs for changed terms.
+            Example: [{"latex": "2x + 4 = 10"}, {"latex": "2x = 6", "annotation": "Subtract 4 from both sides"}]
+        title: Optional heading (e.g., "Solving for x").
+    """
+    raw_steps = json.loads(steps_json)
+    steps = [EquationStep(**s) for s in raw_steps]
+    instruction = StepEquationInstruction(title=title, steps=steps)
+    await _publish_visual(ctx, instruction)
+    return f"Displayed step-by-step equation: {title or steps[-1].latex}"
 
 
 @function_tool()

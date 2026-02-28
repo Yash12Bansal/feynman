@@ -23,12 +23,14 @@ from feynman.visuals.schemas import (
     ShowEquationInstruction,
     ShowGraphInstruction,
     ShowTextInstruction,
+    StepEquationInstruction,
 )
 
 VisualInstruction = Annotated[
     ClearInstruction
     | ShowTextInstruction
     | ShowEquationInstruction
+    | StepEquationInstruction
     | DrawDiagramInstruction
     | ShowGraphInstruction
     | HighlightInstruction,
@@ -42,5 +44,6 @@ __all__ = [
     "ShowEquationInstruction",
     "ShowGraphInstruction",
     "ShowTextInstruction",
+    "StepEquationInstruction",
     "VisualInstruction",
 ]

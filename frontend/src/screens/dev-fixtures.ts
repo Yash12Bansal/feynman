@@ -89,6 +89,24 @@ export const FIXTURE_SHOW_GRAPH: VisualInstruction = {
   animated: true,
 };
 
+export const FIXTURE_STEP_EQUATION: VisualInstruction = {
+  type: "step_equation",
+  element_id: "solve-linear-eq",
+  title: "Solving for x",
+  steps: [
+    { latex: "2x + 4 = 10" },
+    {
+      latex: "2x = 6",
+      annotation: "Subtract 4 from both sides",
+      highlight_terms: ["term-result"],
+    },
+    {
+      latex: "x = 3",
+      annotation: "Divide both sides by 2",
+    },
+  ],
+};
+
 export const FIXTURE_HIGHLIGHT: VisualInstruction = {
   type: "highlight",
   target_id: "newtons-second-law",
@@ -107,6 +125,7 @@ export const ALL_FIXTURES: VisualInstruction[] = [
   FIXTURE_SHOW_TEXT_KEY_POINT,
   FIXTURE_SHOW_EQUATION,
   FIXTURE_SHOW_EQUATION_COMPLEX,
+  FIXTURE_STEP_EQUATION,
   FIXTURE_DRAW_DIAGRAM,
   FIXTURE_SHOW_GRAPH,
   FIXTURE_HIGHLIGHT,
@@ -116,6 +135,7 @@ export const ALL_FIXTURES: VisualInstruction[] = [
 export const FIXTURES_BY_TYPE: Record<string, VisualInstruction[]> = {
   show_text: [FIXTURE_SHOW_TEXT, FIXTURE_SHOW_TEXT_KEY_POINT],
   show_equation: [FIXTURE_SHOW_EQUATION, FIXTURE_SHOW_EQUATION_COMPLEX],
+  step_equation: [FIXTURE_STEP_EQUATION],
   draw_diagram: [FIXTURE_DRAW_DIAGRAM],
   show_graph: [FIXTURE_SHOW_GRAPH],
   highlight: [FIXTURE_HIGHLIGHT],

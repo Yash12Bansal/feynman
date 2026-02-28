@@ -576,6 +576,82 @@
       "title": "ShowTextInstruction",
       "type": "object"
     },
+    "EquationStep": {
+      "description": "A single step in a multi-step equation solve.",
+      "properties": {
+        "latex": {
+          "title": "Latex",
+          "type": "string"
+        },
+        "annotation": {
+          "default": "",
+          "title": "Annotation",
+          "type": "string"
+        },
+        "highlight_terms": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Highlight Terms",
+          "type": "array"
+        }
+      },
+      "required": ["latex"],
+      "title": "EquationStep",
+      "type": "object"
+    },
+    "StepEquationInstruction": {
+      "description": "Display a multi-step equation solve with progressive reveal.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "type": {
+          "const": "step_equation",
+          "default": "step_equation",
+          "title": "Type",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/EquationStep"
+          },
+          "minItems": 1,
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": ["steps"],
+      "title": "StepEquationInstruction",
+      "type": "object"
+    },
     "TextStyle": {
       "enum": ["default", "definition", "key_point", "example"],
       "title": "TextStyle",
@@ -590,6 +666,7 @@
           "draw_diagram": "#/$defs/DrawDiagramInstruction",
           "highlight": "#/$defs/HighlightInstruction",
           "show_equation": "#/$defs/ShowEquationInstruction",
+          "step_equation": "#/$defs/StepEquationInstruction",
           "show_graph": "#/$defs/ShowGraphInstruction",
           "show_text": "#/$defs/ShowTextInstruction"
         },
@@ -604,6 +681,9 @@
         },
         {
           "$ref": "#/$defs/ShowEquationInstruction"
+        },
+        {
+          "$ref": "#/$defs/StepEquationInstruction"
         },
         {
           "$ref": "#/$defs/DrawDiagramInstruction"

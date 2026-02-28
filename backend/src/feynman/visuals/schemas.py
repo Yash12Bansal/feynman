@@ -214,6 +214,33 @@ class ShowGraphInstruction(_BaseInstruction):
         return self
 
 
+class EquationStep(BaseModel):
+    """A single step in a multi-step equation solve."""
+
+    latex: str
+    annotation: str = ""
+    highlight_terms: list[str] = []
+
+
+class StepEquationInstruction(_BaseInstruction):
+    """Display a multi-step equation solve with progressive reveal.
+
+    Each step appears with its transformation annotation, changed terms
+    highlight, and previous steps dim — like a teacher at a whiteboard.
+    """
+
+    type: Literal["step_equation"] = "step_equation"
+    title: str = ""
+    steps: list[EquationStep]
+
+    @model_validator(mode="after")
+    def _require_steps(self) -> Self:
+        if not self.steps:
+            msg = "At least one step is required"
+            raise ValueError(msg)
+        return self
+
+
 class HighlightInstruction(_BaseInstruction):
     """Highlight an existing element on the board."""
 
