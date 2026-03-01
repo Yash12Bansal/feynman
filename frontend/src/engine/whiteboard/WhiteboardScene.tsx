@@ -10,7 +10,7 @@ import { BoardLayoutContext } from "./board-layout-context";
 import { ElementRegistryContext, useCreateElementRegistry } from "../elements";
 import { injectThemeVars } from "../theme";
 import { WhiteboardCard } from "./WhiteboardCard";
-import { InstructionSwitch } from "../InstructionSwitch";
+import { InstructionSwitch } from "./InstructionSwitch";
 import { HighlightOverlay } from "../content/HighlightOverlay";
 import "./WhiteboardScene.css";
 
