@@ -10,6 +10,35 @@ import {
 import { allZones, computeBoardLayout } from "../zone-layout";
 import type { VisualInstruction } from "../../../types/visuals";
 
+// ── Mock GSAP (needed for HandwrittenTextContent) ───────────
+
+vi.mock("gsap", () => {
+  const tl = {
+    to: vi.fn().mockReturnThis(),
+    fromTo: vi.fn().mockReturnThis(),
+    kill: vi.fn(),
+  };
+  return {
+    default: {
+      timeline: () => tl,
+      set: vi.fn(),
+    },
+  };
+});
+
+// ── Stub getTotalLength on SVG paths (jsdom lacks it) ───────
+
+const origCreateElementNS = document.createElementNS.bind(document);
+vi.spyOn(document, "createElementNS").mockImplementation(
+  (ns: string | null, tag: string) => {
+    const el = origCreateElementNS(ns!, tag);
+    if (tag === "path") {
+      (el as unknown as Record<string, unknown>).getTotalLength = () => 50;
+    }
+    return el;
+  },
+);
+
 // ── ResizeObserver mock ─────────────────────────────────────
 
 class MockResizeObserver {

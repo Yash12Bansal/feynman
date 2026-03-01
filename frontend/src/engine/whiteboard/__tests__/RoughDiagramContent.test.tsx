@@ -45,6 +45,19 @@ vi.mock("roughjs", () => {
   };
 });
 
+// ── Stub getTotalLength globally (for HandwrittenTextContent via InstructionSwitch) ──
+
+const origCreateElementNS = document.createElementNS.bind(document);
+vi.spyOn(document, "createElementNS").mockImplementation(
+  (ns: string | null, tag: string) => {
+    const el = origCreateElementNS(ns!, tag);
+    if (tag === "path") {
+      (el as unknown as Record<string, unknown>).getTotalLength = () => 50;
+    }
+    return el;
+  },
+);
+
 // ── Fixtures ──────────────────────────────────────────────────
 
 const structuredInstruction: DrawDiagramInstruction = {
@@ -232,14 +245,16 @@ describe("Whiteboard InstructionSwitch", () => {
     expect(cleanNodes).toHaveLength(0);
   });
 
-  it("routes show_text to TextContent", async () => {
+  it("routes show_text to HandwrittenTextContent", async () => {
     const InstructionSwitch = await importInstructionSwitch();
-    render(
+    const { container } = render(
       <InstructionSwitch
         instruction={{ type: "show_text", text: "Hello world" }}
       />,
     );
-    expect(screen.getByText("Hello world")).toBeTruthy();
+    // HandwrittenTextContent renders data-hw-char path elements
+    const hwPaths = container.querySelectorAll("[data-hw-char]");
+    expect(hwPaths.length).toBeGreaterThan(0);
   });
 
   it("returns null for unknown type", async () => {

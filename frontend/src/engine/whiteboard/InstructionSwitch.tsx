@@ -3,17 +3,17 @@
  *
  * Routes draw_diagram → RoughDiagramContent (hand-drawn).
  * Routes show_graph → RoughGraphContent (hand-drawn SVG charts).
+ * Routes show_text → HandwrittenTextContent (Hershey stroke-animated).
  * All other types fall through to existing clean renderers.
  *
  * Explicitly lists all cases (no delegation to shared InstructionSwitch)
- * to avoid circular imports and keep the upgrade path clear for future
- * rough renderers (Phase 7: handwritten text, etc.).
+ * to avoid circular imports and keep the upgrade path clear.
  */
 
 import type { VisualInstruction } from "../../types/visuals";
 import { RoughDiagramContent } from "./content/RoughDiagramContent";
 import { RoughGraphContent } from "./content/RoughGraphContent";
-import { TextContent } from "../content/TextContent";
+import { HandwrittenTextContent } from "./content/HandwrittenTextContent";
 import { EquationContent } from "../content/EquationContent";
 import { StepEquationContent } from "../content/StepEquationContent";
 
@@ -26,7 +26,7 @@ export function InstructionSwitch({
     case "draw_diagram":
       return <RoughDiagramContent instruction={instruction} />;
     case "show_text":
-      return <TextContent instruction={instruction} />;
+      return <HandwrittenTextContent instruction={instruction} />;
     case "show_equation":
       return <EquationContent instruction={instruction} />;
     case "step_equation":
