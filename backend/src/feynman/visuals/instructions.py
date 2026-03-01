@@ -26,6 +26,7 @@ from feynman.visuals.schemas import (
     ShowGraphInstruction,
     ShowTextInstruction,
     StepEquationInstruction,
+    SwitchBoardInstruction,
 )
 
 VisualInstruction = Annotated[
@@ -36,7 +37,8 @@ VisualInstruction = Annotated[
     | DrawDiagramInstruction
     | ShowGraphInstruction
     | HighlightInstruction
-    | AnnotateInstruction,
+    | AnnotateInstruction
+    | SwitchBoardInstruction,
     Discriminator("type"),
 ]
 
@@ -50,5 +52,6 @@ __all__ = [
     "ShowGraphInstruction",
     "ShowTextInstruction",
     "StepEquationInstruction",
+    "SwitchBoardInstruction",
     "VisualInstruction",
 ]

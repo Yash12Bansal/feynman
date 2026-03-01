@@ -45,6 +45,8 @@ export type AnnotationAction = "circle" | "underline" | "arrow";
 
 export type SyncMode = "immediate" | "on_playout" | "term_sync";
 
+export type BoardIntent = "new" | "revisit" | "reference";
+
 export type BoardZone =
   | "top-left"
   | "top-center"
@@ -118,6 +120,7 @@ interface BaseInstruction {
   sync_mode?: SyncMode;
   term_hints?: TermSyncHint[];
   zone?: BoardZone;
+  board_id?: string;
 }
 
 export interface ClearInstruction extends BaseInstruction {
@@ -182,6 +185,12 @@ export interface AnnotateInstruction extends BaseInstruction {
   color?: string;
 }
 
+export interface SwitchBoardInstruction extends BaseInstruction {
+  type: "switch_board";
+  label?: string;
+  intent?: BoardIntent;
+}
+
 // ── Discriminated union ───────────────────────────────────────
 
 export type VisualInstruction =
@@ -192,7 +201,8 @@ export type VisualInstruction =
   | DrawDiagramInstruction
   | ShowGraphInstruction
   | HighlightInstruction
-  | AnnotateInstruction;
+  | AnnotateInstruction
+  | SwitchBoardInstruction;
 
 export type VisualType = VisualInstruction["type"];
 

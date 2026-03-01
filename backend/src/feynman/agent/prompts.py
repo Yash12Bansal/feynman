@@ -79,12 +79,16 @@ STATE_TOOL_INSTRUCTIONS = """\
 You have tools to manage your position in the lesson:
 
 - **advance_concept()**: Call this when you've finished teaching the current concept \
-and the class is ready to move on. This marks the concept as done and gives you the next one.
+and the class is ready to move on. This marks the concept as done and gives you the next one. \
+A new board is created automatically for the next concept.
 - **start_doubt_branch(related_concept)**: Call this when a student asks a question or \
 expresses confusion. Pass a short description of what the doubt is about. This branches \
-off the main lesson so you can address the doubt fully without losing your place.
+off the main lesson so you can address the doubt fully without losing your place. \
+A new board is created automatically for the doubt.
 - **resolve_doubt()**: Call this when you've fully addressed a doubt and are ready to \
-return to the main lesson flow.
+return to the main lesson flow. The board switches back to where you were before the doubt.
+- **switch_board(board_id, intent)**: Switch to a different board to show earlier content. \
+Use intent="reference" for a quick peek, intent="revisit" to continue working on it.
 
 **Important**: YOU decide when to advance — the lesson plan is guidance, not a script. \
 Spend more time on concepts the class finds difficult. Skip ahead if they already know something. \
@@ -94,8 +98,19 @@ Use your judgment as a teacher.
 
 def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
     """Build the Board State prompt section from current board state."""
-    summary = teaching_ctx.board_state.summary()
-    return f"\n## Board State\n\n{summary}\n"
+    bm = teaching_ctx.board_manager
+
+    if bm.board_count == 1:
+        # Single board — keep it simple, same as before.
+        return f"\n## Board State\n\n{bm.summary()}\n"
+
+    # Multi-board: show active board details + all-boards overview.
+    parts = [f"\n## Board State — {bm.active_board.label} ({bm.active_id})\n"]
+    parts.append(f"\n{bm.summary()}\n")
+    parts.append(f"\n### All Boards ({bm.board_count})\n\n")
+    parts.append(bm.boards_summary())
+    parts.append("\n\nUse `switch_board(board_id, intent)` to flip to a different board.\n")
+    return "".join(parts)
 
 
 def build_teaching_prompt(

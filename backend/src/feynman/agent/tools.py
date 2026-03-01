@@ -17,6 +17,7 @@ from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
     AxisConfig,
+    BoardIntent,
     BoardZone,
     ClearInstruction,
     DataSeries,
@@ -32,6 +33,7 @@ from feynman.visuals.schemas import (
     ShowGraphInstruction,
     ShowTextInstruction,
     StepEquationInstruction,
+    SwitchBoardInstruction,
     SyncMode,
     TermSyncHint,
     _BaseInstruction,
@@ -63,7 +65,10 @@ async def _publish_visual(
     # Auto-assign element_id if not already set and type supports it.
     tc: TeachingContext = ctx.userdata
     if instruction.element_id is None and instruction.type not in _NO_AUTO_ID_TYPES:
-        instruction.element_id = tc.board_state.next_id(instruction.type)
+        instruction.element_id = tc.board_manager.next_id(instruction.type)
+
+    # Stamp active board ID on the instruction for frontend context.
+    instruction.board_id = tc.board_manager.active_id
 
     if wait_for_speech:
         try:
@@ -79,10 +84,35 @@ async def _publish_visual(
         type=instruction.type,
         element_id=instruction.element_id,
         zone=str(instruction.zone) if instruction.zone else None,
+        board_id=instruction.board_id,
     )
 
     # Record the instruction's effect on the board state.
-    tc.board_state.record(instruction)
+    tc.board_manager.record(instruction)
+
+
+async def _publish_switch_board(
+    ctx: RunContext,
+    board_id: str,
+    label: str,
+    intent: BoardIntent,
+) -> None:
+    """Publish a SwitchBoardInstruction immediately (no playout wait)."""
+    instruction = SwitchBoardInstruction(
+        board_id=board_id,
+        label=label,
+        intent=intent,
+        sync_mode=SyncMode.IMMEDIATE,
+    )
+    room = ctx.session.room_io.room
+    data = json.dumps(instruction.model_dump(exclude_none=True))
+    await room.local_participant.publish_data(data, reliable=True, topic="visuals")
+    logger.debug(
+        "visual.switch_board",
+        board_id=board_id,
+        label=label,
+        intent=intent,
+    )
 
 
 @function_tool()
@@ -362,6 +392,13 @@ async def advance_concept(ctx: RunContext) -> str:
         return "No lesson plan — teaching in free-form mode."
 
     next_concept = tc.advance()
+
+    if next_concept is not None:
+        # Create a new board for the next concept.
+        branch = tc.state_machine.current
+        new_board = tc.board_manager.create_and_switch(next_concept.title, branch.id)
+        await _publish_switch_board(ctx, new_board.id, new_board.label, BoardIntent.NEW)
+
     await _update_agent_prompt(ctx)
 
     if next_concept is None:
@@ -395,6 +432,11 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     tc: TeachingContext = ctx.userdata
 
     branch = await tc.state_machine.push_branch(concept=related_concept)
+
+    # Push a new board for the doubt — current board goes on stack.
+    new_board = tc.board_manager.push_board(f"Doubt: {related_concept}", branch.id)
+    await _publish_switch_board(ctx, new_board.id, new_board.label, BoardIntent.NEW)
+
     await _update_agent_prompt(ctx)
 
     logger.info(
@@ -422,6 +464,11 @@ async def resolve_doubt(ctx: RunContext) -> str:
     if tc.state_machine.depth <= 1:
         return "Not in a doubt branch — already on the main lesson flow."
 
+    # Pop board stack before popping branch — return to parent board.
+    tc.board_manager.pop_board()
+    parent_board = tc.board_manager.active_board
+    await _publish_switch_board(ctx, parent_board.id, parent_board.label, BoardIntent.REVISIT)
+
     popped = await tc.state_machine.pop_branch()
     await _update_agent_prompt(ctx)
 
@@ -435,3 +482,29 @@ async def resolve_doubt(ctx: RunContext) -> str:
         depth=tc.state_machine.depth,
     )
     return f"Doubt about '{popped.concept}' resolved. {continue_msg}"
+
+
+@function_tool()
+async def switch_board(ctx: RunContext, board_id: str, intent: str = "reference") -> str:
+    """Switch to a different board to show previously drawn content.
+
+    Use this to flip back to an earlier board when referencing a concept,
+    or to navigate between boards.
+
+    Args:
+        board_id: The ID of the board to switch to (e.g., "board-1", "board-2").
+        intent: Why you're switching. Options: "revisit" (returning to continue work), \
+"reference" (quick look at earlier content). Default: "reference".
+    """
+    tc: TeachingContext = ctx.userdata
+
+    board = tc.board_manager.get_board(board_id)
+    if board is None:
+        return f"Board not found: {board_id}. Check available boards in the prompt."
+
+    board_intent = BoardIntent(intent)
+    tc.board_manager.switch_to(board_id)
+    await _publish_switch_board(ctx, board_id, board.label, board_intent)
+    await _update_agent_prompt(ctx)
+
+    return f"Switched to board: {board.label} ({board_id})"

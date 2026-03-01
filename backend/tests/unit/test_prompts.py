@@ -192,7 +192,7 @@ class TestBoardStateInPrompt:
         from feynman.visuals.schemas import BoardZone, ShowTextInstruction
 
         ctx = _make_ctx(plan=None)
-        ctx.board_state.record(
+        ctx.board_manager.record(
             ShowTextInstruction(
                 text="Key formula",
                 element_id="text-1",
@@ -210,7 +210,7 @@ class TestBoardStateInPrompt:
 
         plan = _make_plan()
         ctx = _make_ctx(plan=plan)
-        ctx.board_state.record(
+        ctx.board_manager.record(
             ShowEquationInstruction(
                 latex="E = mc^2",
                 label="Einstein",

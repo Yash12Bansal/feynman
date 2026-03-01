@@ -17,6 +17,7 @@ from feynman.agent.state_machine import TeachingStateMachine
 from feynman.agent.teaching_context import TeachingContext
 from feynman.agent.tools import (
     advance_concept,
+    annotate,
     clear_board,
     draw_diagram,
     resolve_doubt,
@@ -25,6 +26,7 @@ from feynman.agent.tools import (
     show_text,
     start_doubt_branch,
     step_equation,
+    switch_board,
 )
 from feynman.common.logging import setup_logging
 from feynman.common.types import Subject
@@ -41,10 +43,12 @@ ALL_TOOLS = [
     draw_diagram,
     step_equation,
     show_graph,
+    annotate,
     clear_board,
     advance_concept,
     start_doubt_branch,
     resolve_doubt,
+    switch_board,
 ]
 
 
@@ -78,6 +82,10 @@ class FeynmanAgent(Agent):
                     grade_level=self._grade_level,
                 )
                 self._teaching_ctx.lesson_plan = plan
+                # Label the initial board with the first concept title.
+                first_concept = plan.concept_at(0)
+                if first_concept:
+                    self._teaching_ctx.board_manager.active_board.label = first_concept.title
                 logger.info(
                     "agent.lesson_plan_ready",
                     topic=self._topic,

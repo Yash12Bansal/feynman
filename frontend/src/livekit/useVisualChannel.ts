@@ -14,7 +14,9 @@ export function useVisualChannel() {
         const text = new TextDecoder().decode(msg.payload);
         const parsed = JSON.parse(text) as VisualInstruction;
 
-        if (parsed.type === "clear") {
+        if (parsed.type === "switch_board") {
+          // Phase 11 handles board switching UI — skip for now.
+        } else if (parsed.type === "clear") {
           if ("target_id" in parsed && parsed.target_id) {
             // Remove specific element
             instructionsRef.current = instructionsRef.current.filter(

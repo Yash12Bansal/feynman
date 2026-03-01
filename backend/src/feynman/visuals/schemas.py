@@ -82,6 +82,12 @@ class SyncMode(StrEnum):
     TERM_SYNC = "term_sync"
 
 
+class BoardIntent(StrEnum):
+    NEW = "new"
+    REVISIT = "revisit"
+    REFERENCE = "reference"
+
+
 class BoardZone(StrEnum):
     TOP_LEFT = "top-left"
     TOP_CENTER = "top-center"
@@ -162,6 +168,7 @@ class _BaseInstruction(BaseModel):
     sync_mode: SyncMode = SyncMode.ON_PLAYOUT
     term_hints: list[TermSyncHint] | None = None
     zone: BoardZone | None = None
+    board_id: str | None = None
 
 
 # ──────────────────────────────────────────────
@@ -311,3 +318,15 @@ class AnnotateInstruction(_BaseInstruction):
             msg = "arrow annotations require both from_id and to_id"
             raise ValueError(msg)
         return self
+
+
+class SwitchBoardInstruction(_BaseInstruction):
+    """Switch the active board — sent to frontend for board transitions.
+
+    This is a control instruction: it tells the frontend which board to display.
+    Not tracked as a board element (ephemeral).
+    """
+
+    type: Literal["switch_board"] = "switch_board"
+    label: str = ""
+    intent: BoardIntent = BoardIntent.NEW

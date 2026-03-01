@@ -19,7 +19,9 @@ const TYPE_LABELS: Record<VisualType, string> = {
   draw_diagram: "Diagram",
   show_graph: "Graph",
   highlight: "Highlight",
+  annotate: "Annotate",
   clear: "Clear",
+  switch_board: "Switch Board",
 };
 
 const TYPE_COLORS: Record<VisualType, string> = {
@@ -29,7 +31,9 @@ const TYPE_COLORS: Record<VisualType, string> = {
   draw_diagram: "#4ade80",
   show_graph: "#a78bfa",
   highlight: "#fb923c",
+  annotate: "#f472b6",
   clear: "#6b7280",
+  switch_board: "#94a3b8",
 };
 
 export function DevHarness() {

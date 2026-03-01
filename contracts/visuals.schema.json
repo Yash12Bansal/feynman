@@ -38,6 +38,11 @@
       "title": "AxisConfig",
       "type": "object"
     },
+    "BoardIntent": {
+      "enum": ["new", "revisit", "reference"],
+      "title": "BoardIntent",
+      "type": "string"
+    },
     "BoardZone": {
       "enum": [
         "top-left",
@@ -109,6 +114,18 @@
             }
           ],
           "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
         },
         "type": {
           "const": "clear",
@@ -299,6 +316,18 @@
           ],
           "default": null
         },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
         "type": {
           "const": "draw_diagram",
           "default": "draw_diagram",
@@ -487,6 +516,18 @@
           ],
           "default": null
         },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
         "type": {
           "const": "highlight",
           "default": "highlight",
@@ -578,6 +619,18 @@
           ],
           "default": null
         },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
         "type": {
           "const": "show_equation",
           "default": "show_equation",
@@ -658,6 +711,18 @@
             }
           ],
           "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
         },
         "type": {
           "const": "show_graph",
@@ -772,6 +837,18 @@
           ],
           "default": null
         },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
         "type": {
           "const": "show_text",
           "default": "show_text",
@@ -852,6 +929,18 @@
             }
           ],
           "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
         },
         "type": {
           "const": "step_equation",
@@ -967,6 +1056,18 @@
           ],
           "default": null
         },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
         "type": {
           "const": "annotate",
           "default": "annotate",
@@ -1000,6 +1101,94 @@
       "required": ["action"],
       "title": "AnnotateInstruction",
       "type": "object"
+    },
+    "SwitchBoardInstruction": {
+      "description": "Switch the active board — sent to frontend for board transitions.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "type": {
+          "const": "switch_board",
+          "default": "switch_board",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "intent": {
+          "$ref": "#/$defs/BoardIntent",
+          "default": "new"
+        }
+      },
+      "title": "SwitchBoardInstruction",
+      "type": "object"
     }
   },
   "definitions": {
@@ -1013,7 +1202,8 @@
           "show_equation": "#/$defs/ShowEquationInstruction",
           "step_equation": "#/$defs/StepEquationInstruction",
           "show_graph": "#/$defs/ShowGraphInstruction",
-          "show_text": "#/$defs/ShowTextInstruction"
+          "show_text": "#/$defs/ShowTextInstruction",
+          "switch_board": "#/$defs/SwitchBoardInstruction"
         },
         "propertyName": "type"
       },
@@ -1041,6 +1231,9 @@
         },
         {
           "$ref": "#/$defs/AnnotateInstruction"
+        },
+        {
+          "$ref": "#/$defs/SwitchBoardInstruction"
         }
       ]
     },
@@ -1061,7 +1254,8 @@
                 "highlight": "#/$defs/HighlightInstruction",
                 "show_equation": "#/$defs/ShowEquationInstruction",
                 "show_graph": "#/$defs/ShowGraphInstruction",
-                "show_text": "#/$defs/ShowTextInstruction"
+                "show_text": "#/$defs/ShowTextInstruction",
+                "switch_board": "#/$defs/SwitchBoardInstruction"
               },
               "propertyName": "type"
             },
@@ -1086,6 +1280,9 @@
               },
               {
                 "$ref": "#/$defs/AnnotateInstruction"
+              },
+              {
+                "$ref": "#/$defs/SwitchBoardInstruction"
               }
             ]
           },

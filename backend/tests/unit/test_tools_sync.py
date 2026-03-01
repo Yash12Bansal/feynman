@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from feynman.agent.board_state import BoardState
+from feynman.agent.board import BoardManager
 from feynman.visuals.schemas import (
     BoardZone,
     ClearInstruction,
@@ -104,9 +104,9 @@ def _make_mock_ctx(*, playout_raises: bool = False) -> MagicMock:
         ctx.wait_for_playout = AsyncMock()
     ctx.session.room_io.room.local_participant.publish_data = AsyncMock()
 
-    # TeachingContext-like userdata with board_state
+    # TeachingContext-like userdata with board_manager
     userdata = MagicMock()
-    userdata.board_state = BoardState()
+    userdata.board_manager = BoardManager()
     ctx.userdata = userdata
 
     return ctx
@@ -323,13 +323,14 @@ class TestBoardStateTracking:
         from feynman.agent.tools import _publish_visual
 
         ctx = _make_mock_ctx()
-        bs: BoardState = ctx.userdata.board_state
+        bm: BoardManager = ctx.userdata.board_manager
 
         instr = ShowTextInstruction(text="Hello world")
         await _publish_visual(ctx, instr)
 
-        assert len(bs._elements) == 1
-        assert "text-1" in bs._elements
+        elements = bm.active_board.state._elements
+        assert len(elements) == 1
+        assert "text-1" in elements
 
     @pytest.mark.asyncio
     async def test_clear_wipes_board_state(self) -> None:
@@ -337,16 +338,16 @@ class TestBoardStateTracking:
         from feynman.agent.tools import _publish_visual
 
         ctx = _make_mock_ctx()
-        bs: BoardState = ctx.userdata.board_state
+        bm: BoardManager = ctx.userdata.board_manager
 
         await _publish_visual(ctx, ShowTextInstruction(text="A"))
         await _publish_visual(ctx, ShowTextInstruction(text="B"))
-        assert len(bs._elements) == 2
+        assert len(bm.active_board.state._elements) == 2
 
         await _publish_visual(
             ctx, ClearInstruction(sync_mode=SyncMode.IMMEDIATE), wait_for_speech=False
         )
-        assert len(bs._elements) == 0
+        assert len(bm.active_board.state._elements) == 0
 
     @pytest.mark.asyncio
     async def test_clear_target_removes_one(self) -> None:
@@ -354,19 +355,19 @@ class TestBoardStateTracking:
         from feynman.agent.tools import _publish_visual
 
         ctx = _make_mock_ctx()
-        bs: BoardState = ctx.userdata.board_state
+        bm: BoardManager = ctx.userdata.board_manager
 
         await _publish_visual(ctx, ShowTextInstruction(text="A"))
         await _publish_visual(ctx, ShowTextInstruction(text="B"))
-        assert len(bs._elements) == 2
+        assert len(bm.active_board.state._elements) == 2
 
         await _publish_visual(
             ctx,
             ClearInstruction(sync_mode=SyncMode.IMMEDIATE, target_id="text-1"),
             wait_for_speech=False,
         )
-        assert "text-1" not in bs._elements
-        assert "text-2" in bs._elements
+        assert "text-1" not in bm.active_board.state._elements
+        assert "text-2" in bm.active_board.state._elements
 
 
 class TestZoneParam:
@@ -389,12 +390,12 @@ class TestZoneParam:
         from feynman.agent.tools import _publish_visual
 
         ctx = _make_mock_ctx()
-        bs: BoardState = ctx.userdata.board_state
+        bm: BoardManager = ctx.userdata.board_manager
 
         instr = ShowTextInstruction(text="Hello", zone=BoardZone.CENTER_CENTER)
         await _publish_visual(ctx, instr)
 
-        assert bs._elements["text-1"].zone == BoardZone.CENTER_CENTER
+        assert bm.active_board.state._elements["text-1"].zone == BoardZone.CENTER_CENTER
 
     def test_parse_zone_valid(self) -> None:
         from feynman.agent.tools import _parse_zone
