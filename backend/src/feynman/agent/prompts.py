@@ -52,6 +52,26 @@ then show the next. Each visual deserves spoken context.
 transitions, not mid-explanation.
 """
 
+ZONE_PLACEMENT_INSTRUCTIONS = """\
+
+## Board Zones
+
+Every visual tool accepts a `zone` parameter for spatial placement on the board. \
+The 9 zones are arranged in a 3x3 grid:
+
+  top-left      top-center      top-right
+  center-left   center-center   center-right
+  bottom-left   bottom-center   bottom-right
+
+**Placement guidelines:**
+- Use **center-center** for the main content you're currently explaining.
+- Use **top-*** zones for reference material that should stay visible (formulas, definitions).
+- Use **bottom-*** zones for examples, scratch work, or supporting details.
+- Use **left/right** to place related items side by side for comparison.
+- To remove a single element without clearing the whole board, call `clear_board(target_id="eq-1")`.
+- Check the Board State below before placing — avoid overlapping zones.
+"""
+
 STATE_TOOL_INSTRUCTIONS = """\
 
 ## Lesson Flow Tools
@@ -72,6 +92,12 @@ Use your judgment as a teacher.
 """
 
 
+def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
+    """Build the Board State prompt section from current board state."""
+    summary = teaching_ctx.board_state.summary()
+    return f"\n## Board State\n\n{summary}\n"
+
+
 def build_teaching_prompt(
     lesson_plan: LessonPlan | None,
     teaching_ctx: TeachingContext,
@@ -80,7 +106,10 @@ def build_teaching_prompt(
 
     Called after every state change to keep the LLM's context fresh.
     """
-    parts = [TEACHING_SYSTEM_PROMPT, VISUAL_SYNC_INSTRUCTIONS]
+    parts = [TEACHING_SYSTEM_PROMPT, VISUAL_SYNC_INSTRUCTIONS, ZONE_PLACEMENT_INSTRUCTIONS]
+
+    # Board state section — always included (applies in both modes).
+    parts.append(_build_board_state_section(teaching_ctx))
 
     if lesson_plan is None:
         parts.append(

@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 from feynman.visuals.schemas import (
     AxisConfig,
+    BoardZone,
     ClearInstruction,
     DataSeries,
     DiagramEdge,
@@ -36,6 +37,20 @@ from feynman.visuals.schemas import (
 
 logger = structlog.get_logger()
 
+# Instruction types that skip auto-ID assignment.
+_NO_AUTO_ID_TYPES = frozenset({"clear", "highlight"})
+
+
+def _parse_zone(zone: str) -> BoardZone | None:
+    """Parse a zone string from the LLM, returning None on invalid input."""
+    if not zone:
+        return None
+    try:
+        return BoardZone(zone)
+    except ValueError:
+        logger.warning("visual.invalid_zone", zone=zone)
+        return None
+
 
 async def _publish_visual(
     ctx: RunContext,
@@ -43,6 +58,11 @@ async def _publish_visual(
     *,
     wait_for_speech: bool = True,
 ) -> None:
+    # Auto-assign element_id if not already set and type supports it.
+    tc: TeachingContext = ctx.userdata
+    if instruction.element_id is None and instruction.type not in _NO_AUTO_ID_TYPES:
+        instruction.element_id = tc.board_state.next_id(instruction.type)
+
     if wait_for_speech:
         try:
             await ctx.wait_for_playout()
@@ -52,18 +72,29 @@ async def _publish_visual(
     room = ctx.session.room_io.room
     data = json.dumps(instruction.model_dump(exclude_none=True))
     await room.local_participant.publish_data(data, reliable=True, topic="visuals")
-    logger.debug("visual.published", type=instruction.type)
+    logger.debug(
+        "visual.published",
+        type=instruction.type,
+        element_id=instruction.element_id,
+        zone=str(instruction.zone) if instruction.zone else None,
+    )
+
+    # Record the instruction's effect on the board state.
+    tc.board_state.record(instruction)
 
 
 @function_tool()
-async def show_text(ctx: RunContext, text: str, title: str = "") -> str:
+async def show_text(ctx: RunContext, text: str, title: str = "", zone: str = "") -> str:
     """Display text on the classroom screen. Use for key points, definitions, important info.
 
     Args:
         text: The text content to display on the board.
         title: Optional heading for the text block.
+        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
+"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
+Leave empty for default placement.
     """
-    instruction = ShowTextInstruction(text=text, title=title)
+    instruction = ShowTextInstruction(text=text, title=title, zone=_parse_zone(zone))
     await _publish_visual(ctx, instruction)
     return f"Displayed on board: {text[:80]}"
 
@@ -75,6 +106,7 @@ async def show_equation(
     label: str = "",
     animation: str = "fade_in",
     term_hints_json: str = "",
+    zone: str = "",
 ) -> str:
     """Display a math equation on the classroom screen. Use LaTeX notation.
 
@@ -87,6 +119,9 @@ async def show_equation(
             Example: [{"term_id": "term-F", "trigger_words": ["force", "F"]},
                        {"term_id": "term-m", "trigger_words": ["mass", "m"]}]
             When provided with animation="term_by_term", terms reveal as you speak.
+        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
+"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
+Leave empty for default placement.
     """
     eq_animation = EquationAnimation(animation)
     term_hints = None
@@ -101,6 +136,7 @@ async def show_equation(
         animation=eq_animation,
         sync_mode=sync_mode,
         term_hints=term_hints,
+        zone=_parse_zone(zone),
     )
     await _publish_visual(ctx, instruction)
     return f"Displayed equation: {latex}"
@@ -115,6 +151,7 @@ async def draw_diagram(
     nodes_json: str = "",
     edges_json: str = "",
     progressive: bool = True,
+    zone: str = "",
 ) -> str:
     """Draw a structured diagram on the classroom screen — flowcharts, force diagrams, concept maps, etc.
 
@@ -136,6 +173,9 @@ async def draw_diagram(
             - "directed" (optional): true (default) for arrow, false for plain line.
             Example: [{"from_id": "a", "to_id": "b", "label": "next"}]
         progressive: Whether to animate nodes and edges appearing progressively (default true).
+        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
+"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
+Leave empty for default placement.
     """
     nodes = [DiagramNode(**n) for n in json.loads(nodes_json)] if nodes_json else []
     edges = [DiagramEdge(**e) for e in json.loads(edges_json)] if edges_json else []
@@ -147,13 +187,14 @@ async def draw_diagram(
         nodes=nodes,
         edges=edges,
         progressive=progressive,
+        zone=_parse_zone(zone),
     )
     await _publish_visual(ctx, instruction)
     return f"Drew diagram: {title or description or diagram_type}"
 
 
 @function_tool()
-async def step_equation(ctx: RunContext, steps_json: str, title: str = "") -> str:
+async def step_equation(ctx: RunContext, steps_json: str, title: str = "", zone: str = "") -> str:
     """Show a step-by-step equation solve on the classroom screen. Perfect for walking through algebra, simplification, or any multi-step derivation.
 
     Args:
@@ -163,10 +204,13 @@ async def step_equation(ctx: RunContext, steps_json: str, title: str = "") -> st
             - "highlight_terms" (optional): List of htmlId refs for changed terms.
             Example: [{"latex": "2x + 4 = 10"}, {"latex": "2x = 6", "annotation": "Subtract 4 from both sides"}]
         title: Optional heading (e.g., "Solving for x").
+        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
+"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
+Leave empty for default placement.
     """
     raw_steps = json.loads(steps_json)
     steps = [EquationStep(**s) for s in raw_steps]
-    instruction = StepEquationInstruction(title=title, steps=steps)
+    instruction = StepEquationInstruction(title=title, steps=steps, zone=_parse_zone(zone))
     await _publish_visual(ctx, instruction)
     return f"Displayed step-by-step equation: {title or steps[-1].latex}"
 
@@ -185,6 +229,7 @@ async def show_graph(
     series_json: str = "",
     functions_json: str = "",
     animated: bool = True,
+    zone: str = "",
 ) -> str:
     """Display a graph or chart on the classroom screen — line charts, bar charts, scatter plots, or function plots.
 
@@ -210,6 +255,9 @@ async def show_graph(
             - "domain_max" (optional): Maximum x value to plot.
             Example: [{"expression": "x^2 - 4", "label": "f(x) = x² - 4"}, {"expression": "2*x", "label": "g(x) = 2x", "color": "#60a5fa"}]
         animated: Whether to animate the chart drawing in (default true).
+        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
+"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
+Leave empty for default placement.
     """
     series = [DataSeries(**s) for s in json.loads(series_json)] if series_json else []
     functions = [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
@@ -224,16 +272,27 @@ async def show_graph(
         series=series,
         functions=functions,
         animated=animated,
+        zone=_parse_zone(zone),
     )
     await _publish_visual(ctx, instruction)
     return f"Displayed graph: {title or graph_type}"
 
 
 @function_tool()
-async def clear_board(ctx: RunContext) -> str:
-    """Clear everything from the classroom screen to start fresh."""
-    instruction = ClearInstruction(sync_mode=SyncMode.IMMEDIATE)
+async def clear_board(ctx: RunContext, target_id: str = "") -> str:
+    """Clear the classroom screen. Clears everything by default, or a specific element by ID.
+
+    Args:
+        target_id: Optional element ID to remove (e.g., "eq-1", "diagram-2"). \
+Leave empty to clear the entire board.
+    """
+    instruction = ClearInstruction(
+        sync_mode=SyncMode.IMMEDIATE,
+        target_id=target_id or None,
+    )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
+    if target_id:
+        return f"Removed element: {target_id}"
     return "Board cleared"
 
 

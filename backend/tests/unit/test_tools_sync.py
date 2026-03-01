@@ -1,4 +1,4 @@
-"""Tests for voice-visual synchronization: playout gating + sync metadata."""
+"""Tests for voice-visual synchronization: playout gating + sync metadata + zone/board tracking."""
 
 from __future__ import annotations
 
@@ -7,7 +7,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from feynman.agent.board_state import BoardState
 from feynman.visuals.schemas import (
+    BoardZone,
     ClearInstruction,
     ShowEquationInstruction,
     ShowTextInstruction,
@@ -90,18 +92,27 @@ class TestSyncFieldsSerialization:
         assert parsed.term_hints[0].trigger_words == ["acceleration", "a"]
 
 
-# ── Playout gating tests ──────────────────────────────────────
+# ── Mock helpers ─────────────────────────────────────────────
 
 
 def _make_mock_ctx(*, playout_raises: bool = False) -> MagicMock:
-    """Create a mock RunContext with room and wait_for_playout."""
+    """Create a mock RunContext with room, wait_for_playout, and TeachingContext userdata."""
     ctx = MagicMock()
     if playout_raises:
         ctx.wait_for_playout = AsyncMock(side_effect=RuntimeError("playout failed"))
     else:
         ctx.wait_for_playout = AsyncMock()
     ctx.session.room_io.room.local_participant.publish_data = AsyncMock()
+
+    # TeachingContext-like userdata with board_state
+    userdata = MagicMock()
+    userdata.board_state = BoardState()
+    ctx.userdata = userdata
+
     return ctx
+
+
+# ── Playout gating tests ──────────────────────────────────────
 
 
 class TestPublishVisualPlayoutGating:
@@ -253,3 +264,150 @@ class TestShowEquationSyncHints:
         call_args = ctx.session.room_io.room.local_participant.publish_data.call_args
         published = json.loads(call_args[0][0])
         assert "term_hints" not in published
+
+
+# ── Auto-ID + board state tracking tests ─────────────────────
+
+
+class TestAutoId:
+    @pytest.mark.asyncio
+    async def test_auto_assigns_element_id(self) -> None:
+        """_publish_visual auto-assigns element_id when None."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        instr = ShowTextInstruction(text="Hello")
+        assert instr.element_id is None
+
+        await _publish_visual(ctx, instr)
+        assert instr.element_id == "text-1"
+
+    @pytest.mark.asyncio
+    async def test_preserves_existing_element_id(self) -> None:
+        """_publish_visual keeps an explicitly-set element_id."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        instr = ShowTextInstruction(text="Hello", element_id="my-custom-id")
+        await _publish_visual(ctx, instr)
+        assert instr.element_id == "my-custom-id"
+
+    @pytest.mark.asyncio
+    async def test_no_auto_id_for_clear(self) -> None:
+        """clear instructions don't get auto-IDs."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        instr = ClearInstruction(sync_mode=SyncMode.IMMEDIATE)
+        await _publish_visual(ctx, instr, wait_for_speech=False)
+        assert instr.element_id is None
+
+    @pytest.mark.asyncio
+    async def test_sequential_auto_ids(self) -> None:
+        """Multiple instructions of the same type get sequential IDs."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        instr1 = ShowTextInstruction(text="A")
+        instr2 = ShowTextInstruction(text="B")
+        await _publish_visual(ctx, instr1)
+        await _publish_visual(ctx, instr2)
+        assert instr1.element_id == "text-1"
+        assert instr2.element_id == "text-2"
+
+
+class TestBoardStateTracking:
+    @pytest.mark.asyncio
+    async def test_publish_records_to_board_state(self) -> None:
+        """_publish_visual records content instructions in board state."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        bs: BoardState = ctx.userdata.board_state
+
+        instr = ShowTextInstruction(text="Hello world")
+        await _publish_visual(ctx, instr)
+
+        assert len(bs._elements) == 1
+        assert "text-1" in bs._elements
+
+    @pytest.mark.asyncio
+    async def test_clear_wipes_board_state(self) -> None:
+        """ClearInstruction without target_id clears all board state."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        bs: BoardState = ctx.userdata.board_state
+
+        await _publish_visual(ctx, ShowTextInstruction(text="A"))
+        await _publish_visual(ctx, ShowTextInstruction(text="B"))
+        assert len(bs._elements) == 2
+
+        await _publish_visual(
+            ctx, ClearInstruction(sync_mode=SyncMode.IMMEDIATE), wait_for_speech=False
+        )
+        assert len(bs._elements) == 0
+
+    @pytest.mark.asyncio
+    async def test_clear_target_removes_one(self) -> None:
+        """ClearInstruction with target_id removes only that element."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        bs: BoardState = ctx.userdata.board_state
+
+        await _publish_visual(ctx, ShowTextInstruction(text="A"))
+        await _publish_visual(ctx, ShowTextInstruction(text="B"))
+        assert len(bs._elements) == 2
+
+        await _publish_visual(
+            ctx,
+            ClearInstruction(sync_mode=SyncMode.IMMEDIATE, target_id="text-1"),
+            wait_for_speech=False,
+        )
+        assert "text-1" not in bs._elements
+        assert "text-2" in bs._elements
+
+
+class TestZoneParam:
+    @pytest.mark.asyncio
+    async def test_zone_set_on_instruction(self) -> None:
+        """Zone string is parsed and set on the instruction."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        instr = ShowTextInstruction(text="Hello", zone=BoardZone.TOP_LEFT)
+        await _publish_visual(ctx, instr)
+
+        call_args = ctx.session.room_io.room.local_participant.publish_data.call_args
+        published = json.loads(call_args[0][0])
+        assert published["zone"] == "top-left"
+
+    @pytest.mark.asyncio
+    async def test_zone_tracked_in_board_state(self) -> None:
+        """Zone is recorded in the board state element."""
+        from feynman.agent.tools import _publish_visual
+
+        ctx = _make_mock_ctx()
+        bs: BoardState = ctx.userdata.board_state
+
+        instr = ShowTextInstruction(text="Hello", zone=BoardZone.CENTER_CENTER)
+        await _publish_visual(ctx, instr)
+
+        assert bs._elements["text-1"].zone == BoardZone.CENTER_CENTER
+
+    def test_parse_zone_valid(self) -> None:
+        from feynman.agent.tools import _parse_zone
+
+        assert _parse_zone("top-left") == BoardZone.TOP_LEFT
+        assert _parse_zone("center-center") == BoardZone.CENTER_CENTER
+
+    def test_parse_zone_empty(self) -> None:
+        from feynman.agent.tools import _parse_zone
+
+        assert _parse_zone("") is None
+
+    def test_parse_zone_invalid(self) -> None:
+        from feynman.agent.tools import _parse_zone
+
+        assert _parse_zone("not-a-zone") is None

@@ -6,6 +6,7 @@ from feynman.agent.lesson_plan import ConceptNode, LessonPlan
 from feynman.agent.prompts import (
     STATE_TOOL_INSTRUCTIONS,
     TEACHING_SYSTEM_PROMPT,
+    ZONE_PLACEMENT_INSTRUCTIONS,
     build_teaching_prompt,
 )
 from feynman.agent.state_machine import TeachingStateMachine
@@ -158,3 +159,65 @@ class TestBuildTeachingPromptLessonComplete:
         prompt = build_teaching_prompt(plan, ctx)
         assert "LESSON COMPLETE" in prompt
         assert "Summarize" in prompt
+
+
+class TestZonePlacementInstructions:
+    def test_included_with_plan(self):
+        plan = _make_plan()
+        ctx = _make_ctx(plan=plan)
+        prompt = build_teaching_prompt(plan, ctx)
+        assert ZONE_PLACEMENT_INSTRUCTIONS in prompt
+
+    def test_included_without_plan(self):
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert ZONE_PLACEMENT_INSTRUCTIONS in prompt
+
+    def test_zone_names_listed(self):
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert "top-left" in prompt
+        assert "center-center" in prompt
+        assert "bottom-right" in prompt
+
+
+class TestBoardStateInPrompt:
+    def test_empty_board_state(self):
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert "Board State" in prompt
+        assert "Board is empty." in prompt
+
+    def test_board_state_with_elements(self):
+        from feynman.visuals.schemas import BoardZone, ShowTextInstruction
+
+        ctx = _make_ctx(plan=None)
+        ctx.board_state.record(
+            ShowTextInstruction(
+                text="Key formula",
+                element_id="text-1",
+                zone=BoardZone.TOP_CENTER,
+            )
+        )
+        prompt = build_teaching_prompt(None, ctx)
+        assert "Board State" in prompt
+        assert "text-1" in prompt
+        assert "Key formula" in prompt
+        assert "top-center" in prompt
+
+    def test_board_state_section_in_plan_mode(self):
+        from feynman.visuals.schemas import ShowEquationInstruction
+
+        plan = _make_plan()
+        ctx = _make_ctx(plan=plan)
+        ctx.board_state.record(
+            ShowEquationInstruction(
+                latex="E = mc^2",
+                label="Einstein",
+                element_id="eq-1",
+            )
+        )
+        prompt = build_teaching_prompt(plan, ctx)
+        assert "Board State" in prompt
+        assert "eq-1" in prompt
+        assert "Einstein" in prompt
