@@ -100,3 +100,57 @@ export function computeArrowheadVertices(
     [baseX - px * halfWidth, baseY - py * halfWidth],
   ];
 }
+
+// ── Chart style defaults ─────────────────────────────────────
+
+/** Axes: readable but still hand-drawn. */
+export const AXIS_DEFAULTS: RoughOptions = {
+  roughness: 0.8,
+  strokeWidth: 2,
+  stroke: COLORS.textSecondary,
+};
+
+/** Ghost gridlines: subtle background reference. */
+export const GRID_DEFAULTS: RoughOptions = {
+  roughness: 0.4,
+  strokeWidth: 0.8,
+  stroke: `${COLORS.cardBorder}80`, // 50% opacity
+};
+
+/** Data lines: the hand-drawn character. */
+export const LINE_DEFAULTS: RoughOptions = {
+  roughness: 1.0,
+  strokeWidth: 2.5,
+  fill: "none",
+};
+
+/** Bar shapes: hachure fill like painted rectangles. */
+export const BAR_DEFAULTS: RoughOptions = {
+  roughness: 1.2,
+  strokeWidth: 2,
+  fillStyle: "hachure",
+  fillWeight: 1.5,
+  hachureGap: 5,
+};
+
+/** Build per-series Rough options with color and seed. */
+export function seriesRoughOptions(
+  color: string,
+  seed: number,
+  variant: "line" | "bar" | "scatter",
+): RoughOptions {
+  const base =
+    variant === "bar"
+      ? BAR_DEFAULTS
+      : variant === "scatter"
+        ? { ...LINE_DEFAULTS, fillStyle: "solid" as const }
+        : LINE_DEFAULTS;
+
+  return {
+    ...base,
+    stroke: color,
+    fill:
+      variant === "bar" ? `${color}60` : variant === "scatter" ? color : "none",
+    seed,
+  };
+}
