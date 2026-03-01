@@ -9,6 +9,8 @@ from pydantic import TypeAdapter, ValidationError
 
 from feynman.visuals.instructions import VisualInstruction
 from feynman.visuals.schemas import (
+    AnnotateInstruction,
+    AnnotationAction,
     AxisConfig,
     BoardZone,
     ClearInstruction,
@@ -217,6 +219,7 @@ class TestConstruction:
                 },
             ),
             (HighlightInstruction, {"target_id": "el-1"}),
+            (AnnotateInstruction, {"action": "circle", "target_id": "el-1"}),
         ]
         for cls, kwargs in cases:
             instr = cls(**kwargs, zone="bottom-right")
@@ -589,3 +592,83 @@ class TestShowGraphToolParsing:
         assert len(instr.series) == 2
         assert instr.series[0].points[0].label == "Math"
         assert instr.series[1].label == "2025"
+
+
+# ── Annotate instruction ─────────────────────────────────────
+
+
+class TestAnnotateInstruction:
+    def test_circle_defaults(self) -> None:
+        instr = AnnotateInstruction(action=AnnotationAction.CIRCLE, target_id="eq-1")
+        assert instr.type == "annotate"
+        assert instr.action == AnnotationAction.CIRCLE
+        assert instr.target_id == "eq-1"
+        assert instr.from_id == ""
+        assert instr.to_id == ""
+        assert instr.color == ""
+
+    def test_underline_with_color(self) -> None:
+        instr = AnnotateInstruction(
+            action=AnnotationAction.UNDERLINE,
+            target_id="text-1",
+            color="#ff0000",
+        )
+        assert instr.action == AnnotationAction.UNDERLINE
+        assert instr.color == "#ff0000"
+
+    def test_arrow(self) -> None:
+        instr = AnnotateInstruction(
+            action=AnnotationAction.ARROW,
+            from_id="eq-1",
+            to_id="diagram-1",
+        )
+        assert instr.action == AnnotationAction.ARROW
+        assert instr.from_id == "eq-1"
+        assert instr.to_id == "diagram-1"
+
+    def test_circle_requires_target_id(self) -> None:
+        with pytest.raises(ValidationError, match="target_id"):
+            AnnotateInstruction(action=AnnotationAction.CIRCLE)
+
+    def test_underline_requires_target_id(self) -> None:
+        with pytest.raises(ValidationError, match="target_id"):
+            AnnotateInstruction(action=AnnotationAction.UNDERLINE)
+
+    def test_arrow_requires_from_id(self) -> None:
+        with pytest.raises(ValidationError, match="from_id and to_id"):
+            AnnotateInstruction(action=AnnotationAction.ARROW, to_id="eq-1")
+
+    def test_arrow_requires_to_id(self) -> None:
+        with pytest.raises(ValidationError, match="from_id and to_id"):
+            AnnotateInstruction(action=AnnotationAction.ARROW, from_id="eq-1")
+
+    def test_discriminated_union_parse(self) -> None:
+        instr = _ta.validate_python({"type": "annotate", "action": "circle", "target_id": "eq-1"})
+        assert isinstance(instr, AnnotateInstruction)
+        assert instr.action == AnnotationAction.CIRCLE
+
+    def test_roundtrip(self) -> None:
+        original = AnnotateInstruction(
+            action=AnnotationAction.ARROW,
+            from_id="eq-1",
+            to_id="diagram-1",
+            color="#ef4444",
+        )
+        data = original.model_dump(exclude_none=True)
+        assert data["type"] == "annotate"
+        assert data["action"] == "arrow"
+
+        json_str = json.dumps(data)
+        parsed = _ta.validate_json(json_str)
+        assert isinstance(parsed, AnnotateInstruction)
+        assert parsed.from_id == "eq-1"
+        assert parsed.to_id == "diagram-1"
+        assert parsed.color == "#ef4444"
+
+    def test_zone_on_annotate(self) -> None:
+        instr = AnnotateInstruction(
+            action=AnnotationAction.CIRCLE,
+            target_id="eq-1",
+            zone="top-left",
+        )
+        assert instr.zone == BoardZone.TOP_LEFT

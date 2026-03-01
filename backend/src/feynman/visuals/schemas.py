@@ -276,3 +276,38 @@ class HighlightInstruction(_BaseInstruction):
     target_id: str
     style: HighlightStyle = HighlightStyle.GLOW
     color: str = ""
+
+
+class AnnotationAction(StrEnum):
+    CIRCLE = "circle"
+    UNDERLINE = "underline"
+    ARROW = "arrow"
+
+
+class AnnotateInstruction(_BaseInstruction):
+    """Draw a freehand annotation — circle, underline, or arrow.
+
+    Annotations are ephemeral teaching gestures: they draw in with organic
+    animation and fade out after a duration. Used to direct student attention
+    to elements already on the board.
+    """
+
+    type: Literal["annotate"] = "annotate"
+    action: AnnotationAction
+    target_id: str = ""
+    from_id: str = ""
+    to_id: str = ""
+    color: str = ""
+
+    @model_validator(mode="after")
+    def _require_targets(self) -> Self:
+        if (
+            self.action in (AnnotationAction.CIRCLE, AnnotationAction.UNDERLINE)
+            and not self.target_id
+        ):
+            msg = "circle and underline annotations require target_id"
+            raise ValueError(msg)
+        if self.action == AnnotationAction.ARROW and (not self.from_id or not self.to_id):
+            msg = "arrow annotations require both from_id and to_id"
+            raise ValueError(msg)
+        return self

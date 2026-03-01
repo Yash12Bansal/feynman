@@ -41,6 +41,8 @@ export type GraphType = "line" | "bar" | "scatter" | "function";
 
 export type HighlightStyle = "glow" | "underline" | "box" | "pulse";
 
+export type AnnotationAction = "circle" | "underline" | "arrow";
+
 export type SyncMode = "immediate" | "on_playout" | "term_sync";
 
 export type BoardZone =
@@ -171,6 +173,15 @@ export interface HighlightInstruction extends BaseInstruction {
   color?: string;
 }
 
+export interface AnnotateInstruction extends BaseInstruction {
+  type: "annotate";
+  action: AnnotationAction;
+  target_id?: string;
+  from_id?: string;
+  to_id?: string;
+  color?: string;
+}
+
 // ── Discriminated union ───────────────────────────────────────
 
 export type VisualInstruction =
@@ -180,7 +191,8 @@ export type VisualInstruction =
   | StepEquationInstruction
   | DrawDiagramInstruction
   | ShowGraphInstruction
-  | HighlightInstruction;
+  | HighlightInstruction
+  | AnnotateInstruction;
 
 export type VisualType = VisualInstruction["type"];
 

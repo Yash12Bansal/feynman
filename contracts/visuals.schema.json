@@ -904,12 +904,109 @@
       "enum": ["default", "definition", "key_point", "example"],
       "title": "TextStyle",
       "type": "string"
+    },
+    "AnnotationAction": {
+      "enum": ["circle", "underline", "arrow"],
+      "title": "AnnotationAction",
+      "type": "string"
+    },
+    "AnnotateInstruction": {
+      "description": "Draw a freehand annotation — circle, underline, or arrow.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "annotate",
+          "default": "annotate",
+          "title": "Type",
+          "type": "string"
+        },
+        "action": {
+          "$ref": "#/$defs/AnnotationAction"
+        },
+        "target_id": {
+          "default": "",
+          "title": "Target Id",
+          "type": "string"
+        },
+        "from_id": {
+          "default": "",
+          "title": "From Id",
+          "type": "string"
+        },
+        "to_id": {
+          "default": "",
+          "title": "To Id",
+          "type": "string"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": ["action"],
+      "title": "AnnotateInstruction",
+      "type": "object"
     }
   },
   "definitions": {
     "VisualInstruction": {
       "discriminator": {
         "mapping": {
+          "annotate": "#/$defs/AnnotateInstruction",
           "clear": "#/$defs/ClearInstruction",
           "draw_diagram": "#/$defs/DrawDiagramInstruction",
           "highlight": "#/$defs/HighlightInstruction",
@@ -941,6 +1038,9 @@
         },
         {
           "$ref": "#/$defs/HighlightInstruction"
+        },
+        {
+          "$ref": "#/$defs/AnnotateInstruction"
         }
       ]
     },
@@ -955,6 +1055,7 @@
           "items": {
             "discriminator": {
               "mapping": {
+                "annotate": "#/$defs/AnnotateInstruction",
                 "clear": "#/$defs/ClearInstruction",
                 "draw_diagram": "#/$defs/DrawDiagramInstruction",
                 "highlight": "#/$defs/HighlightInstruction",
@@ -982,6 +1083,9 @@
               },
               {
                 "$ref": "#/$defs/HighlightInstruction"
+              },
+              {
+                "$ref": "#/$defs/AnnotateInstruction"
               }
             ]
           },

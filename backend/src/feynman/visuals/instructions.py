@@ -17,6 +17,7 @@ from typing import Annotated
 from pydantic import Discriminator
 
 from feynman.visuals.schemas import (
+    AnnotateInstruction,
     BoardZone,
     ClearInstruction,
     DrawDiagramInstruction,
@@ -34,11 +35,13 @@ VisualInstruction = Annotated[
     | StepEquationInstruction
     | DrawDiagramInstruction
     | ShowGraphInstruction
-    | HighlightInstruction,
+    | HighlightInstruction
+    | AnnotateInstruction,
     Discriminator("type"),
 ]
 
 __all__ = [
+    "AnnotateInstruction",
     "BoardZone",
     "ClearInstruction",
     "DrawDiagramInstruction",

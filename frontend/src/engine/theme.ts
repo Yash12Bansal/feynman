@@ -16,6 +16,7 @@ export const COLORS = {
   accentAmber: "#fbbf24",
   accentGreen: "#4ade80",
   accentPurple: "#a78bfa",
+  accentRed: "#ef4444",
   equationBg: "#1a1a2e",
   diagramBg: "#0f1a14",
   diagramBorder: "#1a3a28",
@@ -46,6 +47,7 @@ export const TYPE_ACCENT: Record<string, string> = {
   step_equation: COLORS.accentAmber,
   draw_diagram: COLORS.accentGreen,
   show_graph: COLORS.accentPurple,
+  annotate: COLORS.accentRed,
 };
 
 /** Inject theme as CSS custom properties on a DOM element. */

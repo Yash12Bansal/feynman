@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   VisualInstruction,
   HighlightInstruction,
+  AnnotateInstruction,
 } from "../../types/visuals";
 import type { BoardLayout, BoardZone } from "./types";
 import { BOARD_WIDTH, BOARD_HEIGHT } from "./types";
@@ -12,6 +13,7 @@ import { injectThemeVars } from "../theme";
 import { WhiteboardCard } from "./WhiteboardCard";
 import { InstructionSwitch } from "./InstructionSwitch";
 import { HighlightOverlay } from "../content/HighlightOverlay";
+import { AnnotationLayer } from "./content/AnnotationLayer";
 import { AliveFilter } from "./AliveFilter";
 import "./WhiteboardScene.css";
 
@@ -117,20 +119,25 @@ export function WhiteboardScene({
   const layout = useMemo(() => computeBoardLayout(), []);
   const { scale, offsetX, offsetY } = useBoardScale(viewportRef);
 
+  const boardSurfaceRef = useRef<HTMLDivElement>(null);
+
   // Separate renderable elements from effects
-  const { elements, highlights } = useMemo(() => {
+  const { elements, highlights, annotations } = useMemo(() => {
     const elems: VisualInstruction[] = [];
     const hlights: HighlightInstruction[] = [];
+    const anns: AnnotateInstruction[] = [];
 
     for (const instr of instructions) {
       if (instr.type === "highlight") {
         hlights.push(instr);
+      } else if (instr.type === "annotate") {
+        anns.push(instr);
       } else if (instr.type !== "clear") {
         elems.push(instr);
       }
     }
 
-    return { elements: elems, highlights: hlights };
+    return { elements: elems, highlights: hlights, annotations: anns };
   }, [instructions]);
 
   // Group elements by zone
@@ -170,7 +177,7 @@ export function WhiteboardScene({
               transform: boardTransform,
             }}
           >
-            <div className="wb-board-surface">
+            <div ref={boardSurfaceRef} className="wb-board-surface">
               <AliveFilter />
               {debugZones && <ZoneDebugOverlay layout={layout} />}
               {Array.from(zoneGroups.entries()).map(
@@ -200,6 +207,11 @@ export function WhiteboardScene({
                   );
                 },
               )}
+              <AnnotationLayer
+                annotations={annotations}
+                boardRef={boardSurfaceRef}
+                scale={scale}
+              />
             </div>
           </div>
         </div>

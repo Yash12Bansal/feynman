@@ -369,6 +369,43 @@ describe("WhiteboardScene — instruction routing", () => {
     expect(zones[0].querySelectorAll(".wb-card").length).toBe(1);
   });
 
+  it("separates annotate instructions from zone content", () => {
+    const instructions: VisualInstruction[] = [
+      {
+        type: "show_text",
+        text: "target",
+        element_id: "t1",
+        zone: "top-left",
+      },
+      { type: "annotate", action: "circle", target_id: "t1" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
+    );
+    // Only one zone rendered (for the text), annotate is not in a zone
+    const zones = container.querySelectorAll(".wb-zone");
+    expect(zones.length).toBe(1);
+    expect(zones[0].querySelectorAll(".wb-card").length).toBe(1);
+  });
+
+  it("renders AnnotationLayer inside board surface", () => {
+    const instructions: VisualInstruction[] = [
+      {
+        type: "show_text",
+        text: "target",
+        element_id: "t1",
+        zone: "top-left",
+      },
+      { type: "annotate", action: "circle", target_id: "t1" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
+    );
+    const surface = container.querySelector(".wb-board-surface");
+    const annotationLayer = surface?.querySelector(".wb-annotation-layer");
+    expect(annotationLayer).toBeTruthy();
+  });
+
   it("sets data-type attribute on whiteboard cards", () => {
     const instructions: VisualInstruction[] = [
       { type: "show_equation", latex: "E=mc^2", zone: "top-right" },

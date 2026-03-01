@@ -22,10 +22,11 @@ _TYPE_PREFIX: dict[str, str] = {
     "step_equation": "step",
     "show_graph": "graph",
     "highlight": "hl",
+    "annotate": "ann",
 }
 
 # Instruction types that are ephemeral — not tracked on the board.
-_EPHEMERAL_TYPES = frozenset({"highlight"})
+_EPHEMERAL_TYPES = frozenset({"highlight", "annotate"})
 
 # Max label length kept in board elements.
 _MAX_LABEL_LEN = 60

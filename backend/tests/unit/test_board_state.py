@@ -6,6 +6,8 @@ from feynman.agent.board_state import (
     _extract_label,
 )
 from feynman.visuals.schemas import (
+    AnnotateInstruction,
+    AnnotationAction,
     BoardZone,
     ClearInstruction,
     DrawDiagramInstruction,
@@ -102,6 +104,16 @@ class TestRecord:
     def test_skips_ephemeral_highlight(self) -> None:
         bs = BoardState()
         instr = HighlightInstruction(target_id="eq-1", element_id="hl-1")
+        bs.record(instr)
+        assert len(bs._elements) == 0
+
+    def test_skips_ephemeral_annotate(self) -> None:
+        bs = BoardState()
+        instr = AnnotateInstruction(
+            action=AnnotationAction.CIRCLE,
+            target_id="eq-1",
+            element_id="ann-1",
+        )
         bs.record(instr)
         assert len(bs._elements) == 0
 

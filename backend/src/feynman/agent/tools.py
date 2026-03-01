@@ -14,6 +14,8 @@ if TYPE_CHECKING:
     from feynman.agent.teaching_context import TeachingContext
 
 from feynman.visuals.schemas import (
+    AnnotateInstruction,
+    AnnotationAction,
     AxisConfig,
     BoardZone,
     ClearInstruction,
@@ -38,7 +40,7 @@ from feynman.visuals.schemas import (
 logger = structlog.get_logger()
 
 # Instruction types that skip auto-ID assignment.
-_NO_AUTO_ID_TYPES = frozenset({"clear", "highlight"})
+_NO_AUTO_ID_TYPES = frozenset({"clear", "highlight", "annotate"})
 
 
 def _parse_zone(zone: str) -> BoardZone | None:
@@ -276,6 +278,45 @@ Leave empty for default placement.
     )
     await _publish_visual(ctx, instruction)
     return f"Displayed graph: {title or graph_type}"
+
+
+@function_tool()
+async def annotate(
+    ctx: RunContext,
+    action: str,
+    target_id: str = "",
+    from_id: str = "",
+    to_id: str = "",
+    color: str = "",
+) -> str:
+    """Draw a freehand annotation — circle, underline, or arrow.
+
+    Use to direct student attention to elements already on the board.
+    Annotations are transient gestures that draw in and fade out automatically.
+
+    Args:
+        action: The annotation type. Options: "circle" (ring around an element), \
+"underline" (line beneath an element), "arrow" (from one element to another).
+        target_id: Element ID to annotate. Required for "circle" and "underline" \
+(e.g., "eq-1", "text-2").
+        from_id: Source element ID. Required for "arrow".
+        to_id: Destination element ID. Required for "arrow".
+        color: Optional hex color for the annotation (e.g., "#ef4444"). \
+Defaults to accent red on the frontend.
+    """
+    ann_action = AnnotationAction(action)
+    instruction = AnnotateInstruction(
+        action=ann_action,
+        target_id=target_id,
+        from_id=from_id,
+        to_id=to_id,
+        color=color,
+        sync_mode=SyncMode.IMMEDIATE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    if ann_action == AnnotationAction.ARROW:
+        return f"Drew arrow from {from_id} to {to_id}"
+    return f"Drew {action} on {target_id}"
 
 
 @function_tool()
