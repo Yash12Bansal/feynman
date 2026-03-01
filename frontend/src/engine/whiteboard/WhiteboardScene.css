@@ -1,0 +1,59 @@
+/* ── Whiteboard viewport: fills parent, clips overflow ──── */
+
+.wb-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-background);
+}
+
+/* ── Board: 1920x1080 logical, scaled via transform ─────── */
+
+.wb-board {
+  position: absolute;
+  will-change: transform;
+  transform-origin: 0 0;
+}
+
+/* ── Surface: dot-grid background for spatial reference ─── */
+
+.wb-board-surface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle, #1a1a2e 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Board element: absolutely positioned content slot ──── */
+
+.wb-element {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+/* ── Zone debug overlay ─────────────────────────────────── */
+
+.wb-zone-debug {
+  position: absolute;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+}
+
+.wb-zone-debug-inner {
+  position: absolute;
+  border: 1px dotted rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.wb-zone-debug-label {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  user-select: none;
+}
