@@ -15,6 +15,8 @@ import { InstructionSwitch } from "./InstructionSwitch";
 import { HighlightOverlay } from "../content/HighlightOverlay";
 import { AnnotationLayer } from "./content/AnnotationLayer";
 import { AliveFilter } from "./AliveFilter";
+import { BoardNavigator } from "./BoardNavigator";
+import type { BoardTransition, BoardMeta } from "./useBoardStore";
 import "./WhiteboardScene.css";
 
 // ── Scale hook ────────────────────────────────────────────
@@ -108,11 +110,20 @@ const DEFAULT_ZONE: BoardZone = "center-center";
 export interface WhiteboardSceneProps {
   instructions: VisualInstruction[];
   debugZones?: boolean;
+  /** Board navigation — all optional. When absent, renders exactly as before. */
+  activeBoardMeta?: BoardMeta | null;
+  pendingTransition?: BoardTransition | null;
+  onTransitionComplete?: () => void;
+  getBoardInstructions?: (boardId: string) => VisualInstruction[];
 }
 
 export function WhiteboardScene({
   instructions,
   debugZones,
+  activeBoardMeta,
+  pendingTransition,
+  onTransitionComplete,
+  getBoardInstructions,
 }: WhiteboardSceneProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const registry = useCreateElementRegistry();
@@ -132,7 +143,7 @@ export function WhiteboardScene({
         hlights.push(instr);
       } else if (instr.type === "annotate") {
         anns.push(instr);
-      } else if (instr.type !== "clear") {
+      } else if (instr.type !== "clear" && instr.type !== "switch_board") {
         elems.push(instr);
       }
     }
@@ -164,6 +175,46 @@ export function WhiteboardScene({
 
   const boardTransform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
 
+  const hasBoardNav =
+    onTransitionComplete !== undefined && getBoardInstructions !== undefined;
+
+  const boardSurface = (
+    <div ref={boardSurfaceRef} className="wb-board-surface">
+      <AliveFilter />
+      {debugZones && <ZoneDebugOverlay layout={layout} />}
+      {Array.from(zoneGroups.entries()).map(([zone, zoneInstructions]) => {
+        const { inner } = layout.zones[zone];
+        return (
+          <div
+            key={zone}
+            className="wb-zone"
+            data-zone={zone}
+            style={{
+              left: inner.x,
+              top: inner.y,
+              width: inner.width,
+              height: inner.height,
+            }}
+          >
+            {zoneInstructions.map((instr, idx) => (
+              <WhiteboardCard
+                key={instr.element_id ?? `wb-${zone}-${idx}`}
+                instruction={instr}
+              >
+                <InstructionSwitch instruction={instr} />
+              </WhiteboardCard>
+            ))}
+          </div>
+        );
+      })}
+      <AnnotationLayer
+        annotations={annotations}
+        boardRef={boardSurfaceRef}
+        scale={scale}
+      />
+    </div>
+  );
+
   return (
     <BoardLayoutContext.Provider value={layout}>
       <ElementRegistryContext.Provider value={registry}>
@@ -177,42 +228,18 @@ export function WhiteboardScene({
               transform: boardTransform,
             }}
           >
-            <div ref={boardSurfaceRef} className="wb-board-surface">
-              <AliveFilter />
-              {debugZones && <ZoneDebugOverlay layout={layout} />}
-              {Array.from(zoneGroups.entries()).map(
-                ([zone, zoneInstructions]) => {
-                  const { inner } = layout.zones[zone];
-                  return (
-                    <div
-                      key={zone}
-                      className="wb-zone"
-                      data-zone={zone}
-                      style={{
-                        left: inner.x,
-                        top: inner.y,
-                        width: inner.width,
-                        height: inner.height,
-                      }}
-                    >
-                      {zoneInstructions.map((instr, idx) => (
-                        <WhiteboardCard
-                          key={instr.element_id ?? `wb-${zone}-${idx}`}
-                          instruction={instr}
-                        >
-                          <InstructionSwitch instruction={instr} />
-                        </WhiteboardCard>
-                      ))}
-                    </div>
-                  );
-                },
-              )}
-              <AnnotationLayer
-                annotations={annotations}
-                boardRef={boardSurfaceRef}
-                scale={scale}
-              />
-            </div>
+            {hasBoardNav ? (
+              <BoardNavigator
+                activeBoardMeta={activeBoardMeta ?? null}
+                pendingTransition={pendingTransition ?? null}
+                onTransitionComplete={onTransitionComplete}
+                getBoardInstructions={getBoardInstructions}
+              >
+                {boardSurface}
+              </BoardNavigator>
+            ) : (
+              boardSurface
+            )}
           </div>
         </div>
         {highlights.map((h, idx) => (

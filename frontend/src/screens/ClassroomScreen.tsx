@@ -8,7 +8,7 @@ import { useVisualChannel } from "../livekit/useVisualChannel";
 import { useAgentTranscription } from "../livekit/useAgentTranscription";
 
 export function ClassroomScreen() {
-  const { instructions } = useVisualChannel();
+  const { activeInstructions: instructions } = useVisualChannel();
   const syncManager = useCreateSyncManager();
   const handleWord = useCallback(
     (word: string) => syncManager.onWord(word),
