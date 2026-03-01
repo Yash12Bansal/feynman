@@ -50,6 +50,47 @@
   flex-shrink: 0;
   width: 100%;
   box-sizing: border-box;
+  animation: wb-card-enter 0.25s ease-out both;
+}
+
+@keyframes wb-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Board edge vignette ───────────────────────────────── */
+
+.wb-board-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Reduced motion: disable wobble + card animation ───── */
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-card {
+    animation: none;
+  }
+
+  /* Kill the SMIL seed cycling by hiding the alive filter SVG.
+     Browsers stop SMIL animations on display:none elements. */
+  .wb-board-surface > svg[aria-hidden="true"] {
+    display: none;
+  }
 }
 
 /* ── Zone debug overlay ─────────────────────────────────── */

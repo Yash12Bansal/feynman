@@ -12,6 +12,7 @@ import { injectThemeVars } from "../theme";
 import { WhiteboardCard } from "./WhiteboardCard";
 import { InstructionSwitch } from "./InstructionSwitch";
 import { HighlightOverlay } from "../content/HighlightOverlay";
+import { AliveFilter } from "./AliveFilter";
 import "./WhiteboardScene.css";
 
 // ── Scale hook ────────────────────────────────────────────
@@ -170,6 +171,7 @@ export function WhiteboardScene({
             }}
           >
             <div className="wb-board-surface">
+              <AliveFilter />
               {debugZones && <ZoneDebugOverlay layout={layout} />}
               {Array.from(zoneGroups.entries()).map(
                 ([zone, zoneInstructions]) => {

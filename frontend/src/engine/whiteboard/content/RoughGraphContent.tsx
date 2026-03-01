@@ -21,6 +21,7 @@ import {
   AXIS_DEFAULTS,
   GRID_DEFAULTS,
 } from "./rough-helpers";
+import { ALIVE_FILTER_ID } from "../AliveFilter";
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -283,8 +284,8 @@ function StructuredRoughGraph({
         aria-label={description}
         style={{ display: "block" }}
       >
-        {/* Layer 1: Rough.js shapes (imperative) */}
-        <g ref={roughLayerRef} />
+        {/* Layer 1: Rough.js shapes (imperative) — alive filter for organic wobble */}
+        <g ref={roughLayerRef} style={{ filter: `url(#${ALIVE_FILTER_ID})` }} />
 
         {/* Layer 2: Clean labels (declarative) */}
         <g ref={labelLayerRef}>

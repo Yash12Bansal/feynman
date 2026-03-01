@@ -13,6 +13,7 @@ import { COLORS } from "../../theme";
 import { FUTURAL, SCRIPTS } from "../fonts/hershey-font-data";
 import { layoutText, FONT_MIN_Y, LINE_HEIGHT } from "../fonts/hershey";
 import type { TextLayout } from "../fonts/hershey";
+import { ALIVE_FILTER_ID } from "../AliveFilter";
 
 // ── Style → accent color mapping ────────────────────────────
 
@@ -73,7 +74,7 @@ function HandwrittenSection({
       role="img"
       aria-label={label}
     >
-      <g>
+      <g style={{ filter: `url(#${ALIVE_FILTER_ID})` }}>
         {layout.glyphs.map((glyph, i) => (
           <path
             key={`${dataPrefix}-${i}`}
