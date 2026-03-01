@@ -25,6 +25,7 @@ export interface ElementRegistry {
   ) => void;
   unregister: (id: string) => void;
   get: (id: string) => ElementEntry | undefined;
+  entries: () => IterableIterator<[string, ElementEntry]>;
 }
 
 export const ElementRegistryContext = createContext<ElementRegistry | null>(
@@ -59,8 +60,12 @@ export function useCreateElementRegistry(): ElementRegistry {
     return mapRef.current.get(id);
   }, []);
 
+  const entries = useCallback(() => {
+    return mapRef.current.entries();
+  }, []);
+
   return useMemo(
-    () => ({ register, unregister, get }),
-    [register, unregister, get],
+    () => ({ register, unregister, get, entries }),
+    [register, unregister, get, entries],
   );
 }

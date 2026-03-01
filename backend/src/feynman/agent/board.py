@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from uuid import UUID
 
 from feynman.agent.board_state import _TYPE_PREFIX, BoardState
+from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.visuals.schemas import BoardZone, _BaseInstruction
 
 
@@ -93,6 +94,13 @@ class BoardManager:
     def summary(self) -> str:
         """Active board's element summary."""
         return self.active_board.state.summary()
+
+    def update_bounds(self, board_id: str, report: BoundsReportPayload) -> None:
+        """Route a bounds report to the correct board's scene graph."""
+        board = self._boards.get(board_id)
+        if board is None:
+            return  # Silently ignore unknown board IDs
+        board.state.scene_graph.update_bounds(report)
 
     # ── Board lifecycle ───────────────────────────────────────
 

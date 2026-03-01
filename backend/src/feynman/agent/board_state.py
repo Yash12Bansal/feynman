@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 from pydantic import BaseModel
 
+from feynman.agent.scene_graph import SceneGraph
 from feynman.visuals.schemas import BoardZone, _BaseInstruction
 
 # Instruction type → short prefix for auto-generated element IDs.
@@ -91,6 +92,7 @@ class BoardState:
     _elements: dict[str, BoardElement] = field(default_factory=dict)
     _counters: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
     _step: int = 0
+    scene_graph: SceneGraph = field(default_factory=SceneGraph)
 
     def next_id(self, instruction_type: str) -> str:
         """Generate the next auto-ID for a given instruction type.
@@ -139,10 +141,12 @@ class BoardState:
     def remove(self, element_id: str) -> None:
         """Remove a specific element from the board."""
         self._elements.pop(element_id, None)
+        self.scene_graph.remove_element(element_id)
 
     def clear(self) -> None:
         """Wipe the entire board state."""
         self._elements.clear()
+        self.scene_graph.clear()
 
     def zones_in_use(self) -> set[BoardZone]:
         """Return the set of zones that currently have content."""
@@ -155,12 +159,19 @@ class BoardState:
     def summary(self) -> str:
         """Compact text summary of the board for LLM prompt inclusion.
 
-        Truncates at _SUMMARY_THRESHOLD elements — shows the most recent
-        _SUMMARY_RECENT and a count of earlier ones.
+        When scene graph has bounds data, produces a richer spatial summary
+        with positions, sizes, and relationships. Falls back to zone-only
+        format when no bounds are available.
         """
         if not self._elements:
             return "Board is empty."
 
+        # Try scene-graph-enriched summary first.
+        sg_summary = self.scene_graph.summary(self._elements)
+        if sg_summary:
+            return sg_summary
+
+        # Fallback: zone-only listing (no bounds data from frontend).
         elements = sorted(self._elements.values(), key=lambda e: e.created_at)
 
         lines: list[str] = []

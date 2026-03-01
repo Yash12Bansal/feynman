@@ -8,6 +8,7 @@ import pytest
 
 from feynman.agent.board import Board, BoardManager
 from feynman.agent.board_state import BoardState
+from feynman.agent.scene_graph import BoundsReportElement, BoundsReportPayload
 from feynman.visuals.schemas import BoardZone, ShowEquationInstruction, ShowTextInstruction
 
 # ── Board dataclass ───────────────────────────────────────────
@@ -376,3 +377,34 @@ class TestFullLifecycle:
         assert bm.get_board("board-1") is not None
         assert bm.get_board(doubt_board.id) is not None
         assert bm.get_board(next_board.id) is not None
+
+
+# ── update_bounds routing ────────────────────────────────────
+
+
+class TestUpdateBounds:
+    def test_routes_to_correct_board(self) -> None:
+        bm = BoardManager()
+        bm.create_and_switch("Board 2", uuid4())
+        report = BoundsReportPayload(
+            board_id="board-1",
+            elements=[
+                BoundsReportElement(element_id="text-1", x=10, y=20, width=100, height=50),
+            ],
+        )
+        bm.update_bounds("board-1", report)
+        board1 = bm.get_board("board-1")
+        assert board1 is not None
+        assert board1.state.scene_graph.get_bounds("text-1") is not None
+        # Active board (board-2) should not be affected.
+        assert bm.active_board.state.scene_graph.get_bounds("text-1") is None
+
+    def test_unknown_board_id_silently_ignored(self) -> None:
+        bm = BoardManager()
+        report = BoundsReportPayload(
+            board_id="board-999",
+            elements=[
+                BoundsReportElement(element_id="x", x=0, y=0, width=10, height=10),
+            ],
+        )
+        bm.update_bounds("board-999", report)  # Should not raise

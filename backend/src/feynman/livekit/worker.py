@@ -10,9 +10,11 @@ from uuid import uuid4
 
 import structlog
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
+from livekit.rtc import DataPacket
 
 from feynman.agent.lesson_plan import generate_lesson_plan
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
+from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.agent.state_machine import TeachingStateMachine
 from feynman.agent.teaching_context import TeachingContext
 from feynman.agent.tools import (
@@ -159,6 +161,23 @@ async def entrypoint(ctx: JobContext) -> None:
         session_id=session_id,
         state_machine=state_machine,
     )
+
+    # Listen for bounds reports from the frontend
+    @ctx.room.on("data_received")
+    def _on_data_received(packet: DataPacket) -> None:
+        if packet.topic != "bounds":
+            return
+        try:
+            payload = json.loads(packet.data)
+            report = BoundsReportPayload.model_validate(payload)
+            teaching_ctx.board_manager.update_bounds(report.board_id, report)
+            logger.debug(
+                "bounds.received",
+                board_id=report.board_id,
+                element_count=len(report.elements),
+            )
+        except Exception:
+            logger.warning("bounds.parse_failed", exc_info=True)
 
     # Create agent with teaching context
     agent = FeynmanAgent(

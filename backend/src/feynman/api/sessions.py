@@ -36,7 +36,7 @@ def _create_livekit_token(room_name: str, identity: str) -> str:
                 room_join=True,
                 can_publish=True,
                 can_subscribe=True,
-                can_publish_data=False,
+                can_publish_data=True,
             )
         )
         .to_jwt()

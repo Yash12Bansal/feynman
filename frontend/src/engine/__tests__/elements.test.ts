@@ -52,5 +52,34 @@ describe("useCreateElementRegistry", () => {
     expect(result.current.register).toBe(first.register);
     expect(result.current.unregister).toBe(first.unregister);
     expect(result.current.get).toBe(first.get);
+    expect(result.current.entries).toBe(first.entries);
+  });
+
+  it("entries() returns all registered elements", () => {
+    const { result } = renderHook(() => useCreateElementRegistry());
+    const div1 = document.createElement("div");
+    const div2 = document.createElement("div");
+    const instr2: VisualInstruction = {
+      type: "show_equation",
+      element_id: "eq-1",
+      latex: "x=1",
+    };
+
+    act(() => {
+      result.current.register("test-1", div1, MOCK_INSTRUCTION);
+      result.current.register("eq-1", div2, instr2);
+    });
+
+    const entries = Array.from(result.current.entries());
+    expect(entries).toHaveLength(2);
+    const ids = entries.map(([id]) => id);
+    expect(ids).toContain("test-1");
+    expect(ids).toContain("eq-1");
+  });
+
+  it("entries() empty when no registrations", () => {
+    const { result } = renderHook(() => useCreateElementRegistry());
+    const entries = Array.from(result.current.entries());
+    expect(entries).toHaveLength(0);
   });
 });

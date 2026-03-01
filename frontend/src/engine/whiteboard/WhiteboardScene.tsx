@@ -15,6 +15,7 @@ import { InstructionSwitch } from "./InstructionSwitch";
 import { HighlightOverlay } from "../content/HighlightOverlay";
 import { AnnotationLayer } from "./content/AnnotationLayer";
 import { AliveFilter } from "./AliveFilter";
+import { BoundsReporter } from "./BoundsReporter";
 import { BoardNavigator } from "./BoardNavigator";
 import type { BoardTransition, BoardMeta } from "./useBoardStore";
 import "./WhiteboardScene.css";
@@ -110,6 +111,8 @@ const DEFAULT_ZONE: BoardZone = "center-center";
 export interface WhiteboardSceneProps {
   instructions: VisualInstruction[];
   debugZones?: boolean;
+  /** Active board ID — enables BoundsReporter when provided. */
+  activeBoardId?: string;
   /** Board navigation — all optional. When absent, renders exactly as before. */
   activeBoardMeta?: BoardMeta | null;
   pendingTransition?: BoardTransition | null;
@@ -120,6 +123,7 @@ export interface WhiteboardSceneProps {
 export function WhiteboardScene({
   instructions,
   debugZones,
+  activeBoardId,
   activeBoardMeta,
   pendingTransition,
   onTransitionComplete,
@@ -212,6 +216,14 @@ export function WhiteboardScene({
         boardRef={boardSurfaceRef}
         scale={scale}
       />
+      {activeBoardId && (
+        <BoundsReporter
+          boardSurfaceRef={boardSurfaceRef}
+          scale={scale}
+          activeBoardId={activeBoardId}
+          activeInstructions={elements}
+        />
+      )}
     </div>
   );
 

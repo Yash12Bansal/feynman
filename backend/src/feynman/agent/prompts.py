@@ -100,13 +100,19 @@ def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
     """Build the Board State prompt section from current board state."""
     bm = teaching_ctx.board_manager
 
+    # Free zones info — always available regardless of scene graph.
+    free = bm.free_zones()
+    free_str = ""
+    if free:
+        free_str = f"\nFree zones: {', '.join(sorted(z.value for z in free))}\n"
+
     if bm.board_count == 1:
         # Single board — keep it simple, same as before.
-        return f"\n## Board State\n\n{bm.summary()}\n"
+        return f"\n## Board State\n\n{bm.summary()}\n{free_str}"
 
     # Multi-board: show active board details + all-boards overview.
     parts = [f"\n## Board State — {bm.active_board.label} ({bm.active_id})\n"]
-    parts.append(f"\n{bm.summary()}\n")
+    parts.append(f"\n{bm.summary()}\n{free_str}")
     parts.append(f"\n### All Boards ({bm.board_count})\n\n")
     parts.append(bm.boards_summary())
     parts.append("\n\nUse `switch_board(board_id, intent)` to flip to a different board.\n")

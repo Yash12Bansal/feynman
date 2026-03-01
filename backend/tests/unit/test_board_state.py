@@ -5,6 +5,7 @@ from feynman.agent.board_state import (
     BoardState,
     _extract_label,
 )
+from feynman.agent.scene_graph import BoundsReportElement, BoundsReportPayload
 from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
@@ -310,3 +311,64 @@ class TestExtractLabel:
             steps=[{"latex": "2x = 6"}],
         )
         assert _extract_label(instr) == "Solving for x"
+
+
+# ── SceneGraph integration ─────────────────────────────────────
+
+
+class TestSceneGraphIntegration:
+    def test_summary_uses_scene_graph_when_bounds_available(self) -> None:
+        bs = BoardState()
+        bs.record(ShowTextInstruction(text="Hello", element_id="text-1", zone=BoardZone.TOP_LEFT))
+        # Add bounds to the scene graph.
+        bs.scene_graph.update_bounds(
+            BoundsReportPayload(
+                board_id="b",
+                elements=[
+                    BoundsReportElement(element_id="text-1", x=100, y=100, width=200, height=40),
+                ],
+            )
+        )
+        s = bs.summary()
+        # Scene graph summary includes position/size labels, not zone brackets.
+        assert "text-1" in s
+        # Should NOT be the zone-only format (which uses "[top-left]").
+        assert "[top-left]" not in s
+
+    def test_summary_falls_back_to_zone_only_when_empty(self) -> None:
+        bs = BoardState()
+        bs.record(ShowTextInstruction(text="Hello", element_id="text-1", zone=BoardZone.TOP_LEFT))
+        # No scene graph bounds → falls back to zone-only.
+        s = bs.summary()
+        assert "text-1" in s
+        assert "Hello" in s
+        assert "[top-left]" in s
+
+    def test_remove_delegates_to_scene_graph(self) -> None:
+        bs = BoardState()
+        bs.record(ShowTextInstruction(text="Hello", element_id="text-1"))
+        bs.scene_graph.update_bounds(
+            BoundsReportPayload(
+                board_id="b",
+                elements=[
+                    BoundsReportElement(element_id="text-1", x=10, y=10, width=100, height=40),
+                ],
+            )
+        )
+        assert bs.scene_graph.get_bounds("text-1") is not None
+        bs.remove("text-1")
+        assert bs.scene_graph.get_bounds("text-1") is None
+
+    def test_clear_delegates_to_scene_graph(self) -> None:
+        bs = BoardState()
+        bs.record(ShowTextInstruction(text="A", element_id="text-1"))
+        bs.scene_graph.update_bounds(
+            BoundsReportPayload(
+                board_id="b",
+                elements=[
+                    BoundsReportElement(element_id="text-1", x=10, y=10, width=100, height=40),
+                ],
+            )
+        )
+        bs.clear()
+        assert bs.scene_graph.element_count == 0

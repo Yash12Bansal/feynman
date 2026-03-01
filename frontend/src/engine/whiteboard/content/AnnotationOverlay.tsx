@@ -17,6 +17,7 @@ import type { AnnotateInstruction } from "../../../types/visuals";
 import { useElementRegistry } from "../../elements";
 import { COLORS } from "../../theme";
 import { ALIVE_FILTER_ID } from "../AliveFilter";
+import { viewportToBoard } from "../board-coords";
 import {
   annotationSeed,
   bezierCenterline,
@@ -44,26 +45,6 @@ export interface AnnotationOverlayProps {
   instruction: AnnotateInstruction;
   boardRef: RefObject<HTMLDivElement | null>;
   scale: number;
-}
-
-interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-function viewportToBoard(
-  elRect: DOMRect,
-  boardRect: DOMRect,
-  scale: number,
-): Rect {
-  return {
-    x: (elRect.left - boardRect.left) / scale,
-    y: (elRect.top - boardRect.top) / scale,
-    width: elRect.width / scale,
-    height: elRect.height / scale,
-  };
 }
 
 export function AnnotationOverlay({
