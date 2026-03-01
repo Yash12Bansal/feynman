@@ -38,6 +38,21 @@
       "title": "AxisConfig",
       "type": "object"
     },
+    "BoardZone": {
+      "enum": [
+        "top-left",
+        "top-center",
+        "top-right",
+        "center-left",
+        "center-center",
+        "center-right",
+        "bottom-left",
+        "bottom-center",
+        "bottom-right"
+      ],
+      "title": "BoardZone",
+      "type": "string"
+    },
     "ClearInstruction": {
       "description": "Clear the board \u2014 all elements or a specific target.",
       "properties": {
@@ -83,6 +98,17 @@
           ],
           "default": null,
           "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "clear",
@@ -262,6 +288,17 @@
           "default": null,
           "title": "Term Hints"
         },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "draw_diagram",
           "default": "draw_diagram",
@@ -439,6 +476,17 @@
           "default": null,
           "title": "Term Hints"
         },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "highlight",
           "default": "highlight",
@@ -519,6 +567,17 @@
           "default": null,
           "title": "Term Hints"
         },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "show_equation",
           "default": "show_equation",
@@ -588,6 +647,17 @@
           ],
           "default": null,
           "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "show_graph",
@@ -691,6 +761,17 @@
           "default": null,
           "title": "Term Hints"
         },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "show_text",
           "default": "show_text",
@@ -716,7 +797,7 @@
       "type": "object"
     },
     "StepEquationInstruction": {
-      "description": "Display a multi-step equation solve with progressive reveal.",
+      "description": "Display a multi-step equation solve with progressive reveal.\n\nEach step appears with its transformation annotation, changed terms\nhighlight, and previous steps dim \u2014 like a teacher at a whiteboard.",
       "properties": {
         "element_id": {
           "anyOf": [
@@ -760,6 +841,17 @@
           ],
           "default": null,
           "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "step_equation",

@@ -10,6 +10,7 @@ from pydantic import TypeAdapter, ValidationError
 from feynman.visuals.instructions import VisualInstruction
 from feynman.visuals.schemas import (
     AxisConfig,
+    BoardZone,
     ClearInstruction,
     DataPoint,
     DataSeries,
@@ -192,6 +193,35 @@ class TestConstruction:
         assert instr.element_id is None
         assert instr.duration_ms is None
 
+    def test_zone_defaults_to_none(self) -> None:
+        instr = ShowTextInstruction(text="hi")
+        assert instr.zone is None
+
+    def test_zone_can_be_set(self) -> None:
+        instr = ShowTextInstruction(text="hi", zone="top-left")
+        assert instr.zone == BoardZone.TOP_LEFT
+
+    def test_zone_on_all_instruction_types(self) -> None:
+        """Verify zone field works on every instruction type."""
+        cases: list[tuple[type, dict]] = [
+            (ClearInstruction, {}),
+            (ShowTextInstruction, {"text": "hi"}),
+            (ShowEquationInstruction, {"latex": "x=1"}),
+            (StepEquationInstruction, {"steps": [{"latex": "x=1"}]}),
+            (DrawDiagramInstruction, {"description": "test"}),
+            (
+                ShowGraphInstruction,
+                {
+                    "graph_type": "line",
+                    "functions": [{"expression": "x"}],
+                },
+            ),
+            (HighlightInstruction, {"target_id": "el-1"}),
+        ]
+        for cls, kwargs in cases:
+            instr = cls(**kwargs, zone="bottom-right")
+            assert instr.zone == BoardZone.BOTTOM_RIGHT, f"Failed for {cls.__name__}"
+
 
 # ── Discriminated union parsing ────────────────────────────────
 
@@ -260,6 +290,11 @@ class TestDiscriminatedUnion:
     def test_parse_missing_type_rejected(self) -> None:
         with pytest.raises(ValidationError):
             _ta.validate_python({"text": "oops"})
+
+    def test_parse_with_zone(self) -> None:
+        instr = _ta.validate_python({"type": "show_text", "text": "hi", "zone": "top-left"})
+        assert isinstance(instr, ShowTextInstruction)
+        assert instr.zone == BoardZone.TOP_LEFT
 
 
 # ── Serialization round-trip ───────────────────────────────────
@@ -362,6 +397,23 @@ class TestSerialization:
         parsed = _ta.validate_json(json_str)
         assert isinstance(parsed, ShowGraphInstruction)
         assert len(parsed.series[0].points) == 3
+
+    def test_zone_excluded_when_none(self) -> None:
+        instr = ShowTextInstruction(text="hi")
+        data = instr.model_dump(exclude_none=True)
+        assert "zone" not in data
+
+    def test_zone_included_when_set(self) -> None:
+        instr = ShowTextInstruction(text="hi", zone="top-left")
+        data = instr.model_dump()
+        assert data["zone"] == "top-left"
+
+    def test_zone_roundtrip(self) -> None:
+        original = ShowEquationInstruction(latex="F=ma", zone="center-right")
+        json_str = json.dumps(original.model_dump(exclude_none=True))
+        parsed = _ta.validate_json(json_str)
+        assert isinstance(parsed, ShowEquationInstruction)
+        assert parsed.zone == BoardZone.CENTER_RIGHT
 
 
 # ── Edge cases ─────────────────────────────────────────────────

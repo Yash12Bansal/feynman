@@ -82,6 +82,18 @@ class SyncMode(StrEnum):
     TERM_SYNC = "term_sync"
 
 
+class BoardZone(StrEnum):
+    TOP_LEFT = "top-left"
+    TOP_CENTER = "top-center"
+    TOP_RIGHT = "top-right"
+    CENTER_LEFT = "center-left"
+    CENTER_CENTER = "center-center"
+    CENTER_RIGHT = "center-right"
+    BOTTOM_LEFT = "bottom-left"
+    BOTTOM_CENTER = "bottom-center"
+    BOTTOM_RIGHT = "bottom-right"
+
+
 # ──────────────────────────────────────────────
 # Sub-models (used inside instruction payloads)
 # ──────────────────────────────────────────────
@@ -149,6 +161,7 @@ class _BaseInstruction(BaseModel):
     duration_ms: int | None = None
     sync_mode: SyncMode = SyncMode.ON_PLAYOUT
     term_hints: list[TermSyncHint] | None = None
+    zone: BoardZone | None = None
 
 
 # ──────────────────────────────────────────────

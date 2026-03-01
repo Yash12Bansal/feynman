@@ -43,6 +43,17 @@ export type HighlightStyle = "glow" | "underline" | "box" | "pulse";
 
 export type SyncMode = "immediate" | "on_playout" | "term_sync";
 
+export type BoardZone =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "center-left"
+  | "center-center"
+  | "center-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
+
 // ── Sub-models ────────────────────────────────────────────────
 
 export interface TermSyncHint {
@@ -104,6 +115,7 @@ interface BaseInstruction {
   duration_ms?: number;
   sync_mode?: SyncMode;
   term_hints?: TermSyncHint[];
+  zone?: BoardZone;
 }
 
 export interface ClearInstruction extends BaseInstruction {

@@ -33,6 +33,25 @@
   box-sizing: border-box;
 }
 
+/* ── Zone container: positioned at inner bounds, flex column */
+
+.wb-zone {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* ── Whiteboard card: flow element within zone ──────────── */
+
+.wb-card {
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* ── Zone debug overlay ─────────────────────────────────── */
 
 .wb-zone-debug {

@@ -12,16 +12,7 @@ export const BOARD_HEIGHT = 1080;
 
 // ── Zone identifiers ─────────────────────────────────────────
 
-export type BoardZone =
-  | "top-left"
-  | "top-center"
-  | "top-right"
-  | "center-left"
-  | "center-center"
-  | "center-right"
-  | "bottom-left"
-  | "bottom-center"
-  | "bottom-right";
+export type { BoardZone } from "../../types/visuals";
 
 // ── Geometry ─────────────────────────────────────────────────
 

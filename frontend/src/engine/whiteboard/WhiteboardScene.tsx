@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type {
+  VisualInstruction,
+  HighlightInstruction,
+} from "../../types/visuals";
 import type { BoardLayout, BoardZone } from "./types";
 import { BOARD_WIDTH, BOARD_HEIGHT } from "./types";
 import { computeBoardLayout, allZones } from "./zone-layout";
 import { BoardLayoutContext } from "./board-layout-context";
 import { ElementRegistryContext, useCreateElementRegistry } from "../elements";
 import { injectThemeVars } from "../theme";
+import { WhiteboardCard } from "./WhiteboardCard";
+import { InstructionSwitch } from "../InstructionSwitch";
+import { HighlightOverlay } from "../content/HighlightOverlay";
 import "./WhiteboardScene.css";
 
 // ── Scale hook ────────────────────────────────────────────
@@ -94,19 +100,54 @@ function ZoneDebugOverlay({ layout }: { layout: BoardLayout }) {
 
 // ── WhiteboardScene ───────────────────────────────────────
 
+const DEFAULT_ZONE: BoardZone = "center-center";
+
 export interface WhiteboardSceneProps {
+  instructions: VisualInstruction[];
   debugZones?: boolean;
-  children?: ReactNode;
 }
 
 export function WhiteboardScene({
+  instructions,
   debugZones,
-  children,
 }: WhiteboardSceneProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const registry = useCreateElementRegistry();
   const layout = useMemo(() => computeBoardLayout(), []);
   const { scale, offsetX, offsetY } = useBoardScale(viewportRef);
+
+  // Separate renderable elements from effects
+  const { elements, highlights } = useMemo(() => {
+    const elems: VisualInstruction[] = [];
+    const hlights: HighlightInstruction[] = [];
+
+    for (const instr of instructions) {
+      if (instr.type === "highlight") {
+        hlights.push(instr);
+      } else if (instr.type !== "clear") {
+        elems.push(instr);
+      }
+    }
+
+    return { elements: elems, highlights: hlights };
+  }, [instructions]);
+
+  // Group elements by zone
+  const zoneGroups = useMemo(() => {
+    const groups = new Map<BoardZone, VisualInstruction[]>();
+
+    for (const instr of elements) {
+      const zone = instr.zone ?? DEFAULT_ZONE;
+      let list = groups.get(zone);
+      if (!list) {
+        list = [];
+        groups.set(zone, list);
+      }
+      list.push(instr);
+    }
+
+    return groups;
+  }, [elements]);
 
   // Inject theme CSS variables on mount
   const boardRef = useCallback((el: HTMLDivElement | null) => {
@@ -130,10 +171,42 @@ export function WhiteboardScene({
           >
             <div className="wb-board-surface">
               {debugZones && <ZoneDebugOverlay layout={layout} />}
-              {children}
+              {Array.from(zoneGroups.entries()).map(
+                ([zone, zoneInstructions]) => {
+                  const { inner } = layout.zones[zone];
+                  return (
+                    <div
+                      key={zone}
+                      className="wb-zone"
+                      data-zone={zone}
+                      style={{
+                        left: inner.x,
+                        top: inner.y,
+                        width: inner.width,
+                        height: inner.height,
+                      }}
+                    >
+                      {zoneInstructions.map((instr, idx) => (
+                        <WhiteboardCard
+                          key={instr.element_id ?? `wb-${zone}-${idx}`}
+                          instruction={instr}
+                        >
+                          <InstructionSwitch instruction={instr} />
+                        </WhiteboardCard>
+                      ))}
+                    </div>
+                  );
+                },
+              )}
             </div>
           </div>
         </div>
+        {highlights.map((h, idx) => (
+          <HighlightOverlay
+            key={`highlight-${h.target_id}-${idx}`}
+            instruction={h}
+          />
+        ))}
       </ElementRegistryContext.Provider>
     </BoardLayoutContext.Provider>
   );

@@ -2,10 +2,13 @@ import { render } from "@testing-library/react";
 import { describe, it, expect, beforeAll, vi } from "vitest";
 import { WhiteboardScene } from "../WhiteboardScene";
 import { BoardElement } from "../BoardElement";
-import { useBoardLayout } from "../board-layout-context";
-import { useElementRegistry } from "../../elements";
-import { BOARD_WIDTH, BOARD_HEIGHT } from "../types";
-import { allZones } from "../zone-layout";
+import { BoardLayoutContext } from "../board-layout-context";
+import {
+  ElementRegistryContext,
+  useCreateElementRegistry,
+} from "../../elements";
+import { allZones, computeBoardLayout } from "../zone-layout";
+import type { VisualInstruction } from "../../../types/visuals";
 
 // ── ResizeObserver mock ─────────────────────────────────────
 
@@ -44,12 +47,12 @@ beforeAll(() => {
 
 describe("WhiteboardScene — board rendering", () => {
   it("renders the board surface", () => {
-    const { container } = render(<WhiteboardScene />);
+    const { container } = render(<WhiteboardScene instructions={[]} />);
     expect(container.querySelector(".wb-board-surface")).toBeTruthy();
   });
 
   it("board div has 1920x1080 dimensions", () => {
-    const { container } = render(<WhiteboardScene />);
+    const { container } = render(<WhiteboardScene instructions={[]} />);
     const board = container.querySelector(".wb-board") as HTMLDivElement;
     expect(board).toBeTruthy();
     expect(board.style.width).toBe("1920px");
@@ -57,15 +60,14 @@ describe("WhiteboardScene — board rendering", () => {
   });
 
   it("viewport has wb-viewport class for overflow clipping", () => {
-    const { container } = render(<WhiteboardScene />);
+    const { container } = render(<WhiteboardScene instructions={[]} />);
     const viewport = container.querySelector(".wb-viewport") as HTMLDivElement;
     expect(viewport).toBeTruthy();
-    // overflow: hidden is applied via CSS class — verify the class is present
     expect(viewport.classList.contains("wb-viewport")).toBe(true);
   });
 
   it("injects theme CSS variables on the board", () => {
-    const { container } = render(<WhiteboardScene />);
+    const { container } = render(<WhiteboardScene instructions={[]} />);
     const board = container.querySelector(".wb-board") as HTMLDivElement;
     expect(board.style.getPropertyValue("--color-background")).toBeTruthy();
     expect(board.style.getPropertyValue("--color-text-primary")).toBeTruthy();
@@ -76,15 +78,14 @@ describe("WhiteboardScene — board rendering", () => {
 
 describe("WhiteboardScene — scaling", () => {
   it("applies transform with scale and translation", () => {
-    const { container } = render(<WhiteboardScene />);
+    const { container } = render(<WhiteboardScene instructions={[]} />);
     const board = container.querySelector(".wb-board") as HTMLDivElement;
     expect(board.style.transform).toContain("scale(");
     expect(board.style.transform).toContain("translate(");
   });
 
   it("at exact 1920x1080, scale is 1 and offsets are 0", () => {
-    // Our MockResizeObserver reports 1920x1080
-    const { container } = render(<WhiteboardScene />);
+    const { container } = render(<WhiteboardScene instructions={[]} />);
     const board = container.querySelector(".wb-board") as HTMLDivElement;
     expect(board.style.transform).toContain("scale(1)");
     expect(board.style.transform).toContain("translate(0px, 0px)");
@@ -93,25 +94,37 @@ describe("WhiteboardScene — scaling", () => {
 
 // ── BoardElement ────────────────────────────────────────────
 
+function BoardElementWrapper({ children }: { children: React.ReactNode }) {
+  const layout = computeBoardLayout();
+  const registry = useCreateElementRegistry();
+  return (
+    <BoardLayoutContext.Provider value={layout}>
+      <ElementRegistryContext.Provider value={registry}>
+        {children}
+      </ElementRegistryContext.Provider>
+    </BoardLayoutContext.Provider>
+  );
+}
+
 describe("BoardElement", () => {
   const bounds = { x: 100, y: 200, width: 400, height: 300 };
 
   it("renders children", () => {
     const { getByText } = render(
-      <WhiteboardScene>
+      <BoardElementWrapper>
         <BoardElement id="el-1" bounds={bounds}>
           <span>Hello</span>
         </BoardElement>
-      </WhiteboardScene>,
+      </BoardElementWrapper>,
     );
     expect(getByText("Hello")).toBeTruthy();
   });
 
   it("sets inline position from bounds", () => {
     const { container } = render(
-      <WhiteboardScene>
+      <BoardElementWrapper>
         <BoardElement id="el-1" bounds={bounds} />
-      </WhiteboardScene>,
+      </BoardElementWrapper>,
     );
     const el = container.querySelector(
       '[data-element-id="el-1"]',
@@ -125,9 +138,9 @@ describe("BoardElement", () => {
 
   it("sets data-element-id and data-type attributes", () => {
     const { container } = render(
-      <WhiteboardScene>
+      <BoardElementWrapper>
         <BoardElement id="eq-1" bounds={bounds} dataType="show_equation" />
-      </WhiteboardScene>,
+      </BoardElementWrapper>,
     );
     const el = container.querySelector('[data-element-id="eq-1"]');
     expect(el).toBeTruthy();
@@ -139,10 +152,10 @@ describe("BoardElement", () => {
     const bounds2 = { x: 500, y: 300, width: 200, height: 100 };
 
     const { container } = render(
-      <WhiteboardScene>
+      <BoardElementWrapper>
         <BoardElement id="a" bounds={bounds1} />
         <BoardElement id="b" bounds={bounds2} />
-      </WhiteboardScene>,
+      </BoardElementWrapper>,
     );
 
     const a = container.querySelector(
@@ -162,18 +175,22 @@ describe("BoardElement", () => {
 
 describe("WhiteboardScene — zone debug", () => {
   it("does not render zone overlay when debugZones is false", () => {
-    const { container } = render(<WhiteboardScene />);
+    const { container } = render(<WhiteboardScene instructions={[]} />);
     expect(container.querySelector(".wb-zone-debug")).toBeNull();
   });
 
   it("renders all 9 zone outlines when debugZones is true", () => {
-    const { container } = render(<WhiteboardScene debugZones />);
+    const { container } = render(
+      <WhiteboardScene instructions={[]} debugZones />,
+    );
     const zoneOutlines = container.querySelectorAll(".wb-zone-debug");
     expect(zoneOutlines.length).toBe(9);
   });
 
   it("renders zone name labels", () => {
-    const { container } = render(<WhiteboardScene debugZones />);
+    const { container } = render(
+      <WhiteboardScene instructions={[]} debugZones />,
+    );
     const labels = container.querySelectorAll(".wb-zone-debug-label");
     expect(labels.length).toBe(9);
 
@@ -184,7 +201,9 @@ describe("WhiteboardScene — zone debug", () => {
   });
 
   it("renders inner bound indicators", () => {
-    const { container } = render(<WhiteboardScene debugZones />);
+    const { container } = render(
+      <WhiteboardScene instructions={[]} debugZones />,
+    );
     const innerBounds = container.querySelectorAll(".wb-zone-debug-inner");
     expect(innerBounds.length).toBe(9);
   });
@@ -193,50 +212,142 @@ describe("WhiteboardScene — zone debug", () => {
 // ── Context providers ───────────────────────────────────────
 
 describe("WhiteboardScene — context", () => {
-  it("provides BoardLayoutContext to children", () => {
-    function LayoutConsumer() {
-      const layout = useBoardLayout();
-      return (
-        <div
-          data-testid="layout-probe"
-          data-width={layout.width}
-          data-height={layout.height}
-          data-has-center={layout.zones["center-center"] ? "yes" : "no"}
-        />
-      );
-    }
-
-    const { getByTestId } = render(
-      <WhiteboardScene>
-        <LayoutConsumer />
-      </WhiteboardScene>,
+  it("provides BoardLayoutContext (verified via instruction rendering)", () => {
+    // If the layout wasn't provided, zone positioning would fail.
+    // A text instruction without zone defaults to center-center,
+    // and the zone container is positioned using layout data.
+    const instructions: VisualInstruction[] = [
+      { type: "show_text", text: "probe" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
     );
-
-    const probe = getByTestId("layout-probe");
-    expect(probe.getAttribute("data-width")).toBe(String(BOARD_WIDTH));
-    expect(probe.getAttribute("data-height")).toBe(String(BOARD_HEIGHT));
-    expect(probe.getAttribute("data-has-center")).toBe("yes");
+    const zone = container.querySelector('.wb-zone[data-zone="center-center"]');
+    expect(zone).toBeTruthy();
+    // Zone is positioned using layout inner bounds
+    const style = (zone as HTMLDivElement).style;
+    expect(parseFloat(style.left)).toBeGreaterThan(0);
+    expect(parseFloat(style.top)).toBeGreaterThan(0);
+    expect(parseFloat(style.width)).toBeGreaterThan(0);
+    expect(parseFloat(style.height)).toBeGreaterThan(0);
   });
 
-  it("provides ElementRegistryContext to children", () => {
-    function RegistryConsumer() {
-      const registry = useElementRegistry();
-      return (
-        <div
-          data-testid="registry-probe"
-          data-available={registry ? "yes" : "no"}
-        />
-      );
-    }
-
-    const { getByTestId } = render(
-      <WhiteboardScene>
-        <RegistryConsumer />
-      </WhiteboardScene>,
+  it("provides ElementRegistryContext (verified via WhiteboardCard)", () => {
+    // WhiteboardCard calls useElementRegistry — if context wasn't provided,
+    // it would throw. A successful render proves context is available.
+    const instructions: VisualInstruction[] = [
+      { type: "show_text", text: "probe", element_id: "ctx-test" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
     );
+    expect(
+      container.querySelector('[data-element-id="ctx-test"]'),
+    ).toBeTruthy();
+  });
+});
 
-    expect(getByTestId("registry-probe").getAttribute("data-available")).toBe(
-      "yes",
+// ── Instruction routing ─────────────────────────────────────
+
+describe("WhiteboardScene — instruction routing", () => {
+  it("renders instruction in specified zone", () => {
+    const instructions: VisualInstruction[] = [
+      { type: "show_text", text: "Newton", zone: "top-left" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
     );
+    const zone = container.querySelector('.wb-zone[data-zone="top-left"]');
+    expect(zone).toBeTruthy();
+    expect(zone?.querySelector(".wb-card")).toBeTruthy();
+  });
+
+  it("defaults to center-center when zone is undefined", () => {
+    const instructions: VisualInstruction[] = [
+      { type: "show_text", text: "no zone" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
+    );
+    const zone = container.querySelector('.wb-zone[data-zone="center-center"]');
+    expect(zone).toBeTruthy();
+    expect(zone?.querySelector(".wb-card")).toBeTruthy();
+    // No other zones should be rendered
+    expect(container.querySelectorAll(".wb-zone").length).toBe(1);
+  });
+
+  it("renders instructions in separate zone containers", () => {
+    const instructions: VisualInstruction[] = [
+      { type: "show_text", text: "top", zone: "top-left" },
+      { type: "show_equation", latex: "x=1", zone: "bottom-right" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
+    );
+    expect(
+      container.querySelector('.wb-zone[data-zone="top-left"]'),
+    ).toBeTruthy();
+    expect(
+      container.querySelector('.wb-zone[data-zone="bottom-right"]'),
+    ).toBeTruthy();
+    expect(container.querySelectorAll(".wb-zone").length).toBe(2);
+  });
+
+  it("stacks multiple instructions in same zone", () => {
+    const instructions: VisualInstruction[] = [
+      { type: "show_text", text: "first", zone: "top-center" },
+      { type: "show_text", text: "second", zone: "top-center" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
+    );
+    const zones = container.querySelectorAll(".wb-zone");
+    expect(zones.length).toBe(1);
+    const cards = zones[0].querySelectorAll(".wb-card");
+    expect(cards.length).toBe(2);
+  });
+
+  it("separates highlights from zone content", () => {
+    const instructions: VisualInstruction[] = [
+      {
+        type: "show_text",
+        text: "target",
+        element_id: "t1",
+        zone: "top-left",
+      },
+      { type: "highlight", target_id: "t1", style: "glow" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
+    );
+    // Only one zone rendered (for the text), highlight is not in a zone
+    const zones = container.querySelectorAll(".wb-zone");
+    expect(zones.length).toBe(1);
+    expect(zones[0].querySelectorAll(".wb-card").length).toBe(1);
+  });
+
+  it("skips clear instructions from zone rendering", () => {
+    const instructions: VisualInstruction[] = [
+      { type: "clear" },
+      { type: "show_text", text: "after clear", zone: "center-center" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
+    );
+    // Only one zone with one card (clear is filtered out)
+    const zones = container.querySelectorAll(".wb-zone");
+    expect(zones.length).toBe(1);
+    expect(zones[0].querySelectorAll(".wb-card").length).toBe(1);
+  });
+
+  it("sets data-type attribute on whiteboard cards", () => {
+    const instructions: VisualInstruction[] = [
+      { type: "show_equation", latex: "E=mc^2", zone: "top-right" },
+    ];
+    const { container } = render(
+      <WhiteboardScene instructions={instructions} />,
+    );
+    const card = container.querySelector(".wb-card");
+    expect(card?.getAttribute("data-type")).toBe("show_equation");
   });
 });
