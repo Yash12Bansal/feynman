@@ -388,6 +388,131 @@ export const FIXTURE_DRAW_SCENE_OPTICS_DOUBLE_SLIT: VisualInstruction = {
   progressive: true,
 };
 
+export const FIXTURE_DRAW_SCENE_CIRCUIT_SERIES: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "circuit-series-resistors",
+  title: "Series Resistors",
+  description:
+    "Battery with two resistors in series — Ohm's law demonstration circuit.",
+  scene_type: "circuit",
+  elements: [
+    { id: "V", kind: "battery", label: "12V" },
+    { id: "R1", kind: "resistor", label: "100\u03A9" },
+    { id: "R2", kind: "resistor", label: "200\u03A9" },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_CIRCUIT_BULB: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "circuit-switch-bulb",
+  title: "Battery + Switch + Bulb",
+  description: "Simple circuit with a battery, closed switch, and light bulb.",
+  scene_type: "circuit",
+  elements: [
+    { id: "V", kind: "battery", label: "9V" },
+    { id: "S", kind: "switch", label: "S\u2081", extras: { closed: true } },
+    { id: "L", kind: "bulb", label: "Bulb" },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_GEOMETRY_ALTITUDE: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "geometry-triangle-altitude",
+  title: "Triangle with Altitude",
+  description:
+    "Triangle ABC with altitude from A to foot H on BC, plus right-angle mark.",
+  scene_type: "geometry",
+  elements: [
+    { id: "A", kind: "point", label: "A", extras: { x: 250, y: 80 } },
+    { id: "B", kind: "point", label: "B", extras: { x: 100, y: 320 } },
+    { id: "C", kind: "point", label: "C", extras: { x: 400, y: 320 } },
+    {
+      id: "tri",
+      kind: "triangle",
+      label: "ABC",
+      extras: { v1: "A", v2: "B", v3: "C" },
+    },
+    { id: "H", kind: "point", label: "H", extras: { x: 250, y: 320 } },
+    {
+      id: "altitude",
+      kind: "line_segment",
+      from: "A",
+      to: "H",
+      color: "#60a5fa",
+    },
+    {
+      id: "ra",
+      kind: "right_angle_mark",
+      extras: { vertex: "H", ray1: "A", ray2: "C" },
+    },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_GEOMETRY_ISOSCELES: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "geometry-isosceles",
+  title: "Isosceles Triangle",
+  description:
+    "Isosceles triangle with congruence marks on equal sides and angle arc at the apex.",
+  scene_type: "geometry",
+  elements: [
+    { id: "A", kind: "point", label: "A", extras: { x: 250, y: 60 } },
+    { id: "B", kind: "point", label: "B", extras: { x: 120, y: 320 } },
+    { id: "C", kind: "point", label: "C", extras: { x: 380, y: 320 } },
+    { id: "tri", kind: "triangle", extras: { v1: "A", v2: "B", v3: "C" } },
+    {
+      id: "cm1",
+      kind: "congruence_mark",
+      from: "A",
+      to: "B",
+      extras: { count: 1 },
+    },
+    {
+      id: "cm2",
+      kind: "congruence_mark",
+      from: "A",
+      to: "C",
+      extras: { count: 1 },
+    },
+    {
+      id: "apex-angle",
+      kind: "angle_arc",
+      label: "α",
+      extras: { vertex: "A", ray1: "B", ray2: "C" },
+    },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_GEOMETRY_INSCRIBED: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "geometry-inscribed-angle",
+  title: "Circle with Inscribed Angle",
+  description:
+    "Center O, circle, 3 points on circumference, chords forming inscribed angle.",
+  scene_type: "geometry",
+  elements: [
+    { id: "O", kind: "point", label: "O", extras: { x: 250, y: 200 } },
+    { id: "circ", kind: "circle_shape", extras: { center: "O", radius: 120 } },
+    { id: "P", kind: "point", label: "P", extras: { x: 162, y: 116 } },
+    { id: "Q", kind: "point", label: "Q", extras: { x: 338, y: 116 } },
+    { id: "R", kind: "point", label: "R", extras: { x: 250, y: 320 } },
+    { id: "chord1", kind: "line_segment", from: "R", to: "P" },
+    { id: "chord2", kind: "line_segment", from: "R", to: "Q" },
+    {
+      id: "inscribed",
+      kind: "angle_arc",
+      label: "θ",
+      extras: { vertex: "R", ray1: "P", ray2: "Q", radius: 25 },
+      color: "#a78bfa",
+    },
+  ],
+  progressive: true,
+};
+
 export const FIXTURE_CLEAR: VisualInstruction = {
   type: "clear",
 };
@@ -428,6 +553,11 @@ export const FIXTURES_BY_TYPE: Record<string, VisualInstruction[]> = {
     FIXTURE_DRAW_SCENE_OPTICS_CONVEX,
     FIXTURE_DRAW_SCENE_OPTICS_CONCAVE,
     FIXTURE_DRAW_SCENE_OPTICS_DOUBLE_SLIT,
+    FIXTURE_DRAW_SCENE_CIRCUIT_SERIES,
+    FIXTURE_DRAW_SCENE_CIRCUIT_BULB,
+    FIXTURE_DRAW_SCENE_GEOMETRY_ALTITUDE,
+    FIXTURE_DRAW_SCENE_GEOMETRY_ISOSCELES,
+    FIXTURE_DRAW_SCENE_GEOMETRY_INSCRIBED,
   ],
   highlight: [FIXTURE_HIGHLIGHT],
   clear: [FIXTURE_CLEAR],

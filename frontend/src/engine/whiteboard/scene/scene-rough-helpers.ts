@@ -67,3 +67,35 @@ export const BARRIER_SOLID: RoughOptions = {
   strokeWidth: 1.5,
   fillStyle: "solid",
 };
+
+/** Circuit schematic symbols: clean, precise strokes. */
+export const CIRCUIT_SYMBOL: RoughOptions = {
+  roughness: 0.8,
+  bowing: 0.4,
+  strokeWidth: 2.0,
+  fill: "none",
+};
+
+/** Circuit wires: thinner, cleaner lines. */
+export const CIRCUIT_WIRE: RoughOptions = {
+  roughness: 0.6,
+  bowing: 0.2,
+  strokeWidth: 1.8,
+  fill: "none",
+};
+
+/** Geometry construction lines: clean, compass-and-straightedge feel. */
+export const GEOMETRY_STROKE: RoughOptions = {
+  roughness: 0.6,
+  bowing: 0.3,
+  strokeWidth: 2.0,
+  fill: "none",
+};
+
+/** Geometry annotations (marks, arcs): thinner/subtler than construction lines. */
+export const GEOMETRY_ANNOTATION: RoughOptions = {
+  roughness: 0.4,
+  bowing: 0.2,
+  strokeWidth: 1.5,
+  fill: "none",
+};

@@ -16,6 +16,8 @@ import { getStrategy } from "./registry";
 // Side-effect imports: register all strategies
 import "./strategies/free-body-layout";
 import "./strategies/optics-layout";
+import "./strategies/circuit-layout";
+import "./strategies/geometry-layout";
 
 /**
  * Resolve a semantic spec into SceneGeometry via the matching strategy.
