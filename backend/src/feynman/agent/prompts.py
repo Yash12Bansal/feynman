@@ -56,25 +56,109 @@ SCENE_INSTRUCTIONS = """\
 
 ## Scientific Diagrams (draw_scene)
 
-Use `draw_scene` for **physics/science illustrations** where spatial accuracy matters:
-free-body diagrams, optics experiments. Use `draw_diagram` for abstract relationships.
+Use `draw_scene` for physics/science/math diagrams where spatial accuracy matters. \
+Use `draw_diagram` for abstract relationships (flowcharts, concept maps).
 
-### Available Templates
+**Preferred mode**: set `scene_type` + `elements_json` to compose diagrams from the component \
+library. The tool docstring lists every available `scene_type` and component `kind`. \
+You provide semantic elements — the engine auto-generates coordinates, wires, rays, labels, \
+and all spatial layout. **Never send coordinates** (except geometry points).
 
-**free_body** — Forces acting on an object
-- Use when teaching: Newton's laws, force analysis, equilibrium, springs
-- Build incrementally: start with weight + normal, add friction/applied/spring as you teach each
+### Mechanics — `scene_type="free_body"`
 
-**double_slit** — Young's double-slit experiment
-- Use when teaching: wave-particle duality, interference, diffraction
-- Build up: rays only → add wavefronts → add interference pattern
+You provide: a `box` + `force_arrow` elements with `direction` (up/down/left/right/custom angle) \
++ optional `surface`, `spring`, `inclined_plane`.
+Engine auto-generates: body centered, surface positioned below, forces radiating at computed \
+angles with magnitude-scaled lengths.
+
+Build incrementally — 3-step pattern:
+1. Box + weight arrow (gravity only)
+2. clear_board → box + weight + normal + friction
+3. clear_board → full diagram with all forces
+
+```json
+scene_type: "free_body"
+elements_json: [
+  {"id": "block", "kind": "box", "label": "5 kg"},
+  {"id": "W", "kind": "force_arrow", "from": "block", "direction": "down", "label": "mg = 49N"},
+  {"id": "N", "kind": "force_arrow", "from": "block", "direction": "up", "label": "N"},
+  {"id": "f", "kind": "force_arrow", "from": "block", "direction": "left", "label": "f"}
+]
+```
+
+### Optics — `scene_type="optics"`
+
+Two auto-detected sub-modes based on which components you include:
+
+**Ray optics** (include a lens + object): You provide a `convex_lens` or `concave_lens` with \
+`focal_length` + an object element with `object_distance` and `object_height`. \
+Engine auto-generates: thin lens equation solution, image arrow, 3 color-coded principal rays, \
+focal point markers. Virtual images get dashed ray extensions.
+
+```json
+scene_type: "optics"
+elements_json: [
+  {"id": "L", "kind": "convex_lens", "label": "f=10cm", "extras": {"focal_length": 80}},
+  {"id": "obj", "kind": "force_arrow", "label": "Object", "extras": {"object_distance": 160, "object_height": 50}}
+]
+```
+
+**Wave optics** (include source + barrier + screen): You provide a `point_source`, a `barrier` \
+with `slit_count`/`slit_separation`, and a `screen`. \
+Engine auto-generates: rays to slits, wavefront arcs, interference pattern (bright/dark bands).
+
+```json
+scene_type: "optics"
+elements_json: [
+  {"id": "src", "kind": "point_source", "label": "Light"},
+  {"id": "wall", "kind": "barrier", "extras": {"slit_count": 2, "slit_separation": 50}},
+  {"id": "det", "kind": "screen", "label": "Screen"}
+]
+```
+
+### Circuits — `scene_type="circuit"`
+
+You provide: a `battery` + series components (`resistor`, `capacitor`, `inductor`, `switch`, \
+`bulb`, `ammeter`). Engine auto-generates: rectangular loop with wires connecting all components \
+in series order. **Never send `wire` elements** — the engine creates them.
+
+```json
+scene_type: "circuit"
+elements_json: [
+  {"id": "V", "kind": "battery", "label": "12V"},
+  {"id": "R1", "kind": "resistor", "label": "100Ω"},
+  {"id": "R2", "kind": "resistor", "label": "200Ω"},
+  {"id": "A", "kind": "ammeter", "label": "A"}
+]
+```
+
+### Geometry — `scene_type="geometry"`
+
+You provide: `point` elements (with or without explicit `x`/`y` in extras) + shapes that \
+reference point IDs (`triangle` via `extras.v1/v2/v3`, `line_segment` via `from`/`to`, \
+`circle_shape` via `extras.center`/`extras.radius`) + annotation marks. \
+Engine auto-places triangle vertices when no coords given, resolves all ID references.
+
+```json
+scene_type: "geometry"
+elements_json: [
+  {"id": "A", "kind": "point", "label": "A"},
+  {"id": "B", "kind": "point", "label": "B"},
+  {"id": "C", "kind": "point", "label": "C"},
+  {"id": "tri", "kind": "triangle", "extras": {"v1": "A", "v2": "B", "v3": "C"}},
+  {"id": "ang", "kind": "angle_arc", "label": "θ", "extras": {"vertex": "B", "ray1": "A", "ray2": "C"}}
+]
+```
 
 ### Guidelines
-- **Build incrementally**: Start simple, then clear_board + draw_scene with more params
-- **Always provide description**: Good alt-text for accessibility
-- **Scene draw-in takes 1-2 seconds**: After calling draw_scene, pause briefly — say
-  "Watch as this draws out..." or "Let me sketch this for you..." before explaining details
-- **Pair with equations**: Show a free-body diagram, then show F=ma alongside it
+- **Build incrementally**: Start simple, then `clear_board` + `draw_scene` with more elements \
+as you teach each new concept. Students see the diagram evolve with your explanation.
+- **Always provide `description`**: Good alt-text for accessibility and the board state summary.
+- **Pause after draw-in**: Scene animation takes 1-2 seconds. Say "Watch as I sketch this..." \
+or "Let me draw this out..." before explaining details.
+- **Pair with equations**: Show a free-body diagram, then `show_equation` with F=ma alongside it.
+- **Legacy templates**: `template_id="free_body"` and `template_id="double_slit"` still work \
+as quick shortcuts, but `scene_type` + `elements_json` is more flexible.
 """
 
 ZONE_PLACEMENT_INSTRUCTIONS = """\

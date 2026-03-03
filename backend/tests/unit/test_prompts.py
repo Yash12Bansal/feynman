@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
 from feynman.agent.prompts import (
+    SCENE_INSTRUCTIONS,
     STATE_TOOL_INSTRUCTIONS,
     TEACHING_SYSTEM_PROMPT,
     ZONE_PLACEMENT_INSTRUCTIONS,
@@ -179,6 +180,39 @@ class TestZonePlacementInstructions:
         assert "top-left" in prompt
         assert "center-center" in prompt
         assert "bottom-right" in prompt
+
+
+class TestSceneInstructions:
+    def test_included_with_plan(self):
+        plan = _make_plan()
+        ctx = _make_ctx(plan=plan)
+        prompt = build_teaching_prompt(plan, ctx)
+        assert SCENE_INSTRUCTIONS in prompt
+
+    def test_included_without_plan(self):
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert SCENE_INSTRUCTIONS in prompt
+
+    def test_all_scene_types_documented(self):
+        for scene_type in ("free_body", "optics", "circuit", "geometry"):
+            assert scene_type in SCENE_INSTRUCTIONS, f"{scene_type} not documented"
+
+    def test_few_shot_examples_present(self):
+        for kind in ("box", "convex_lens", "battery", "triangle"):
+            assert kind in SCENE_INSTRUCTIONS, f"few-shot example missing {kind}"
+
+    def test_auto_generation_documented(self):
+        assert "auto-generate" in SCENE_INSTRUCTIONS.lower()
+
+    def test_incremental_build_documented(self):
+        assert "incremental" in SCENE_INSTRUCTIONS.lower()
+        assert "clear_board" in SCENE_INSTRUCTIONS
+
+    def test_legacy_templates_mentioned(self):
+        assert "template_id" in SCENE_INSTRUCTIONS
+        assert "free_body" in SCENE_INSTRUCTIONS
+        assert "double_slit" in SCENE_INSTRUCTIONS
 
 
 class TestBoardStateInPrompt:
