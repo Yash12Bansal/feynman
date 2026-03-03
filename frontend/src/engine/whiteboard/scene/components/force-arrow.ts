@@ -7,6 +7,8 @@
 
 import type { SceneGeometry, ScenePath, SceneLabel } from "../scene-types";
 import { VECTOR_DEFAULTS } from "../scene-rough-helpers";
+import type { ComponentDef } from "./types";
+import { registerComponent } from "./registry";
 
 export interface ForceArrowParams {
   /** Arrow origin x */
@@ -137,3 +139,13 @@ export function forceArrow(params: ForceArrowParams): SceneGeometry {
     },
   };
 }
+
+/** Registry wrapper for the force arrow component. */
+export const forceArrowDef: ComponentDef<ForceArrowParams> = {
+  kind: "force-arrow",
+  render: forceArrow,
+  anchorNames: ["tail", "tip"],
+  defaultStyle: VECTOR_DEFAULTS,
+};
+
+registerComponent(forceArrowDef);

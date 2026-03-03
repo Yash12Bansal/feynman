@@ -7,6 +7,8 @@
 
 import type { SceneGeometry, ScenePath } from "../scene-types";
 import { SPRING_DEFAULTS } from "../scene-rough-helpers";
+import type { ComponentDef } from "./types";
+import { registerComponent } from "./registry";
 
 export interface SpringParams {
   x1: number;
@@ -108,3 +110,13 @@ export function spring(params: SpringParams): SceneGeometry {
     },
   };
 }
+
+/** Registry wrapper for the spring component. */
+export const springDef: ComponentDef<SpringParams> = {
+  kind: "spring",
+  render: spring,
+  anchorNames: ["start", "end"],
+  defaultStyle: SPRING_DEFAULTS,
+};
+
+registerComponent(springDef);
