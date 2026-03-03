@@ -99,3 +99,19 @@ export const GEOMETRY_ANNOTATION: RoughOptions = {
   strokeWidth: 1.5,
   fill: "none",
 };
+
+/** Chemistry glassware: hand-drawn but recognizable glass apparatus. */
+export const CHEM_GLASSWARE: RoughOptions = {
+  roughness: 0.8,
+  bowing: 0.4,
+  strokeWidth: 2.0,
+  fill: "none",
+};
+
+/** Chemistry labels/arrows: cleaner for formula badges and reaction arrows. */
+export const CHEM_LABEL: RoughOptions = {
+  roughness: 0.5,
+  bowing: 0.3,
+  strokeWidth: 1.5,
+  fill: "none",
+};

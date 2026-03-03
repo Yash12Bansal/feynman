@@ -195,11 +195,11 @@ class TestSceneInstructions:
         assert SCENE_INSTRUCTIONS in prompt
 
     def test_all_scene_types_documented(self):
-        for scene_type in ("free_body", "optics", "circuit", "geometry"):
+        for scene_type in ("free_body", "optics", "circuit", "geometry", "chemistry"):
             assert scene_type in SCENE_INSTRUCTIONS, f"{scene_type} not documented"
 
     def test_few_shot_examples_present(self):
-        for kind in ("box", "convex_lens", "battery", "triangle"):
+        for kind in ("box", "convex_lens", "battery", "triangle", "molecule", "beaker"):
             assert kind in SCENE_INSTRUCTIONS, f"few-shot example missing {kind}"
 
     def test_auto_generation_documented(self):

@@ -513,6 +513,73 @@ export const FIXTURE_DRAW_SCENE_GEOMETRY_INSCRIBED: VisualInstruction = {
   progressive: true,
 };
 
+export const FIXTURE_DRAW_SCENE_CHEMISTRY_REACTION: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "chemistry-combustion",
+  title: "Combustion of Hydrogen",
+  description:
+    "Balanced equation: 2H₂ + O₂ → 2H₂O. Hydrogen gas reacts with oxygen to form water.",
+  scene_type: "chemistry",
+  elements: [
+    {
+      id: "r1",
+      kind: "molecule",
+      label: "H₂",
+      extras: { coefficient: 2, state: "g" },
+    },
+    { id: "r2", kind: "molecule", label: "O₂", extras: { state: "g" } },
+    { id: "arr", kind: "arrow_label", label: "Spark" },
+    {
+      id: "p1",
+      kind: "molecule",
+      label: "H₂O",
+      extras: { coefficient: 2, state: "l" },
+    },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_CHEMISTRY_HEATING: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "chemistry-heating",
+  title: "Heating a Test Tube",
+  description:
+    "A test tube containing CaCO₃ + HCl heated over a Bunsen burner with thermometer.",
+  scene_type: "chemistry",
+  elements: [
+    { id: "burner", kind: "bunsen_burner", extras: { flame: true } },
+    {
+      id: "tube",
+      kind: "test_tube",
+      label: "CaCO₃ + HCl",
+      extras: { fill_level: 0.3 },
+    },
+    { id: "therm", kind: "thermometer", from: "tube" },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_CHEMISTRY_DISTILLATION: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "chemistry-distillation",
+  title: "Simple Distillation Setup",
+  description:
+    "Round-bottom flask heated over a Bunsen burner, with thermometer and collection beaker.",
+  scene_type: "chemistry",
+  elements: [
+    {
+      id: "rbf",
+      kind: "flask",
+      label: "Mixture",
+      extras: { variant: "round_bottom", side_arm: true, fill_level: 0.4 },
+    },
+    { id: "burner", kind: "bunsen_burner", extras: { flame: true } },
+    { id: "therm", kind: "thermometer", from: "rbf", label: "78°C" },
+    { id: "collector", kind: "beaker", label: "Distillate" },
+  ],
+  progressive: true,
+};
+
 export const FIXTURE_CLEAR: VisualInstruction = {
   type: "clear",
 };
@@ -558,6 +625,9 @@ export const FIXTURES_BY_TYPE: Record<string, VisualInstruction[]> = {
     FIXTURE_DRAW_SCENE_GEOMETRY_ALTITUDE,
     FIXTURE_DRAW_SCENE_GEOMETRY_ISOSCELES,
     FIXTURE_DRAW_SCENE_GEOMETRY_INSCRIBED,
+    FIXTURE_DRAW_SCENE_CHEMISTRY_REACTION,
+    FIXTURE_DRAW_SCENE_CHEMISTRY_HEATING,
+    FIXTURE_DRAW_SCENE_CHEMISTRY_DISTILLATION,
   ],
   highlight: [FIXTURE_HIGHLIGHT],
   clear: [FIXTURE_CLEAR],

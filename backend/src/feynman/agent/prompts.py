@@ -150,6 +150,42 @@ elements_json: [
 ]
 ```
 
+### Chemistry — `scene_type="chemistry"`
+
+Two auto-detected sub-modes based on which components you include:
+
+**Reaction mode** (molecules + arrow_label): You provide `molecule` elements with `label` \
+(chemical formula), optional `extras.coefficient` (stoichiometric), `extras.state` ("s","l","g","aq"), \
+and an `arrow_label` with a condition label. \
+Engine auto-generates: left-to-right layout with "+" signs between reactants/products, \
+arrow in center, all vertically centered.
+
+```json
+scene_type: "chemistry"
+elements_json: [
+  {"id": "r1", "kind": "molecule", "label": "H₂", "extras": {"coefficient": 2, "state": "g"}},
+  {"id": "r2", "kind": "molecule", "label": "O₂", "extras": {"state": "g"}},
+  {"id": "arr", "kind": "arrow_label", "label": "Spark"},
+  {"id": "p1", "kind": "molecule", "label": "H₂O", "extras": {"coefficient": 2, "state": "l"}}
+]
+```
+
+**Apparatus mode** (any glassware/burner/thermometer): You provide apparatus components — \
+`beaker`, `flask` (with `extras.variant`: "erlenmeyer" or "round_bottom", `extras.side_arm`), \
+`test_tube`, `bunsen_burner` (`extras.flame`), `thermometer` (use `from` to place inside a vessel). \
+Engine auto-generates: horizontal bench line, apparatus distributed left-to-right, burners below \
+adjacent apparatus, thermometers inside referenced vessels, tubing between anchor points.
+
+```json
+scene_type: "chemistry"
+elements_json: [
+  {"id": "rbf", "kind": "flask", "label": "Mixture", "extras": {"variant": "round_bottom", "fill_level": 0.4}},
+  {"id": "burner", "kind": "bunsen_burner", "extras": {"flame": true}},
+  {"id": "therm", "kind": "thermometer", "from": "rbf", "label": "78°C"},
+  {"id": "collector", "kind": "beaker", "label": "Distillate"}
+]
+```
+
 ### Guidelines
 - **Build incrementally**: Start simple, then `clear_board` + `draw_scene` with more elements \
 as you teach each new concept. Students see the diagram evolve with your explanation.

@@ -18,6 +18,7 @@ import "./strategies/free-body-layout";
 import "./strategies/optics-layout";
 import "./strategies/circuit-layout";
 import "./strategies/geometry-layout";
+import "./strategies/chemistry-layout";
 
 /**
  * Resolve a semantic spec into SceneGeometry via the matching strategy.

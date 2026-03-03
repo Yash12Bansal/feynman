@@ -414,6 +414,7 @@ async def draw_scene(
             - "optics": Optical setups. Kinds: convex_lens, concave_lens, point_source, ray, screen, barrier, wavefront_arc, prism
             - "circuit": Electrical circuits. Kinds: battery, resistor, capacitor, inductor, switch, bulb, ammeter, voltmeter, wire, junction, ground
             - "geometry": Math constructions. Kinds: point, line_segment, circle_shape, triangle, angle_arc, right_angle_mark, parallel_mark, congruence_mark, arc
+            - "chemistry": Chemical reactions and apparatus. Kinds: molecule, arrow_label, beaker, flask, test_tube, bunsen_burner, thermometer, tubing
         elements_json: JSON array of semantic elements. Each element:
             {"id": "unique_id", "kind": "component_kind", "label": "display label", ...}
             Optional fields: "from" and "to" (anchor references), "direction", "angle", "magnitude", "color",
