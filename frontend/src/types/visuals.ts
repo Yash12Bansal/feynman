@@ -197,11 +197,29 @@ export interface SceneTemplateRef {
   component_ids?: string[];
 }
 
+/** A semantic element in a layout spec — describes WHAT, not WHERE. */
+export interface SemanticSceneElement {
+  id: string;
+  kind: string;
+  label?: string;
+  from?: string;
+  to?: string;
+  direction?: string;
+  angle?: number;
+  magnitude?: number;
+  color?: string;
+  extras?: Record<string, string | number | boolean>;
+}
+
 export interface DrawSceneInstruction extends BaseInstruction {
   type: "draw_scene";
   title?: string;
   description?: string;
   template?: SceneTemplateRef;
+  /** Scene type for semantic layout (e.g. "free_body") */
+  scene_type?: string;
+  /** Semantic elements the layout strategy will position */
+  elements?: SemanticSceneElement[];
   progressive?: boolean;
 }
 

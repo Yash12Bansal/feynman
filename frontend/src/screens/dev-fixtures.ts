@@ -233,6 +233,161 @@ export const FIXTURE_DRAW_SCENE_DOUBLE_SLIT_RAYS_ONLY: VisualInstruction = {
   progressive: true,
 };
 
+export const FIXTURE_DRAW_SCENE_SEMANTIC: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "free-body-semantic",
+  title: "Free Body Diagram (Semantic)",
+  description:
+    "Block on surface with weight, normal, and friction — built from semantic spec",
+  scene_type: "free_body",
+  elements: [
+    { id: "block", kind: "box", label: "m" },
+    {
+      id: "weight",
+      kind: "force_arrow",
+      from: "block",
+      direction: "down",
+      label: "W",
+      color: "#ef4444",
+    },
+    {
+      id: "normal",
+      kind: "force_arrow",
+      from: "block",
+      direction: "up",
+      label: "N",
+      color: "#4ade80",
+    },
+    {
+      id: "friction",
+      kind: "force_arrow",
+      from: "block",
+      direction: "left",
+      label: "f",
+      color: "#fbbf24",
+      magnitude: 0.7,
+    },
+    { id: "ground", kind: "surface" },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_SEMANTIC_SPRING: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "free-body-semantic-spring",
+  title: "Block on Spring (Semantic)",
+  description: "Spring system from semantic elements",
+  scene_type: "free_body",
+  elements: [
+    { id: "block", kind: "box", label: "m" },
+    {
+      id: "weight",
+      kind: "force_arrow",
+      from: "block",
+      direction: "down",
+      label: "W",
+      color: "#ef4444",
+    },
+    {
+      id: "normal",
+      kind: "force_arrow",
+      from: "block",
+      direction: "up",
+      label: "N",
+      color: "#4ade80",
+    },
+    {
+      id: "friction",
+      kind: "force_arrow",
+      from: "block",
+      direction: "left",
+      label: "f",
+      color: "#fbbf24",
+      magnitude: 0.7,
+    },
+    {
+      id: "applied",
+      kind: "force_arrow",
+      from: "block",
+      direction: "right",
+      label: "F",
+      color: "#a78bfa",
+    },
+    { id: "ground", kind: "surface" },
+    { id: "spring", kind: "spring" },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_OPTICS_CONVEX: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "optics-convex-lens",
+  title: "Convex Lens — Image Formation",
+  description:
+    "Object placed at 2f from a convex lens. Real, inverted, same-size image formed at 2f on the other side.",
+  scene_type: "optics",
+  elements: [
+    {
+      id: "lens",
+      kind: "convex_lens",
+      label: "L",
+      extras: { focal_length: 80 },
+    },
+    {
+      id: "object",
+      kind: "force_arrow",
+      label: "Object",
+      color: "#60a5fa",
+      extras: { object_distance: 160, object_height: 50 },
+    },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_OPTICS_CONCAVE: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "optics-concave-lens",
+  title: "Concave Lens — Virtual Image",
+  description:
+    "Object in front of a concave lens. Virtual, upright, diminished image formed on the same side.",
+  scene_type: "optics",
+  elements: [
+    {
+      id: "lens",
+      kind: "concave_lens",
+      label: "L",
+      extras: { focal_length: 80 },
+    },
+    {
+      id: "object",
+      kind: "force_arrow",
+      label: "Object",
+      color: "#60a5fa",
+      extras: { object_distance: 120, object_height: 50 },
+    },
+  ],
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_OPTICS_DOUBLE_SLIT: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "optics-double-slit",
+  title: "Double-Slit Experiment (Semantic)",
+  description:
+    "Light source, barrier with two slits, wavefronts, and interference pattern — built from semantic spec.",
+  scene_type: "optics",
+  elements: [
+    { id: "source", kind: "point_source", label: "Light source" },
+    {
+      id: "wall",
+      kind: "barrier",
+      extras: { slit_count: 2, slit_separation: 50 },
+    },
+    { id: "detector", kind: "screen", label: "Screen" },
+  ],
+  progressive: true,
+};
+
 export const FIXTURE_CLEAR: VisualInstruction = {
   type: "clear",
 };
@@ -268,6 +423,11 @@ export const FIXTURES_BY_TYPE: Record<string, VisualInstruction[]> = {
     FIXTURE_DRAW_SCENE_SPRING,
     FIXTURE_DRAW_SCENE_DOUBLE_SLIT,
     FIXTURE_DRAW_SCENE_DOUBLE_SLIT_RAYS_ONLY,
+    FIXTURE_DRAW_SCENE_SEMANTIC,
+    FIXTURE_DRAW_SCENE_SEMANTIC_SPRING,
+    FIXTURE_DRAW_SCENE_OPTICS_CONVEX,
+    FIXTURE_DRAW_SCENE_OPTICS_CONCAVE,
+    FIXTURE_DRAW_SCENE_OPTICS_DOUBLE_SLIT,
   ],
   highlight: [FIXTURE_HIGHLIGHT],
   clear: [FIXTURE_CLEAR],

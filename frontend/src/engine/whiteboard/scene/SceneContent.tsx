@@ -20,6 +20,7 @@ import { freeBodyDiagram } from "./templates/free-body";
 import type { FreeBodyParams } from "./templates/free-body";
 import { doubleSlit } from "./templates/double-slit";
 import type { DoubleSlitParams } from "./templates/double-slit";
+import { resolveLayout } from "./layout";
 
 // ── Template registry ─────────────────────────────────────────
 
@@ -250,6 +251,18 @@ export function SceneContent({
 }: {
   instruction: DrawSceneInstruction;
 }) {
+  // Semantic layout path — takes priority over templates
+  if (instruction.scene_type && instruction.elements?.length) {
+    const geometry = resolveLayout(
+      instruction.scene_type,
+      instruction.elements,
+    );
+    if (geometry) {
+      return <StructuredScene instruction={instruction} geometry={geometry} />;
+    }
+  }
+
+  // Template path (unchanged)
   const templateId = instruction.template?.template_id;
   const templateFn = templateId ? TEMPLATES[templateId] : undefined;
 
