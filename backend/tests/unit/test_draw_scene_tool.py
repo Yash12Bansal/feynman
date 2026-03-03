@@ -13,6 +13,7 @@ from feynman.visuals.schemas import (
     DrawSceneInstruction,
     SceneTemplateId,
     SceneTemplateRef,
+    SemanticSceneElement,
 )
 
 # ── SceneTemplateId enum ─────────────────────────────────────
@@ -80,8 +81,8 @@ class TestDrawSceneInstruction:
         assert instr.description == "A custom physics diagram"
 
     def test_no_template_no_description_raises(self) -> None:
-        """Must have at least template or description."""
-        with pytest.raises(ValueError, match="Either template or description"):
+        """Must have at least template, description, or elements."""
+        with pytest.raises(ValueError, match="Either template, description, or elements"):
             DrawSceneInstruction()
 
     def test_title_and_description(self) -> None:
@@ -331,3 +332,237 @@ class TestDrawSceneTool:
 
         # Unknown template → default 1000ms = 1.0s
         mock_sleep.assert_awaited_once_with(1.0)
+
+
+# ── SemanticSceneElement schema ──────────────────────────────
+
+
+class TestSemanticSceneElement:
+    def test_all_fields(self) -> None:
+        elem = SemanticSceneElement(
+            id="f1",
+            kind="force_arrow",
+            label="Weight",
+            from_ref="block",
+            to="ground",
+            direction="down",
+            angle=270.0,
+            magnitude=9.8,
+            color="#ff0000",
+            extras={"dashArray": "5,5"},
+        )
+        assert elem.id == "f1"
+        assert elem.kind == "force_arrow"
+        assert elem.from_ref == "block"
+        assert elem.extras == {"dashArray": "5,5"}
+
+    def test_minimal(self) -> None:
+        elem = SemanticSceneElement(id="b1", kind="box")
+        assert elem.label is None
+        assert elem.from_ref is None
+        assert elem.to is None
+
+    def test_from_alias_round_trip(self) -> None:
+        """Wire format uses 'from', Python uses 'from_ref'."""
+        # Parse from wire format (using alias)
+        elem = SemanticSceneElement.model_validate(
+            {"id": "f1", "kind": "force_arrow", "from": "block"}
+        )
+        assert elem.from_ref == "block"
+
+        # Serialize back to wire format (using alias)
+        data = elem.model_dump(exclude_none=True, by_alias=True)
+        assert "from" in data
+        assert "from_ref" not in data
+        assert data["from"] == "block"
+
+    def test_populate_by_name(self) -> None:
+        """Can also construct using the Python field name."""
+        elem = SemanticSceneElement(id="f1", kind="force_arrow", from_ref="block")
+        assert elem.from_ref == "block"
+
+
+# ── DrawSceneInstruction with semantic spec ──────────────────
+
+
+class TestDrawSceneInstructionSemantic:
+    def test_valid_with_scene_type_and_elements(self) -> None:
+        instr = DrawSceneInstruction(
+            scene_type="free_body",
+            elements=[SemanticSceneElement(id="b", kind="box")],
+        )
+        assert instr.scene_type == "free_body"
+        assert len(instr.elements) == 1
+
+    def test_elements_without_scene_type_raises(self) -> None:
+        with pytest.raises(ValueError, match="scene_type is required"):
+            DrawSceneInstruction(
+                elements=[SemanticSceneElement(id="b", kind="box")],
+            )
+
+    def test_no_content_raises(self) -> None:
+        with pytest.raises(ValueError, match="Either template, description, or elements"):
+            DrawSceneInstruction()
+
+    def test_backward_compat_template_only(self) -> None:
+        """Existing template-only path still works."""
+        instr = DrawSceneInstruction(
+            template=SceneTemplateRef(template_id=SceneTemplateId.FREE_BODY),
+            description="Forces on a block",
+        )
+        assert instr.template is not None
+        assert instr.scene_type is None
+        assert instr.elements == []
+
+    def test_backward_compat_description_only(self) -> None:
+        instr = DrawSceneInstruction(description="A physics diagram")
+        assert instr.template is None
+        assert instr.scene_type is None
+
+    def test_serialization_with_alias(self) -> None:
+        """Elements with from_ref serialize as 'from' on the wire."""
+        instr = DrawSceneInstruction(
+            scene_type="free_body",
+            elements=[
+                SemanticSceneElement(id="b", kind="box"),
+                SemanticSceneElement(id="f1", kind="force_arrow", from_ref="b", direction="down"),
+            ],
+        )
+        data = instr.model_dump(exclude_none=True, by_alias=True)
+        assert data["scene_type"] == "free_body"
+        assert len(data["elements"]) == 2
+        arrow = data["elements"][1]
+        assert arrow["from"] == "b"
+        assert "from_ref" not in arrow
+
+
+# ── draw_scene tool: semantic path ───────────────────────────
+
+
+class TestDrawSceneToolSemantic:
+    @pytest.mark.asyncio
+    async def test_semantic_path_publishes_instruction(self) -> None:
+        from feynman.agent.tools import draw_scene
+
+        ctx = _make_mock_ctx()
+        elements = [{"id": "b", "kind": "box"}, {"id": "f1", "kind": "force_arrow", "from": "b"}]
+
+        with patch("feynman.agent.tools.asyncio.sleep", new_callable=AsyncMock):
+            result = await draw_scene._func(
+                ctx,
+                scene_type="free_body",
+                elements_json=json.dumps(elements),
+                title="Forces",
+                description="FBD",
+            )
+
+        assert "Forces" in result
+        call_args = ctx.session.room_io.room.local_participant.publish_data.call_args
+        published = json.loads(call_args[0][0])
+        assert published["type"] == "draw_scene"
+        assert published["scene_type"] == "free_body"
+        assert len(published["elements"]) == 2
+        # Verify alias serialization: "from" not "from_ref"
+        assert published["elements"][1]["from"] == "b"
+        assert "from_ref" not in published["elements"][1]
+
+    @pytest.mark.asyncio
+    async def test_invalid_elements_json_falls_back(self) -> None:
+        from feynman.agent.tools import draw_scene
+
+        ctx = _make_mock_ctx()
+
+        with patch("feynman.agent.tools.asyncio.sleep", new_callable=AsyncMock):
+            await draw_scene._func(
+                ctx,
+                scene_type="free_body",
+                elements_json="not valid json{{{",
+                description="FBD fallback",
+            )
+
+        # Falls through to description-only (elements list is empty after bad parse)
+        call_args = ctx.session.room_io.room.local_participant.publish_data.call_args
+        published = json.loads(call_args[0][0])
+        assert published["description"] == "FBD fallback"
+        # No elements in output (fell through to template/description path)
+        assert (
+            published.get("scene_type") is None
+            or "elements" not in published
+            or published["elements"] == []
+        )
+
+    @pytest.mark.asyncio
+    async def test_semantic_takes_priority_over_template(self) -> None:
+        from feynman.agent.tools import draw_scene
+
+        ctx = _make_mock_ctx()
+        elements = [{"id": "b", "kind": "box"}]
+
+        with patch("feynman.agent.tools.asyncio.sleep", new_callable=AsyncMock):
+            await draw_scene._func(
+                ctx,
+                template_id="free_body",
+                scene_type="free_body",
+                elements_json=json.dumps(elements),
+                description="FBD",
+            )
+
+        call_args = ctx.session.room_io.room.local_participant.publish_data.call_args
+        published = json.loads(call_args[0][0])
+        # Semantic path won — scene_type + elements present, no template
+        assert published["scene_type"] == "free_body"
+        assert len(published["elements"]) == 1
+        assert published.get("template") is None
+
+    @pytest.mark.asyncio
+    async def test_neither_template_nor_semantic_uses_description(self) -> None:
+        from feynman.agent.tools import draw_scene
+
+        ctx = _make_mock_ctx()
+
+        with patch("feynman.agent.tools.asyncio.sleep", new_callable=AsyncMock):
+            await draw_scene._func(
+                ctx,
+                description="Just a description",
+            )
+
+        call_args = ctx.session.room_io.room.local_participant.publish_data.call_args
+        published = json.loads(call_args[0][0])
+        assert published["description"] == "Just a description"
+        assert published.get("template") is None
+        assert published.get("scene_type") is None
+
+    @pytest.mark.asyncio
+    async def test_semantic_animation_duration(self) -> None:
+        """3 elements → base 800ms + 3*150ms = 1250ms → 1.25s sleep."""
+        from feynman.agent.tools import draw_scene
+
+        ctx = _make_mock_ctx()
+        elements = [
+            {"id": "b", "kind": "box"},
+            {"id": "f1", "kind": "force_arrow"},
+            {"id": "f2", "kind": "force_arrow"},
+        ]
+
+        with patch("feynman.agent.tools.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            await draw_scene._func(
+                ctx,
+                scene_type="free_body",
+                elements_json=json.dumps(elements),
+            )
+
+        mock_sleep.assert_awaited_once_with(1.25)
+
+    @pytest.mark.asyncio
+    async def test_no_args_gets_fallback_description(self) -> None:
+        """Calling with zero args produces a description-only fallback."""
+        from feynman.agent.tools import draw_scene
+
+        ctx = _make_mock_ctx()
+
+        with patch("feynman.agent.tools.asyncio.sleep", new_callable=AsyncMock):
+            await draw_scene._func(ctx)
+
+        call_args = ctx.session.room_io.room.local_participant.publish_data.call_args
+        published = json.loads(call_args[0][0])
+        assert published["description"] == "Scientific diagram"

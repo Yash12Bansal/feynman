@@ -1219,8 +1219,77 @@
       "title": "SceneTemplateRef",
       "type": "object"
     },
+    "SemanticSceneElement": {
+      "description": "A semantic element in a composable scene diagram.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Label"
+        },
+        "from": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "From"
+        },
+        "to": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "To"
+        },
+        "direction": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Direction"
+        },
+        "angle": {
+          "anyOf": [{ "type": "number" }, { "type": "null" }],
+          "default": null,
+          "title": "Angle"
+        },
+        "magnitude": {
+          "anyOf": [{ "type": "number" }, { "type": "null" }],
+          "default": null,
+          "title": "Magnitude"
+        },
+        "color": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Color"
+        },
+        "extras": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  { "type": "string" },
+                  { "type": "integer" },
+                  { "type": "number" },
+                  { "type": "boolean" }
+                ]
+              }
+            },
+            { "type": "null" }
+          ],
+          "default": null,
+          "title": "Extras"
+        }
+      },
+      "required": ["id", "kind"],
+      "title": "SemanticSceneElement",
+      "type": "object"
+    },
     "DrawSceneInstruction": {
-      "description": "Draw a scientific diagram from a scene template.",
+      "description": "Draw a scientific diagram from a scene template or semantic spec.",
       "properties": {
         "element_id": {
           "anyOf": [
@@ -1314,6 +1383,26 @@
             }
           ],
           "default": null
+        },
+        "scene_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene Type"
+        },
+        "elements": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SemanticSceneElement"
+          },
+          "title": "Elements",
+          "type": "array"
         },
         "progressive": {
           "default": true,

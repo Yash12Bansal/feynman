@@ -33,6 +33,7 @@ from feynman.visuals.schemas import (
     GraphType,
     SceneTemplateId,
     SceneTemplateRef,
+    SemanticSceneElement,
     ShowEquationInstruction,
     ShowGraphInstruction,
     ShowTextInstruction,
@@ -81,7 +82,7 @@ async def _publish_visual(
             logger.warning("visual.playout_wait_failed", type=instruction.type, exc_info=True)
 
     room = ctx.session.room_io.room
-    data = json.dumps(instruction.model_dump(exclude_none=True))
+    data = json.dumps(instruction.model_dump(exclude_none=True, by_alias=True))
     await room.local_participant.publish_data(data, reliable=True, topic="visuals")
     logger.debug(
         "visual.published",
@@ -109,7 +110,7 @@ async def _publish_switch_board(
         sync_mode=SyncMode.IMMEDIATE,
     )
     room = ctx.session.room_io.room
-    data = json.dumps(instruction.model_dump(exclude_none=True))
+    data = json.dumps(instruction.model_dump(exclude_none=True, by_alias=True))
     await room.local_participant.publish_data(data, reliable=True, topic="visuals")
     logger.debug(
         "visual.switch_board",
@@ -382,32 +383,73 @@ _SCENE_DURATION_MS: dict[str, int] = {
 @function_tool()
 async def draw_scene(
     ctx: RunContext,
-    template_id: str,
     title: str = "",
     description: str = "",
+    template_id: str = "",
     params_json: str = "",
+    scene_type: str = "",
+    elements_json: str = "",
     progressive: bool = True,
     zone: str = "",
 ) -> str:
-    """Draw a scientific diagram on the classroom screen — physics apparatus, optics setups, etc.
+    """Draw a scientific diagram on the classroom screen — physics apparatus, optics setups, circuits, geometry.
 
-    These are hand-drawn, spatially precise diagrams. Use draw_scene for physics/science
-    illustrations where spatial accuracy matters (force diagrams, optics). Use draw_diagram
-    for abstract relationships (flowcharts, concept maps).
+    These are hand-drawn, spatially precise diagrams. Use draw_scene for physics/science/math
+    illustrations where spatial accuracy matters. Use draw_diagram for abstract relationships
+    (flowcharts, concept maps).
+
+    Two modes:
+    1. **Semantic spec** (preferred): set scene_type + elements_json to compose any diagram
+       from the component library. Flexible, supports all 33 components.
+    2. **Template** (legacy): set template_id for pre-built scenes. Limited to 2 templates.
 
     Args:
-        template_id: Scene template. Available:
-            - "free_body": Forces on an object. Params: showWeight, showNormal,
-              showFriction, showApplied, showSpring (all bool).
-            - "double_slit": Young's experiment. Params: showWaves, showPattern,
-              showRays, showLabels (all bool), slitSeparation ("narrow"|"wide").
         title: Heading above the diagram.
         description: Alt-text describing what the diagram shows. Always provide this.
+        template_id: (Legacy) Pre-built template. Available: "free_body", "double_slit".
+            Prefer scene_type + elements_json for flexibility.
         params_json: JSON of template params. Example: {"showWeight": true, "showFriction": true}
+        scene_type: Layout strategy for composable diagrams. Available:
+            - "free_body": Forces on an object. Component kinds: box, force_arrow, spring, surface, inclined_plane
+            - "optics": Optical setups. Kinds: convex_lens, concave_lens, point_source, ray, screen, barrier, wavefront_arc, prism
+            - "circuit": Electrical circuits. Kinds: battery, resistor, capacitor, inductor, switch, bulb, ammeter, voltmeter, wire, junction, ground
+            - "geometry": Math constructions. Kinds: point, line_segment, circle_shape, triangle, angle_arc, right_angle_mark, parallel_mark, congruence_mark, arc
+        elements_json: JSON array of semantic elements. Each element:
+            {"id": "unique_id", "kind": "component_kind", "label": "display label", ...}
+            Optional fields: "from" and "to" (anchor references), "direction", "angle", "magnitude", "color",
+            "extras" (dict of component-specific params).
         progressive: Animate drawing in progressively (default true).
         zone: Board zone ("center-left", "center-right", etc). Leave empty for default.
     """
-    # Parse template params — graceful on malformed JSON.
+    # Parse semantic elements — graceful on malformed JSON.
+    elements: list[dict] = []
+    if elements_json:
+        try:
+            elements = json.loads(elements_json)
+        except (json.JSONDecodeError, TypeError):
+            logger.warning("draw_scene.invalid_elements_json", raw=elements_json)
+
+    # Semantic spec path: scene_type + elements takes priority.
+    if scene_type and elements:
+        validated_elements = [SemanticSceneElement.model_validate(e) for e in elements]
+        instruction = DrawSceneInstruction(
+            title=title,
+            description=description,
+            scene_type=scene_type,
+            elements=validated_elements,
+            progressive=progressive,
+            zone=_parse_zone(zone),
+        )
+        await _publish_visual(ctx, instruction)
+
+        # Semantic specs: base 800ms + 150ms per element.
+        duration_s = (800 + len(validated_elements) * 150) / 1000.0
+        await asyncio.sleep(duration_s)
+
+        label = title or description or scene_type
+        return f"Drew scene: {label}"
+
+    # Template path: existing behavior.
     params: dict[str, str | int | float | bool] = {}
     if params_json:
         try:
@@ -415,15 +457,19 @@ async def draw_scene(
         except (json.JSONDecodeError, TypeError):
             logger.warning("draw_scene.invalid_params_json", raw=params_json)
 
-    # Validate template_id against known enum — fallback to description-only.
     template: SceneTemplateRef | None = None
-    try:
-        valid_id = SceneTemplateId(template_id)
-        template = SceneTemplateRef(template_id=valid_id, params=params)
-    except ValueError:
-        logger.warning("draw_scene.unknown_template", template_id=template_id)
-        if not description:
-            description = f"Scientific diagram: {template_id}"
+    if template_id:
+        try:
+            valid_id = SceneTemplateId(template_id)
+            template = SceneTemplateRef(template_id=valid_id, params=params)
+        except ValueError:
+            logger.warning("draw_scene.unknown_template", template_id=template_id)
+            if not description:
+                description = f"Scientific diagram: {template_id}"
+
+    # Description-only fallback when neither semantic nor template provided.
+    if not template and not description:
+        description = "Scientific diagram"
 
     instruction = DrawSceneInstruction(
         title=title,

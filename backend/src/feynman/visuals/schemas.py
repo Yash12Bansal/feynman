@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Literal, Self
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # ──────────────────────────────────────────────
 # Shared enums
@@ -167,6 +167,28 @@ class SceneTemplateRef(BaseModel):
 
     template_id: SceneTemplateId
     params: dict[str, str | int | float | bool] = {}
+
+
+class SemanticSceneElement(BaseModel):
+    """A semantic element in a composable scene diagram.
+
+    Maps directly to the frontend's SemanticSceneElement interface.
+    The ``from`` field is a Python reserved word, so it's stored as
+    ``from_ref`` with a Pydantic alias — serialized as ``"from"`` on the wire.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str
+    kind: str
+    label: str | None = None
+    from_ref: str | None = Field(None, alias="from")
+    to: str | None = None
+    direction: str | None = None
+    angle: float | None = None
+    magnitude: float | None = None
+    color: str | None = None
+    extras: dict[str, str | int | float | bool] | None = None
 
 
 # ──────────────────────────────────────────────
@@ -347,21 +369,28 @@ class SwitchBoardInstruction(_BaseInstruction):
 
 
 class DrawSceneInstruction(_BaseInstruction):
-    """Draw a scientific diagram from a scene template.
+    """Draw a scientific diagram from a scene template or semantic spec.
 
-    Phase 1: template-only. LLM picks template_id + params.
-    Future: semantic spec (elements array) for flexible composition.
+    Three content paths (at least one required):
+    1. ``template`` — hand-tuned scene template (legacy, simple)
+    2. ``scene_type`` + ``elements`` — composable semantic spec (flexible)
+    3. ``description`` — text-only fallback
     """
 
     type: Literal["draw_scene"] = "draw_scene"
     title: str = ""
     description: str = ""
     template: SceneTemplateRef | None = None
+    scene_type: str | None = None
+    elements: list[SemanticSceneElement] = []
     progressive: bool = True
 
     @model_validator(mode="after")
     def _require_content(self) -> Self:
-        if not self.template and not self.description:
-            msg = "Either template or description must be provided"
+        if not self.template and not self.description and not self.elements:
+            msg = "Either template, description, or elements must be provided"
+            raise ValueError(msg)
+        if self.elements and not self.scene_type:
+            msg = "scene_type is required when elements are provided"
             raise ValueError(msg)
         return self
