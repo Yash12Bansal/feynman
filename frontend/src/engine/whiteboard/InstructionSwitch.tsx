@@ -14,6 +14,7 @@ import type { VisualInstruction } from "../../types/visuals";
 import { RoughDiagramContent } from "./content/RoughDiagramContent";
 import { RoughGraphContent } from "./content/RoughGraphContent";
 import { HandwrittenTextContent } from "./content/HandwrittenTextContent";
+import { SceneContent } from "./scene/SceneContent";
 import { EquationContent } from "../content/EquationContent";
 import { StepEquationContent } from "../content/StepEquationContent";
 
@@ -33,6 +34,8 @@ export function InstructionSwitch({
       return <StepEquationContent instruction={instruction} />;
     case "show_graph":
       return <RoughGraphContent instruction={instruction} />;
+    case "draw_scene":
+      return <SceneContent instruction={instruction} />;
     default:
       return null;
   }

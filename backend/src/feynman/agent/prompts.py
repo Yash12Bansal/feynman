@@ -52,6 +52,31 @@ then show the next. Each visual deserves spoken context.
 transitions, not mid-explanation.
 """
 
+SCENE_INSTRUCTIONS = """\
+
+## Scientific Diagrams (draw_scene)
+
+Use `draw_scene` for **physics/science illustrations** where spatial accuracy matters:
+free-body diagrams, optics experiments. Use `draw_diagram` for abstract relationships.
+
+### Available Templates
+
+**free_body** — Forces acting on an object
+- Use when teaching: Newton's laws, force analysis, equilibrium, springs
+- Build incrementally: start with weight + normal, add friction/applied/spring as you teach each
+
+**double_slit** — Young's double-slit experiment
+- Use when teaching: wave-particle duality, interference, diffraction
+- Build up: rays only → add wavefronts → add interference pattern
+
+### Guidelines
+- **Build incrementally**: Start simple, then clear_board + draw_scene with more params
+- **Always provide description**: Good alt-text for accessibility
+- **Scene draw-in takes 1-2 seconds**: After calling draw_scene, pause briefly — say
+  "Watch as this draws out..." or "Let me sketch this for you..." before explaining details
+- **Pair with equations**: Show a free-body diagram, then show F=ma alongside it
+"""
+
 ZONE_PLACEMENT_INSTRUCTIONS = """\
 
 ## Board Zones
@@ -127,7 +152,12 @@ def build_teaching_prompt(
 
     Called after every state change to keep the LLM's context fresh.
     """
-    parts = [TEACHING_SYSTEM_PROMPT, VISUAL_SYNC_INSTRUCTIONS, ZONE_PLACEMENT_INSTRUCTIONS]
+    parts = [
+        TEACHING_SYSTEM_PROMPT,
+        VISUAL_SYNC_INSTRUCTIONS,
+        SCENE_INSTRUCTIONS,
+        ZONE_PLACEMENT_INSTRUCTIONS,
+    ]
 
     # Board state section — always included (applies in both modes).
     parts.append(_build_board_state_section(teaching_ctx))

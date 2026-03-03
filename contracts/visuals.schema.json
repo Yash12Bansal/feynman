@@ -1189,6 +1189,140 @@
       },
       "title": "SwitchBoardInstruction",
       "type": "object"
+    },
+    "SceneTemplateId": {
+      "enum": ["free_body", "double_slit"],
+      "title": "SceneTemplateId",
+      "type": "string"
+    },
+    "SceneTemplateRef": {
+      "description": "Reference to a hand-tuned scene template.",
+      "properties": {
+        "template_id": {
+          "$ref": "#/$defs/SceneTemplateId"
+        },
+        "params": {
+          "default": {},
+          "title": "Params",
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "integer" },
+              { "type": "number" },
+              { "type": "boolean" }
+            ]
+          }
+        }
+      },
+      "required": ["template_id"],
+      "title": "SceneTemplateRef",
+      "type": "object"
+    },
+    "DrawSceneInstruction": {
+      "description": "Draw a scientific diagram from a scene template.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "type": {
+          "const": "draw_scene",
+          "default": "draw_scene",
+          "title": "Type",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "template": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SceneTemplateRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "progressive": {
+          "default": true,
+          "title": "Progressive",
+          "type": "boolean"
+        }
+      },
+      "title": "DrawSceneInstruction",
+      "type": "object"
     }
   },
   "definitions": {
@@ -1198,6 +1332,7 @@
           "annotate": "#/$defs/AnnotateInstruction",
           "clear": "#/$defs/ClearInstruction",
           "draw_diagram": "#/$defs/DrawDiagramInstruction",
+          "draw_scene": "#/$defs/DrawSceneInstruction",
           "highlight": "#/$defs/HighlightInstruction",
           "show_equation": "#/$defs/ShowEquationInstruction",
           "step_equation": "#/$defs/StepEquationInstruction",
@@ -1222,6 +1357,9 @@
         },
         {
           "$ref": "#/$defs/DrawDiagramInstruction"
+        },
+        {
+          "$ref": "#/$defs/DrawSceneInstruction"
         },
         {
           "$ref": "#/$defs/ShowGraphInstruction"
@@ -1251,6 +1389,7 @@
                 "annotate": "#/$defs/AnnotateInstruction",
                 "clear": "#/$defs/ClearInstruction",
                 "draw_diagram": "#/$defs/DrawDiagramInstruction",
+                "draw_scene": "#/$defs/DrawSceneInstruction",
                 "highlight": "#/$defs/HighlightInstruction",
                 "show_equation": "#/$defs/ShowEquationInstruction",
                 "show_graph": "#/$defs/ShowGraphInstruction",
@@ -1271,6 +1410,9 @@
               },
               {
                 "$ref": "#/$defs/DrawDiagramInstruction"
+              },
+              {
+                "$ref": "#/$defs/DrawSceneInstruction"
               },
               {
                 "$ref": "#/$defs/ShowGraphInstruction"

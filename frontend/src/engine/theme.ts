@@ -48,6 +48,7 @@ export const TYPE_ACCENT: Record<string, string> = {
   draw_diagram: COLORS.accentGreen,
   show_graph: COLORS.accentPurple,
   annotate: COLORS.accentRed,
+  draw_scene: COLORS.accentBlue,
 };
 
 /** Inject theme as CSS custom properties on a DOM element. */

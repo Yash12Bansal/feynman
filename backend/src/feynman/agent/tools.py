@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import TYPE_CHECKING
 
@@ -25,10 +26,13 @@ from feynman.visuals.schemas import (
     DiagramNode,
     DiagramType,
     DrawDiagramInstruction,
+    DrawSceneInstruction,
     EquationAnimation,
     EquationStep,
     FunctionDef,
     GraphType,
+    SceneTemplateId,
+    SceneTemplateRef,
     ShowEquationInstruction,
     ShowGraphInstruction,
     ShowTextInstruction,
@@ -365,6 +369,77 @@ Leave empty to clear the entire board.
     if target_id:
         return f"Removed element: {target_id}"
     return "Board cleared"
+
+
+# Animation duration estimates (ms) per scene template.
+# Derived from GSAP timeline: ~0.4s/path + 0.06s stagger + 0.25s/label.
+_SCENE_DURATION_MS: dict[str, int] = {
+    "free_body": 1200,
+    "double_slit": 1500,
+}
+
+
+@function_tool()
+async def draw_scene(
+    ctx: RunContext,
+    template_id: str,
+    title: str = "",
+    description: str = "",
+    params_json: str = "",
+    progressive: bool = True,
+    zone: str = "",
+) -> str:
+    """Draw a scientific diagram on the classroom screen — physics apparatus, optics setups, etc.
+
+    These are hand-drawn, spatially precise diagrams. Use draw_scene for physics/science
+    illustrations where spatial accuracy matters (force diagrams, optics). Use draw_diagram
+    for abstract relationships (flowcharts, concept maps).
+
+    Args:
+        template_id: Scene template. Available:
+            - "free_body": Forces on an object. Params: showWeight, showNormal,
+              showFriction, showApplied, showSpring (all bool).
+            - "double_slit": Young's experiment. Params: showWaves, showPattern,
+              showRays, showLabels (all bool), slitSeparation ("narrow"|"wide").
+        title: Heading above the diagram.
+        description: Alt-text describing what the diagram shows. Always provide this.
+        params_json: JSON of template params. Example: {"showWeight": true, "showFriction": true}
+        progressive: Animate drawing in progressively (default true).
+        zone: Board zone ("center-left", "center-right", etc). Leave empty for default.
+    """
+    # Parse template params — graceful on malformed JSON.
+    params: dict[str, str | int | float | bool] = {}
+    if params_json:
+        try:
+            params = json.loads(params_json)
+        except (json.JSONDecodeError, TypeError):
+            logger.warning("draw_scene.invalid_params_json", raw=params_json)
+
+    # Validate template_id against known enum — fallback to description-only.
+    template: SceneTemplateRef | None = None
+    try:
+        valid_id = SceneTemplateId(template_id)
+        template = SceneTemplateRef(template_id=valid_id, params=params)
+    except ValueError:
+        logger.warning("draw_scene.unknown_template", template_id=template_id)
+        if not description:
+            description = f"Scientific diagram: {template_id}"
+
+    instruction = DrawSceneInstruction(
+        title=title,
+        description=description,
+        template=template,
+        progressive=progressive,
+        zone=_parse_zone(zone),
+    )
+    await _publish_visual(ctx, instruction)
+
+    # Sleep for estimated animation duration so the LLM doesn't talk over draw-in.
+    duration_s = _SCENE_DURATION_MS.get(template_id, 1000) / 1000.0
+    await asyncio.sleep(duration_s)
+
+    label = title or description or template_id
+    return f"Drew scene: {label}"
 
 
 # ---------------------------------------------------------------------------

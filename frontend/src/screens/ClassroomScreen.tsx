@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { VisualScene } from "../engine/VisualScene";
+import { WhiteboardScene } from "../engine/whiteboard/WhiteboardScene";
 import {
   useCreateSyncManager,
   SyncManagerContext,
@@ -8,7 +8,14 @@ import { useVisualChannel } from "../livekit/useVisualChannel";
 import { useAgentTranscription } from "../livekit/useAgentTranscription";
 
 export function ClassroomScreen() {
-  const { activeInstructions: instructions } = useVisualChannel();
+  const {
+    activeInstructions,
+    activeBoardId,
+    activeBoardMeta,
+    pendingTransition,
+    clearTransition,
+    getBoardInstructions,
+  } = useVisualChannel();
   const syncManager = useCreateSyncManager();
   const handleWord = useCallback(
     (word: string) => syncManager.onWord(word),
@@ -18,7 +25,14 @@ export function ClassroomScreen() {
 
   return (
     <SyncManagerContext.Provider value={syncManager}>
-      <VisualScene instructions={instructions} />
+      <WhiteboardScene
+        instructions={activeInstructions}
+        activeBoardId={activeBoardId}
+        activeBoardMeta={activeBoardMeta}
+        pendingTransition={pendingTransition}
+        onTransitionComplete={clearTransition}
+        getBoardInstructions={getBoardInstructions}
+      />
     </SyncManagerContext.Provider>
   );
 }

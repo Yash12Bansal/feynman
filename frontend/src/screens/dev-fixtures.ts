@@ -174,6 +174,65 @@ export const FIXTURE_HIGHLIGHT: VisualInstruction = {
   duration_ms: 2000,
 };
 
+export const FIXTURE_DRAW_SCENE: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "free-body-1",
+  title: "Free Body Diagram",
+  description: "Forces acting on a block on a surface",
+  template: {
+    template_id: "free_body",
+    params: { showWeight: true, showNormal: true, showFriction: true },
+  },
+  zone: "center-right",
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_SPRING: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "free-body-spring",
+  title: "Block on Spring",
+  description:
+    "A block connected to a wall by a spring, with weight and normal force",
+  template: {
+    template_id: "free_body",
+    params: {
+      showWeight: true,
+      showNormal: true,
+      showFriction: true,
+      showApplied: true,
+      showSpring: true,
+    },
+  },
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_DOUBLE_SLIT: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "double-slit-1",
+  title: "Double-Slit Experiment",
+  description:
+    "Light passes through two narrow slits and creates an interference pattern on the screen — bright and dark fringes.",
+  template: {
+    template_id: "double_slit",
+    params: { showWaves: true, showPattern: true, showRays: true },
+  },
+  zone: "center-left",
+  progressive: true,
+};
+
+export const FIXTURE_DRAW_SCENE_DOUBLE_SLIT_RAYS_ONLY: VisualInstruction = {
+  type: "draw_scene",
+  element_id: "double-slit-rays",
+  title: "Double-Slit — Rays Only",
+  description:
+    "Just the light rays and barrier, without wavefronts or interference pattern.",
+  template: {
+    template_id: "double_slit",
+    params: { showWaves: false, showPattern: false, showRays: true },
+  },
+  progressive: true,
+};
+
 export const FIXTURE_CLEAR: VisualInstruction = {
   type: "clear",
 };
@@ -187,6 +246,8 @@ export const ALL_FIXTURES: VisualInstruction[] = [
   FIXTURE_STEP_EQUATION,
   FIXTURE_DRAW_DIAGRAM,
   FIXTURE_SHOW_GRAPH,
+  FIXTURE_DRAW_SCENE,
+  FIXTURE_DRAW_SCENE_DOUBLE_SLIT,
   FIXTURE_HIGHLIGHT,
 ];
 
@@ -202,6 +263,12 @@ export const FIXTURES_BY_TYPE: Record<string, VisualInstruction[]> = {
     FIXTURE_DRAW_DIAGRAM_DESCRIPTION_ONLY,
   ],
   show_graph: [FIXTURE_SHOW_GRAPH],
+  draw_scene: [
+    FIXTURE_DRAW_SCENE,
+    FIXTURE_DRAW_SCENE_SPRING,
+    FIXTURE_DRAW_SCENE_DOUBLE_SLIT,
+    FIXTURE_DRAW_SCENE_DOUBLE_SLIT_RAYS_ONLY,
+  ],
   highlight: [FIXTURE_HIGHLIGHT],
   clear: [FIXTURE_CLEAR],
 };

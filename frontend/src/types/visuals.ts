@@ -191,6 +191,20 @@ export interface SwitchBoardInstruction extends BaseInstruction {
   intent?: BoardIntent;
 }
 
+export interface SceneTemplateRef {
+  template_id: string;
+  params?: Record<string, string | number | boolean>;
+  component_ids?: string[];
+}
+
+export interface DrawSceneInstruction extends BaseInstruction {
+  type: "draw_scene";
+  title?: string;
+  description?: string;
+  template?: SceneTemplateRef;
+  progressive?: boolean;
+}
+
 // ── Discriminated union ───────────────────────────────────────
 
 export type VisualInstruction =
@@ -202,7 +216,8 @@ export type VisualInstruction =
   | ShowGraphInstruction
   | HighlightInstruction
   | AnnotateInstruction
-  | SwitchBoardInstruction;
+  | SwitchBoardInstruction
+  | DrawSceneInstruction;
 
 export type VisualType = VisualInstruction["type"];
 

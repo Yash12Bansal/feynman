@@ -21,6 +21,7 @@ from feynman.visuals.schemas import (
     BoardZone,
     ClearInstruction,
     DrawDiagramInstruction,
+    DrawSceneInstruction,
     HighlightInstruction,
     ShowEquationInstruction,
     ShowGraphInstruction,
@@ -35,6 +36,7 @@ VisualInstruction = Annotated[
     | ShowEquationInstruction
     | StepEquationInstruction
     | DrawDiagramInstruction
+    | DrawSceneInstruction
     | ShowGraphInstruction
     | HighlightInstruction
     | AnnotateInstruction
@@ -47,6 +49,7 @@ __all__ = [
     "BoardZone",
     "ClearInstruction",
     "DrawDiagramInstruction",
+    "DrawSceneInstruction",
     "HighlightInstruction",
     "ShowEquationInstruction",
     "ShowGraphInstruction",

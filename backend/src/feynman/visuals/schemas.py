@@ -100,6 +100,13 @@ class BoardZone(StrEnum):
     BOTTOM_RIGHT = "bottom-right"
 
 
+class SceneTemplateId(StrEnum):
+    """Known scene templates — backend validates against this enum."""
+
+    FREE_BODY = "free_body"
+    DOUBLE_SLIT = "double_slit"
+
+
 # ──────────────────────────────────────────────
 # Sub-models (used inside instruction payloads)
 # ──────────────────────────────────────────────
@@ -153,6 +160,13 @@ class AxisConfig(BaseModel):
     label: str = ""
     min: float | None = None
     max: float | None = None
+
+
+class SceneTemplateRef(BaseModel):
+    """Reference to a hand-tuned scene template."""
+
+    template_id: SceneTemplateId
+    params: dict[str, str | int | float | bool] = {}
 
 
 # ──────────────────────────────────────────────
@@ -330,3 +344,24 @@ class SwitchBoardInstruction(_BaseInstruction):
     type: Literal["switch_board"] = "switch_board"
     label: str = ""
     intent: BoardIntent = BoardIntent.NEW
+
+
+class DrawSceneInstruction(_BaseInstruction):
+    """Draw a scientific diagram from a scene template.
+
+    Phase 1: template-only. LLM picks template_id + params.
+    Future: semantic spec (elements array) for flexible composition.
+    """
+
+    type: Literal["draw_scene"] = "draw_scene"
+    title: str = ""
+    description: str = ""
+    template: SceneTemplateRef | None = None
+    progressive: bool = True
+
+    @model_validator(mode="after")
+    def _require_content(self) -> Self:
+        if not self.template and not self.description:
+            msg = "Either template or description must be provided"
+            raise ValueError(msg)
+        return self

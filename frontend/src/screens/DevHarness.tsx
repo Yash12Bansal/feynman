@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { VisualScene } from "../engine/VisualScene";
+import { WhiteboardScene } from "../engine/whiteboard/WhiteboardScene";
 import type { VisualInstruction, VisualType } from "../types/visuals";
 import { ALL_FIXTURES, FIXTURES_BY_TYPE } from "./dev-fixtures";
 
@@ -9,6 +9,7 @@ const INSTRUCTION_TYPES: VisualType[] = [
   "step_equation",
   "draw_diagram",
   "show_graph",
+  "draw_scene",
   "highlight",
 ];
 
@@ -18,6 +19,7 @@ const TYPE_LABELS: Record<VisualType, string> = {
   step_equation: "Step Equation",
   draw_diagram: "Diagram",
   show_graph: "Graph",
+  draw_scene: "Scene",
   highlight: "Highlight",
   annotate: "Annotate",
   clear: "Clear",
@@ -30,6 +32,7 @@ const TYPE_COLORS: Record<VisualType, string> = {
   step_equation: "#fbbf24",
   draw_diagram: "#4ade80",
   show_graph: "#a78bfa",
+  draw_scene: "#22d3ee",
   highlight: "#fb923c",
   annotate: "#f472b6",
   clear: "#6b7280",
@@ -149,7 +152,7 @@ export function DevHarness() {
 
       {/* Canvas area */}
       <div style={styles.canvasArea}>
-        <VisualScene instructions={activeInstructions} />
+        <WhiteboardScene instructions={activeInstructions} />
       </div>
     </div>
   );
