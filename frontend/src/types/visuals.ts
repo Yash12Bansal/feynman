@@ -112,6 +112,13 @@ export interface EquationStep {
   highlight_terms?: string[];
 }
 
+export interface HighlightWalkStep {
+  sub_element_id: string;
+  trigger_words: string[];
+  style?: HighlightStyle;
+  color?: string;
+}
+
 // ── Instruction types ─────────────────────────────────────────
 
 interface BaseInstruction {
@@ -191,6 +198,12 @@ export interface SwitchBoardInstruction extends BaseInstruction {
   intent?: BoardIntent;
 }
 
+export interface HighlightWalkInstruction extends BaseInstruction {
+  type: "highlight_walk";
+  target_id: string;
+  steps: HighlightWalkStep[];
+}
+
 export interface SceneTemplateRef {
   template_id: string;
   params?: Record<string, string | number | boolean>;
@@ -235,7 +248,8 @@ export type VisualInstruction =
   | HighlightInstruction
   | AnnotateInstruction
   | SwitchBoardInstruction
-  | DrawSceneInstruction;
+  | DrawSceneInstruction
+  | HighlightWalkInstruction;
 
 export type VisualType = VisualInstruction["type"];
 

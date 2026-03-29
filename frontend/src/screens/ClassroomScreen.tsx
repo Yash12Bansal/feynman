@@ -10,6 +10,7 @@ import { useAgentTranscription } from "../livekit/useAgentTranscription";
 export function ClassroomScreen() {
   const {
     activeInstructions,
+    activeWalks,
     activeBoardId,
     activeBoardMeta,
     pendingTransition,
@@ -27,6 +28,7 @@ export function ClassroomScreen() {
     <SyncManagerContext.Provider value={syncManager}>
       <WhiteboardScene
         instructions={activeInstructions}
+        walks={activeWalks}
         activeBoardId={activeBoardId}
         activeBoardMeta={activeBoardMeta}
         pendingTransition={pendingTransition}

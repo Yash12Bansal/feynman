@@ -28,6 +28,51 @@ export class SyncManager {
     };
   }
 
+  /**
+   * Register a highlight walk with spotlight semantics.
+   *
+   * Unlike `register` (reveal-once), each step callback receives an `active`
+   * boolean. When a new step triggers, the previous step is deactivated
+   * (only one highlighted at a time). Returns unregister fn that also
+   * deactivates the currently active step.
+   */
+  registerWalk(
+    id: string,
+    hints: TermSyncHint[],
+    callbacks: Map<string, (active: boolean) => void>,
+  ): () => void {
+    let activeTermId: string | null = null;
+
+    // Wrap spotlight callbacks into the PendingSync shape (void callbacks).
+    const wrappedCallbacks = new Map<string, () => void>();
+    for (const [termId, cb] of callbacks) {
+      wrappedCallbacks.set(termId, () => {
+        // Deactivate previous
+        if (activeTermId && activeTermId !== termId) {
+          callbacks.get(activeTermId)?.(false);
+        }
+        // Activate current
+        cb(true);
+        activeTermId = termId;
+      });
+    }
+
+    this.pendingSyncs.set(id, {
+      hints,
+      callbacks: wrappedCallbacks,
+      revealedTerms: new Set(),
+    });
+
+    return () => {
+      // Deactivate current on cleanup
+      if (activeTermId) {
+        callbacks.get(activeTermId)?.(false);
+        activeTermId = null;
+      }
+      this.pendingSyncs.delete(id);
+    };
+  }
+
   /** Called on each transcription word. Matches against pending sync hints. */
   onWord(word: string): void {
     const normalized = word.toLowerCase().replace(/[^a-z0-9]/g, "");

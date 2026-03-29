@@ -156,6 +156,19 @@ class TermSyncHint(BaseModel):
     trigger_words: list[str]
 
 
+class HighlightWalkStep(BaseModel):
+    """A single step in a highlight walk — maps a sub-element to trigger words.
+
+    ``sub_element_id`` is matched against diagram node IDs (``data-node``,
+    ``data-rough-node``) or scene component IDs (``data-scene-path`` prefix).
+    """
+
+    sub_element_id: str
+    trigger_words: list[str]
+    style: HighlightStyle = HighlightStyle.GLOW
+    color: str = ""
+
+
 class AxisConfig(BaseModel):
     label: str = ""
     min: float | None = None
@@ -366,6 +379,26 @@ class SwitchBoardInstruction(_BaseInstruction):
     type: Literal["switch_board"] = "switch_board"
     label: str = ""
     intent: BoardIntent = BoardIntent.NEW
+
+
+class HighlightWalkInstruction(_BaseInstruction):
+    """Speech-synced highlight walk through sub-elements of a diagram or scene.
+
+    Each step spotlights a sub-element as the agent speaks its trigger words.
+    Only one step is highlighted at a time (spotlight semantics).
+    Auto-cleans up when all steps complete or on timeout.
+    """
+
+    type: Literal["highlight_walk"] = "highlight_walk"
+    target_id: str
+    steps: list[HighlightWalkStep]
+
+    @model_validator(mode="after")
+    def _require_steps(self) -> Self:
+        if not self.steps:
+            msg = "At least one step is required"
+            raise ValueError(msg)
+        return self
 
 
 class DrawSceneInstruction(_BaseInstruction):

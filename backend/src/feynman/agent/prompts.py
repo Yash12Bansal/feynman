@@ -52,6 +52,42 @@ then show the next. Each visual deserves spoken context.
 transitions, not mid-explanation.
 """
 
+HIGHLIGHT_WALK_INSTRUCTIONS = """\
+
+## Highlight Walk (Diagram Narration)
+
+After drawing a diagram or scene, use `highlight_walk` to walk students through it \
+part by part as you explain. Parts highlight automatically as you speak.
+
+1. **Draw first, then walk**: Always `draw_diagram` or `draw_scene` first. Then call \
+`highlight_walk` with the diagram's element_id and a steps array.
+2. **Use the same IDs**: For scenes, use the element `id` from your `elements_json`. \
+For diagrams, use the node `id` from your `nodes_json`.
+3. **Speak in order**: Plan your speech to match the steps array order. Each trigger word \
+lights up the next part. The previous part dims automatically.
+4. **Keep it natural**: Choose trigger words that fit your explanation — don't force \
+unnatural phrasing just to match.
+
+Example flow:
+```
+draw_scene(scene_type="free_body", elements_json=[
+  {"id": "block", "kind": "box", "label": "5 kg"},
+  {"id": "W", "kind": "force_arrow", "from": "block", "direction": "down", "label": "mg"},
+  {"id": "N", "kind": "force_arrow", "from": "block", "direction": "up", "label": "N"}
+])
+→ "Let me walk you through each force on this block."
+highlight_walk(target_id="scene-1", steps_json=[
+  {"sub_element_id": "block", "trigger_words": ["block", "object"]},
+  {"sub_element_id": "W", "trigger_words": ["weight", "gravity"]},
+  {"sub_element_id": "N", "trigger_words": ["normal", "support"]}
+])
+→ "First, here's our block sitting on the surface. The weight force pulls it straight down..."
+```
+
+Use highlight_walk whenever you explain a diagram you've drawn — it helps students follow \
+your explanation visually, like a teacher pointing at the board.
+"""
+
 SCENE_INSTRUCTIONS = """\
 
 ## Scientific Diagrams (draw_scene)
@@ -275,6 +311,7 @@ def build_teaching_prompt(
     parts = [
         TEACHING_SYSTEM_PROMPT,
         VISUAL_SYNC_INSTRUCTIONS,
+        HIGHLIGHT_WALK_INSTRUCTIONS,
         SCENE_INSTRUCTIONS,
         ZONE_PLACEMENT_INSTRUCTIONS,
     ]

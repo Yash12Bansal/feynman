@@ -28,7 +28,7 @@ _TYPE_PREFIX: dict[str, str] = {
 }
 
 # Instruction types that are ephemeral — not tracked on the board.
-_EPHEMERAL_TYPES = frozenset({"highlight", "annotate", "switch_board"})
+_EPHEMERAL_TYPES = frozenset({"highlight", "annotate", "switch_board", "highlight_walk"})
 
 # Max label length kept in board elements.
 _MAX_LABEL_LEN = 60

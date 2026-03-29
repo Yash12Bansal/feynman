@@ -31,6 +31,8 @@ from feynman.visuals.schemas import (
     EquationStep,
     FunctionDef,
     GraphType,
+    HighlightWalkInstruction,
+    HighlightWalkStep,
     SceneTemplateId,
     SceneTemplateRef,
     SemanticSceneElement,
@@ -47,7 +49,7 @@ from feynman.visuals.schemas import (
 logger = structlog.get_logger()
 
 # Instruction types that skip auto-ID assignment.
-_NO_AUTO_ID_TYPES = frozenset({"clear", "highlight", "annotate"})
+_NO_AUTO_ID_TYPES = frozenset({"clear", "highlight", "annotate", "highlight_walk"})
 
 
 def _parse_zone(zone: str) -> BoardZone | None:
@@ -352,6 +354,53 @@ Defaults to accent red on the frontend.
     if ann_action == AnnotationAction.ARROW:
         return f"Drew arrow from {from_id} to {to_id}"
     return f"Drew {action} on {target_id}"
+
+
+@function_tool()
+async def highlight_walk(
+    ctx: RunContext,
+    target_id: str,
+    steps_json: str,
+) -> str:
+    """Walk through parts of a diagram, highlighting each part as you talk about it.
+
+    Use this AFTER drawing a diagram or scene to guide students through it part by part.
+    Each step highlights one sub-element when you say its trigger words. Only one part
+    is highlighted at a time — the previous one dims when the next one lights up.
+
+    Args:
+        target_id: The element_id of the diagram or scene to walk through \
+(e.g., "diagram-1", "scene-2"). Must already be on the board.
+        steps_json: A JSON array of step objects. Each step has:
+            - "sub_element_id" (required): ID of the sub-element to highlight. \
+For diagrams: use the node id (same as the "id" field in nodes_json). \
+For scenes: use the element id (same as the "id" field in elements_json).
+            - "trigger_words" (required): List of words you will say that trigger \
+this step's highlight. When you say any of these words, this part lights up.
+            - "style" (optional): "glow" (default), "pulse", "box", or "underline".
+            - "color" (optional): Hex color for the highlight (e.g., "#fbbf24").
+            Example: [
+                {"sub_element_id": "block", "trigger_words": ["block", "object", "box"]},
+                {"sub_element_id": "W", "trigger_words": ["weight", "gravity", "mg"]},
+                {"sub_element_id": "N", "trigger_words": ["normal", "support"]}
+            ]
+    """
+    raw_steps = json.loads(steps_json)
+    steps = [HighlightWalkStep(**s) for s in raw_steps]
+
+    # Populate term_hints so the frontend SyncManager can reuse its word-matching.
+    term_hints = [
+        TermSyncHint(term_id=s.sub_element_id, trigger_words=s.trigger_words) for s in steps
+    ]
+
+    instruction = HighlightWalkInstruction(
+        target_id=target_id,
+        steps=steps,
+        sync_mode=SyncMode.TERM_SYNC,
+        term_hints=term_hints,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return f"Highlight walk active on {target_id} with {len(steps)} steps"
 
 
 @function_tool()

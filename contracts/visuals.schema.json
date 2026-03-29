@@ -999,6 +999,125 @@
       "title": "AnnotationAction",
       "type": "string"
     },
+    "HighlightWalkStep": {
+      "description": "A single step in a highlight walk — maps a sub-element to trigger words.",
+      "properties": {
+        "sub_element_id": {
+          "title": "Sub Element Id",
+          "type": "string"
+        },
+        "trigger_words": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trigger Words",
+          "type": "array"
+        },
+        "style": {
+          "$ref": "#/$defs/HighlightStyle",
+          "default": "glow"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": ["sub_element_id", "trigger_words"],
+      "title": "HighlightWalkStep",
+      "type": "object"
+    },
+    "HighlightWalkInstruction": {
+      "description": "Speech-synced highlight walk through sub-elements of a diagram or scene.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "type": {
+          "const": "highlight_walk",
+          "default": "highlight_walk",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/HighlightWalkStep"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": ["target_id", "steps"],
+      "title": "HighlightWalkInstruction",
+      "type": "object"
+    },
     "AnnotateInstruction": {
       "description": "Draw a freehand annotation — circle, underline, or arrow.",
       "properties": {
@@ -1423,6 +1542,7 @@
           "draw_diagram": "#/$defs/DrawDiagramInstruction",
           "draw_scene": "#/$defs/DrawSceneInstruction",
           "highlight": "#/$defs/HighlightInstruction",
+          "highlight_walk": "#/$defs/HighlightWalkInstruction",
           "show_equation": "#/$defs/ShowEquationInstruction",
           "step_equation": "#/$defs/StepEquationInstruction",
           "show_graph": "#/$defs/ShowGraphInstruction",
@@ -1460,6 +1580,9 @@
           "$ref": "#/$defs/AnnotateInstruction"
         },
         {
+          "$ref": "#/$defs/HighlightWalkInstruction"
+        },
+        {
           "$ref": "#/$defs/SwitchBoardInstruction"
         }
       ]
@@ -1480,6 +1603,7 @@
                 "draw_diagram": "#/$defs/DrawDiagramInstruction",
                 "draw_scene": "#/$defs/DrawSceneInstruction",
                 "highlight": "#/$defs/HighlightInstruction",
+                "highlight_walk": "#/$defs/HighlightWalkInstruction",
                 "show_equation": "#/$defs/ShowEquationInstruction",
                 "show_graph": "#/$defs/ShowGraphInstruction",
                 "show_text": "#/$defs/ShowTextInstruction",
@@ -1511,6 +1635,9 @@
               },
               {
                 "$ref": "#/$defs/AnnotateInstruction"
+              },
+              {
+                "$ref": "#/$defs/HighlightWalkInstruction"
               },
               {
                 "$ref": "#/$defs/SwitchBoardInstruction"

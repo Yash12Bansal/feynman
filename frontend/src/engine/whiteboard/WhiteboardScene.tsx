@@ -3,6 +3,7 @@ import type {
   VisualInstruction,
   HighlightInstruction,
   AnnotateInstruction,
+  HighlightWalkInstruction,
 } from "../../types/visuals";
 import type { BoardLayout, BoardZone } from "./types";
 import { BOARD_WIDTH, BOARD_HEIGHT } from "./types";
@@ -13,6 +14,7 @@ import { injectThemeVars } from "../theme";
 import { WhiteboardCard } from "./WhiteboardCard";
 import { InstructionSwitch } from "./InstructionSwitch";
 import { HighlightOverlay } from "../content/HighlightOverlay";
+import { HighlightWalkOverlay } from "../content/HighlightWalkOverlay";
 import { AnnotationLayer } from "./content/AnnotationLayer";
 import { AliveFilter } from "./AliveFilter";
 import { BoundsReporter } from "./BoundsReporter";
@@ -110,6 +112,8 @@ const DEFAULT_ZONE: BoardZone = "center-center";
 
 export interface WhiteboardSceneProps {
   instructions: VisualInstruction[];
+  /** Highlight walks — passed separately to avoid re-rendering diagram cards. */
+  walks?: HighlightWalkInstruction[];
   debugZones?: boolean;
   /** Active board ID — enables BoundsReporter when provided. */
   activeBoardId?: string;
@@ -122,6 +126,7 @@ export interface WhiteboardSceneProps {
 
 export function WhiteboardScene({
   instructions,
+  walks = [],
   debugZones,
   activeBoardId,
   activeBoardMeta,
@@ -258,6 +263,12 @@ export function WhiteboardScene({
           <HighlightOverlay
             key={`highlight-${h.target_id}-${idx}`}
             instruction={h}
+          />
+        ))}
+        {walks.map((w, idx) => (
+          <HighlightWalkOverlay
+            key={`walk-${w.target_id}-${idx}`}
+            instruction={w}
           />
         ))}
       </ElementRegistryContext.Provider>

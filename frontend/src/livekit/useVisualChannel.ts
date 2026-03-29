@@ -4,6 +4,7 @@ import type {
   VisualInstruction,
   SwitchBoardInstruction,
   ClearInstruction,
+  HighlightWalkInstruction,
 } from "../types/visuals";
 import { useBoardStore } from "../engine/whiteboard/useBoardStore";
 import type {
@@ -17,6 +18,8 @@ export interface VisualChannelResult {
   instructions: VisualInstruction[];
   /** Active board's instructions — use for WhiteboardScene. */
   activeInstructions: VisualInstruction[];
+  /** Active highlight walks — ephemeral, not stored in board. */
+  activeWalks: HighlightWalkInstruction[];
   activeBoardId: string;
   activeBoardMeta: BoardMeta | null;
   pendingTransition: BoardTransition | null;
@@ -32,6 +35,11 @@ export function useVisualChannel(): VisualChannelResult {
   const instructionsRef = useRef<VisualInstruction[]>([]);
   const [instructions, setInstructions] = useState<VisualInstruction[]>([]);
 
+  // Highlight walks are ephemeral — separate channel, not stored in board.
+  const [activeWalks, setActiveWalks] = useState<HighlightWalkInstruction[]>(
+    [],
+  );
+
   const store = useBoardStore();
   // Destructure stable methods (all wrapped in useCallback with [] deps)
   const { switchBoard, addInstruction, clearBoard } = store;
@@ -44,6 +52,8 @@ export function useVisualChannel(): VisualChannelResult {
 
         if (parsed.type === "switch_board") {
           switchBoard(parsed as SwitchBoardInstruction);
+          // Clear walks on board switch — they're tied to the current board
+          setActiveWalks([]);
         } else if (parsed.type === "clear") {
           const clear = parsed as ClearInstruction;
           // boardId defaults to active board inside clearBoard when undefined
@@ -57,6 +67,17 @@ export function useVisualChannel(): VisualChannelResult {
           } else {
             instructionsRef.current = [];
           }
+
+          // Clear walks if board is cleared
+          if (!clear.target_id) {
+            setActiveWalks([]);
+          }
+        } else if (parsed.type === "highlight_walk") {
+          // Ephemeral — don't store in board (avoids re-render of diagram cards)
+          setActiveWalks((prev) => [
+            ...prev,
+            parsed as HighlightWalkInstruction,
+          ]);
         } else {
           addInstruction(parsed);
 
@@ -79,6 +100,7 @@ export function useVisualChannel(): VisualChannelResult {
     lastInstruction,
     instructions,
     activeInstructions: store.activeInstructions,
+    activeWalks,
     activeBoardId: store.activeBoardId,
     activeBoardMeta: store.activeBoardMeta,
     pendingTransition: store.pendingTransition,

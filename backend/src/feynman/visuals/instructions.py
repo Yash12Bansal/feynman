@@ -23,6 +23,7 @@ from feynman.visuals.schemas import (
     DrawDiagramInstruction,
     DrawSceneInstruction,
     HighlightInstruction,
+    HighlightWalkInstruction,
     ShowEquationInstruction,
     ShowGraphInstruction,
     ShowTextInstruction,
@@ -40,6 +41,7 @@ VisualInstruction = Annotated[
     | ShowGraphInstruction
     | HighlightInstruction
     | AnnotateInstruction
+    | HighlightWalkInstruction
     | SwitchBoardInstruction,
     Discriminator("type"),
 ]
@@ -51,6 +53,7 @@ __all__ = [
     "DrawDiagramInstruction",
     "DrawSceneInstruction",
     "HighlightInstruction",
+    "HighlightWalkInstruction",
     "ShowEquationInstruction",
     "ShowGraphInstruction",
     "ShowTextInstruction",
