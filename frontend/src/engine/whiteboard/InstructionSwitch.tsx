@@ -13,6 +13,7 @@
 import type { VisualInstruction } from "../../types/visuals";
 import { RoughDiagramContent } from "./content/RoughDiagramContent";
 import { RoughGraphContent } from "./content/RoughGraphContent";
+import { DesignDiagramContent } from "./content/DesignDiagramContent";
 import { HandwrittenTextContent } from "./content/HandwrittenTextContent";
 import { SceneContent } from "./scene/SceneContent";
 import { EquationContent } from "../content/EquationContent";
@@ -26,6 +27,8 @@ export function InstructionSwitch({
   switch (instruction.type) {
     case "draw_diagram":
       return <RoughDiagramContent instruction={instruction} />;
+    case "draw_design_diagram":
+      return <DesignDiagramContent instruction={instruction} />;
     case "show_text":
       return <HandwrittenTextContent instruction={instruction} />;
     case "show_equation":

@@ -46,6 +46,7 @@ export const TYPE_ACCENT: Record<string, string> = {
   show_equation: COLORS.accentAmber,
   step_equation: COLORS.accentAmber,
   draw_diagram: COLORS.accentGreen,
+  draw_design_diagram: COLORS.accentGreen,
   show_graph: COLORS.accentPurple,
   annotate: COLORS.accentRed,
   draw_scene: COLORS.accentBlue,

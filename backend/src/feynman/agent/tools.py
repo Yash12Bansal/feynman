@@ -25,12 +25,15 @@ from feynman.visuals.schemas import (
     DiagramEdge,
     DiagramNode,
     DiagramType,
+    DrawDesignDiagramInstruction,
     DrawDiagramInstruction,
     DrawSceneInstruction,
     EquationAnimation,
     EquationStep,
     FunctionDef,
     GraphType,
+    HighlightInstruction,
+    HighlightStyle,
     HighlightWalkInstruction,
     HighlightWalkStep,
     SceneTemplateId,
@@ -63,11 +66,33 @@ def _parse_zone(zone: str) -> BoardZone | None:
         return None
 
 
+# LLM-friendly timing names → SyncMode mapping.
+_TIMING_MAP: dict[str, SyncMode] = {
+    "visual_first": SyncMode.IMMEDIATE,
+    "after_speech": SyncMode.ON_PLAYOUT,
+    "term_sync": SyncMode.TERM_SYNC,
+}
+
+
+def _parse_timing(timing: str) -> SyncMode:
+    """Map an LLM-friendly timing name to a SyncMode value."""
+    if not timing:
+        return SyncMode.ON_PLAYOUT
+    # Accept raw enum values ("immediate", "on_playout") and friendly aliases.
+    if mapped := _TIMING_MAP.get(timing.lower()):
+        return mapped
+    try:
+        return SyncMode(timing)
+    except ValueError:
+        logger.warning("visual.invalid_timing", timing=timing)
+        return SyncMode.ON_PLAYOUT
+
+
 async def _publish_visual(
     ctx: RunContext,
     instruction: _BaseInstruction,
     *,
-    wait_for_speech: bool = True,
+    wait_for_speech: bool | None = None,
 ) -> None:
     # Auto-assign element_id if not already set and type supports it.
     tc: TeachingContext = ctx.userdata
@@ -76,6 +101,10 @@ async def _publish_visual(
 
     # Stamp active board ID on the instruction for frontend context.
     instruction.board_id = tc.board_manager.active_id
+
+    # Infer wait behavior from the instruction's sync_mode when not explicit.
+    if wait_for_speech is None:
+        wait_for_speech = instruction.sync_mode == SyncMode.ON_PLAYOUT
 
     if wait_for_speech:
         try:
@@ -123,7 +152,9 @@ async def _publish_switch_board(
 
 
 @function_tool()
-async def show_text(ctx: RunContext, text: str, title: str = "", zone: str = "") -> str:
+async def show_text(
+    ctx: RunContext, text: str, title: str = "", zone: str = "", timing: str = ""
+) -> str:
     """Display text on the classroom screen. Use for key points, definitions, important info.
 
     Args:
@@ -132,8 +163,12 @@ async def show_text(ctx: RunContext, text: str, title: str = "", zone: str = "")
         zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
 "center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
 Leave empty for default placement.
+        timing: When the visual appears relative to your speech. \
+"visual_first" (appears while you speak), "after_speech" (default — waits for your sentence to finish).
     """
-    instruction = ShowTextInstruction(text=text, title=title, zone=_parse_zone(zone))
+    instruction = ShowTextInstruction(
+        text=text, title=title, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
+    )
     await _publish_visual(ctx, instruction)
     return f"Displayed on board: {text[:80]}"
 
@@ -146,6 +181,7 @@ async def show_equation(
     animation: str = "fade_in",
     term_hints_json: str = "",
     zone: str = "",
+    timing: str = "",
 ) -> str:
     """Display a math equation on the classroom screen. Use LaTeX notation.
 
@@ -161,10 +197,12 @@ async def show_equation(
         zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
 "center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
 Leave empty for default placement.
+        timing: When the equation appears. "visual_first" (while you speak), \
+"after_speech" (default), or "term_sync" (terms reveal as you say them — use with term_by_term animation).
     """
     eq_animation = EquationAnimation(animation)
     term_hints = None
-    sync_mode = SyncMode.ON_PLAYOUT
+    sync_mode = _parse_timing(timing) if timing else SyncMode.ON_PLAYOUT
     if term_hints_json:
         term_hints = [TermSyncHint(**h) for h in json.loads(term_hints_json)]
         if eq_animation == EquationAnimation.TERM_BY_TERM:
@@ -191,6 +229,7 @@ async def draw_diagram(
     edges_json: str = "",
     progressive: bool = True,
     zone: str = "",
+    timing: str = "visual_first",
 ) -> str:
     """Draw a structured diagram on the classroom screen — flowcharts, force diagrams, concept maps, etc.
 
@@ -215,6 +254,8 @@ async def draw_diagram(
         zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
 "center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
 Leave empty for default placement.
+        timing: When the diagram appears. "visual_first" (default — starts drawing while you speak, \
+use with "Let me draw this..."), "after_speech" (waits for your sentence).
     """
     nodes = [DiagramNode(**n) for n in json.loads(nodes_json)] if nodes_json else []
     edges = [DiagramEdge(**e) for e in json.loads(edges_json)] if edges_json else []
@@ -227,13 +268,16 @@ Leave empty for default placement.
         edges=edges,
         progressive=progressive,
         zone=_parse_zone(zone),
+        sync_mode=_parse_timing(timing),
     )
     await _publish_visual(ctx, instruction)
     return f"Drew diagram: {title or description or diagram_type}"
 
 
 @function_tool()
-async def step_equation(ctx: RunContext, steps_json: str, title: str = "", zone: str = "") -> str:
+async def step_equation(
+    ctx: RunContext, steps_json: str, title: str = "", zone: str = "", timing: str = ""
+) -> str:
     """Show a step-by-step equation solve on the classroom screen. Perfect for walking through algebra, simplification, or any multi-step derivation.
 
     Args:
@@ -246,10 +290,13 @@ async def step_equation(ctx: RunContext, steps_json: str, title: str = "", zone:
         zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
 "center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
 Leave empty for default placement.
+        timing: When the steps appear. "visual_first" (while you speak), "after_speech" (default).
     """
     raw_steps = json.loads(steps_json)
     steps = [EquationStep(**s) for s in raw_steps]
-    instruction = StepEquationInstruction(title=title, steps=steps, zone=_parse_zone(zone))
+    instruction = StepEquationInstruction(
+        title=title, steps=steps, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
+    )
     await _publish_visual(ctx, instruction)
     return f"Displayed step-by-step equation: {title or steps[-1].latex}"
 
@@ -269,6 +316,7 @@ async def show_graph(
     functions_json: str = "",
     animated: bool = True,
     zone: str = "",
+    timing: str = "visual_first",
 ) -> str:
     """Display a graph or chart on the classroom screen — line charts, bar charts, scatter plots, or function plots.
 
@@ -297,6 +345,8 @@ async def show_graph(
         zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
 "center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
 Leave empty for default placement.
+        timing: When the graph appears. "visual_first" (default — starts drawing while you speak), \
+"after_speech" (waits for your sentence).
     """
     series = [DataSeries(**s) for s in json.loads(series_json)] if series_json else []
     functions = [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
@@ -312,6 +362,7 @@ Leave empty for default placement.
         functions=functions,
         animated=animated,
         zone=_parse_zone(zone),
+        sync_mode=_parse_timing(timing),
     )
     await _publish_visual(ctx, instruction)
     return f"Displayed graph: {title or graph_type}"
@@ -354,6 +405,50 @@ Defaults to accent red on the frontend.
     if ann_action == AnnotationAction.ARROW:
         return f"Drew arrow from {from_id} to {to_id}"
     return f"Drew {action} on {target_id}"
+
+
+@function_tool()
+async def highlight_diagram_part(
+    ctx: RunContext,
+    target_id: str,
+    sub_element_ids: str,
+    style: str = "glow",
+    color: str = "#fbbf24",
+) -> str:
+    """Highlight specific parts of a design diagram — like pointing with a laser pointer.
+
+    Use this to direct student attention to specific elements within a design diagram.
+    The highlight appears immediately and stays until you highlight a different part
+    or clear it. Each new highlight on the same diagram automatically dims the previous one.
+
+    Call this tool naturally during your explanation to make each part light up as you
+    discuss it. You don't need to wait — the highlight fires instantly.
+
+    Args:
+        target_id: The element_id of the design diagram (e.g., "design-1"). \
+Must match the element_id returned by draw_design_diagram.
+        sub_element_ids: Comma-separated list of sub-element IDs to highlight \
+(e.g., "barrier" or "slit-a,slit-b"). These are the SVG element IDs \
+listed by draw_design_diagram after drawing.
+        style: Highlight effect. Options: "glow" (default, soft glow), "pulse" (pulsing scale effect).
+        color: Hex color for the highlight glow (default "#fbbf24" amber). \
+Use "#ef4444" for red, "#60a5fa" for blue, "#4ade80" for green, "#a78bfa" for purple.
+    """
+    ids = [s.strip() for s in sub_element_ids.split(",") if s.strip()]
+    if not ids:
+        return "No sub-element IDs provided."
+
+    hl_style = HighlightStyle(style) if style in HighlightStyle.__members__.values() else HighlightStyle.GLOW
+    instruction = HighlightInstruction(
+        target_id=target_id,
+        style=hl_style,
+        color=color,
+        sub_element_ids=ids,
+        sync_mode=SyncMode.IMMEDIATE,
+        duration_ms=8000,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return f"Highlighted {', '.join(ids)} in {target_id}"
 
 
 @function_tool()
@@ -421,6 +516,83 @@ Leave empty to clear the entire board.
     return "Board cleared"
 
 
+@function_tool()
+async def draw_design_diagram(
+    ctx: RunContext,
+    prompt: str,
+    zone: str = "",
+    timing: str = "visual_first",
+) -> str:
+    """Draw a detailed, precise SVG diagram using the AI design agent.
+
+    Use this for ANY diagram that needs spatial precision, rich visual detail, or
+    complex layouts — physics apparatus, biological structures, mathematical constructions,
+    process flows, architecture diagrams, annotated illustrations, etc.
+
+    This tool calls a specialized diagram-generation AI that produces pixel-perfect SVG
+    diagrams with proper labels, arrows, color coding, and optional KaTeX math expressions.
+    It is much more capable than draw_diagram or draw_scene for complex visuals.
+
+    **When to use this vs other tools:**
+    - Use draw_design_diagram for: detailed science diagrams, annotated illustrations,
+      anything where visual quality and spatial precision matters.
+    - Use show_equation for: standalone math equations.
+    - Use draw_diagram for: simple abstract relationships (flowcharts, concept maps) where
+      a quick hand-drawn style is acceptable.
+    - Use show_graph for: simple data charts.
+
+    After drawing, you can use highlight_walk to walk through parts of the diagram.
+    Each element in the generated diagram has a unique ID that can be used as sub_element_id
+    in highlight_walk steps.
+
+    Args:
+        prompt: Detailed description of the diagram to draw. Be specific about what to show, \
+labels, colors, layout. Example: "A free body diagram of a 5kg block on a 30-degree \
+inclined plane showing weight (mg), normal force (N), and friction (f) vectors with \
+proper angles labeled."
+        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
+"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
+Leave empty for default placement.
+        timing: When the diagram appears. "visual_first" (default — starts rendering while you speak), \
+"after_speech" (waits for your sentence).
+    """
+    from feynman.agent.design_bridge import generate_design_diagram
+
+    try:
+        spec = await generate_design_diagram(prompt, model="sonnet")
+    except Exception:
+        logger.exception("draw_design_diagram.generation_failed", prompt=prompt[:100])
+        return "Failed to generate diagram. Try simplifying the prompt or use draw_scene instead."
+
+    title = spec.get("title", "")
+    description = spec.get("description", prompt[:200])
+    instruction = DrawDesignDiagramInstruction(
+        title=title,
+        description=description,
+        spec=spec,
+        zone=_parse_zone(zone),
+        sync_mode=_parse_timing(timing),
+    )
+    await _publish_visual(ctx, instruction)
+
+    # Give frontend time to render the SVG diagram.
+    element_count = len(spec.get("elements", []))
+    render_time = max(1.0, element_count * 0.05)
+    await asyncio.sleep(render_time)
+
+    # Collect sub-element IDs so the agent can reference them in highlight_walk.
+    sub_ids = [el.get("id") for el in spec.get("elements", []) if el.get("id")]
+    eid = instruction.element_id  # e.g. "design-1"
+
+    result = f"Drew design diagram (element_id: \"{eid}\"): {title or prompt[:80]}"
+    if sub_ids:
+        result += (
+            f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
+            f"\nUse highlight_walk(target_id=\"{eid}\", ...) with these IDs as sub_element_id."
+        )
+    return result
+
+
 # Animation duration estimates (ms) per scene template.
 # Derived from GSAP timeline: ~0.4s/path + 0.06s stagger + 0.25s/label.
 _SCENE_DURATION_MS: dict[str, int] = {
@@ -440,6 +612,7 @@ async def draw_scene(
     elements_json: str = "",
     progressive: bool = True,
     zone: str = "",
+    timing: str = "visual_first",
 ) -> str:
     """Draw a scientific diagram on the classroom screen — physics apparatus, optics setups, circuits, geometry.
 
@@ -470,6 +643,8 @@ async def draw_scene(
             "extras" (dict of component-specific params).
         progressive: Animate drawing in progressively (default true).
         zone: Board zone ("center-left", "center-right", etc). Leave empty for default.
+        timing: When the scene appears. "visual_first" (default — starts drawing while you speak), \
+"after_speech" (waits for your sentence).
     """
     # Parse semantic elements — graceful on malformed JSON.
     elements: list[dict] = []
@@ -478,6 +653,8 @@ async def draw_scene(
             elements = json.loads(elements_json)
         except (json.JSONDecodeError, TypeError):
             logger.warning("draw_scene.invalid_elements_json", raw=elements_json)
+
+    sync_mode = _parse_timing(timing)
 
     # Semantic spec path: scene_type + elements takes priority.
     if scene_type and elements:
@@ -489,6 +666,7 @@ async def draw_scene(
             elements=validated_elements,
             progressive=progressive,
             zone=_parse_zone(zone),
+            sync_mode=sync_mode,
         )
         await _publish_visual(ctx, instruction)
 
@@ -527,6 +705,7 @@ async def draw_scene(
         template=template,
         progressive=progressive,
         zone=_parse_zone(zone),
+        sync_mode=sync_mode,
     )
     await _publish_visual(ctx, instruction)
 
@@ -536,6 +715,23 @@ async def draw_scene(
 
     label = title or description or template_id
     return f"Drew scene: {label}"
+
+
+@function_tool()
+async def teach_pause(ctx: RunContext, seconds: float = 2.0) -> str:
+    """Pause for a moment — let students absorb what they see on the board.
+
+    Use this after showing a complex diagram or equation, before asking a question,
+    or when you want students to think. Like a real teacher pausing at the board.
+
+    Args:
+        seconds: How long to pause, between 1 and 5 seconds. Default 2.
+    """
+    capped = min(max(seconds, 0.5), 5.0)
+    await ctx.wait_for_playout()
+    await asyncio.sleep(capped)
+    logger.debug("teach.pause", duration_s=capped)
+    return f"Paused {capped:.1f}s — students had time to look at the board."
 
 
 # ---------------------------------------------------------------------------

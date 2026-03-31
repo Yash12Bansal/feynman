@@ -73,11 +73,20 @@ export function useVisualChannel(): VisualChannelResult {
             setActiveWalks([]);
           }
         } else if (parsed.type === "highlight_walk") {
-          // Ephemeral — don't store in board (avoids re-render of diagram cards)
+          // Ephemeral — don't store in board (avoids re-render of diagram cards).
+          // Replace any existing walk on the same target to prevent accumulation.
+          const walk = parsed as HighlightWalkInstruction;
           setActiveWalks((prev) => [
-            ...prev,
-            parsed as HighlightWalkInstruction,
+            ...prev.filter((w) => w.target_id !== walk.target_id),
+            walk,
           ]);
+
+          // Auto-expire: remove walk after its duration to prevent stale registrations.
+          const walkDuration =
+            walk.duration_ms ?? (walk.steps?.length ?? 1) * 5000;
+          setTimeout(() => {
+            setActiveWalks((prev) => prev.filter((w) => w !== walk));
+          }, walkDuration + 1000);
         } else {
           addInstruction(parsed);
 

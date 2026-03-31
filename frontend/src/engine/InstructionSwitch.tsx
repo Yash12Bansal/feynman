@@ -4,6 +4,7 @@ import { EquationContent } from "./content/EquationContent";
 import { StepEquationContent } from "./content/StepEquationContent";
 import { DiagramContent } from "./content/DiagramContent";
 import { GraphContent } from "./content/GraphContent";
+import { DesignDiagramContent } from "./whiteboard/content/DesignDiagramContent";
 
 export function InstructionSwitch({
   instruction,
@@ -19,6 +20,8 @@ export function InstructionSwitch({
       return <StepEquationContent instruction={instruction} />;
     case "draw_diagram":
       return <DiagramContent instruction={instruction} />;
+    case "draw_design_diagram":
+      return <DesignDiagramContent instruction={instruction} />;
     case "show_graph":
       return <GraphContent instruction={instruction} />;
     default:

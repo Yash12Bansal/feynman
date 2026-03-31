@@ -15,37 +15,71 @@ There are 5 formats you'll encounter. They all encode the same thing (conversati
 ### OpenAI JSONL (used by: OpenAI API, Together AI)
 
 ```json
-{"messages": [
-  {"role": "system", "content": "You are a Socratic math tutor."},
-  {"role": "user", "content": "What is the derivative of x²?"},
-  {"role": "assistant", "content": "Before I tell you — what rule do you think applies when you see a variable raised to a power?"}
-]}
+{
+  "messages": [
+    { "role": "system", "content": "You are a Socratic math tutor." },
+    { "role": "user", "content": "What is the derivative of x²?" },
+    {
+      "role": "assistant",
+      "content": "Before I tell you — what rule do you think applies when you see a variable raised to a power?"
+    }
+  ]
+}
 ```
 
 Multi-turn — just keep alternating user/assistant:
+
 ```json
-{"messages": [
-  {"role": "system", "content": "You are a Socratic math tutor."},
-  {"role": "user", "content": "What is the derivative of x²?"},
-  {"role": "assistant", "content": "What rule do you think applies when you see a variable raised to a power?"},
-  {"role": "user", "content": "The power rule?"},
-  {"role": "assistant", "content": "Exactly. So if the power rule says bring the exponent down and reduce it by 1 — what do you get for x²?"}
-]}
+{
+  "messages": [
+    { "role": "system", "content": "You are a Socratic math tutor." },
+    { "role": "user", "content": "What is the derivative of x²?" },
+    {
+      "role": "assistant",
+      "content": "What rule do you think applies when you see a variable raised to a power?"
+    },
+    { "role": "user", "content": "The power rule?" },
+    {
+      "role": "assistant",
+      "content": "Exactly. So if the power rule says bring the exponent down and reduce it by 1 — what do you get for x²?"
+    }
+  ]
+}
 ```
 
 With tool/function calling:
+
 ```json
-{"messages": [
-  {"role": "user", "content": "Draw the force diagram for a block on an incline."},
-  {"role": "assistant", "tool_calls": [
-    {"id": "call_1", "type": "function", "function": {
-      "name": "draw_diagram",
-      "arguments": "{\"type\": \"force_diagram\", \"objects\": [\"block\", \"incline\"], \"forces\": [\"gravity\", \"normal\", \"friction\"]}"
-    }}
-  ]},
-  {"role": "tool", "tool_call_id": "call_1", "content": "{\"status\": \"rendered\"}"},
-  {"role": "assistant", "content": "I've drawn the three forces acting on the block. Which one do you think acts parallel to the surface?"}
-]}
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Draw the force diagram for a block on an incline."
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "id": "call_1",
+          "type": "function",
+          "function": {
+            "name": "draw_diagram",
+            "arguments": "{\"type\": \"force_diagram\", \"objects\": [\"block\", \"incline\"], \"forces\": [\"gravity\", \"normal\", \"friction\"]}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_1",
+      "content": "{\"status\": \"rendered\"}"
+    },
+    {
+      "role": "assistant",
+      "content": "I've drawn the three forces acting on the block. Which one do you think acts parallel to the surface?"
+    }
+  ]
+}
 ```
 
 One JSONL line per conversation. UTF-8. Double quotes only.
@@ -55,28 +89,35 @@ One JSONL line per conversation. UTF-8. Double quotes only.
 Identical structure to OpenAI format — `messages` array with `role`/`content` dicts. This is the target format for all open-source training.
 
 ```json
-{"messages": [
-  {"role": "user", "content": "What color is the sky?"},
-  {"role": "assistant", "content": "It is blue."}
-]}
+{
+  "messages": [
+    { "role": "user", "content": "What color is the sky?" },
+    { "role": "assistant", "content": "It is blue." }
+  ]
+}
 ```
 
 Or prompt-completion format (loss computed on completion only by default):
+
 ```json
 {
-  "prompt": [{"role": "user", "content": "What color is the sky?"}],
-  "completion": [{"role": "assistant", "content": "It is blue."}]
+  "prompt": [{ "role": "user", "content": "What color is the sky?" }],
+  "completion": [{ "role": "assistant", "content": "It is blue." }]
 }
 ```
 
 ### ShareGPT (used by: LLaMA-Factory, older Axolotl, community datasets)
 
 ```json
-{"conversations": [
-  {"from": "human", "value": "What is photosynthesis?"},
-  {"from": "gpt", "value": "Photosynthesis is the process by which plants convert light energy..."}
-],
- "system": "You are a biology teacher."
+{
+  "conversations": [
+    { "from": "human", "value": "What is photosynthesis?" },
+    {
+      "from": "gpt",
+      "value": "Photosynthesis is the process by which plants convert light energy..."
+    }
+  ],
+  "system": "You are a biology teacher."
 }
 ```
 
@@ -114,11 +155,11 @@ You store data as JSON. The chat template converts it to this during tokenizatio
 
 ### Provider-Specific Notes
 
-| Provider | Format | Notes |
-|---|---|---|
-| OpenAI | Their JSONL | Min 10 examples, recommended 50+ |
-| Together AI | Same JSONL or Parquet | Has `train_on_inputs` param ("auto" masks user msgs) |
-| Axolotl | YAML config points to dataset | Modern: `type: chat_template`. Deprecated: ShareGPT |
+| Provider    | Format                        | Notes                                                |
+| ----------- | ----------------------------- | ---------------------------------------------------- |
+| OpenAI      | Their JSONL                   | Min 10 examples, recommended 50+                     |
+| Together AI | Same JSONL or Parquet         | Has `train_on_inputs` param ("auto" masks user msgs) |
+| Axolotl     | YAML config points to dataset | Modern: `type: chat_template`. Deprecated: ShareGPT  |
 
 ---
 
@@ -129,16 +170,19 @@ A chat template is a Jinja2 string in the tokenizer config that converts JSON me
 Each model family has its own template:
 
 **Qwen (ChatML):**
+
 ```
 <|im_start|>system\n{content}<|im_end|>\n<|im_start|>user\n{content}<|im_end|>\n<|im_start|>assistant\n
 ```
 
 **Llama 3:**
+
 ```
 <|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{content}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{content}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n
 ```
 
 **Mistral:**
+
 ```
 [INST] {user_msg} [/INST]{assistant_msg}</s>[INST] {user_msg_2} [/INST]
 ```
@@ -162,12 +206,12 @@ When computing cross-entropy loss during SFT, should you include prompt tokens o
 
 **The answer: mask prompt tokens.** Set `train_on_inputs: false`.
 
-| Framework | Default | How to mask |
-|---|---|---|
-| Axolotl | Masked (good) | `train_on_inputs: false` |
-| Unsloth | Masked (good) | Default behavior |
-| TRL | NOT masked | Use `DataCollatorForCompletionOnlyLM` |
-| Together AI | `"auto"` | Automatically masks user msgs in chat format |
+| Framework   | Default       | How to mask                                  |
+| ----------- | ------------- | -------------------------------------------- |
+| Axolotl     | Masked (good) | `train_on_inputs: false`                     |
+| Unsloth     | Masked (good) | Default behavior                             |
+| TRL         | NOT masked    | Use `DataCollatorForCompletionOnlyLM`        |
+| Together AI | `"auto"`      | Automatically masks user msgs in chat format |
 
 Research finding: masking helps for short completions, is neutral for long completions. Always mask — it's the safer default.
 
@@ -188,6 +232,7 @@ Google's LearnLM specifically used "pedagogical instruction following" — every
 ### EOS Token as Pad Token — The #1 Mistake
 
 Many models (Llama 2) ship without a dedicated pad token. The naive fix:
+
 ```python
 tokenizer.pad_token = tokenizer.eos_token  # WRONG. DO NOT DO THIS.
 ```
@@ -195,6 +240,7 @@ tokenizer.pad_token = tokenizer.eos_token  # WRONG. DO NOT DO THIS.
 **Why it breaks:** Pad tokens are masked during training (attention_mask=0, label=-100). If EOS=PAD, the model learns to ignore EOS. At inference → generates endlessly, never stops.
 
 **Correct fixes:**
+
 ```python
 # Option 1: Use UNK token (Meta's approach)
 tokenizer.pad_token = tokenizer.unk_token
@@ -230,6 +276,7 @@ Fix: `dataset_kwargs={"add_special_tokens": False}` in SFTTrainer, or verify wit
 ### Resize Embeddings When Adding Tokens
 
 If you add ANY new special token, you MUST resize:
+
 ```python
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 model.resize_token_embeddings(len(tokenizer))  # Forgetting this → index errors
@@ -242,41 +289,65 @@ model.resize_token_embeddings(len(tokenizer))  # Forgetting this → index error
 ### Format
 
 **HuggingFace TRL (recommended — explicit prompt):**
+
 ```json
 {
-  "prompt": [{"role": "user", "content": "I don't understand derivatives."}],
-  "chosen": [{"role": "assistant", "content": "Let's build intuition first. Imagine you're driving a car — the speedometer shows your rate of change of position. That's what a derivative is."}],
-  "rejected": [{"role": "assistant", "content": "The derivative of f(x) is defined as the limit of [f(x+h)-f(x)]/h as h approaches 0."}]
+  "prompt": [{ "role": "user", "content": "I don't understand derivatives." }],
+  "chosen": [
+    {
+      "role": "assistant",
+      "content": "Let's build intuition first. Imagine you're driving a car — the speedometer shows your rate of change of position. That's what a derivative is."
+    }
+  ],
+  "rejected": [
+    {
+      "role": "assistant",
+      "content": "The derivative of f(x) is defined as the limit of [f(x+h)-f(x)]/h as h approaches 0."
+    }
+  ]
 }
 ```
 
 **OpenAI DPO format:**
+
 ```json
 {
-  "input": {"messages": [{"role": "user", "content": "I don't understand derivatives."}]},
-  "preferred_output": [{"role": "assistant", "content": "Let's build intuition first..."}],
-  "non_preferred_output": [{"role": "assistant", "content": "The derivative is defined as..."}]
+  "input": {
+    "messages": [
+      { "role": "user", "content": "I don't understand derivatives." }
+    ]
+  },
+  "preferred_output": [
+    { "role": "assistant", "content": "Let's build intuition first..." }
+  ],
+  "non_preferred_output": [
+    { "role": "assistant", "content": "The derivative is defined as..." }
+  ]
 }
 ```
 
 ### How to Generate Chosen vs Rejected
 
 **Method 1: Multiple sampling + scoring** (best for verifiable domains)
+
 1. Generate 4+ responses per prompt from your SFT model
 2. Score via rule-based eval (regex for math, unit tests for code)
 3. Correct → chosen, incorrect → rejected
 4. Skip prompts lacking both
 
 **Method 2: AI-as-judge** (best for subjective quality)
+
 - Generate responses, use Claude/GPT-4 to evaluate against principles
 - Cost: <$0.01/comparison vs $1+ for human annotators
 - Anthropic's Constitutional AI uses this at scale
 
 **Method 3: Human annotation** (gold standard)
+
 - Meta Llama 3: annotators ranked outputs AND edited them ("edited > chosen > rejected" — three tiers)
 - 40+ labelers with screening tests
 
 **Method 4: Reward model scoring**
+
 - Train or use existing reward model to score generations
 - Highest → chosen, lowest → rejected
 
@@ -480,12 +551,12 @@ YAML-driven, supports FSDP/DeepSpeed, 30+ model architectures. Use when Unsloth'
 
 ### When to use which
 
-| | Unsloth | Axolotl |
-|---|---|---|
-| Single GPU speed | Best (2x faster) | Standard |
-| Multi-GPU | Not supported | First-class (FSDP/DeepSpeed) |
-| Config style | Python code | YAML |
-| Experiment iteration | Rewrite code | Change YAML |
+|                      | Unsloth          | Axolotl                      |
+| -------------------- | ---------------- | ---------------------------- |
+| Single GPU speed     | Best (2x faster) | Standard                     |
+| Multi-GPU            | Not supported    | First-class (FSDP/DeepSpeed) |
+| Config style         | Python code      | YAML                         |
+| Experiment iteration | Rewrite code     | Change YAML                  |
 
 ### YAML Config Example (QLoRA)
 
@@ -510,7 +581,7 @@ datasets:
   - path: my_teaching_data.jsonl
     type: chat_template
     field_messages: messages
-    roles_to_train: ["assistant"]     # Only compute loss on assistant turns
+    roles_to_train: ["assistant"] # Only compute loss on assistant turns
 
 val_set_size: 0.1
 sequence_len: 2048
@@ -543,6 +614,7 @@ accelerate launch -m axolotl.cli.train config.yml
 ### DPO in Axolotl
 
 Just add to your YAML:
+
 ```yaml
 rl: dpo
 ```
@@ -605,6 +677,7 @@ curl https://api.openai.com/v1/fine_tuning/jobs \
 ## 3.1 How LoRA Works
 
 Instead of updating full weight matrix W (d_in × d_out), LoRA freezes W and adds two small matrices:
+
 - A: (d_in × r)
 - B: (r × d_out)
 
@@ -614,12 +687,12 @@ Only A and B are trained. For a 7B model with r=16, this is ~0.1-0.5% of total p
 
 ## 3.2 Rank (r)
 
-| Rank | Use Case | When |
-|---|---|---|
-| 4-8 | Simple tasks (classification, sentiment) | Minimal behavioral change |
-| 16-32 | Standard instruction tuning, style transfer | **Start here** |
-| 64-128 | Complex behavioral changes, multi-task | Demanding use cases |
-| 256+ | Approaching full fine-tune quality | Maximum expressiveness |
+| Rank   | Use Case                                    | When                      |
+| ------ | ------------------------------------------- | ------------------------- |
+| 4-8    | Simple tasks (classification, sentiment)    | Minimal behavioral change |
+| 16-32  | Standard instruction tuning, style transfer | **Start here**            |
+| 64-128 | Complex behavioral changes, multi-task      | Demanding use cases       |
+| 256+   | Approaching full fine-tune quality          | Maximum expressiveness    |
 
 **Key insight:** Once rank meets the task's intrinsic dimensionality, higher ranks give marginal gains. Start at 16, go higher if underfitting.
 
@@ -627,23 +700,25 @@ Only A and B are trained. For a 7B model with r=16, this is ~0.1-0.5% of total p
 
 Effective scaling = `alpha / r`. Controls how much the adapter's update affects the output.
 
-| Ratio | Effect |
-|---|---|
-| alpha = r (1.0) | Balanced baseline |
-| alpha = 2r (2.0) | Most common default — doubles adaptation strength |
-| alpha = r/2 (0.5) | Conservative, preserves pretrained behavior |
+| Ratio             | Effect                                            |
+| ----------------- | ------------------------------------------------- |
+| alpha = r (1.0)   | Balanced baseline                                 |
+| alpha = 2r (2.0)  | Most common default — doubles adaptation strength |
+| alpha = r/2 (0.5) | Conservative, preserves pretrained behavior       |
 
 **Common practice:** Set alpha = 2 × rank. Many people fix alpha at 16 or 32 and vary rank.
 
 ## 3.4 Target Modules — Which Layers
 
 **Attention:**
+
 - `q_proj` — How the model "asks questions" about input
 - `k_proj` — How tokens present themselves for matching
 - `v_proj` — What info gets passed when attended to
 - `o_proj` — Output projection
 
 **MLP/FFN:**
+
 - `gate_proj` — Gate in SwiGLU
 - `up_proj` — Up-projection
 - `down_proj` — Down-projection
@@ -675,12 +750,12 @@ Standard LoRA scaling: `alpha/r`. rsLoRA scaling: `alpha/sqrt(r)`.
 
 ## 4.1 Learning Rate
 
-| Method | Range | Starting Point |
-|---|---|---|
-| Full fine-tuning | 1e-5 to 5e-5 | 2e-5 |
-| LoRA/QLoRA SFT | 1e-4 to 3e-4 | **2e-4** |
-| DPO | 1e-6 to 5e-5 | **5e-6** (40x lower than SFT!) |
-| ORPO | 5e-6 to 8e-6 | **8e-6** |
+| Method           | Range        | Starting Point                 |
+| ---------------- | ------------ | ------------------------------ |
+| Full fine-tuning | 1e-5 to 5e-5 | 2e-5                           |
+| LoRA/QLoRA SFT   | 1e-4 to 3e-4 | **2e-4**                       |
+| DPO              | 1e-6 to 5e-5 | **5e-6** (40x lower than SFT!) |
+| ORPO             | 5e-6 to 8e-6 | **8e-6**                       |
 
 **Why LoRA uses higher LR:** Only small adapter matrices are trained → need larger updates to have impact.
 
@@ -688,16 +763,16 @@ Standard LoRA scaling: `alpha/r`. rsLoRA scaling: `alpha/sqrt(r)`.
 
 ## 4.2 Other Key Parameters
 
-| Parameter | Typical Value | Notes |
-|---|---|---|
-| Epochs | 1-3 | Overfitting risk beyond 3 for small datasets |
-| Batch size (effective) | 16-64 | = per_device × grad_accum × num_GPUs |
-| Warmup ratio | 0.03-0.1 | Higher for larger LR or smaller datasets |
-| Weight decay | 0.01-0.05 | Regularization |
-| LR scheduler | cosine | Most popular, smooth decay |
-| Max seq length | 2048 (dev), up to model max (prod) | Memory scales linearly with FlashAttn |
-| Optimizer | adamw_8bit | Saves memory vs standard AdamW |
-| Beta (DPO/ORPO) | 0.1-0.5 | Higher = more conservative |
+| Parameter              | Typical Value                      | Notes                                        |
+| ---------------------- | ---------------------------------- | -------------------------------------------- |
+| Epochs                 | 1-3                                | Overfitting risk beyond 3 for small datasets |
+| Batch size (effective) | 16-64                              | = per_device × grad_accum × num_GPUs         |
+| Warmup ratio           | 0.03-0.1                           | Higher for larger LR or smaller datasets     |
+| Weight decay           | 0.01-0.05                          | Regularization                               |
+| LR scheduler           | cosine                             | Most popular, smooth decay                   |
+| Max seq length         | 2048 (dev), up to model max (prod) | Memory scales linearly with FlashAttn        |
+| Optimizer              | adamw_8bit                         | Saves memory vs standard AdamW               |
+| Beta (DPO/ORPO)        | 0.1-0.5                            | Higher = more conservative                   |
 
 ## 4.3 Quantization for Training
 
@@ -720,10 +795,10 @@ bnb_config = BitsAndBytesConfig(
 ### VRAM Requirements (LoRA r=16)
 
 | Model | 4-bit QLoRA | 8-bit LoRA | Full Fine-Tune (16-bit) |
-|---|---|---|---|
-| 7-8B | ~6-10 GB | ~12-16 GB | ~60+ GB |
-| 13B | ~10-16 GB | ~20-28 GB | ~100+ GB |
-| 70B | ~40-48 GB | ~80+ GB | ~500+ GB |
+| ----- | ----------- | ---------- | ----------------------- |
+| 7-8B  | ~6-10 GB    | ~12-16 GB  | ~60+ GB                 |
+| 13B   | ~10-16 GB   | ~20-28 GB  | ~100+ GB                |
+| 70B   | ~40-48 GB   | ~80+ GB    | ~500+ GB                |
 
 ---
 
@@ -737,12 +812,12 @@ bnb_config = BitsAndBytesConfig(
 
 ## 5.2 Loss Curves — What Good vs Bad Looks Like
 
-| Pattern | Diagnosis | Action |
-|---|---|---|
-| Both losses decrease smoothly, small gap | Healthy | Continue |
-| Train loss ↓, eval loss ↑ | **Overfitting** | Reduce epochs, add dropout/weight decay, early stopping |
-| Both plateau high | **Underfitting** | Increase LR, increase rank, train longer, check data |
-| Wild oscillations/spikes | **Unstable** | Reduce LR, increase batch size, gradient clipping |
+| Pattern                                  | Diagnosis        | Action                                                  |
+| ---------------------------------------- | ---------------- | ------------------------------------------------------- |
+| Both losses decrease smoothly, small gap | Healthy          | Continue                                                |
+| Train loss ↓, eval loss ↑                | **Overfitting**  | Reduce epochs, add dropout/weight decay, early stopping |
+| Both plateau high                        | **Underfitting** | Increase LR, increase rank, train longer, check data    |
+| Wild oscillations/spikes                 | **Unstable**     | Reduce LR, increase batch size, gradient clipping       |
 
 ## 5.3 Detecting Catastrophic Forgetting
 
@@ -796,11 +871,13 @@ The entire post-training runs **6 rounds**, each containing:
 ## 6.3 Anthropic — Constitutional AI (RLAIF)
 
 **Phase 1 — Critique & Revision:**
+
 - Model generates response
 - Model critiques own response against constitutional principles
 - Model revises → this creates SFT data without human labels
 
 **Phase 2 — RLAIF:**
+
 - AI evaluates which of two outputs better follows principles
 - Train reward model on AI-generated preferences
 - Run RL (same as RLHF but AI feedback)
@@ -822,6 +899,7 @@ Pipeline: SFT (pedagogical conversations) → Reward Model (228 pedagogy experts
 Simulates multi-turn dialogues between tutor model and student simulator (Llama 3.1 8B prompted as student).
 
 **Reward function (3 metrics):**
+
 1. **Delta Solve Rate:** Did the student actually learn? (positive reward)
 2. **Leak Rate:** Did the tutor give away the answer? (penalty)
 3. **Helpful Rate:** Was guidance meaningful? (positive reward)
@@ -836,14 +914,14 @@ Uses **GRPO** (no value model needed). 16 problems × 8 rollouts = 128 dialogues
 
 ## 7.1 SFT → DPO (Two-Stage) vs ORPO (Single-Pass)
 
-| | SFT + DPO | ORPO |
-|---|---|---|
-| Training steps | 2 separate jobs | 1 job |
-| Reference model | Required (frozen SFT checkpoint) | Not needed |
-| Compute | More (train twice) | Less |
-| Quality ceiling | Higher (proven at Meta/OpenAI scale) | Competitive |
-| SFT quality dependence | High (~35% improvement from better SFT init) | Low (~15%) |
-| **Best for** | Max quality, large-scale | Rapid iteration, limited compute |
+|                        | SFT + DPO                                    | ORPO                             |
+| ---------------------- | -------------------------------------------- | -------------------------------- |
+| Training steps         | 2 separate jobs                              | 1 job                            |
+| Reference model        | Required (frozen SFT checkpoint)             | Not needed                       |
+| Compute                | More (train twice)                           | Less                             |
+| Quality ceiling        | Higher (proven at Meta/OpenAI scale)         | Competitive                      |
+| SFT quality dependence | High (~35% improvement from better SFT init) | Low (~15%)                       |
+| **Best for**           | Max quality, large-scale                     | Rapid iteration, limited compute |
 
 ## 7.2 Merging & Quantization
 
@@ -857,21 +935,21 @@ model.save_pretrained_gguf("gguf", tokenizer, quantization_method="q4_k_m")
 
 **Quantization for deployment:**
 
-| Format | Best For | Quality Retention | Speed |
-|---|---|---|---|
-| GGUF Q4_K_M | CPU/hybrid, Ollama, llama.cpp | ~92% | Good |
-| GPTQ | Full GPU, ExLlama | ~90% | 5x faster than GGUF on GPU |
-| AWQ | GPU, best quality | ~95% | Good |
-| FP8 | H100/A100 production | ~99% | Best |
+| Format      | Best For                      | Quality Retention | Speed                      |
+| ----------- | ----------------------------- | ----------------- | -------------------------- |
+| GGUF Q4_K_M | CPU/hybrid, Ollama, llama.cpp | ~92%              | Good                       |
+| GPTQ        | Full GPU, ExLlama             | ~90%              | 5x faster than GGUF on GPU |
+| AWQ         | GPU, best quality             | ~95%              | Good                       |
+| FP8         | H100/A100 production          | ~99%              | Best                       |
 
 ## 7.3 Serving
 
-| Engine | Best For | LoRA Support |
-|---|---|---|
-| **vLLM** | High-throughput production GPU serving | Yes (but ~50% throughput penalty vs merged) |
-| **TGI** | HuggingFace ecosystem production | Yes |
-| **Ollama** | Local dev/testing | Via GGUF |
-| **llama.cpp** | Edge/resource-constrained | Via GGUF |
+| Engine        | Best For                               | LoRA Support                                |
+| ------------- | -------------------------------------- | ------------------------------------------- |
+| **vLLM**      | High-throughput production GPU serving | Yes (but ~50% throughput penalty vs merged) |
+| **TGI**       | HuggingFace ecosystem production       | Yes                                         |
+| **Ollama**    | Local dev/testing                      | Via GGUF                                    |
+| **llama.cpp** | Edge/resource-constrained              | Via GGUF                                    |
 
 **For Feynman (real-time, low latency):** Use merged model (not runtime LoRA) on vLLM with chunked prefill for stable inter-token latency. FP8 on A100/H100 for speed.
 
@@ -890,18 +968,23 @@ Deploy → Collect interactions → Extract preference signals → Retrain → D
 # Part 8: Failure Modes
 
 ## Catastrophic Forgetting
+
 Model forgets pretrained knowledge. **Prevention:** LoRA (freezes base), low LR, few epochs, mix general data into training, KL penalty.
 
 ## Mode Collapse
+
 Increasingly repetitive/sycophantic outputs. **Prevention:** KL penalty, entropy bonuses, diverse training data, monitor generation diversity.
 
 ## Reward Hacking
+
 Model exploits reward model flaws (verbose = high score). **Prevention:** Bound RL reward, ensemble reward models, KL penalty, retrain RM on adversarial examples.
 
 ## Overfitting on Small Data
+
 Memorizes instead of generalizing (<1K examples). **Prevention:** LoRA, early stopping, 1-3 epochs, data augmentation, validation monitoring.
 
 ## Safety Degradation
+
 **GPT-3.5 Turbo's guardrails were jailbroken with 10 adversarial examples at $0.20.** Even benign fine-tuning can degrade safety.
 
 **Prevention:** Include safety data in fine-tuning mix, post-fine-tuning safety evaluation (always), EMA for optimal safety/performance balance.
@@ -911,6 +994,7 @@ Memorizes instead of generalizing (<1K examples). **Prevention:** LoRA, early st
 # Part 9: The Complete Recipe for Feynman
 
 **Starting config for Week 1 validation ($30):**
+
 ```
 Model: Qwen 2.5 7B Instruct
 Method: QLoRA via Together AI ($3.46/run) or Unsloth on RunPod
@@ -922,6 +1006,7 @@ Eval: LLM-as-judge with teaching rubrics (Socratic behavior, answer withholding,
 ```
 
 **Production pipeline (after validation):**
+
 ```
 1. SFT on 5K teaching dialogues (Qwen 2.5 7B, Unsloth, 1 epoch, lr=2e-4)
 2. ORPO with preference pairs (chosen=Socratic, rejected=answer-giving, 3 epochs, lr=8e-6)

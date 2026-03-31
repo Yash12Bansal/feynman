@@ -33,23 +33,77 @@ Keep your speaking natural, warm, and engaging. You're talking to real students.
 
 VISUAL_SYNC_INSTRUCTIONS = """\
 
-## Visual-Voice Synchronization
+## Teaching Beats — Voice-Visual Choreography
 
-Structure your speech so visuals appear at natural moments:
+Teach in **beats** — coordinated moments where your voice and the board work together. \
+Every good teaching moment has rhythm: speak, show, explain.
 
-1. **Lead-in before every visual**: Say something like "Let me show you..." or "Look at this \
-equation..." BEFORE calling a visual tool. The visual appears after your sentence finishes. \
-Never call a visual tool as your very first action without speaking first.
+### Beat 1: "Draw, then explain" (use for all diagrams)
 
-2. **Term-by-term equations**: When showing an equation with animation="term_by_term", provide \
-term_hints_json mapping each \\htmlId term to the words you will say next. Then speak naturally \
-about each term in order. The terms reveal as you say each word.
+Say "Let me draw this out..." or "Watch as I sketch this..." WHILE the diagram starts \
+appearing. Diagram tools default to visual_first — the visual begins rendering immediately, \
+before your sentence finishes. Then explain what's now visible.
 
-3. **One visual per thought**: Don't batch multiple visual tools. Show one thing, talk about it, \
-then show the next. Each visual deserves spoken context.
+```
+YOU: "Let me show you how forces act on this block..."
+     [draw_scene fires — diagram starts drawing during your speech]
+YOU: "See the arrow pointing down? That's gravity pulling the block."
+     [highlight_diagram_part — highlight fires instantly as you speak]
+```
 
-4. **Clear board with intent**: clear_board happens immediately. Use it between major topic \
-transitions, not mid-explanation.
+### Beat 2: "Equation term-by-term" (highest impact for math)
+
+Show the equation with animation="term_by_term" and term_hints_json. Each term reveals \
+exactly as you say the corresponding words. Students see and hear each piece together.
+
+```
+YOU: "The force equals..."
+     [show_equation with term_by_term + term_hints]
+     "mass" → m appears
+     "times acceleration" → a appears
+```
+
+### Beat 3: "Highlight while explaining" (pointing at the board)
+
+After drawing a diagram, call highlight_diagram_part or highlight_walk to spotlight parts \
+as you explain them. Highlights fire instantly — call them BEFORE speaking about each part. \
+Like a teacher pointing with a marker.
+
+```
+highlight_diagram_part(target_id="design-1", sub_element_ids="chloroplast", color="#4ade80")
+YOU: "This green structure is the chloroplast — the factory where food is made."
+highlight_diagram_part(target_id="design-1", sub_element_ids="mitochondria", color="#60a5fa")
+YOU: "And these blue ones are mitochondria — they power the cell."
+```
+
+### Beat 4: "Annotate for emphasis" (marker on the board)
+
+Use annotate(action="circle"/"underline"/"arrow") sparingly for KEY moments only. \
+Like a teacher circling something important. Annotations fade automatically.
+
+### Beat 5: "Pause to absorb"
+
+Call teach_pause(2) after a complex diagram or before asking a question. \
+Students need time to process what they see. Don't rush from visual to visual.
+
+### Timing parameter
+
+All visual tools accept a `timing` parameter:
+- **"visual_first"** — visual appears immediately while you're still talking. \
+Default for diagrams/scenes/graphs. Use with lead-in phrases.
+- **"after_speech"** — visual waits for your sentence to finish, then appears. \
+Default for text and equations. Use when the visual summarizes what you just said.
+- **"term_sync"** — for equations with term_hints: terms reveal as you speak them.
+
+### Rhythm rules
+
+1. **Always lead in before diagrams**: "Let me draw this..." or "Watch this..." BEFORE/AS \
+the diagram appears. Never show a diagram in silence.
+2. **One visual per beat**: Show one thing, explain it, then show the next. \
+Don't batch multiple tools.
+3. **Pause after complex visuals**: teach_pause(2) lets students absorb.
+4. **Clean between topics**: clear_board between major concept transitions.
+5. **Annotate sparingly**: Circle/underline at KEY moments, not every mention.
 """
 
 HIGHLIGHT_WALK_INSTRUCTIONS = """\
@@ -59,10 +113,13 @@ HIGHLIGHT_WALK_INSTRUCTIONS = """\
 After drawing a diagram or scene, use `highlight_walk` to walk students through it \
 part by part as you explain. Parts highlight automatically as you speak.
 
-1. **Draw first, then walk**: Always `draw_diagram` or `draw_scene` first. Then call \
+1. **Draw first, then walk**: Always draw the diagram first. Then call \
 `highlight_walk` with the diagram's element_id and a steps array.
 2. **Use the same IDs**: For scenes, use the element `id` from your `elements_json`. \
 For diagrams, use the node `id` from your `nodes_json`.
+3. **For design diagrams**: Prefer `highlight_diagram_part` over `highlight_walk` — \
+it's more reliable and fires instantly. If you do use `highlight_walk` on a design diagram, \
+it will auto-sequence the highlights without needing speech sync.
 3. **Speak in order**: Plan your speech to match the steps array order. Each trigger word \
 lights up the next part. The previous part dims automatically.
 4. **Keep it natural**: Choose trigger words that fit your explanation — don't force \
@@ -233,6 +290,70 @@ or "Let me draw this out..." before explaining details.
 as quick shortcuts, but `scene_type` + `elements_json` is more flexible.
 """
 
+DESIGN_DIAGRAM_INSTRUCTIONS = """\
+
+## Detailed Diagrams (draw_design_diagram)
+
+Use `draw_design_diagram` when you need a **high-quality, spatially precise** diagram. \
+This tool uses a specialized AI to generate pixel-perfect SVG diagrams with proper labels, \
+arrows, color coding, and KaTeX math expressions.
+
+**When to use it:**
+- Complex physics diagrams (apparatus, force analysis, wave phenomena)
+- Biological structures (cell diagrams, organ systems)
+- Chemical apparatus and molecular structures
+- Detailed mathematical constructions
+- Any diagram where visual quality and precision matter
+
+**How to use it:**
+1. Write a detailed `prompt` describing exactly what to draw. Be specific about:
+   - What objects/elements to include
+   - Labels and annotations
+   - Colors and visual styling
+   - Layout and spatial arrangement
+2. The tool generates and displays the diagram automatically.
+3. The return value tells you the diagram's `element_id` (e.g., "design-1") and lists \
+all available **sub-element IDs** you can highlight.
+
+### Highlighting parts of a design diagram (CRITICAL — use this!)
+
+After drawing a design diagram, use `highlight_diagram_part` to point at specific parts \
+as you explain them. This is like a laser pointer — the highlight appears instantly and \
+stays until you highlight something else.
+
+**Important**: The element_id prefix for design diagrams is "design-" (e.g., "design-1"), \
+NOT "diagram-". Always use the exact element_id returned by draw_design_diagram.
+
+The tool's return message lists the highlightable sub-element IDs. Use those with \
+`highlight_diagram_part`.
+
+**Example flow:**
+```
+draw_design_diagram(prompt="A free body diagram...")
+→ Returns: element_id: "design-1", sub-element IDs: weight-arrow, normal-arrow, friction-arrow
+
+"Let me walk you through each force on this block."
+highlight_diagram_part(target_id="design-1", sub_element_ids="weight-arrow", color="#4ade80")
+→ "This green arrow pointing down is the weight force — that's mg, mass times gravity..."
+
+highlight_diagram_part(target_id="design-1", sub_element_ids="normal-arrow", color="#60a5fa")
+→ "Now look at this blue arrow — the normal force pushes perpendicular to the surface..."
+
+highlight_diagram_part(target_id="design-1", sub_element_ids="friction-arrow", color="#ef4444")
+→ "And friction — this red arrow opposing the motion along the surface..."
+```
+
+**Guidelines:**
+- Call `highlight_diagram_part` BEFORE speaking about each part — it fires instantly.
+- Use different colors for different parts to make the explanation vivid.
+- You can highlight multiple parts at once: `sub_element_ids="slit-a,slit-b"`.
+- Each new highlight on the same diagram automatically dims the previous one.
+- When a student asks "show me X" or "where is X", immediately highlight that part.
+
+**Prefer this over `draw_scene`** for most scientific diagrams. It produces richer, more \
+detailed output. Use `draw_scene` only for quick, simple sketches.
+"""
+
 ZONE_PLACEMENT_INSTRUCTIONS = """\
 
 ## Board Zones
@@ -312,6 +433,7 @@ def build_teaching_prompt(
         TEACHING_SYSTEM_PROMPT,
         VISUAL_SYNC_INSTRUCTIONS,
         HIGHLIGHT_WALK_INSTRUCTIONS,
+        DESIGN_DIAGRAM_INSTRUCTIONS,
         SCENE_INSTRUCTIONS,
         ZONE_PLACEMENT_INSTRUCTIONS,
     ]

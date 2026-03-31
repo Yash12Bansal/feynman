@@ -20,6 +20,7 @@ _TYPE_PREFIX: dict[str, str] = {
     "show_text": "text",
     "show_equation": "eq",
     "draw_diagram": "diagram",
+    "draw_design_diagram": "design",
     "draw_scene": "scene",
     "step_equation": "step",
     "show_graph": "graph",

@@ -181,6 +181,8 @@ export interface HighlightInstruction extends BaseInstruction {
   target_id: string;
   style?: HighlightStyle;
   color?: string;
+  /** SVG sub-element IDs within the target card (for design diagram parts). */
+  sub_element_ids?: string[];
 }
 
 export interface AnnotateInstruction extends BaseInstruction {
@@ -236,6 +238,191 @@ export interface DrawSceneInstruction extends BaseInstruction {
   progressive?: boolean;
 }
 
+// ── Design Diagram types (from design_agent) ─────────────────
+
+/** Coordinate value — number or math expression string referencing parameter names. */
+export type DiagramCoord = number | string;
+
+export interface DesignDiagramGraphCurve {
+  expression: string;
+  color?: string;
+  strokeWidth?: number;
+}
+
+export interface DesignDiagramSliderParam {
+  name: string;
+  min: number;
+  max: number;
+  default: number;
+  step?: number;
+  label?: string;
+}
+
+export interface DesignDiagramSvgLine {
+  type: "svg_line";
+  id?: string;
+  x1?: DiagramCoord;
+  y1?: DiagramCoord;
+  x2?: DiagramCoord;
+  y2?: DiagramCoord;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeDasharray?: string;
+}
+
+export interface DesignDiagramSvgRect {
+  type: "svg_rect";
+  id?: string;
+  x?: DiagramCoord;
+  y?: DiagramCoord;
+  width?: DiagramCoord;
+  height?: DiagramCoord;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  rx?: DiagramCoord;
+}
+
+export interface DesignDiagramSvgCircle {
+  type: "svg_circle";
+  id?: string;
+  cx?: DiagramCoord;
+  cy?: DiagramCoord;
+  r?: DiagramCoord;
+  stroke?: string;
+  fill?: string;
+  strokeWidth?: number;
+  strokeDasharray?: string;
+}
+
+export interface DesignDiagramSvgEllipse {
+  type: "svg_ellipse";
+  id?: string;
+  cx?: DiagramCoord;
+  cy?: DiagramCoord;
+  rx?: DiagramCoord;
+  ry?: DiagramCoord;
+  stroke?: string;
+  fill?: string;
+  strokeWidth?: number;
+}
+
+export interface DesignDiagramSvgPath {
+  type: "svg_path";
+  id?: string;
+  d?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  fill?: string;
+  strokeDasharray?: string;
+}
+
+export interface DesignDiagramSvgText {
+  type: "svg_text";
+  id?: string;
+  x?: DiagramCoord;
+  y?: DiagramCoord;
+  text?: string;
+  fontSize?: number;
+  fill?: string;
+  textAnchor?: string;
+  fontWeight?: string;
+  fontFamily?: string;
+  angle?: number;
+  verticalAnchor?: string;
+}
+
+export interface DesignDiagramSvgArc {
+  type: "svg_arc";
+  id?: string;
+  cx?: DiagramCoord;
+  cy?: DiagramCoord;
+  r?: DiagramCoord;
+  startAngle?: DiagramCoord;
+  endAngle?: DiagramCoord;
+  stroke?: string;
+  strokeWidth?: number;
+  fill?: string;
+  strokeDasharray?: string;
+}
+
+export interface DesignDiagramSvgGroup {
+  type: "svg_group";
+  id?: string;
+  transform?: string;
+  elements?: DesignDiagramElement[];
+}
+
+export interface DesignDiagramSvgLatex {
+  type: "svg_latex";
+  id?: string;
+  expression?: string;
+  x?: DiagramCoord;
+  y?: DiagramCoord;
+  fontSize?: number;
+  color?: string;
+}
+
+export interface DesignDiagramSvgArrow {
+  type: "svg_arrow";
+  id?: string;
+  x1?: DiagramCoord;
+  y1?: DiagramCoord;
+  x2?: DiagramCoord;
+  y2?: DiagramCoord;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeDasharray?: string;
+}
+
+export interface DesignDiagramGraph {
+  type: "graph";
+  id?: string;
+  x?: DiagramCoord;
+  y?: DiagramCoord;
+  width?: DiagramCoord;
+  height?: DiagramCoord;
+  xDomain?: [number, number];
+  yDomain?: [number, number];
+  xLabel?: string;
+  yLabel?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  curves?: DesignDiagramGraphCurve[];
+  showGrid?: boolean;
+}
+
+export type DesignDiagramElement =
+  | DesignDiagramSvgLine
+  | DesignDiagramSvgRect
+  | DesignDiagramSvgCircle
+  | DesignDiagramSvgEllipse
+  | DesignDiagramSvgPath
+  | DesignDiagramSvgText
+  | DesignDiagramSvgArc
+  | DesignDiagramSvgGroup
+  | DesignDiagramSvgLatex
+  | DesignDiagramSvgArrow
+  | DesignDiagramGraph;
+
+/** Full diagram specification from the design agent. */
+export interface DesignDiagramSpec {
+  title?: string;
+  description?: string;
+  width?: number;
+  height?: number;
+  backgroundColor?: string;
+  elements?: DesignDiagramElement[];
+  parameters?: DesignDiagramSliderParam[];
+}
+
+export interface DrawDesignDiagramInstruction extends BaseInstruction {
+  type: "draw_design_diagram";
+  title?: string;
+  description?: string;
+  spec: DesignDiagramSpec;
+}
+
 // ── Discriminated union ───────────────────────────────────────
 
 export type VisualInstruction =
@@ -244,6 +431,7 @@ export type VisualInstruction =
   | ShowEquationInstruction
   | StepEquationInstruction
   | DrawDiagramInstruction
+  | DrawDesignDiagramInstruction
   | ShowGraphInstruction
   | HighlightInstruction
   | AnnotateInstruction

@@ -21,8 +21,10 @@ from feynman.agent.tools import (
     advance_concept,
     annotate,
     clear_board,
+    draw_design_diagram,
     draw_diagram,
     draw_scene,
+    highlight_diagram_part,
     highlight_walk,
     resolve_doubt,
     show_equation,
@@ -31,6 +33,7 @@ from feynman.agent.tools import (
     start_doubt_branch,
     step_equation,
     switch_board,
+    teach_pause,
 )
 from feynman.common.logging import setup_logging
 from feynman.common.types import Subject
@@ -44,13 +47,16 @@ logger = structlog.get_logger()
 ALL_TOOLS = [
     show_text,
     show_equation,
+    draw_design_diagram,
     draw_diagram,
     draw_scene,
     step_equation,
     show_graph,
     annotate,
+    highlight_diagram_part,
     highlight_walk,
     clear_board,
+    teach_pause,
     advance_concept,
     start_doubt_branch,
     resolve_doubt,

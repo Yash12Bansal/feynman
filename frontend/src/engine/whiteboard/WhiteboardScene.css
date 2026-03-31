@@ -44,6 +44,11 @@
   box-sizing: border-box;
 }
 
+/* Allow design diagrams to overflow zone/card bounds (edge labels). */
+.wb-zone:has(.design-diagram-content) {
+  overflow: visible;
+}
+
 /* ── Whiteboard card: flow element within zone ──────────── */
 
 .wb-card {
@@ -51,6 +56,10 @@
   width: 100%;
   box-sizing: border-box;
   animation: wb-card-enter 0.25s ease-out both;
+}
+
+.wb-card:has(.design-diagram-content) {
+  overflow: visible;
 }
 
 @keyframes wb-card-enter {

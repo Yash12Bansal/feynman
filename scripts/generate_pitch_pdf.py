@@ -4,7 +4,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.lib.colors import HexColor
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -147,9 +147,7 @@ def bullet(text, style):
 
 
 def bold_lead_bullet(bold_part, rest, style):
-    return Paragraph(
-        f"\u2022  <b>{bold_part}</b> {rest}", style
-    )
+    return Paragraph(f"\u2022  <b>{bold_part}</b> {rest}", style)
 
 
 def divider():
@@ -175,10 +173,10 @@ def build_page1(S):
     # The Hook
     elements.append(
         Paragraph(
-            'India spends <b>$30B/year on private tutoring</b> because classroom teaching isn\u2019t enough. '
-            'Not because teachers don\u2019t care \u2014 because one teacher physically cannot give world-class '
-            'explanations, real-time visual aids, and individual attention to 40 students simultaneously. '
-            '<b>Feynman can.</b>',
+            "India spends <b>$30B/year on private tutoring</b> because classroom teaching isn\u2019t enough. "
+            "Not because teachers don\u2019t care \u2014 because one teacher physically cannot give world-class "
+            "explanations, real-time visual aids, and individual attention to 40 students simultaneously. "
+            "<b>Feynman can.</b>",
             S["body"],
         )
     )
@@ -324,15 +322,23 @@ def build_page2(S):
         ],
         [
             Paragraph("Global AI in Education", S["table_cell"]),
-            Paragraph("$8B \u2192 $137B by 2035 (34\u201343% CAGR)", S["table_cell_bold"]),
+            Paragraph(
+                "$8B \u2192 $137B by 2035 (34\u201343% CAGR)", S["table_cell_bold"]
+            ),
         ],
         [
             Paragraph("Our SAM (India Premium Private)", S["table_cell"]),
-            Paragraph("$1.35B (15K schools \u00d7 25 classrooms \u00d7 $3K/yr)", S["table_cell_bold"]),
+            Paragraph(
+                "$1.35B (15K schools \u00d7 25 classrooms \u00d7 $3K/yr)",
+                S["table_cell_bold"],
+            ),
         ],
         [
             Paragraph("Year 1\u20132 Target (SOM)", S["table_cell"]),
-            Paragraph("100\u2013500 classrooms \u2192 $300K\u2013$1.5M ARR", S["table_cell_bold"]),
+            Paragraph(
+                "100\u2013500 classrooms \u2192 $300K\u2013$1.5M ARR",
+                S["table_cell_bold"],
+            ),
         ],
     ]
 
