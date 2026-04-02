@@ -71,7 +71,21 @@ export function useBoardStore(): BoardStore {
       list = [];
       boards.set(boardId, list);
     }
-    list.push(instr);
+
+    // In-place update: replace existing instruction with same element_id
+    // (used by modify_design_diagram to update diagrams without duplication).
+    if (instr.element_id) {
+      const existingIdx = list.findIndex(
+        (i) => i.element_id === instr.element_id,
+      );
+      if (existingIdx !== -1) {
+        list[existingIdx] = instr;
+      } else {
+        list.push(instr);
+      }
+    } else {
+      list.push(instr);
+    }
 
     // Only trigger re-render if instruction targets the active board
     if (boardId === activeBoardIdRef.current) {

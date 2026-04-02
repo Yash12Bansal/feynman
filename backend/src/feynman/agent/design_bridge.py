@@ -154,24 +154,24 @@ def _get_client() -> anthropic.AsyncAnthropic:
     return _async_client
 
 
-async def _generate_anthropic(
-    prompt: str,
+async def _call_anthropic(
+    user_message: str,
     model: str = "sonnet",
     max_tokens: int = 16000,
 ) -> dict[str, Any]:
-    """Generate diagram spec via Anthropic Claude API."""
+    """Send a message to Claude with the design agent system prompt and parse the response."""
     system_prompt = _load_system_prompt()
     model_id = _MODELS.get(model, model)
     client = _get_client()
 
-    logger.info("design_bridge.generating", provider="anthropic", prompt=prompt[:100], model=model_id)
+    logger.info("design_bridge.calling", provider="anthropic", prompt=user_message[:100], model=model_id)
 
     accumulated = ""
     async with client.messages.stream(
         model=model_id,
         max_tokens=max_tokens,
         system=system_prompt,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{"role": "user", "content": user_message}],
     ) as stream:
         async for text in stream.text_stream:
             accumulated += text
@@ -183,12 +183,12 @@ async def _generate_anthropic(
     return _parse_response(accumulated)
 
 
-async def _generate_ollama(
-    prompt: str,
+async def _call_ollama(
+    user_message: str,
     model: str,
     max_tokens: int = 16000,
 ) -> dict[str, Any]:
-    """Generate diagram spec via Ollama local model.
+    """Send a message to Ollama with the design agent system prompt and parse the response.
 
     Works with any model served by Ollama — Qwen2.5-VL, Llama, Codestral, etc.
     Uses Ollama's ``/api/chat`` endpoint (non-streaming for simplicity).
@@ -198,7 +198,7 @@ async def _generate_ollama(
     system_prompt = _load_system_prompt()
     base_url = settings.ollama_base_url.rstrip("/")
 
-    logger.info("design_bridge.generating", provider="ollama", prompt=prompt[:100], model=model)
+    logger.info("design_bridge.calling", provider="ollama", prompt=user_message[:100], model=model)
 
     async with httpx.AsyncClient(timeout=180.0) as client:
         response = await client.post(
@@ -207,7 +207,7 @@ async def _generate_ollama(
                 "model": model,
                 "messages": [
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt},
+                    {"role": "user", "content": user_message},
                 ],
                 "stream": False,
                 "options": {
@@ -225,6 +225,20 @@ async def _generate_ollama(
         logger.warning("design_bridge.truncated", chars=len(raw_text))
 
     return _parse_response(raw_text)
+
+
+async def _route_call(
+    user_message: str,
+    model: str = "sonnet",
+    max_tokens: int = 16000,
+) -> dict[str, Any]:
+    """Route to Anthropic or Ollama based on settings."""
+    from feynman.config import settings
+
+    if settings.design_agent_provider == "ollama":
+        ollama_model = settings.design_agent_model or model
+        return await _call_ollama(user_message, model=ollama_model, max_tokens=max_tokens)
+    return await _call_anthropic(user_message, model=model, max_tokens=max_tokens)
 
 
 async def generate_design_diagram(
@@ -245,19 +259,55 @@ async def generate_design_diagram(
     Returns:
         A validated DiagramSpec dict with elements, title, etc.
     """
-    from feynman.config import settings
-
-    if settings.design_agent_provider == "ollama":
-        ollama_model = settings.design_agent_model or model
-        spec = await _generate_ollama(prompt, model=ollama_model, max_tokens=max_tokens)
-    else:
-        spec = await _generate_anthropic(prompt, model=model, max_tokens=max_tokens)
+    spec = await _route_call(prompt, model=model, max_tokens=max_tokens)
 
     _save_spec(spec, prompt)
     logger.info(
         "design_bridge.complete",
         title=spec.get("title", ""),
         elements=len(spec.get("elements", [])),
+    )
+    return spec
+
+
+async def modify_design_diagram_spec(
+    existing_spec: dict[str, Any],
+    modification: str,
+    model: str = "sonnet",
+    max_tokens: int = 16000,
+) -> dict[str, Any]:
+    """Modify an existing DiagramSpec by sending it + modification to Claude.
+
+    Much faster than generating from scratch (~1-3s vs 5-15s) because Claude
+    has the full spec as context and only needs to make targeted changes.
+
+    Args:
+        existing_spec: The current DiagramSpec dict to modify.
+        modification: Natural language description of what to change.
+        model: Model key for the provider.
+        max_tokens: Maximum response tokens.
+
+    Returns:
+        A complete, validated modified DiagramSpec dict.
+    """
+    spec_json = json.dumps(existing_spec, indent=2)
+    user_message = (
+        f"Here is an existing diagram specification:\n\n"
+        f"```json\n{spec_json}\n```\n\n"
+        f"Modify this diagram: {modification}\n\n"
+        f"Return the complete updated diagram specification as a single JSON object. "
+        f"Keep all unchanged elements exactly as they are. "
+        f"Only modify, add, or remove elements as described above."
+    )
+
+    spec = await _route_call(user_message, model=model, max_tokens=max_tokens)
+
+    _save_spec(spec, f"MODIFY: {modification}")
+    logger.info(
+        "design_bridge.modify_complete",
+        title=spec.get("title", ""),
+        elements=len(spec.get("elements", [])),
+        modification=modification[:80],
     )
     return spec
 

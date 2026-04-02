@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 from uuid import UUID
 
+from feynman.agent.anticipation import AnticipationEngine
 from feynman.agent.board import BoardManager
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
+from feynman.agent.session_audit import SessionAudit
 from feynman.agent.state_machine import TeachingStateMachine
 
 
@@ -24,6 +27,12 @@ class TeachingContext:
     current_concept_index: int = 0
     completed_indices: list[int] = field(default_factory=list)
     board_manager: BoardManager = field(default_factory=BoardManager)
+    audit: SessionAudit = field(default_factory=SessionAudit)
+    anticipation: AnticipationEngine = field(init=False)
+    concept_graph: Any | None = None  # ConceptGraph from data_pre_compute (optional)
+
+    def __post_init__(self) -> None:
+        self.anticipation = AnticipationEngine(audit=self.audit)
 
     @property
     def current_concept(self) -> ConceptNode | None:

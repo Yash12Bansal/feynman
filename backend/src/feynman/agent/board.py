@@ -95,6 +95,29 @@ class BoardManager:
         """Active board's element summary."""
         return self.active_board.state.summary()
 
+    def store_design_spec(self, element_id: str, spec: dict) -> None:
+        """Store a DiagramSpec on the active board."""
+        self.active_board.state.store_design_spec(element_id, spec)
+
+    def get_design_spec(self, element_id: str) -> dict | None:
+        """Retrieve a stored DiagramSpec, searching all boards.
+
+        The LLM may reference a diagram on a non-active board (e.g. after
+        switching boards), so we search all boards, active first.
+        """
+        # Check active board first (most common case).
+        spec = self.active_board.state.get_design_spec(element_id)
+        if spec is not None:
+            return spec
+        # Search other boards.
+        for board in self._boards.values():
+            if board.id == self._active_id:
+                continue
+            spec = board.state.get_design_spec(element_id)
+            if spec is not None:
+                return spec
+        return None
+
     def update_bounds(self, board_id: str, report: BoundsReportPayload) -> None:
         """Route a bounds report to the correct board's scene graph."""
         board = self._boards.get(board_id)

@@ -5,6 +5,7 @@ cd backend && uv run python -m feynman.livekit.worker dev
 
 from __future__ import annotations
 
+import asyncio
 import json
 from uuid import uuid4
 
@@ -12,7 +13,8 @@ import structlog
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
-from feynman.agent.lesson_plan import generate_lesson_plan
+from feynman.agent.anticipation import load_concept_graph
+from feynman.agent.lesson_plan import generate_lesson_plan, lesson_plan_from_graph
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
 from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.agent.state_machine import TeachingStateMachine
@@ -26,6 +28,7 @@ from feynman.agent.tools import (
     draw_scene,
     highlight_diagram_part,
     highlight_walk,
+    modify_design_diagram,
     resolve_doubt,
     show_equation,
     show_graph,
@@ -48,6 +51,7 @@ ALL_TOOLS = [
     show_text,
     show_equation,
     draw_design_diagram,
+    modify_design_diagram,
     draw_diagram,
     draw_scene,
     step_equation,
@@ -88,11 +92,30 @@ class FeynmanAgent(Agent):
         # Generate lesson plan if a topic was provided
         if self._topic:
             try:
-                plan = await generate_lesson_plan(
-                    topic=self._topic,
-                    subject=self._subject,
-                    grade_level=self._grade_level,
-                )
+                # Try to load pre-computed ConceptGraph for richer curriculum data.
+                graph = await load_concept_graph(self._topic)
+
+                if graph:
+                    # Derive lesson plan from graph (richer than runtime generation).
+                    plan = lesson_plan_from_graph(
+                        graph,
+                        grade_level=self._grade_level,
+                        subject=self._subject,
+                    )
+                    self._teaching_ctx.concept_graph = graph
+                    logger.info(
+                        "agent.using_concept_graph",
+                        topic=self._topic,
+                        graph_nodes=len(graph.nodes),
+                    )
+                else:
+                    # Fallback: runtime generation (current behavior).
+                    plan = await generate_lesson_plan(
+                        topic=self._topic,
+                        subject=self._subject,
+                        grade_level=self._grade_level,
+                    )
+
                 self._teaching_ctx.lesson_plan = plan
                 # Label the initial board with the first concept title.
                 first_concept = plan.concept_at(0)
@@ -102,7 +125,19 @@ class FeynmanAgent(Agent):
                     "agent.lesson_plan_ready",
                     topic=self._topic,
                     num_concepts=plan.total_concepts,
+                    source="graph" if graph else "runtime",
                 )
+
+                # Fire anticipation pre-generation for first 3 concepts.
+                self._warm_task = asyncio.create_task(
+                    self._teaching_ctx.anticipation.warm(
+                        plan,
+                        start=0,
+                        count=3,
+                        graph=self._teaching_ctx.concept_graph,
+                    )
+                )
+
             except Exception:
                 logger.exception("agent.lesson_plan_failed", topic=self._topic)
                 # Continue without a plan — free-form teaching mode

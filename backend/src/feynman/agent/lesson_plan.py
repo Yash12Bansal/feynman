@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import re
+from typing import Any
+
 import anthropic
 import structlog
 from pydantic import BaseModel
@@ -108,3 +111,110 @@ async def generate_lesson_plan(
     # Fallback — should never happen with tool_choice=tool
     msg = "LLM did not return a lesson plan tool call"
     raise RuntimeError(msg)
+
+
+# ── ConceptGraph → LessonPlan conversion ─────────────────
+
+
+_VISUAL_KEYWORDS = re.compile(
+    r"\b(diagram|figure|draw|illustrat|sketch|apparatus|setup|circuit|"
+    r"ray|cross[- ]section|arrangement|schematic)\b",
+    re.IGNORECASE,
+)
+
+
+def _extract_key_points_from_node(node: Any) -> list[str]:
+    """Extract 3-5 key points from a ConceptGraph node's summary."""
+    summary = node.summary or ""
+    # Split on sentence boundaries and pick first 5 substantial sentences.
+    sentences = [s.strip() for s in re.split(r"[.!?]+", summary) if len(s.strip()) > 20]
+    return sentences[:5] if sentences else [summary[:200]]
+
+
+def _extract_visual_suggestions_from_node(node: Any, graph: Any) -> list[str]:
+    """Extract visual suggestions from a ConceptGraph node.
+
+    Scans the node's summary for visual/spatial descriptions and generates
+    specific suggestions based on content. More specific than runtime LLM
+    generation because we have the actual textbook content.
+    """
+    suggestions: list[str] = []
+    summary = node.summary or ""
+    topic = node.topic_name or ""
+
+    # Check if summary describes spatial/visual content.
+    if _VISUAL_KEYWORDS.search(summary):
+        suggestions.append(f"Draw detailed diagram for {topic}")
+
+    # Check for equations/formulas in the content.
+    if re.search(r"[=∝∞∫∑]|\\frac|\\sqrt|formula|equation", summary):
+        suggestions.append(f"Show key equation for {topic}")
+
+    # Check for step-by-step processes.
+    if re.search(r"\bstep\b|\bfirst\b.*\bthen\b|\bprocess\b|\bderivation\b", summary, re.IGNORECASE):
+        suggestions.append(f"Step-by-step derivation for {topic}")
+
+    # Check for comparisons.
+    if re.search(r"\bvs\b|\bcompare|\bcontrast|\bdifference\b|\bsimilar\b", summary, re.IGNORECASE):
+        suggestions.append(f"Comparison diagram for {topic}")
+
+    # If nothing visual detected, add a generic suggestion.
+    if not suggestions:
+        suggestions.append(f"Visual aid for {topic}")
+
+    return suggestions
+
+
+def _estimate_time_from_node(node: Any) -> float:
+    """Estimate teaching time in minutes from summary length and depth."""
+    summary_len = len(node.summary or "")
+    # Rough heuristic: ~1 min per 200 chars of content, clamped 3-10 min.
+    estimated = max(3.0, min(10.0, summary_len / 200))
+    # Deeper nodes tend to be shorter to teach.
+    if node.level > 0:
+        estimated *= 0.7
+    return round(estimated, 1)
+
+
+def lesson_plan_from_graph(
+    graph: Any,
+    grade_level: str = "",
+    subject: Subject | None = None,
+) -> LessonPlan:
+    """Derive a LessonPlan from a pre-computed ConceptGraph.
+
+    Maps graph teaching order → LessonPlan concept sequence.
+    Uses node summaries for richer visual_suggestions than runtime LLM generation.
+
+    Only includes top-level (level 0) and first-level (level 1) nodes.
+    Deeper sub-topics are folded into their parent's key_points.
+    """
+    teaching_order = graph.get_teaching_order()
+    concepts: list[ConceptNode] = []
+
+    for node in teaching_order:
+        if node.level > 1:
+            continue  # fold deeper nodes into parent
+
+        concepts.append(ConceptNode(
+            title=node.topic_name,
+            description=node.summary[:200] if node.summary else node.topic_name,
+            key_points=_extract_key_points_from_node(node),
+            visual_suggestions=_extract_visual_suggestions_from_node(node, graph),
+            estimated_minutes=_estimate_time_from_node(node),
+        ))
+
+    plan = LessonPlan(
+        topic=graph.chapter_title,
+        subject=subject,
+        grade_level=grade_level,
+        objective=f"Teach {graph.chapter_title}",
+        concepts=concepts,
+    )
+    logger.info(
+        "lesson_plan.from_graph",
+        chapter=graph.chapter_title,
+        num_concepts=len(concepts),
+        graph_nodes=len(graph.nodes),
+    )
+    return plan

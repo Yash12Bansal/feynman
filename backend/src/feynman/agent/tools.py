@@ -558,8 +558,33 @@ Leave empty for default placement.
     """
     from feynman.agent.design_bridge import generate_design_diagram
 
+    tc: TeachingContext = ctx.userdata
+
     try:
-        spec = await generate_design_diagram(prompt, model="sonnet")
+        # Check anticipation cache first.
+        cached = tc.anticipation.match(prompt, tc.current_concept_index)
+        if cached:
+            spec = cached
+            logger.info(
+                "draw_design_diagram.cache_hit",
+                concept=tc.current_concept_index,
+                prompt=prompt[:60],
+            )
+            tc.audit.record(
+                "anticipation", "cache_hit",
+                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
+            )
+        else:
+            spec = await generate_design_diagram(prompt, model="sonnet")
+            logger.info(
+                "draw_design_diagram.cache_miss",
+                concept=tc.current_concept_index,
+                prompt=prompt[:60],
+            )
+            tc.audit.record(
+                "anticipation", "cache_miss",
+                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
+            )
     except Exception:
         logger.exception("draw_design_diagram.generation_failed", prompt=prompt[:100])
         return "Failed to generate diagram. Try simplifying the prompt or use draw_scene instead."
@@ -575,6 +600,10 @@ Leave empty for default placement.
     )
     await _publish_visual(ctx, instruction)
 
+    # Store the design spec for future modification via modify_design_diagram.
+    if instruction.element_id:
+        tc.board_manager.store_design_spec(instruction.element_id, spec)
+
     # Give frontend time to render the SVG diagram.
     element_count = len(spec.get("elements", []))
     render_time = max(1.0, element_count * 0.05)
@@ -589,6 +618,101 @@ Leave empty for default placement.
         result += (
             f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
             f"\nUse highlight_walk(target_id=\"{eid}\", ...) with these IDs as sub_element_id."
+        )
+    return result
+
+
+@function_tool()
+async def modify_design_diagram(
+    ctx: RunContext,
+    target_id: str,
+    modification: str,
+    zone: str = "",
+    timing: str = "visual_first",
+) -> str:
+    """Modify an existing design diagram on the board instead of redrawing from scratch.
+
+    This is much faster than draw_design_diagram (~1-3 seconds vs 5-15 seconds) because
+    the existing diagram spec is sent to the AI along with your modification request,
+    so it only needs to make targeted changes rather than inventing a new layout.
+
+    Use this when a design diagram is already on the board and you want to:
+    - Add new elements (e.g., "add a friction vector")
+    - Remove elements (e.g., "remove the third resistor")
+    - Change properties (e.g., "change the angle to 45 degrees")
+    - Update labels or colors (e.g., "make the mitochondria green")
+    - Adapt the diagram for a follow-up explanation
+
+    If the target diagram no longer exists (was cleared), use draw_design_diagram instead.
+
+    Args:
+        target_id: Element ID of the existing design diagram to modify (e.g., "design-1"). \
+Must be a design diagram currently on the board.
+        modification: Natural language description of what to change. Be specific. \
+Example: "Add a friction force vector pointing up the incline, labeled 'f', in red."
+        zone: Optional zone override if you want to move the diagram. Usually leave empty \
+to keep it in place.
+        timing: When the updated diagram appears. "visual_first" (default) or "after_speech".
+    """
+    from feynman.agent.design_bridge import modify_design_diagram_spec
+
+    tc: TeachingContext = ctx.userdata
+
+    # Retrieve the stored spec for this diagram.
+    existing_spec = tc.board_manager.get_design_spec(target_id)
+    if existing_spec is None:
+        return (
+            f"No design diagram found with element_id \"{target_id}\". "
+            f"It may have been cleared. Use draw_design_diagram to create a new one."
+        )
+
+    try:
+        modified_spec = await modify_design_diagram_spec(existing_spec, modification)
+    except Exception:
+        logger.exception("modify_design_diagram.failed", target_id=target_id, modification=modification[:100])
+        return (
+            f"Failed to modify diagram \"{target_id}\". "
+            f"Try using draw_design_diagram with a fresh prompt instead."
+        )
+
+    title = modified_spec.get("title", "")
+    description = modified_spec.get("description", modification[:200])
+    instruction = DrawDesignDiagramInstruction(
+        title=title,
+        description=description,
+        spec=modified_spec,
+        zone=_parse_zone(zone) if zone else None,
+        sync_mode=_parse_timing(timing),
+    )
+    # Use the SAME element_id so the frontend replaces in-place.
+    instruction.element_id = target_id
+
+    await _publish_visual(ctx, instruction)
+
+    # Update the stored spec with the modified version.
+    tc.board_manager.store_design_spec(target_id, modified_spec)
+
+    tc.audit.record(
+        "modify_diagram", "modified",
+        f"target={target_id}, concept={tc.current_concept_index}, "
+        f"modification='{modification[:60]}'",
+        target_id=target_id,
+        concept_index=tc.current_concept_index,
+    )
+
+    # Give frontend time to render.
+    element_count = len(modified_spec.get("elements", []))
+    render_time = max(1.0, element_count * 0.05)
+    await asyncio.sleep(render_time)
+
+    # Collect sub-element IDs.
+    sub_ids = [el.get("id") for el in modified_spec.get("elements", []) if el.get("id")]
+
+    result = f"Modified design diagram (element_id: \"{target_id}\"): {modification[:80]}"
+    if sub_ids:
+        result += (
+            f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
+            f"\nUse highlight_walk(target_id=\"{target_id}\", ...) with these IDs."
         )
     return result
 
@@ -765,6 +889,24 @@ async def advance_concept(ctx: RunContext) -> str:
         branch = tc.state_machine.current
         new_board = tc.board_manager.create_and_switch(next_concept.title, branch.id)
         await _publish_switch_board(ctx, new_board.id, new_board.label, BoardIntent.NEW)
+
+        # Pre-generate design diagrams for upcoming concepts.
+        new_index = tc.current_concept_index
+        _warm_task = asyncio.create_task(  # noqa: RUF006
+            tc.anticipation.warm(
+                tc.lesson_plan,
+                start=new_index + 1,
+                count=2,
+                graph=tc.concept_graph,
+            )
+        )
+
+    # Log audit checkpoint at each concept advance.
+    logger.info(
+        "session_audit.checkpoint",
+        concept=tc.current_concept_index,
+        report=tc.audit.summary(),
+    )
 
     await _update_agent_prompt(ctx)
 

@@ -95,6 +95,7 @@ class BoardState:
     _counters: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
     _step: int = 0
     scene_graph: SceneGraph = field(default_factory=SceneGraph)
+    _design_specs: dict[str, dict] = field(default_factory=dict)
 
     def next_id(self, instruction_type: str) -> str:
         """Generate the next auto-ID for a given instruction type.
@@ -140,14 +141,24 @@ class BoardState:
             created_at=self._step,
         )
 
+    def store_design_spec(self, element_id: str, spec: dict) -> None:
+        """Store a DiagramSpec for a design diagram element."""
+        self._design_specs[element_id] = spec
+
+    def get_design_spec(self, element_id: str) -> dict | None:
+        """Retrieve a stored DiagramSpec by element ID."""
+        return self._design_specs.get(element_id)
+
     def remove(self, element_id: str) -> None:
         """Remove a specific element from the board."""
         self._elements.pop(element_id, None)
+        self._design_specs.pop(element_id, None)
         self.scene_graph.remove_element(element_id)
 
     def clear(self) -> None:
         """Wipe the entire board state."""
         self._elements.clear()
+        self._design_specs.clear()
         self.scene_graph.clear()
 
     def zones_in_use(self) -> set[BoardZone]:

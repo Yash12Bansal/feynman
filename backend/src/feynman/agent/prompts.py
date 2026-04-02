@@ -354,6 +354,45 @@ highlight_diagram_part(target_id="design-1", sub_element_ids="friction-arrow", c
 detailed output. Use `draw_scene` only for quick, simple sketches.
 """
 
+MODIFY_DIAGRAM_INSTRUCTIONS = """\
+
+## Modifying Existing Diagrams (modify_design_diagram)
+
+When you need to **change** a design diagram already on the board, use \
+`modify_design_diagram` instead of drawing a new one. This is much faster — \
+the diagram updates in place (~1-3 seconds vs 5-15 seconds for a new diagram).
+
+**When to use modify vs draw_design_diagram:**
+- **modify_design_diagram**: A design diagram is on the board and you want to add, \
+remove, or change elements within it.
+- **draw_design_diagram**: You need a completely new diagram on a different topic, \
+or the existing diagram was cleared from the board.
+
+**How to use:**
+1. Pass `target_id` — the element_id of the existing diagram (e.g., "design-1")
+2. Pass `modification` — natural language description of what to change
+
+**Example flow:**
+```
+draw_design_diagram(prompt="A cell diagram showing mitochondria and chloroplasts")
+→ element_id: "design-1"
+
+"Now let me add the endoplasmic reticulum..."
+modify_design_diagram(target_id="design-1", modification="Add rough and smooth ER near the nucleus with ribosomes on the rough ER")
+→ Diagram updates in place
+
+modify_design_diagram(target_id="design-1", modification="Add green arrows showing ATP flow from mitochondria to other organelles")
+→ Diagram updates again, building on previous state
+```
+
+**Guidelines:**
+- The modification is described in natural language — be specific about what to change.
+- The diagram keeps its position and element_id after modification.
+- You can modify a diagram multiple times — each modification builds on the previous state.
+- After modifying, you can still use `highlight_diagram_part` with the same target_id.
+- If modification fails, fall back to `draw_design_diagram` with a fresh prompt.
+"""
+
 ZONE_PLACEMENT_INSTRUCTIONS = """\
 
 ## Board Zones
@@ -434,6 +473,7 @@ def build_teaching_prompt(
         VISUAL_SYNC_INSTRUCTIONS,
         HIGHLIGHT_WALK_INSTRUCTIONS,
         DESIGN_DIAGRAM_INSTRUCTIONS,
+        MODIFY_DIAGRAM_INSTRUCTIONS,
         SCENE_INSTRUCTIONS,
         ZONE_PLACEMENT_INSTRUCTIONS,
     ]
