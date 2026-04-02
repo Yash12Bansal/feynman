@@ -36,9 +36,9 @@ EXAMPLE_PROMPTS = [
 def run_single(prompt: str, save_to: str = None):
     """Generate a diagram from a single prompt."""
     agent = DiagramAgent()
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Prompt: {prompt}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print("Generating diagram...\n")
 
     try:
@@ -96,9 +96,11 @@ def run_interactive():
             result = agent.generate_sync(prompt)
             spec = result.model_dump(by_alias=True, exclude_none=True)
             print(json.dumps(spec, indent=2))
-            print(f"\n[{spec.get('title', 'Untitled')} | "
-                  f"{len(spec.get('elements', []))} elements | "
-                  f"{len(spec.get('parameters', []))} parameters]\n")
+            print(
+                f"\n[{spec.get('title', 'Untitled')} | "
+                f"{len(spec.get('elements', []))} elements | "
+                f"{len(spec.get('parameters', []))} parameters]\n"
+            )
         except Exception as e:
             print(f"Error: {e}\n")
 
@@ -110,7 +112,9 @@ def run_api_test(prompt: str):
 
     url = "http://localhost:8000/api/generate"
     data = json.dumps({"prompt": prompt}).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        url, data=data, headers={"Content-Type": "application/json"}
+    )
 
     print(f"POST {url}")
     print(f"Prompt: {prompt}\n")
@@ -128,10 +132,18 @@ def run_api_test(prompt: str):
 def main():
     parser = argparse.ArgumentParser(description="Test the Diagram Design Agent")
     parser.add_argument("prompt", nargs="?", help="Diagram prompt")
-    parser.add_argument("--interactive", "-i", action="store_true", help="Interactive mode")
-    parser.add_argument("--examples", "-e", action="store_true", help="Show example prompts")
+    parser.add_argument(
+        "--interactive", "-i", action="store_true", help="Interactive mode"
+    )
+    parser.add_argument(
+        "--examples", "-e", action="store_true", help="Show example prompts"
+    )
     parser.add_argument("--save", "-s", help="Save output to file")
-    parser.add_argument("--api", action="store_true", help="Test via API endpoint instead of direct agent call")
+    parser.add_argument(
+        "--api",
+        action="store_true",
+        help="Test via API endpoint instead of direct agent call",
+    )
 
     args = parser.parse_args()
 
@@ -153,7 +165,9 @@ def main():
         return
 
     # Default: run with a sample prompt
-    run_single("Draw a single slit diffraction pattern with an intensity vs angle graph")
+    run_single(
+        "Draw a single slit diffraction pattern with an intensity vs angle graph"
+    )
 
 
 if __name__ == "__main__":

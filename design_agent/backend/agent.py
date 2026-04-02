@@ -6,7 +6,6 @@ import json
 import logging
 import os
 import re
-from typing import Optional
 
 import anthropic
 import httpx
@@ -133,7 +132,9 @@ class DiagramAgent:
             return await self._generate_ollama_async(prompt, model)
         return await self._generate_anthropic_async(prompt, model)
 
-    async def _generate_anthropic_async(self, prompt: str, model: str | None = None) -> dict:
+    async def _generate_anthropic_async(
+        self, prompt: str, model: str | None = None
+    ) -> dict:
         """Async call using Anthropic streaming."""
         accumulated = ""
         async with self.async_client.messages.stream(
@@ -146,10 +147,15 @@ class DiagramAgent:
                 accumulated += text
             final = await stream.get_final_message()
             if final.stop_reason == "max_tokens":
-                logger.warning("Response truncated (max_tokens). Accumulated %d chars.", len(accumulated))
+                logger.warning(
+                    "Response truncated (max_tokens). Accumulated %d chars.",
+                    len(accumulated),
+                )
         return self._parse(accumulated)
 
-    async def _generate_ollama_async(self, prompt: str, model: str | None = None) -> dict:
+    async def _generate_ollama_async(
+        self, prompt: str, model: str | None = None
+    ) -> dict:
         """Async call using Ollama API."""
         resolved = self._resolve_model(model)
         logger.info("Generating diagram via Ollama async (model=%s)", resolved)
@@ -230,15 +236,16 @@ class DiagramAgent:
         """Try to repair truncated JSON by closing open brackets/braces."""
         # Strip trailing incomplete key-value pairs
         import re
+
         s = json_str.rstrip()
         # Remove trailing comma or incomplete value
-        s = re.sub(r',\s*$', '', s)
+        s = re.sub(r",\s*$", "", s)
         # Remove incomplete key-value like `"key": ` at the end
-        s = re.sub(r',?\s*"[^"]*"\s*:\s*$', '', s)
+        s = re.sub(r',?\s*"[^"]*"\s*:\s*$', "", s)
         # Remove incomplete string value like `"key": "partial...` at the end
-        s = re.sub(r',?\s*"[^"]*"\s*:\s*"[^"]*$', '', s)
+        s = re.sub(r',?\s*"[^"]*"\s*:\s*"[^"]*$', "", s)
         # Remove incomplete object start like `{  "type":` at the end
-        s = re.sub(r',?\s*\{[^}]*$', '', s)
+        s = re.sub(r",?\s*\{[^}]*$", "", s)
 
         # Count open brackets and close them
         opens = 0
@@ -249,7 +256,7 @@ class DiagramAgent:
             if escape:
                 escape = False
                 continue
-            if ch == '\\':
+            if ch == "\\":
                 escape = True
                 continue
             if ch == '"':
@@ -257,22 +264,25 @@ class DiagramAgent:
                 continue
             if in_string:
                 continue
-            if ch == '{':
+            if ch == "{":
                 opens += 1
-            elif ch == '}':
+            elif ch == "}":
                 opens -= 1
-            elif ch == '[':
+            elif ch == "[":
                 open_sq += 1
-            elif ch == ']':
+            elif ch == "]":
                 open_sq -= 1
 
         # Close any open brackets
-        s += ']' * max(0, open_sq)
-        s += '}' * max(0, opens)
+        s += "]" * max(0, open_sq)
+        s += "}" * max(0, opens)
 
         try:
             data = json.loads(s)
-            logger.info("Repaired truncated JSON successfully (%d elements)", len(data.get("elements", [])))
+            logger.info(
+                "Repaired truncated JSON successfully (%d elements)",
+                len(data.get("elements", [])),
+            )
             return data
         except json.JSONDecodeError:
             return None
@@ -286,6 +296,7 @@ class DiagramAgent:
         We fix these by doubling backslashes before known LaTeX commands.
         """
         import re
+
         # Match single backslash followed by a LaTeX command (not already double-escaped)
         # Only inside string values (between quotes)
         latex_cmds = (
@@ -299,10 +310,10 @@ class DiagramAgent:
             r"begin|end|quad|qquad|,"
         )
         # Replace \cmd with \\cmd, but only if not already \\cmd
-        pattern = r'(?<!\\)\\(' + latex_cmds + r')'
+        pattern = r"(?<!\\)\\(" + latex_cmds + r")"
 
         def _double_escape(m: re.Match) -> str:
-            return '\\\\' + m.group(1)
+            return "\\\\" + m.group(1)
 
         return re.sub(pattern, _double_escape, json_str)
 
@@ -317,15 +328,24 @@ class DiagramAgent:
             # Try to repair truncated JSON by closing open brackets
             data = DiagramAgent._repair_json(json_str)
             if data is None:
-                logger.error("Failed to parse JSON (%d chars). First 500: %s", len(json_str), json_str[:500])
-                raise ValueError("Claude returned invalid/truncated JSON. Try a simpler prompt.")
+                logger.error(
+                    "Failed to parse JSON (%d chars). First 500: %s",
+                    len(json_str),
+                    json_str[:500],
+                )
+                raise ValueError(
+                    "Claude returned invalid/truncated JSON. Try a simpler prompt."
+                )
 
         # Validate schema (raises on error) but return the raw dict
         # to avoid Pydantic discriminated union serialization warnings
         try:
             DiagramSpec.model_validate(data)
         except Exception as exc:
-            logger.error("Schema validation failed for data:\n%s", json.dumps(data, indent=2)[:2000])
+            logger.error(
+                "Schema validation failed for data:\n%s",
+                json.dumps(data, indent=2)[:2000],
+            )
             raise ValueError(f"Diagram spec validation error: {exc}") from exc
 
         return data

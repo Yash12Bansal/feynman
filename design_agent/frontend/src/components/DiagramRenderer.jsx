@@ -1,11 +1,17 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { Group } from '@visx/group';
-import { LinePath } from '@visx/shape';
-import { Text } from '@visx/text';
-import { scaleLinear } from '@visx/scale';
-import { AxisBottom, AxisLeft } from '@visx/axis';
-import { GridRows, GridColumns } from '@visx/grid';
-import katex from 'katex';
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
+import { Group } from "@visx/group";
+import { LinePath } from "@visx/shape";
+import { Text } from "@visx/text";
+import { scaleLinear } from "@visx/scale";
+import { AxisBottom, AxisLeft } from "@visx/axis";
+import { GridRows, GridColumns } from "@visx/grid";
+import katex from "katex";
 
 // --- Safe math expression evaluator ---
 function evalMathExpr(expr, vars) {
@@ -15,7 +21,7 @@ function evalMathExpr(expr, vars) {
     // eslint-disable-next-line no-new-func
     const fn = new Function(
       ...keys,
-      `const {sin,cos,tan,sqrt,abs,PI,E,log,exp,pow,floor,ceil,min,max,atan2,asin,acos,sinh,cosh,tanh}=Math;return ${expr};`
+      `const {sin,cos,tan,sqrt,abs,PI,E,log,exp,pow,floor,ceil,min,max,atan2,asin,acos,sinh,cosh,tanh}=Math;return ${expr};`,
     );
     return fn(...vals);
   } catch {
@@ -25,8 +31,8 @@ function evalMathExpr(expr, vars) {
 
 // Resolve a value that might be an expression referencing params
 function resolveValue(val, paramValues) {
-  if (typeof val === 'number') return val;
-  if (typeof val === 'string') {
+  if (typeof val === "number") return val;
+  if (typeof val === "string") {
     const result = evalMathExpr(val, paramValues);
     return isNaN(result) ? 0 : result;
   }
@@ -38,14 +44,17 @@ function resolvePoint(pt, paramValues) {
   if (Array.isArray(pt)) {
     return [resolveValue(pt[0], paramValues), resolveValue(pt[1], paramValues)];
   }
-  return [resolveValue(pt.x ?? pt[0] ?? 0, paramValues), resolveValue(pt.y ?? pt[1] ?? 0, paramValues)];
+  return [
+    resolveValue(pt.x ?? pt[0] ?? 0, paramValues),
+    resolveValue(pt.y ?? pt[1] ?? 0, paramValues),
+  ];
 }
 
 // --- Arc path helper for svg_arc ---
 // Angles in degrees, 0=right, positive=clockwise (SVG convention, y-down)
 function arcPath(cx, cy, r, startDeg, endDeg) {
-  const startRad = startDeg * Math.PI / 180;
-  const endRad = endDeg * Math.PI / 180;
+  const startRad = (startDeg * Math.PI) / 180;
+  const endRad = (endDeg * Math.PI) / 180;
   const x1 = cx + r * Math.cos(startRad);
   const y1 = cy + r * Math.sin(startRad);
   const x2 = cx + r * Math.cos(endRad);
@@ -60,14 +69,17 @@ function LatexOverlay({ el, paramValues }) {
   const x = resolveValue(el.x || 0, paramValues);
   const y = resolveValue(el.y || 0, paramValues);
 
-  let tex = el.expression || el.tex || '';
+  let tex = el.expression || el.tex || "";
   Object.entries(paramValues).forEach(([k, v]) => {
-    tex = tex.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), v.toFixed(2));
+    tex = tex.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), v.toFixed(2));
   });
 
-  let html = '';
+  let html = "";
   try {
-    html = katex.renderToString(tex, { throwOnError: false, displayMode: false });
+    html = katex.renderToString(tex, {
+      throwOnError: false,
+      displayMode: false,
+    });
   } catch {
     html = tex;
   }
@@ -75,13 +87,13 @@ function LatexOverlay({ el, paramValues }) {
   return (
     <div
       style={{
-        position: 'absolute',
+        position: "absolute",
         left: x,
         top: y,
         fontSize: el.fontSize || 16,
-        color: el.color || '#000',
-        pointerEvents: 'none',
-        whiteSpace: 'nowrap',
+        color: el.color || "#000",
+        pointerEvents: "none",
+        whiteSpace: "nowrap",
       }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
@@ -106,13 +118,16 @@ function GraphElement({ el, paramValues }) {
 
   // Generate curve data
   const curves = useMemo(() => {
-    return (el.curves || []).map(curve => {
+    return (el.curves || []).map((curve) => {
       const points = [];
       const [xMin, xMax] = xDomain;
       const numSamples = 200;
       for (let i = 0; i <= numSamples; i++) {
         const xVal = xMin + (i / numSamples) * (xMax - xMin);
-        const yVal = evalMathExpr(curve.expression, { x: xVal, ...paramValues });
+        const yVal = evalMathExpr(curve.expression, {
+          x: xVal,
+          ...paramValues,
+        });
         if (isFinite(yVal)) points.push({ x: xVal, y: yVal });
       }
       return { ...curve, points };
@@ -121,7 +136,13 @@ function GraphElement({ el, paramValues }) {
 
   return (
     <Group left={x} top={y}>
-      <rect width={w} height={h} fill={el.backgroundColor || '#f9f9f9'} stroke={el.borderColor || '#ccc'} rx={2} />
+      <rect
+        width={w}
+        height={h}
+        fill={el.backgroundColor || "#f9f9f9"}
+        stroke={el.borderColor || "#ccc"}
+        rx={2}
+      />
       <Group left={margin.left} top={margin.top}>
         {el.showGrid && (
           <>
@@ -129,15 +150,20 @@ function GraphElement({ el, paramValues }) {
             <GridColumns scale={xScale} height={innerH} stroke="#e0e0e0" />
           </>
         )}
-        <AxisBottom scale={xScale} top={innerH} label={el.xLabel || ''} numTicks={5} />
-        <AxisLeft scale={yScale} label={el.yLabel || ''} numTicks={5} />
+        <AxisBottom
+          scale={xScale}
+          top={innerH}
+          label={el.xLabel || ""}
+          numTicks={5}
+        />
+        <AxisLeft scale={yScale} label={el.yLabel || ""} numTicks={5} />
         {curves.map((curve, ci) => (
           <LinePath
             key={ci}
             data={curve.points}
-            x={d => xScale(d.x)}
-            y={d => yScale(d.y)}
-            stroke={curve.color || 'steelblue'}
+            x={(d) => xScale(d.x)}
+            y={(d) => yScale(d.y)}
+            stroke={curve.color || "steelblue"}
             strokeWidth={curve.strokeWidth || 2}
           />
         ))}
@@ -150,7 +176,7 @@ function GraphElement({ el, paramValues }) {
 function renderElement(el, idx, paramValues) {
   try {
     switch (el.type) {
-      case 'svg_line': {
+      case "svg_line": {
         const x1 = resolveValue(el.x1 || 0, paramValues);
         const y1 = resolveValue(el.y1 || 0, paramValues);
         const x2 = resolveValue(el.x2 || 0, paramValues);
@@ -158,14 +184,17 @@ function renderElement(el, idx, paramValues) {
         return (
           <line
             key={idx}
-            x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke={el.stroke || '#000'}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke={el.stroke || "#000"}
             strokeWidth={el.strokeWidth || 2}
             strokeDasharray={el.strokeDasharray || undefined}
           />
         );
       }
-      case 'svg_rect': {
+      case "svg_rect": {
         const x = resolveValue(el.x || 0, paramValues);
         const y = resolveValue(el.y || 0, paramValues);
         const w = resolveValue(el.width || 100, paramValues);
@@ -174,30 +203,35 @@ function renderElement(el, idx, paramValues) {
         return (
           <rect
             key={idx}
-            x={x} y={y} width={w} height={h}
-            fill={el.fill || 'none'}
-            stroke={el.stroke || '#000'}
+            x={x}
+            y={y}
+            width={w}
+            height={h}
+            fill={el.fill || "none"}
+            stroke={el.stroke || "#000"}
             strokeWidth={el.strokeWidth || 2}
             rx={rx}
           />
         );
       }
-      case 'svg_circle': {
+      case "svg_circle": {
         const cx = resolveValue(el.cx || 0, paramValues);
         const cy = resolveValue(el.cy || 0, paramValues);
         const r = resolveValue(el.r || 10, paramValues);
         return (
           <circle
             key={idx}
-            cx={cx} cy={cy} r={r}
-            stroke={el.stroke || '#000'}
-            fill={el.fill || 'none'}
+            cx={cx}
+            cy={cy}
+            r={r}
+            stroke={el.stroke || "#000"}
+            fill={el.fill || "none"}
             strokeWidth={el.strokeWidth || 2}
             strokeDasharray={el.strokeDasharray || undefined}
           />
         );
       }
-      case 'svg_ellipse': {
+      case "svg_ellipse": {
         const cx = resolveValue(el.cx || 0, paramValues);
         const cy = resolveValue(el.cy || 0, paramValues);
         const rx = resolveValue(el.rx || 10, paramValues);
@@ -205,26 +239,29 @@ function renderElement(el, idx, paramValues) {
         return (
           <ellipse
             key={idx}
-            cx={cx} cy={cy} rx={rx} ry={ry}
-            stroke={el.stroke || '#000'}
-            fill={el.fill || 'none'}
+            cx={cx}
+            cy={cy}
+            rx={rx}
+            ry={ry}
+            stroke={el.stroke || "#000"}
+            fill={el.fill || "none"}
             strokeWidth={el.strokeWidth || 2}
           />
         );
       }
-      case 'svg_path': {
+      case "svg_path": {
         return (
           <path
             key={idx}
-            d={el.d || ''}
-            stroke={el.stroke || '#000'}
+            d={el.d || ""}
+            stroke={el.stroke || "#000"}
             strokeWidth={el.strokeWidth || 2}
-            fill={el.fill || 'none'}
+            fill={el.fill || "none"}
             strokeDasharray={el.strokeDasharray || undefined}
           />
         );
       }
-      case 'svg_text': {
+      case "svg_text": {
         const x = resolveValue(el.x || 0, paramValues);
         const y = resolveValue(el.y || 0, paramValues);
         return (
@@ -233,18 +270,18 @@ function renderElement(el, idx, paramValues) {
             x={x}
             y={y}
             fontSize={el.fontSize || 14}
-            fill={el.fill || '#000'}
-            textAnchor={el.textAnchor || 'middle'}
-            verticalAnchor={el.verticalAnchor || 'middle'}
-            fontWeight={el.fontWeight || 'normal'}
-            fontFamily={el.fontFamily || 'sans-serif'}
+            fill={el.fill || "#000"}
+            textAnchor={el.textAnchor || "middle"}
+            verticalAnchor={el.verticalAnchor || "middle"}
+            fontWeight={el.fontWeight || "normal"}
+            fontFamily={el.fontFamily || "sans-serif"}
             angle={el.angle || 0}
           >
-            {el.text || ''}
+            {el.text || ""}
           </Text>
         );
       }
-      case 'svg_arc': {
+      case "svg_arc": {
         const cx = resolveValue(el.cx || 0, paramValues);
         const cy = resolveValue(el.cy || 0, paramValues);
         const r = resolveValue(el.r || 50, paramValues);
@@ -255,31 +292,36 @@ function renderElement(el, idx, paramValues) {
           <path
             key={idx}
             d={d}
-            stroke={el.stroke || '#000'}
+            stroke={el.stroke || "#000"}
             strokeWidth={el.strokeWidth || 2}
-            fill={el.fill || 'none'}
+            fill={el.fill || "none"}
             strokeDasharray={el.strokeDasharray || undefined}
           />
         );
       }
-      case 'svg_group': {
+      case "svg_group": {
         return (
           <Group key={idx} transform={el.transform || undefined}>
-            {(el.elements || []).map((child, ci) => renderElement(child, ci, paramValues))}
+            {(el.elements || []).map((child, ci) =>
+              renderElement(child, ci, paramValues),
+            )}
           </Group>
         );
       }
-      case 'svg_latex': {
+      case "svg_latex": {
         // Rendered as HTML overlay, not inside SVG — skip here
         return null;
       }
-      case 'svg_arrow': {
+      case "svg_arrow": {
         const x1 = resolveValue(el.x1 || 0, paramValues);
         const y1 = resolveValue(el.y1 || 0, paramValues);
         const x2 = resolveValue(el.x2 || 0, paramValues);
         const y2 = resolveValue(el.y2 || 0, paramValues);
-        const color = el.stroke || '#000';
-        const markerId = `arrow-${idx}-${x1}-${y1}-${x2}-${y2}`.replace(/[^a-zA-Z0-9]/g, '_');
+        const color = el.stroke || "#000";
+        const markerId = `arrow-${idx}-${x1}-${y1}-${x2}-${y2}`.replace(
+          /[^a-zA-Z0-9]/g,
+          "_",
+        );
         return (
           <g key={idx}>
             <defs>
@@ -295,7 +337,10 @@ function renderElement(el, idx, paramValues) {
               </marker>
             </defs>
             <line
-              x1={x1} y1={y1} x2={x2} y2={y2}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
               stroke={color}
               strokeWidth={el.strokeWidth || 2}
               strokeDasharray={el.strokeDasharray || undefined}
@@ -304,7 +349,7 @@ function renderElement(el, idx, paramValues) {
           </g>
         );
       }
-      case 'graph': {
+      case "graph": {
         return <GraphElement key={idx} el={el} paramValues={paramValues} />;
       }
       default:
@@ -347,10 +392,13 @@ function DiagramRenderer({ spec }) {
   const description = spec.description;
 
   // Separate latex elements (rendered as HTML overlays) from SVG elements
-  const latexElements = elements.filter((el) => el.type === 'svg_latex');
+  const latexElements = elements.filter((el) => el.type === "svg_latex");
 
   return (
-    <div className="diagram-renderer" style={{ backgroundColor: spec.backgroundColor || '#1a1a2e' }}>
+    <div
+      className="diagram-renderer"
+      style={{ backgroundColor: spec.backgroundColor || "#1a1a2e" }}
+    >
       {title && <h2 className="diagram-title">{title}</h2>}
       {description && <p className="diagram-description">{description}</p>}
 
@@ -360,7 +408,8 @@ function DiagramRenderer({ spec }) {
           {spec.parameters.map((p) => (
             <div key={p.name} className="param-slider">
               <label>
-                {p.label || p.name}: <strong>{paramValues[p.name]?.toFixed(2)}</strong>
+                {p.label || p.name}:{" "}
+                <strong>{paramValues[p.name]?.toFixed(2)}</strong>
               </label>
               <input
                 type="range"
@@ -376,16 +425,16 @@ function DiagramRenderer({ spec }) {
       )}
 
       {/* SVG + LaTeX overlay container */}
-      <div style={{ position: 'relative', width, margin: '0 auto' }}>
+      <div style={{ position: "relative", width, margin: "0 auto" }}>
         <svg
           width={width}
           height={height}
           viewBox={`0 0 ${width} ${height}`}
           style={{
-            background: spec.backgroundColor || '#fff',
-            display: 'block',
-            fontFamily: 'sans-serif',
-            borderRadius: '8px',
+            background: spec.backgroundColor || "#fff",
+            display: "block",
+            fontFamily: "sans-serif",
+            borderRadius: "8px",
           }}
         >
           {elements.map((el, i) => renderElement(el, i, paramValues))}

@@ -114,7 +114,7 @@ def _extract_elements_from_partial(text: str) -> tuple[dict, list[dict]]:
         arr_start = text.find("[", idx)
         if arr_start == -1:
             return results
-        sub = text[arr_start + 1:]
+        sub = text[arr_start + 1 :]
         depth = 0
         start = -1
         for i, ch in enumerate(sub):
@@ -126,7 +126,7 @@ def _extract_elements_from_partial(text: str) -> tuple[dict, list[dict]]:
                 depth -= 1
                 if depth == 0 and start != -1:
                     try:
-                        results.append(json.loads(sub[start: i + 1]))
+                        results.append(json.loads(sub[start : i + 1]))
                     except json.JSONDecodeError:
                         pass
                     start = -1
@@ -160,7 +160,9 @@ async def _run_generation(job_id: str, prompt: str, model: str | None):
             pass
         job["final_spec"] = spec_dict
         job["status"] = "done"
-        logger.info("Job %s completed: %d elements", job_id, len(spec_dict.get("elements", [])))
+        logger.info(
+            "Job %s completed: %d elements", job_id, len(spec_dict.get("elements", []))
+        )
 
     except Exception as e:
         logger.exception("Job %s failed", job_id)
@@ -288,11 +290,13 @@ async def list_generated_specs() -> list[dict[str, str]]:
         try:
             with open(filepath) as f:
                 data = json.load(f)
-            results.append({
-                "filename": name,
-                "prompt": data.get("prompt", ""),
-                "title": data.get("spec", {}).get("title", ""),
-            })
+            results.append(
+                {
+                    "filename": name,
+                    "prompt": data.get("prompt", ""),
+                    "title": data.get("spec", {}).get("title", ""),
+                }
+            )
         except Exception:
             pass
     return results
@@ -300,4 +304,5 @@ async def list_generated_specs() -> list[dict[str, str]]:
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
