@@ -28,7 +28,9 @@ def _key_or_none(key: str) -> str | None:
 def create_stt() -> stt.STT:
     if settings.deepgram_api_key:
         logger.info("pipeline.stt", provider="deepgram", model="nova-3")
-        return deepgram.STT(model="nova-3", language="en", api_key=settings.deepgram_api_key)
+        return deepgram.STT(
+            model="nova-3", language="en", api_key=settings.deepgram_api_key
+        )
 
     logger.info("pipeline.stt", provider="openai", model="gpt-4o-mini-transcribe")
     kwargs: dict = {"model": "gpt-4o-mini-transcribe", "language": "en"}
@@ -47,8 +49,13 @@ def create_llm() -> anthropic.LLM:
 
 def create_tts() -> tts.TTS:
     if settings.cartesia_api_key:
-        logger.info("pipeline.tts", provider="cartesia", model="sonic-2")
-        return cartesia.TTS(model="sonic-2", language="en", api_key=settings.cartesia_api_key)
+        logger.info("pipeline.tts", provider="cartesia", model="sonic-3", voice="amit")
+        return cartesia.TTS(
+            model="sonic-3",
+            voice="91925fe5-42ee-4ebe-96c1-c84b12a85a32",
+            language="en",
+            api_key=settings.cartesia_api_key,
+        )
 
     logger.info("pipeline.tts", provider="openai", model="gpt-4o-mini-tts")
     kwargs: dict = {"model": "gpt-4o-mini-tts", "voice": "ash"}

@@ -1,0 +1,50 @@
+# Lecture Pipeline Configuration
+
+llm:
+  # Provider: "openai" or "anthropic"
+  #provider: "openai"
+  provider: "anthropic"
+
+  # Model name (provider-specific)
+  #model: "gpt-4o"
+  model: "claude-sonnet-4-20250514"
+
+  # API key (or set via env var: OPENAI_API_KEY / ANTHROPIC_API_KEY)
+  api_key: ""  # Set your key here or use env var ANTHROPIC_API_KEY / OPENAI_API_KEY
+
+  # API base URL (for OpenAI-compatible servers like Ollama)
+  # base_url: "http://localhost:11434/v1"
+
+  # Temperature for generation
+  temperature: 0.3
+
+  # Max tokens for LLM responses
+  max_tokens: 16384
+
+pdf:
+  # OCR fallback threshold: if extracted text per page is below this char count, use OCR
+  ocr_threshold: 50
+
+  # DPI for image extraction
+  image_dpi: 200
+
+  # Language for OCR
+  ocr_language: "eng"
+
+graph:
+  # Max depth of concept hierarchy
+  max_depth: 4
+
+  # Min content length (chars) to consider a node meaningful
+  min_content_length: 100
+
+lecture:
+  # Target audience level: "beginner" or "advanced"
+  audience_level: "advanced"
+
+  # Include images in lecture output
+  include_images: true
+
+output:
+  # Output directory for generated files
+  output_dir: "./output"

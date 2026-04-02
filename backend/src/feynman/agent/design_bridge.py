@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import anthropic
+import httpx
 import structlog
 
 logger = structlog.get_logger()
@@ -153,26 +154,17 @@ def _get_client() -> anthropic.AsyncAnthropic:
     return _async_client
 
 
-async def generate_design_diagram(
+async def _generate_anthropic(
     prompt: str,
     model: str = "sonnet",
     max_tokens: int = 16000,
 ) -> dict[str, Any]:
-    """Generate a DiagramSpec using the design agent prompt.
-
-    Args:
-        prompt: Natural language description of the diagram to draw.
-        model: Claude model key ("opus", "sonnet", "haiku").
-        max_tokens: Maximum response tokens.
-
-    Returns:
-        A validated DiagramSpec dict with elements, title, etc.
-    """
+    """Generate diagram spec via Anthropic Claude API."""
     system_prompt = _load_system_prompt()
     model_id = _MODELS.get(model, model)
     client = _get_client()
 
-    logger.info("design_bridge.generating", prompt=prompt[:100], model=model_id)
+    logger.info("design_bridge.generating", provider="anthropic", prompt=prompt[:100], model=model_id)
 
     accumulated = ""
     async with client.messages.stream(
@@ -186,12 +178,81 @@ async def generate_design_diagram(
 
         final = await stream.get_final_message()
         if final.stop_reason == "max_tokens":
-            logger.warning(
-                "design_bridge.truncated",
-                chars=len(accumulated),
-            )
+            logger.warning("design_bridge.truncated", chars=len(accumulated))
 
-    spec = _parse_response(accumulated)
+    return _parse_response(accumulated)
+
+
+async def _generate_ollama(
+    prompt: str,
+    model: str,
+    max_tokens: int = 16000,
+) -> dict[str, Any]:
+    """Generate diagram spec via Ollama local model.
+
+    Works with any model served by Ollama — Qwen2.5-VL, Llama, Codestral, etc.
+    Uses Ollama's ``/api/chat`` endpoint (non-streaming for simplicity).
+    """
+    from feynman.config import settings
+
+    system_prompt = _load_system_prompt()
+    base_url = settings.ollama_base_url.rstrip("/")
+
+    logger.info("design_bridge.generating", provider="ollama", prompt=prompt[:100], model=model)
+
+    async with httpx.AsyncClient(timeout=180.0) as client:
+        response = await client.post(
+            f"{base_url}/api/chat",
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+                "stream": False,
+                "options": {
+                    "num_predict": max_tokens,
+                    "temperature": 0.3,
+                },
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+
+    raw_text = data["message"]["content"]
+
+    if data.get("done_reason") == "length":
+        logger.warning("design_bridge.truncated", chars=len(raw_text))
+
+    return _parse_response(raw_text)
+
+
+async def generate_design_diagram(
+    prompt: str,
+    model: str = "sonnet",
+    max_tokens: int = 16000,
+) -> dict[str, Any]:
+    """Generate a DiagramSpec using the design agent prompt.
+
+    Routes to Anthropic or Ollama based on ``settings.design_agent_provider``.
+
+    Args:
+        prompt: Natural language description of the diagram to draw.
+        model: Model key — for Anthropic: "opus"/"sonnet"/"haiku";
+               for Ollama: overridden by ``settings.design_agent_model``.
+        max_tokens: Maximum response tokens.
+
+    Returns:
+        A validated DiagramSpec dict with elements, title, etc.
+    """
+    from feynman.config import settings
+
+    if settings.design_agent_provider == "ollama":
+        ollama_model = settings.design_agent_model or model
+        spec = await _generate_ollama(prompt, model=ollama_model, max_tokens=max_tokens)
+    else:
+        spec = await _generate_anthropic(prompt, model=model, max_tokens=max_tokens)
+
     _save_spec(spec, prompt)
     logger.info(
         "design_bridge.complete",

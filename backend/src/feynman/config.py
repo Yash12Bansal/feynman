@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""
 
+    # Ollama / Local Models
+    ollama_base_url: str = "http://localhost:11434"
+    design_agent_provider: str = "anthropic"  # "anthropic" or "ollama"
+    design_agent_model: str = ""  # model name for ollama (e.g. "qwen2.5-vl:7b")
+
     # LiveKit
     livekit_url: str = "ws://localhost:7880"
     livekit_api_key: str = "devkey"
