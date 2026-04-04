@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 from pydantic import BaseModel
 
+from feynman.agent.board_graph import BoardGraph
 from feynman.agent.scene_graph import SceneGraph
 from feynman.visuals.schemas import BoardZone, _BaseInstruction
 
@@ -47,6 +48,8 @@ class BoardElement(BaseModel):
     zone: BoardZone | None = None
     label: str = ""
     created_at: int = 0
+    concept_title: str = ""
+    concept_index: int | None = None
 
 
 def _extract_label(instruction: _BaseInstruction) -> str:
@@ -95,6 +98,8 @@ class BoardState:
     _counters: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
     _step: int = 0
     scene_graph: SceneGraph = field(default_factory=SceneGraph)
+    board_graph: BoardGraph = field(default_factory=BoardGraph)
+    _design_specs: dict[str, dict] = field(default_factory=dict)
 
     def next_id(self, instruction_type: str) -> str:
         """Generate the next auto-ID for a given instruction type.
@@ -105,7 +110,12 @@ class BoardState:
         self._counters[prefix] += 1
         return f"{prefix}-{self._counters[prefix]}"
 
-    def record(self, instruction: _BaseInstruction) -> None:
+    def record(
+        self,
+        instruction: _BaseInstruction,
+        concept_title: str = "",
+        concept_index: int | None = None,
+    ) -> None:
         """Record an instruction's effect on the board.
 
         - Content instructions (show_text, draw_diagram, etc.) → add element.
@@ -138,17 +148,31 @@ class BoardState:
             zone=instruction.zone,
             label=_extract_label(instruction),
             created_at=self._step,
+            concept_title=concept_title,
+            concept_index=concept_index,
         )
+
+    def store_design_spec(self, element_id: str, spec: dict) -> None:
+        """Store a DiagramSpec for a design diagram element."""
+        self._design_specs[element_id] = spec
+
+    def get_design_spec(self, element_id: str) -> dict | None:
+        """Retrieve a stored DiagramSpec by element ID."""
+        return self._design_specs.get(element_id)
 
     def remove(self, element_id: str) -> None:
         """Remove a specific element from the board."""
         self._elements.pop(element_id, None)
+        self._design_specs.pop(element_id, None)
         self.scene_graph.remove_element(element_id)
+        self.board_graph.remove_element(element_id)
 
     def clear(self) -> None:
         """Wipe the entire board state."""
         self._elements.clear()
+        self._design_specs.clear()
         self.scene_graph.clear()
+        self.board_graph.clear()
 
     def zones_in_use(self) -> set[BoardZone]:
         """Return the set of zones that currently have content."""
@@ -161,14 +185,18 @@ class BoardState:
     def summary(self) -> str:
         """Compact text summary of the board for LLM prompt inclusion.
 
-        When scene graph has bounds data, produces a richer spatial summary
-        with positions, sizes, and relationships. Falls back to zone-only
-        format when no bounds are available.
+        Priority: clustered (board_graph + scene_graph) → spatial (scene_graph)
+        → flat zone-only listing.
         """
         if not self._elements:
             return "Board is empty."
 
-        # Try scene-graph-enriched summary first.
+        # Try clustered summary (board_graph with semantic relationships).
+        clustered = self.board_graph.summary(self._elements, self.scene_graph)
+        if clustered:
+            return clustered
+
+        # Try scene-graph-enriched summary (spatial data from frontend).
         sg_summary = self.scene_graph.summary(self._elements)
         if sg_summary:
             return sg_summary
@@ -183,7 +211,11 @@ class BoardState:
             elements = elements[-_SUMMARY_RECENT:]
             lines.append(f"({older_count} earlier elements not shown)")
 
+        current_concept = ""
         for el in elements:
+            if el.concept_title and el.concept_title != current_concept:
+                current_concept = el.concept_title
+                lines.append(f"\n[{current_concept}]")
             zone_str = f" [{el.zone}]" if el.zone else ""
             lines.append(f"- {el.element_id}: {el.label}{zone_str}")
 

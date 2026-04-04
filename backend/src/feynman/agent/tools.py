@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
+import time
 from typing import TYPE_CHECKING
 
 import structlog
@@ -14,6 +16,7 @@ from feynman.agent.prompts import build_teaching_prompt
 if TYPE_CHECKING:
     from feynman.agent.teaching_context import TeachingContext
 
+from feynman.agent.board_graph import BoardRelation
 from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
@@ -88,6 +91,35 @@ def _parse_timing(timing: str) -> SyncMode:
         return SyncMode.ON_PLAYOUT
 
 
+def _declare_relation(
+    ctx: RunContext,
+    source_id: str,
+    relates_to: str,
+    relation: str,
+    default: BoardRelation = BoardRelation.ILLUSTRATES,
+) -> None:
+    """Record a semantic edge on the active board's graph."""
+    if not relates_to or not source_id:
+        return
+    try:
+        rel = BoardRelation(relation) if relation else default
+    except ValueError:
+        rel = default
+    tc: TeachingContext = ctx.userdata
+    tc.board_manager.active_board.state.board_graph.add_edge(
+        source_id=source_id,
+        target_id=relates_to,
+        relation=rel,
+    )
+    tc.audit.record(
+        "board_graph", "edge_declared",
+        f"{source_id} --{rel.value}--> {relates_to}",
+        source_id=source_id,
+        target_id=relates_to,
+        relation=rel.value,
+    )
+
+
 async def _publish_visual(
     ctx: RunContext,
     instruction: _BaseInstruction,
@@ -123,8 +155,34 @@ async def _publish_visual(
         board_id=instruction.board_id,
     )
 
-    # Record the instruction's effect on the board state.
-    tc.board_manager.record(instruction)
+    # Audit: track every tool call for the routing summary.
+    zone_str = str(instruction.zone.value) if instruction.zone else "none"
+    tc.audit.record(
+        "routing", "tool_call",
+        f"{instruction.type} zone={zone_str}",
+        tool=instruction.type,
+        element_id=instruction.element_id or "",
+        zone=zone_str,
+        concept_index=tc.current_concept_index if tc.lesson_plan else -1,
+    )
+
+    # Warn when spatial content is placed without an explicit zone.
+    spatial_types = {"draw_design_diagram", "draw_diagram", "show_graph", "draw_scene"}
+    if instruction.type in spatial_types and not instruction.zone:
+        tc.audit.record(
+            "layout", "zone_missing",
+            f"{instruction.type} {instruction.element_id or ''} placed without explicit zone",
+            tool=instruction.type,
+            element_id=instruction.element_id or "",
+        )
+
+    # Record the instruction's effect on the board state, stamped with concept context.
+    concept = tc.current_concept
+    tc.board_manager.record(
+        instruction,
+        concept_title=concept.title if concept else "",
+        concept_index=tc.current_concept_index if tc.lesson_plan else None,
+    )
 
 
 async def _publish_switch_board(
@@ -153,7 +211,13 @@ async def _publish_switch_board(
 
 @function_tool()
 async def show_text(
-    ctx: RunContext, text: str, title: str = "", zone: str = "", timing: str = ""
+    ctx: RunContext,
+    text: str,
+    title: str = "",
+    zone: str = "",
+    timing: str = "",
+    relates_to: str = "",
+    relation: str = "",
 ) -> str:
     """Display text on the classroom screen. Use for key points, definitions, important info.
 
@@ -165,11 +229,17 @@ async def show_text(
 Leave empty for default placement.
         timing: When the visual appears relative to your speech. \
 "visual_first" (appears while you speak), "after_speech" (default — waits for your sentence to finish).
+        relates_to: Element ID this text relates to (e.g., "design-1", "eq-2"). \
+Declares a semantic relationship for board intelligence.
+        relation: Relationship type: "supports" (default — supporting detail), \
+"illustrates", "compares_with".
     """
     instruction = ShowTextInstruction(
         text=text, title=title, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
     )
     await _publish_visual(ctx, instruction)
+    if relates_to and instruction.element_id:
+        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.SUPPORTS)
     return f"Displayed on board: {text[:80]}"
 
 
@@ -182,6 +252,8 @@ async def show_equation(
     term_hints_json: str = "",
     zone: str = "",
     timing: str = "",
+    relates_to: str = "",
+    relation: str = "",
 ) -> str:
     """Display a math equation on the classroom screen. Use LaTeX notation.
 
@@ -199,6 +271,10 @@ async def show_equation(
 Leave empty for default placement.
         timing: When the equation appears. "visual_first" (while you speak), \
 "after_speech" (default), or "term_sync" (terms reveal as you say them — use with term_by_term animation).
+        relates_to: Element ID this equation relates to (e.g., "design-1"). \
+Declares a semantic relationship for board intelligence.
+        relation: Relationship type: "illustrates" (default — equation for a diagram), \
+"derives_from" (next step in chain), "supports" (supporting detail).
     """
     eq_animation = EquationAnimation(animation)
     term_hints = None
@@ -216,6 +292,16 @@ Leave empty for default placement.
         zone=_parse_zone(zone),
     )
     await _publish_visual(ctx, instruction)
+    if relates_to and instruction.element_id:
+        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
+    elif not relates_to and instruction.element_id:
+        tc: TeachingContext = ctx.userdata
+        tc.audit.record(
+            "board_graph", "orphan_element",
+            f"Equation {instruction.element_id} ({latex[:40]}) created without relates_to",
+            element_id=instruction.element_id,
+            tool="show_equation",
+        )
     return f"Displayed equation: {latex}"
 
 
@@ -230,6 +316,8 @@ async def draw_diagram(
     progressive: bool = True,
     zone: str = "",
     timing: str = "visual_first",
+    relates_to: str = "",
+    relation: str = "",
 ) -> str:
     """Draw a structured diagram on the classroom screen — flowcharts, force diagrams, concept maps, etc.
 
@@ -256,6 +344,9 @@ async def draw_diagram(
 Leave empty for default placement.
         timing: When the diagram appears. "visual_first" (default — starts drawing while you speak, \
 use with "Let me draw this..."), "after_speech" (waits for your sentence).
+        relates_to: Element ID this diagram relates to (e.g., "eq-1"). \
+Declares a semantic relationship for board intelligence.
+        relation: Relationship type: "illustrates" (default), "compares_with", "supports".
     """
     nodes = [DiagramNode(**n) for n in json.loads(nodes_json)] if nodes_json else []
     edges = [DiagramEdge(**e) for e in json.loads(edges_json)] if edges_json else []
@@ -271,12 +362,20 @@ use with "Let me draw this..."), "after_speech" (waits for your sentence).
         sync_mode=_parse_timing(timing),
     )
     await _publish_visual(ctx, instruction)
+    if relates_to and instruction.element_id:
+        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
     return f"Drew diagram: {title or description or diagram_type}"
 
 
 @function_tool()
 async def step_equation(
-    ctx: RunContext, steps_json: str, title: str = "", zone: str = "", timing: str = ""
+    ctx: RunContext,
+    steps_json: str,
+    title: str = "",
+    zone: str = "",
+    timing: str = "",
+    relates_to: str = "",
+    relation: str = "",
 ) -> str:
     """Show a step-by-step equation solve on the classroom screen. Perfect for walking through algebra, simplification, or any multi-step derivation.
 
@@ -291,6 +390,10 @@ async def step_equation(
 "center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
 Leave empty for default placement.
         timing: When the steps appear. "visual_first" (while you speak), "after_speech" (default).
+        relates_to: Element ID this derivation relates to (e.g., "design-1", "eq-1"). \
+Declares a semantic relationship for board intelligence.
+        relation: Relationship type: "derives_from" (default — derivation from a source), \
+"illustrates", "supports".
     """
     raw_steps = json.loads(steps_json)
     steps = [EquationStep(**s) for s in raw_steps]
@@ -298,6 +401,17 @@ Leave empty for default placement.
         title=title, steps=steps, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
     )
     await _publish_visual(ctx, instruction)
+    # Declare relationship to the referenced element.
+    if relates_to and instruction.element_id:
+        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.DERIVES_FROM)
+    elif not relates_to and instruction.element_id:
+        tc: TeachingContext = ctx.userdata
+        tc.audit.record(
+            "board_graph", "orphan_element",
+            f"Step equation {instruction.element_id} ({title or 'untitled'}) created without relates_to",
+            element_id=instruction.element_id,
+            tool="step_equation",
+        )
     return f"Displayed step-by-step equation: {title or steps[-1].latex}"
 
 
@@ -317,6 +431,8 @@ async def show_graph(
     animated: bool = True,
     zone: str = "",
     timing: str = "visual_first",
+    relates_to: str = "",
+    relation: str = "",
 ) -> str:
     """Display a graph or chart on the classroom screen — line charts, bar charts, scatter plots, or function plots.
 
@@ -347,6 +463,10 @@ async def show_graph(
 Leave empty for default placement.
         timing: When the graph appears. "visual_first" (default — starts drawing while you speak), \
 "after_speech" (waits for your sentence).
+        relates_to: Element ID this graph relates to (e.g., "eq-1", "design-1"). \
+Declares a semantic relationship for board intelligence.
+        relation: Relationship type: "illustrates" (default — graph visualizing an equation/concept), \
+"supports", "compares_with".
     """
     series = [DataSeries(**s) for s in json.loads(series_json)] if series_json else []
     functions = [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
@@ -365,6 +485,8 @@ Leave empty for default placement.
         sync_mode=_parse_timing(timing),
     )
     await _publish_visual(ctx, instruction)
+    if relates_to and instruction.element_id:
+        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
     return f"Displayed graph: {title or graph_type}"
 
 
@@ -402,7 +524,12 @@ Defaults to accent red on the frontend.
         sync_mode=SyncMode.IMMEDIATE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
-    if ann_action == AnnotationAction.ARROW:
+    # Auto-declare annotates relationship.
+    if ann_action == AnnotationAction.ARROW and from_id and to_id:
+        tc: TeachingContext = ctx.userdata
+        tc.board_manager.active_board.state.board_graph.add_edge(
+            source_id=from_id, target_id=to_id, relation=BoardRelation.ANNOTATES
+        )
         return f"Drew arrow from {from_id} to {to_id}"
     return f"Drew {action} on {target_id}"
 
@@ -517,33 +644,43 @@ Leave empty to clear the entire board.
 
 
 @function_tool()
+async def clear_cluster(ctx: RunContext, element_id: str) -> str:
+    """Clear an element and everything semantically related to it.
+
+    Removes the full cluster: the diagram, its equation, its derivation
+    steps, its annotations — everything connected. Much faster than
+    clearing elements one by one.
+
+    Args:
+        element_id: Any element in the cluster to remove (e.g., "design-1"). \
+All semantically connected elements will also be cleared.
+    """
+    tc: TeachingContext = ctx.userdata
+    graph = tc.board_manager.active_board.state.board_graph
+    cluster = graph.get_cluster(element_id)
+    for eid in sorted(cluster):
+        instruction = ClearInstruction(target_id=eid, sync_mode=SyncMode.IMMEDIATE)
+        await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return f"Cleared cluster ({len(cluster)} elements): {', '.join(sorted(cluster))}"
+
+
+@function_tool()
 async def draw_design_diagram(
     ctx: RunContext,
     prompt: str,
     zone: str = "",
     timing: str = "visual_first",
+    relates_to: str = "",
+    relation: str = "",
 ) -> str:
     """Draw a detailed, precise SVG diagram using the AI design agent.
 
-    Use this for ANY diagram that needs spatial precision, rich visual detail, or
+    Use this for diagrams that need spatial precision, rich visual detail, or
     complex layouts — physics apparatus, biological structures, mathematical constructions,
-    process flows, architecture diagrams, annotated illustrations, etc.
+    annotated illustrations, etc. Takes 5-15 seconds (use modify_design_diagram for updates).
 
-    This tool calls a specialized diagram-generation AI that produces pixel-perfect SVG
-    diagrams with proper labels, arrows, color coding, and optional KaTeX math expressions.
-    It is much more capable than draw_diagram or draw_scene for complex visuals.
-
-    **When to use this vs other tools:**
-    - Use draw_design_diagram for: detailed science diagrams, annotated illustrations,
-      anything where visual quality and spatial precision matters.
-    - Use show_equation for: standalone math equations.
-    - Use draw_diagram for: simple abstract relationships (flowcharts, concept maps) where
-      a quick hand-drawn style is acceptable.
-    - Use show_graph for: simple data charts.
-
-    After drawing, you can use highlight_walk to walk through parts of the diagram.
-    Each element in the generated diagram has a unique ID that can be used as sub_element_id
-    in highlight_walk steps.
+    After drawing, use highlight_diagram_part or highlight_walk to walk through parts.
+    Each element in the generated diagram has a unique ID for highlighting.
 
     Args:
         prompt: Detailed description of the diagram to draw. Be specific about what to show, \
@@ -555,14 +692,46 @@ proper angles labeled."
 Leave empty for default placement.
         timing: When the diagram appears. "visual_first" (default — starts rendering while you speak), \
 "after_speech" (waits for your sentence).
+        relates_to: Element ID this diagram relates to (e.g., "eq-1"). \
+Declares a semantic relationship for board intelligence.
+        relation: Relationship type: "illustrates" (default), "compares_with", "supports".
     """
     from feynman.agent.design_bridge import generate_design_diagram
 
+    tc: TeachingContext = ctx.userdata
+
     try:
-        spec = await generate_design_diagram(prompt, model="sonnet")
+        # Check anticipation cache first.
+        cached = tc.anticipation.match(prompt, tc.current_concept_index)
+        if cached:
+            spec = cached
+            logger.info(
+                "draw_design_diagram.cache_hit",
+                concept=tc.current_concept_index,
+                prompt=prompt[:60],
+            )
+            tc.audit.record(
+                "anticipation", "cache_hit",
+                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
+            )
+        else:
+            spec = await generate_design_diagram(prompt, model="sonnet")
+            logger.info(
+                "draw_design_diagram.cache_miss",
+                concept=tc.current_concept_index,
+                prompt=prompt[:60],
+            )
+            tc.audit.record(
+                "anticipation", "cache_miss",
+                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
+            )
     except Exception:
         logger.exception("draw_design_diagram.generation_failed", prompt=prompt[:100])
-        return "Failed to generate diagram. Try simplifying the prompt or use draw_scene instead."
+        tc.audit.record("doubt", "fallback_to_scene", f"prompt='{prompt[:60]}'")
+        return (
+            "Failed to generate design diagram. Use draw_scene instead — "
+            "it has components for physics (free_body, optics), circuits, geometry, and chemistry."
+        )
 
     title = spec.get("title", "")
     description = spec.get("description", prompt[:200])
@@ -574,6 +743,21 @@ Leave empty for default placement.
         sync_mode=_parse_timing(timing),
     )
     await _publish_visual(ctx, instruction)
+
+    # Store the design spec for future modification via modify_design_diagram.
+    if instruction.element_id:
+        tc.board_manager.store_design_spec(instruction.element_id, spec)
+
+    # Declare semantic relationship.
+    if relates_to and instruction.element_id:
+        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
+    elif not relates_to and instruction.element_id:
+        tc.audit.record(
+            "board_graph", "orphan_element",
+            f"Design diagram {instruction.element_id} ({prompt[:40]}) created without relates_to",
+            element_id=instruction.element_id,
+            tool="draw_design_diagram",
+        )
 
     # Give frontend time to render the SVG diagram.
     element_count = len(spec.get("elements", []))
@@ -589,6 +773,115 @@ Leave empty for default placement.
         result += (
             f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
             f"\nUse highlight_walk(target_id=\"{eid}\", ...) with these IDs as sub_element_id."
+        )
+    return result
+
+
+@function_tool()
+async def modify_design_diagram(
+    ctx: RunContext,
+    target_id: str,
+    modification: str,
+    zone: str = "",
+    timing: str = "visual_first",
+) -> str:
+    """Modify an existing design diagram on the board instead of redrawing from scratch.
+
+    This is much faster than draw_design_diagram (~1-3 seconds vs 5-15 seconds) because
+    the existing diagram spec is sent to the AI along with your modification request,
+    so it only needs to make targeted changes rather than inventing a new layout.
+
+    Use this when a design diagram is already on the board and you want to:
+    - Add new elements (e.g., "add a friction vector")
+    - Remove elements (e.g., "remove the third resistor")
+    - Change properties (e.g., "change the angle to 45 degrees")
+    - Update labels or colors (e.g., "make the mitochondria green")
+    - Adapt the diagram for a follow-up explanation
+
+    If the target diagram no longer exists (was cleared), use draw_design_diagram instead.
+
+    Args:
+        target_id: Element ID of the existing design diagram to modify (e.g., "design-1"). \
+Must be a design diagram currently on the board.
+        modification: Natural language description of what to change. Be specific. \
+Example: "Add a friction force vector pointing up the incline, labeled 'f', in red."
+        zone: Optional zone override if you want to move the diagram. Usually leave empty \
+to keep it in place.
+        timing: When the updated diagram appears. "visual_first" (default) or "after_speech".
+    """
+    from feynman.agent.design_bridge import modify_design_diagram_spec
+
+    tc: TeachingContext = ctx.userdata
+
+    # Retrieve the stored spec for this diagram.
+    existing_spec = tc.board_manager.get_design_spec(target_id)
+    if existing_spec is None:
+        return (
+            f"No design diagram found with element_id \"{target_id}\". "
+            f"It may have been cleared. Use draw_design_diagram to create a new one."
+        )
+
+    try:
+        t0 = time.monotonic()
+        modified_spec = await modify_design_diagram_spec(existing_spec, modification)
+        elapsed_ms = (time.monotonic() - t0) * 1000
+    except Exception:
+        logger.exception("modify_design_diagram.failed", target_id=target_id, modification=modification[:100])
+        return (
+            f"Failed to modify diagram \"{target_id}\". "
+            f"Try using draw_design_diagram with a fresh prompt instead."
+        )
+
+    title = modified_spec.get("title", "")
+    description = modified_spec.get("description", modification[:200])
+    instruction = DrawDesignDiagramInstruction(
+        title=title,
+        description=description,
+        spec=modified_spec,
+        zone=_parse_zone(zone) if zone else None,
+        sync_mode=_parse_timing(timing),
+    )
+    # Use the SAME element_id so the frontend replaces in-place.
+    instruction.element_id = target_id
+
+    await _publish_visual(ctx, instruction)
+
+    # Update the stored spec with the modified version.
+    tc.board_manager.store_design_spec(target_id, modified_spec)
+
+    logger.info(
+        "modify_design_diagram.complete",
+        target_id=target_id,
+        elapsed_ms=round(elapsed_ms),
+        elements=len(modified_spec.get("elements", [])),
+    )
+    tc.audit.record(
+        "modify_diagram", "modified",
+        f"target={target_id}, concept={tc.current_concept_index}, "
+        f"elapsed={elapsed_ms:.0f}ms",
+        target_id=target_id,
+        concept_index=tc.current_concept_index,
+        elapsed_ms=elapsed_ms,
+    )
+
+    # Log board spatial state after modification for observability.
+    board_summary = tc.board_manager.active_board.state.summary()
+    if board_summary:
+        logger.info("modify_design_diagram.board_state", summary=board_summary[:300])
+
+    # Give frontend time to render.
+    element_count = len(modified_spec.get("elements", []))
+    render_time = max(1.0, element_count * 0.05)
+    await asyncio.sleep(render_time)
+
+    # Collect sub-element IDs.
+    sub_ids = [el.get("id") for el in modified_spec.get("elements", []) if el.get("id")]
+
+    result = f"Modified design diagram (element_id: \"{target_id}\"): {modification[:80]}"
+    if sub_ids:
+        result += (
+            f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
+            f"\nUse highlight_walk(target_id=\"{target_id}\", ...) with these IDs."
         )
     return result
 
@@ -613,6 +906,8 @@ async def draw_scene(
     progressive: bool = True,
     zone: str = "",
     timing: str = "visual_first",
+    relates_to: str = "",
+    relation: str = "",
 ) -> str:
     """Draw a scientific diagram on the classroom screen — physics apparatus, optics setups, circuits, geometry.
 
@@ -645,6 +940,9 @@ async def draw_scene(
         zone: Board zone ("center-left", "center-right", etc). Leave empty for default.
         timing: When the scene appears. "visual_first" (default — starts drawing while you speak), \
 "after_speech" (waits for your sentence).
+        relates_to: Element ID this scene relates to (e.g., "eq-1"). \
+Declares a semantic relationship for board intelligence.
+        relation: Relationship type: "illustrates" (default), "compares_with", "supports".
     """
     # Parse semantic elements — graceful on malformed JSON.
     elements: list[dict] = []
@@ -669,6 +967,8 @@ async def draw_scene(
             sync_mode=sync_mode,
         )
         await _publish_visual(ctx, instruction)
+        if relates_to and instruction.element_id:
+            _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
 
         # Semantic specs: base 800ms + 150ms per element.
         duration_s = (800 + len(validated_elements) * 150) / 1000.0
@@ -708,6 +1008,8 @@ async def draw_scene(
         sync_mode=sync_mode,
     )
     await _publish_visual(ctx, instruction)
+    if relates_to and instruction.element_id:
+        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
 
     # Sleep for estimated animation duration so the LLM doesn't talk over draw-in.
     duration_s = _SCENE_DURATION_MS.get(template_id, 1000) / 1000.0
@@ -743,7 +1045,7 @@ async def _update_agent_prompt(ctx: RunContext) -> None:
     """Rebuild and set the agent's system prompt from current teaching state."""
     tc: TeachingContext = ctx.userdata
     prompt = build_teaching_prompt(tc.lesson_plan, tc)
-    ctx.session.current_agent.update_instructions(prompt)
+    await ctx.session.current_agent.update_instructions(prompt)
 
 
 @function_tool()
@@ -766,10 +1068,38 @@ async def advance_concept(ctx: RunContext) -> str:
         new_board = tc.board_manager.create_and_switch(next_concept.title, branch.id)
         await _publish_switch_board(ctx, new_board.id, new_board.label, BoardIntent.NEW)
 
+        # Evict stale anticipation cache entries (concepts we've passed).
+        new_index = tc.current_concept_index
+        tc.anticipation.evict_before(new_index)
+
+        # Pre-generate design diagrams for upcoming concepts.
+        _warm_task = asyncio.create_task(  # noqa: RUF006
+            tc.anticipation.warm(
+                tc.lesson_plan,
+                start=new_index + 1,
+                count=2,
+                graph=tc.concept_graph,
+            )
+        )
+
+    # Log audit checkpoint at each concept advance.
+    logger.info(
+        "session_audit.checkpoint",
+        concept=tc.current_concept_index,
+        report=tc.audit.summary(),
+    )
+    logger.info("session_audit.checkpoint_text", report=tc.audit.summary_text())
+
     await _update_agent_prompt(ctx)
 
     if next_concept is None:
         logger.info("lesson.complete", session_id=str(tc.session_id))
+        logger.info(
+            "session_audit.final",
+            session_id=str(tc.session_id),
+            report=tc.audit.summary(),
+        )
+        logger.info("session_audit.final_text", report=tc.audit.summary_text())
         return (
             "All concepts covered! Summarize the key takeaways from today's lesson, "
             "ask if there are any final questions, and wrap up."
@@ -804,6 +1134,16 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     new_board = tc.board_manager.push_board(f"Doubt: {related_concept}", branch.id)
     await _publish_switch_board(ctx, new_board.id, new_board.label, BoardIntent.NEW)
 
+    # Fire background visual generation for the doubt.
+    parent = tc.current_concept
+    _doubt_warm = asyncio.create_task(  # noqa: RUF006
+        tc.anticipation.warm_doubt(
+            related_concept,
+            board_summary=tc.board_manager.active_board.state.summary(),
+            parent_concept=parent.title if parent else "",
+        )
+    )
+
     await _update_agent_prompt(ctx)
 
     logger.info(
@@ -837,6 +1177,7 @@ async def resolve_doubt(ctx: RunContext) -> str:
     await _publish_switch_board(ctx, parent_board.id, parent_board.label, BoardIntent.REVISIT)
 
     popped = await tc.state_machine.pop_branch()
+    tc.anticipation.clear_doubt_cache()
     await _update_agent_prompt(ctx)
 
     current = tc.current_concept
@@ -847,6 +1188,10 @@ async def resolve_doubt(ctx: RunContext) -> str:
         session_id=str(tc.session_id),
         resolved_concept=popped.concept,
         depth=tc.state_machine.depth,
+    )
+    logger.info(
+        "session_audit.doubt_resolved",
+        report=tc.audit.summary_text(),
     )
     return f"Doubt about '{popped.concept}' resolved. {continue_msg}"
 
@@ -875,3 +1220,109 @@ async def switch_board(ctx: RunContext, board_id: str, intent: str = "reference"
     await _update_agent_prompt(ctx)
 
     return f"Switched to board: {board.label} ({board_id})"
+
+
+# ---------------------------------------------------------------------------
+# Dynamic lesson plan from spoken topic
+# ---------------------------------------------------------------------------
+
+
+@function_tool()
+async def set_lesson_topic(
+    ctx: RunContext,
+    topic: str,
+    subject: str = "",
+    grade_level: str = "",
+) -> str:
+    """Activate structured teaching for a topic the student requested.
+
+    Call this when a student asks to learn about a specific topic
+    (e.g., "I want to learn about simple harmonic motion").
+    This generates a full lesson plan with visual aids and concept sequencing.
+
+    Args:
+        topic: The topic to teach (e.g., "Simple Harmonic Motion").
+        subject: Optional subject area — "physics", "chemistry", "biology", "math".
+        grade_level: Optional grade level (e.g., "Class 11", "Grade 10").
+    """
+    from feynman.agent.anticipation import load_concept_graph
+    from feynman.agent.lesson_plan import generate_lesson_plan, lesson_plan_from_graph
+    from feynman.common.types import Subject
+
+    tc: TeachingContext = ctx.userdata
+
+    # Reset state for the new topic.
+    tc.reset_for_new_topic()
+    tc.anticipation.evict_all()
+
+    parsed_subject: Subject | None = None
+    if subject:
+        with contextlib.suppress(ValueError):
+            parsed_subject = Subject(subject.lower())
+
+    tc.audit.record(
+        "curriculum", "set_lesson_topic",
+        f"topic='{topic}', subject={subject or 'auto'}, grade={grade_level or 'auto'}",
+        source="spoken_request",
+    )
+
+    # Try pre-computed ConceptGraph first, fall back to runtime generation.
+    graph = await load_concept_graph(topic)
+
+    if graph:
+        plan = lesson_plan_from_graph(
+            graph,
+            grade_level=grade_level,
+            subject=parsed_subject,
+        )
+        tc.concept_graph = graph
+        logger.info(
+            "set_lesson_topic.graph_loaded",
+            topic=topic,
+            graph_nodes=len(graph.nodes),
+        )
+    else:
+        plan = await generate_lesson_plan(
+            topic=topic,
+            subject=parsed_subject,
+            grade_level=grade_level,
+        )
+        logger.info("set_lesson_topic.runtime_plan", topic=topic)
+
+    tc.lesson_plan = plan
+
+    # Label the active board with the first concept.
+    first_concept = plan.concept_at(0)
+    if first_concept:
+        tc.board_manager.active_board.label = first_concept.title
+
+    # Fire anticipation pre-generation for first 3 concepts.
+    # Store on tc so the task isn't garbage-collected.
+    tc._warm_task = asyncio.create_task(
+        tc.anticipation.warm(
+            plan,
+            start=0,
+            count=3,
+            graph=tc.concept_graph,
+        )
+    )
+
+    # Refresh the system prompt with the full lesson context.
+    await _update_agent_prompt(ctx)
+
+    logger.info(
+        "set_lesson_topic.ready",
+        topic=plan.topic,
+        num_concepts=plan.total_concepts,
+        source="graph" if graph else "runtime",
+    )
+
+    # Return summary for the agent to narrate.
+    parts = [
+        f"Lesson plan ready for '{plan.topic}'.",
+        f"Objective: {plan.objective}",
+        f"{plan.total_concepts} concepts to cover.",
+    ]
+    if first_concept:
+        parts.append(f"Start with: {first_concept.title}")
+    return " ".join(parts)

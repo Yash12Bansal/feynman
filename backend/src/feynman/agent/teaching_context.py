@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 from uuid import UUID
 
+from feynman.agent.anticipation import AnticipationEngine
 from feynman.agent.board import BoardManager
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
+from feynman.agent.session_audit import SessionAudit
 from feynman.agent.state_machine import TeachingStateMachine
 
 
@@ -24,6 +27,13 @@ class TeachingContext:
     current_concept_index: int = 0
     completed_indices: list[int] = field(default_factory=list)
     board_manager: BoardManager = field(default_factory=BoardManager)
+    audit: SessionAudit = field(default_factory=SessionAudit)
+    anticipation: AnticipationEngine = field(init=False)
+    concept_graph: Any | None = None  # ConceptGraph from data_pre_compute (optional)
+    _graph_node_map: dict[int, str] | None = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self.anticipation = AnticipationEngine(audit=self.audit)
 
     @property
     def current_concept(self) -> ConceptNode | None:
@@ -72,3 +82,66 @@ class TeachingContext:
             return self.lesson_plan.concept_at(next_index)
 
         return None
+
+    def reset_for_new_topic(self) -> None:
+        """Reset lesson state for a new topic. Called by set_lesson_topic."""
+        self.lesson_plan = None
+        self.current_concept_index = 0
+        self.completed_indices = []
+        self.concept_graph = None
+        self._graph_node_map = None
+
+    @property
+    def current_graph_node(self) -> Any | None:
+        """Find the ConceptGraph node matching the current concept (fuzzy match).
+
+        Uses the same Jaccard-on-topic-name approach as anticipation.py.
+        Lazily builds and caches the concept_index → graph_node_id mapping.
+        """
+        if not self.concept_graph or not self.current_concept:
+            return None
+
+        if self._graph_node_map is None:
+            self._build_graph_node_map()
+
+        node_id = self._graph_node_map.get(self.current_concept_index)  # type: ignore[union-attr]
+        if node_id is None:
+            return None
+        try:
+            return self.concept_graph.nodes.get(node_id)
+        except (AttributeError, TypeError):
+            return None
+
+    def _build_graph_node_map(self) -> None:
+        """Build concept_index → graph_node_id mapping via fuzzy topic match."""
+        from feynman.agent.anticipation import _jaccard, _meaningful_tokens
+
+        self._graph_node_map = {}
+        if not self.concept_graph or not self.lesson_plan:
+            return
+
+        try:
+            graph_nodes = list(self.concept_graph.nodes.values())
+        except (AttributeError, TypeError):
+            return
+
+        for i in range(self.lesson_plan.total_concepts):
+            concept = self.lesson_plan.concept_at(i)
+            if not concept:
+                continue
+
+            plan_tokens = _meaningful_tokens(concept.title)
+            best_node = None
+            best_score = 0.0
+
+            for node in graph_nodes:
+                try:
+                    score = _jaccard(plan_tokens, _meaningful_tokens(node.topic_name))
+                except (AttributeError, TypeError):
+                    continue
+                if score > best_score:
+                    best_score = score
+                    best_node = node
+
+            if best_node and best_score > 0.2:
+                self._graph_node_map[i] = best_node.node_id

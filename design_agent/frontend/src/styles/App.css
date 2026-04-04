@@ -15,7 +15,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   background-color: #1a1a2e;
   color: #e0e0e0;
   line-height: 1.6;
@@ -162,7 +164,9 @@ body {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  transition:
+    opacity 0.2s,
+    transform 0.1s;
 }
 
 .generate-btn:hover:not(:disabled) {
@@ -303,7 +307,7 @@ body {
   color: #bbb;
 }
 
-.param-slider input[type='range'] {
+.param-slider input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -314,7 +318,7 @@ body {
   cursor: pointer;
 }
 
-.param-slider input[type='range']::-webkit-slider-thumb {
+.param-slider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 16px;
@@ -325,11 +329,11 @@ body {
   transition: background 0.15s;
 }
 
-.param-slider input[type='range']::-webkit-slider-thumb:hover {
+.param-slider input[type="range"]::-webkit-slider-thumb:hover {
   background: #7b4db5;
 }
 
-.param-slider input[type='range']::-moz-range-thumb {
+.param-slider input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   background: #533483;
@@ -384,7 +388,10 @@ body {
   cursor: pointer;
   font-size: 12px;
 }
-.json-toggle:hover { background: #3a3a5a; color: #fff; }
+.json-toggle:hover {
+  background: #3a3a5a;
+  color: #fff;
+}
 .json-viewer {
   margin: 10px 20px;
   padding: 16px;
@@ -409,9 +416,14 @@ body {
   animation: pulse 1.5s ease-in-out infinite;
 }
 @keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-  font-family: 'Fira Code', 'Consolas', monospace;
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  font-family: "Fira Code", "Consolas", monospace;
 }
 
 /* --- Responsive --- */

@@ -71,9 +71,18 @@ class BoardManager:
         self._id_counters[prefix] += 1
         return f"{prefix}-{self._id_counters[prefix]}"
 
-    def record(self, instruction: _BaseInstruction) -> None:
+    def record(
+        self,
+        instruction: _BaseInstruction,
+        concept_title: str = "",
+        concept_index: int | None = None,
+    ) -> None:
         """Record an instruction on the active board."""
-        self.active_board.state.record(instruction)
+        self.active_board.state.record(
+            instruction,
+            concept_title=concept_title,
+            concept_index=concept_index,
+        )
 
     def remove(self, element_id: str) -> None:
         """Remove a specific element from the active board."""
@@ -94,6 +103,29 @@ class BoardManager:
     def summary(self) -> str:
         """Active board's element summary."""
         return self.active_board.state.summary()
+
+    def store_design_spec(self, element_id: str, spec: dict) -> None:
+        """Store a DiagramSpec on the active board."""
+        self.active_board.state.store_design_spec(element_id, spec)
+
+    def get_design_spec(self, element_id: str) -> dict | None:
+        """Retrieve a stored DiagramSpec, searching all boards.
+
+        The LLM may reference a diagram on a non-active board (e.g. after
+        switching boards), so we search all boards, active first.
+        """
+        # Check active board first (most common case).
+        spec = self.active_board.state.get_design_spec(element_id)
+        if spec is not None:
+            return spec
+        # Search other boards.
+        for board in self._boards.values():
+            if board.id == self._active_id:
+                continue
+            spec = board.state.get_design_spec(element_id)
+            if spec is not None:
+                return spec
+        return None
 
     def update_bounds(self, board_id: str, report: BoundsReportPayload) -> None:
         """Route a bounds report to the correct board's scene graph."""

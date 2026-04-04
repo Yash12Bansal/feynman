@@ -1,8 +1,16 @@
-import React from 'react';
+import React from "react";
 
-function PromptInput({ prompt, setPrompt, onGenerate, loading, error, history, onHistoryClick }) {
+function PromptInput({
+  prompt,
+  setPrompt,
+  onGenerate,
+  loading,
+  error,
+  history,
+  onHistoryClick,
+}) {
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       onGenerate();
     }
   };
@@ -32,7 +40,7 @@ function PromptInput({ prompt, setPrompt, onGenerate, loading, error, history, o
               Generating...
             </span>
           ) : (
-            'Generate'
+            "Generate"
           )}
         </button>
         <span className="shortcut-hint">Ctrl+Enter to generate</span>
@@ -56,7 +64,7 @@ function PromptInput({ prompt, setPrompt, onGenerate, loading, error, history, o
                 title={item.prompt}
               >
                 {item.prompt.length > 60
-                  ? item.prompt.substring(0, 60) + '...'
+                  ? item.prompt.substring(0, 60) + "..."
                   : item.prompt}
               </li>
             ))}

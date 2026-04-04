@@ -350,28 +350,188 @@ highlight_diagram_part(target_id="design-1", sub_element_ids="friction-arrow", c
 - Each new highlight on the same diagram automatically dims the previous one.
 - When a student asks "show me X" or "where is X", immediately highlight that part.
 
-**Prefer this over `draw_scene`** for most scientific diagrams. It produces richer, more \
-detailed output. Use `draw_scene` only for quick, simple sketches.
+**See Tool Routing above** for when to use this vs `draw_scene`, `show_equation`, etc.
+"""
+
+MODIFY_DIAGRAM_INSTRUCTIONS = """\
+
+## Modifying Existing Diagrams (modify_design_diagram)
+
+When you need to **change** a design diagram already on the board, use \
+`modify_design_diagram` instead of drawing a new one. This is much faster — \
+the diagram updates in place (~1-3 seconds vs 5-15 seconds for a new diagram).
+
+**When to use modify vs draw_design_diagram:**
+- **modify_design_diagram**: A design diagram is on the board and you want to add, \
+remove, or change elements within it.
+- **draw_design_diagram**: You need a completely new diagram on a different topic, \
+or the existing diagram was cleared from the board.
+
+**How to use:**
+1. Pass `target_id` — the element_id of the existing diagram (e.g., "design-1")
+2. Pass `modification` — natural language description of what to change
+
+**Example flow:**
+```
+draw_design_diagram(prompt="A cell diagram showing mitochondria and chloroplasts")
+→ element_id: "design-1"
+
+"Now let me add the endoplasmic reticulum..."
+modify_design_diagram(target_id="design-1", modification="Add rough and smooth ER near the nucleus with ribosomes on the rough ER")
+→ Diagram updates in place
+
+modify_design_diagram(target_id="design-1", modification="Add green arrows showing ATP flow from mitochondria to other organelles")
+→ Diagram updates again, building on previous state
+```
+
+**Guidelines:**
+- The modification is described in natural language — be specific about what to change.
+- The diagram keeps its position and element_id after modification.
+- You can modify a diagram multiple times — each modification builds on the previous state.
+- After modifying, you can still use `highlight_diagram_part` with the same target_id.
+- If modification fails, fall back to `draw_design_diagram` with a fresh prompt.
+"""
+
+TOOL_ROUTING_INSTRUCTIONS = """\
+
+## Tool Routing — Which Tool for What
+
+Pick the right tool by content type. Getting this wrong wastes time or produces ugly results.
+
+| Content | Tool | Why |
+|---------|------|-----|
+| Text (definitions, key points, lists, summaries) | `show_text` | Clean HTML rendering with proper typography |
+| Single equation or formula | `show_equation` | KaTeX rendering, supports term-by-term animation |
+| Step-by-step derivation / algebraic solve | `step_equation` | Progressive reveal of each step |
+| Detailed spatial diagram (physics apparatus, biology, chemistry, annotated illustration) | `draw_design_diagram` | AI-generated SVG — highest quality, but 5-15s |
+| Modify an existing design diagram | `modify_design_diagram` | Incremental update — much faster (~1-3s) |
+| Quick physics sketch (free body, optics, circuit, geometry, chemistry) | `draw_scene` | Deterministic component library — instant, but limited scope |
+| Abstract relationships (flowchart, concept map, tree, cycle) | `draw_diagram` | Auto-layout with nodes and edges |
+| Data chart or function plot | `show_graph` | Axes, grid, curves — proper chart rendering |
+
+### Decision rules
+
+1. **Text goes through `show_text`** — NEVER put plain text content into a diagram tool. \
+Definitions, bullet points, summaries, key terms → `show_text`.
+2. **Equations go through `show_equation` / `step_equation`** — NEVER draw a diagram just \
+to show an equation. KaTeX renders math beautifully with animation support.
+3. **Use `draw_scene` when the component library covers it** — it's instant. Check the \
+scene_type list below. If the diagram fits a supported scene_type, prefer `draw_scene`.
+4. **Use `draw_design_diagram` for everything else that's spatial** — complex apparatus, \
+biological structures, annotated illustrations, anything the component library can't handle.
+5. **Use `modify_design_diagram` instead of redrawing** — if a design diagram is on the \
+board and you want to change it, modify it. Don't regenerate from scratch.
+6. **Pair tools for best effect**: `draw_design_diagram` + `show_equation` side by side \
+is better than cramming equations into the diagram as svg_text labels.
 """
 
 ZONE_PLACEMENT_INSTRUCTIONS = """\
 
-## Board Zones
+## Board Layout — Teaching Scenario Patterns
 
-Every visual tool accepts a `zone` parameter for spatial placement on the board. \
-The 9 zones are arranged in a 3x3 grid:
+Every visual tool accepts a `zone` parameter. The 9 zones form a 3x3 grid:
 
   top-left      top-center      top-right
   center-left   center-center   center-right
   bottom-left   bottom-center   bottom-right
 
-**Placement guidelines:**
-- Use **center-center** for the main content you're currently explaining.
-- Use **top-*** zones for reference material that should stay visible (formulas, definitions).
-- Use **bottom-*** zones for examples, scratch work, or supporting details.
-- Use **left/right** to place related items side by side for comparison.
-- To remove a single element without clearing the whole board, call `clear_board(target_id="eq-1")`.
-- Check the Board State below before placing — avoid overlapping zones.
+Before placing ANY visual, identify which teaching scenario you're in and follow \
+its layout pattern. Consistent layout helps students know where to look.
+
+### Pattern: CONCEPT INTRODUCTION
+Use when: introducing a new concept with a visual and its equation/formula.
+  ┌───────────┬────────────┬───────────┐
+  │           │Title / Key │           │
+  │           │   Text     │           │
+  ├───────────┼────────────┼───────────┤
+  │  Diagram  │            │   Key     │
+  │ (center-  │            │ Equation  │
+  │   left)   │            │(center-rt)│
+  ├───────────┼────────────┼───────────┤
+  │           │ [reserved] │           │
+  └───────────┴────────────┴───────────┘
+- Diagram in center-left (LARGE — visual anchor)
+- Key equation in center-right (adjacent to diagram)
+- Title or definition in top-center
+- Bottom row reserved for follow-up
+
+### Pattern: STEP-BY-STEP DERIVATION
+Use when: deriving a formula, proving a theorem, solving step by step.
+  ┌───────────┬────────────┬───────────┐
+  │  Diagram  │  Starting  │           │
+  │   (ref)   │  Equation  │           │
+  ├───────────┼────────────┼───────────┤
+  │           │  Steps     │ Annota-   │
+  │           │  (flowing  │  tions    │
+  │           │   down)    │           │
+  ├───────────┼────────────┼───────────┤
+  │           │  Result    │           │
+  │           │ (highlight)│           │
+  └───────────┴────────────┴───────────┘
+- Reference diagram in top-left (from concept intro)
+- Starting equation in top-center
+- Use step_equation — flows vertically in center column
+- Annotations in center-right
+- Final result highlighted in bottom-center
+- NEVER scatter derivation steps across multiple zones
+
+### Pattern: PROBLEM SOLVING
+Use when: working through a practice problem.
+  ┌───────────┬────────────┬───────────┐
+  │           │            │ Given /   │
+  │           │            │   Find    │
+  ├───────────┼────────────┼───────────┤
+  │  Diagram  │            │ Solution  │
+  │ (center-  │            │  Steps    │
+  │   left)   │            │(center-rt)│
+  ├───────────┼────────────┼───────────┤
+  │           │            │  Answer   │
+  │           │            │(bottom-rt)│
+  └───────────┴────────────┴───────────┘
+- Given/Find in top-right
+- Diagram in center-left (draw the situation)
+- Solution steps in center-right
+- Final answer in bottom-right (highlighted, boxed)
+
+### Pattern: COMPARISON
+Use when: contrasting two cases, scenarios, or before/after.
+  ┌───────────┬────────────┬───────────┐
+  │  Case A   │            │  Case B   │
+  │   title   │            │   title   │
+  ├───────────┼────────────┼───────────┤
+  │  Case A   │            │  Case B   │
+  │  diagram  │            │  diagram  │
+  ├───────────┼────────────┼───────────┤
+  │  Case A   │   Shared   │  Case B   │
+  │    eq     │   insight  │    eq     │
+  └───────────┴────────────┴───────────┘
+- Left column for Case A, right column for Case B
+- Use annotate(action="arrow") between related parts
+- Shared insight in bottom-center
+
+### Pattern: SINGLE EQUATION FOCUS
+Use when: showing one important equation and explaining its terms.
+- Equation in center-center (LARGE, term_by_term animation)
+- Nothing else competing for attention
+- Use highlight after to spotlight individual terms
+
+### Spatial Rules (always apply)
+
+1. **Adjacent**: Related elements go in neighboring zones — equation next to its diagram.
+2. **Top-to-bottom flow**: First things at top, later things below.
+3. **One visual anchor**: One main diagram per board — don't compete for center attention.
+4. **Connect with arrows**: Use annotate(action="arrow") to link related elements across zones.
+5. **Clear before reuse**: Clear old content before reusing a zone — never overlap.
+6. **Declutter**: If >5 elements on board, clear non-essential ones before adding more.
+
+### Before Each Concept
+
+When starting a new concept, plan the board FIRST:
+1. Identify the teaching moment type (concept intro, derivation, problem, comparison, equation focus)
+2. List the visual elements you'll need (diagram, equation, steps, graph, text)
+3. Match to the pattern above
+4. Assign each element to a zone
+5. Draw the main visual anchor first, then supporting elements
 """
 
 STATE_TOOL_INSTRUCTIONS = """\
@@ -396,6 +556,76 @@ Use intent="reference" for a quick peek, intent="revisit" to continue working on
 Spend more time on concepts the class finds difficult. Skip ahead if they already know something. \
 Use your judgment as a teacher.
 """
+
+
+def _build_graph_context(teaching_ctx: TeachingContext) -> str:
+    """When a ConceptGraph is available, add cross-concept relationship hints.
+
+    Helps the agent reference prerequisite visuals on earlier boards,
+    keep current visuals for upcoming concepts, and draw connections.
+    """
+    if not teaching_ctx.concept_graph:
+        teaching_ctx.audit.record(
+            "concept_context", "missing",
+            f"concept={teaching_ctx.current_concept_index} — no ConceptGraph available",
+        )
+        return ""
+
+    current_node = teaching_ctx.current_graph_node
+    if not current_node:
+        concept = teaching_ctx.current_concept
+        teaching_ctx.audit.record(
+            "concept_context", "no_graph_node_match",
+            f"concept={teaching_ctx.current_concept_index} "
+            f"'{concept.title if concept else '?'}' — no matching graph node found",
+        )
+        return ""
+
+    try:
+        edges = teaching_ctx.concept_graph.get_related_edges(current_node.node_id)
+    except (AttributeError, TypeError):
+        return ""
+
+    hints: list[str] = []
+    for edge in edges:
+        rel_value = getattr(edge.relation, "value", str(edge.relation))
+
+        # Resolve the other node's name for display.
+        other_id = (
+            edge.target_id
+            if edge.source_id == current_node.node_id
+            else edge.source_id
+        )
+        try:
+            other_node = teaching_ctx.concept_graph.nodes.get(other_id)
+            name = edge.label or (other_node.topic_name if other_node else other_id)
+        except (AttributeError, TypeError):
+            name = edge.label or other_id
+
+        if rel_value == "prerequisite":
+            hints.append(f"- Prerequisite: {name} (check earlier boards)")
+        elif rel_value == "leads_to":
+            hints.append(
+                f"- This leads to: {name} (keep visuals for reference)"
+            )
+        elif rel_value == "example_of":
+            hints.append(f"- Example opportunity: {name}")
+
+    if hints:
+        teaching_ctx.audit.record(
+            "concept_context", "graph_hint_shown",
+            f"concept={teaching_ctx.current_concept_index} "
+            f"node='{current_node.topic_name}' hints={len(hints)}",
+            hint_count=len(hints),
+        )
+        return "\n## Cross-concept connections\n" + "\n".join(hints) + "\n"
+
+    teaching_ctx.audit.record(
+        "concept_context", "graph_node_no_edges",
+        f"concept={teaching_ctx.current_concept_index} "
+        f"node='{current_node.topic_name}' — graph node matched but has no relevant edges",
+    )
+    return ""
 
 
 def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
@@ -432,8 +662,10 @@ def build_teaching_prompt(
     parts = [
         TEACHING_SYSTEM_PROMPT,
         VISUAL_SYNC_INSTRUCTIONS,
+        TOOL_ROUTING_INSTRUCTIONS,
         HIGHLIGHT_WALK_INSTRUCTIONS,
         DESIGN_DIAGRAM_INSTRUCTIONS,
+        MODIFY_DIAGRAM_INSTRUCTIONS,
         SCENE_INSTRUCTIONS,
         ZONE_PLACEMENT_INSTRUCTIONS,
     ]
@@ -443,8 +675,13 @@ def build_teaching_prompt(
 
     if lesson_plan is None:
         parts.append(
-            "\nYou are in free-form teaching mode — no structured lesson plan. "
-            "Teach based on what the students ask about."
+            "\nYou are in free-form teaching mode — no structured lesson plan.\n\n"
+            "**When a student requests a specific topic** (e.g., 'I want to learn about "
+            "simple harmonic motion', 'teach me photosynthesis', 'can we do quadratic "
+            "equations?'), call `set_lesson_topic(topic)` IMMEDIATELY to activate structured "
+            "teaching. This generates a full lesson plan with visual aids and concept "
+            "sequencing — it unlocks your best teaching.\n\n"
+            "Until a topic is set, teach based on what the students ask about."
         )
         return "".join(parts)
 
@@ -480,6 +717,11 @@ def build_teaching_prompt(
             parts.append("\n**Visual suggestions:**\n")
             for suggestion in current.visual_suggestions:
                 parts.append(f"- {suggestion}\n")
+
+        # Cross-concept connections from ConceptGraph
+        graph_ctx = _build_graph_context(teaching_ctx)
+        if graph_ctx:
+            parts.append(graph_ctx)
 
     # Branch context
     depth = teaching_ctx.state_machine.depth
