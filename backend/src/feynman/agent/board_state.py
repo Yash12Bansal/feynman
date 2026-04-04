@@ -30,7 +30,9 @@ _TYPE_PREFIX: dict[str, str] = {
 }
 
 # Instruction types that are ephemeral — not tracked on the board.
-_EPHEMERAL_TYPES = frozenset({"highlight", "annotate", "switch_board", "highlight_walk"})
+_EPHEMERAL_TYPES = frozenset({
+    "highlight", "annotate", "switch_board", "highlight_walk", "scroll_view",
+})
 
 # Max label length kept in board elements.
 _MAX_LABEL_LEN = 60
@@ -50,6 +52,8 @@ class BoardElement(BaseModel):
     created_at: int = 0
     concept_title: str = ""
     concept_index: int | None = None
+    tile_x: int = 0
+    tile_y: int = 0
 
 
 def _extract_label(instruction: _BaseInstruction) -> str:
@@ -101,6 +105,10 @@ class BoardState:
     board_graph: BoardGraph = field(default_factory=BoardGraph)
     _design_specs: dict[str, dict] = field(default_factory=dict)
 
+    # Camera position on the infinite canvas (tile coordinates).
+    camera_tile_x: int = 0
+    camera_tile_y: int = 0
+
     def next_id(self, instruction_type: str) -> str:
         """Generate the next auto-ID for a given instruction type.
 
@@ -150,6 +158,8 @@ class BoardState:
             created_at=self._step,
             concept_title=concept_title,
             concept_index=concept_index,
+            tile_x=self.camera_tile_x,
+            tile_y=self.camera_tile_y,
         )
 
     def store_design_spec(self, element_id: str, spec: dict) -> None:
@@ -181,6 +191,70 @@ class BoardState:
     def free_zones(self) -> set[BoardZone]:
         """Return zones that don't currently have content."""
         return set(BoardZone) - self.zones_in_use()
+
+    # ── Camera / infinite canvas ─────────────────────────────
+
+    def scroll_to_tile(self, tile_x: int, tile_y: int) -> None:
+        """Move the viewport camera to a tile position."""
+        self.camera_tile_x = tile_x
+        self.camera_tile_y = tile_y
+
+    def visible_elements(self) -> dict[str, BoardElement]:
+        """Return elements on the current viewport tile."""
+        return {
+            eid: el
+            for eid, el in self._elements.items()
+            if el.tile_x == self.camera_tile_x and el.tile_y == self.camera_tile_y
+        }
+
+    def visible_zones_in_use(self) -> set[BoardZone]:
+        """Return zones that have content on the current viewport tile."""
+        return {
+            el.zone
+            for el in self.visible_elements().values()
+            if el.zone is not None
+        }
+
+    def visible_free_zones(self) -> set[BoardZone]:
+        """Return zones with no content on the current viewport tile."""
+        return set(BoardZone) - self.visible_zones_in_use()
+
+    def offscreen_summary(self) -> str:
+        """Describe elements not on the current viewport tile."""
+        offscreen: dict[tuple[int, int], list[BoardElement]] = defaultdict(list)
+        for el in self._elements.values():
+            if el.tile_x != self.camera_tile_x or el.tile_y != self.camera_tile_y:
+                offscreen[(el.tile_x, el.tile_y)].append(el)
+
+        if not offscreen:
+            return ""
+
+        parts: list[str] = []
+        for (tx, ty), elements in sorted(offscreen.items()):
+            dx = tx - self.camera_tile_x
+            dy = ty - self.camera_tile_y
+            dirs: list[str] = []
+            if dx < 0:
+                dirs.append("left")
+            elif dx > 0:
+                dirs.append("right")
+            if dy < 0:
+                dirs.append("above")
+            elif dy > 0:
+                dirs.append("below")
+            direction = "-".join(dirs) if dirs else "here"
+            parts.append(
+                f"{len(elements)} elements {direction} "
+                f"[scroll_board(\"{dirs[0] if dirs else 'right'}\") to revisit]"
+            )
+        return "; ".join(parts)
+
+    def element_tile(self, element_id: str) -> tuple[int, int] | None:
+        """Return the tile coordinates of an element, or None if not found."""
+        el = self._elements.get(element_id)
+        if el is None:
+            return None
+        return (el.tile_x, el.tile_y)
 
     def summary(self) -> str:
         """Compact text summary of the board for LLM prompt inclusion.

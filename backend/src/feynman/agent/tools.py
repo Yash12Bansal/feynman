@@ -41,6 +41,7 @@ from feynman.visuals.schemas import (
     HighlightWalkStep,
     SceneTemplateId,
     SceneTemplateRef,
+    ScrollViewInstruction,
     SemanticSceneElement,
     ShowEquationInstruction,
     ShowGraphInstruction,
@@ -1222,6 +1223,76 @@ async def switch_board(ctx: RunContext, board_id: str, intent: str = "reference"
     return f"Switched to board: {board.label} ({board_id})"
 
 
+@function_tool()
+async def scroll_board(
+    ctx: RunContext,
+    direction: str = "",
+    element_id: str = "",
+) -> str:
+    """Scroll the board to reveal new space or return to earlier content.
+
+    The board is an infinite canvas. You see a 1920x1080 viewport at a time.
+    Use this when the visible area is filling up and you need fresh space,
+    or when you want to reference/show something drawn earlier.
+
+    Args:
+        direction: Scroll direction — "right", "left", "down", "up". \
+Moves the viewport by one full screen in that direction.
+        element_id: Instead of a direction, scroll to center a specific element \
+on screen. Pass the element's ID (e.g., "diagram-3").
+    """
+    tc: TeachingContext = ctx.userdata
+    board_state = tc.board_manager.active_board.state
+
+    if element_id:
+        tile = board_state.element_tile(element_id)
+        if tile is None:
+            return f"Element not found: {element_id}"
+        board_state.scroll_to_tile(tile[0], tile[1])
+    elif direction:
+        dx, dy = {
+            "right": (1, 0),
+            "left": (-1, 0),
+            "down": (0, 1),
+            "up": (0, -1),
+        }.get(direction.lower(), (0, 0))
+        if dx == 0 and dy == 0:
+            return f"Unknown direction: {direction}. Use right, left, down, or up."
+        new_x = max(0, board_state.camera_tile_x + dx)
+        new_y = max(0, board_state.camera_tile_y + dy)
+        board_state.scroll_to_tile(new_x, new_y)
+    else:
+        return "Provide either a direction or element_id."
+
+    # Publish scroll instruction to frontend.
+    scroll_instr = ScrollViewInstruction(
+        target_x=board_state.camera_tile_x,
+        target_y=board_state.camera_tile_y,
+    )
+    scroll_instr.board_id = tc.board_manager.active_id
+    room = ctx.session.room_io.room
+    data = json.dumps(scroll_instr.model_dump(exclude_none=True, by_alias=True))
+    await room.local_participant.publish_data(data, reliable=True, topic="visuals")
+
+    # Rebuild prompt so agent sees updated board state.
+    await _update_agent_prompt(ctx)
+
+    visible_count = len(board_state.visible_elements())
+    total_count = len(board_state._elements)
+    tile_pos = f"({board_state.camera_tile_x}, {board_state.camera_tile_y})"
+
+    tc.audit.record(
+        "scroll", "viewport_moved",
+        f"tile={tile_pos}, visible={visible_count}, total={total_count}",
+    )
+
+    return (
+        f"Scrolled to tile {tile_pos}. "
+        f"{visible_count} elements visible, {total_count} total on board. "
+        f"Free zones: {', '.join(z.value for z in sorted(board_state.visible_free_zones()))}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Dynamic lesson plan from spoken topic
 # ---------------------------------------------------------------------------
@@ -1297,8 +1368,8 @@ async def set_lesson_topic(
         tc.board_manager.active_board.label = first_concept.title
 
     # Fire anticipation pre-generation for first 3 concepts.
-    # Store on tc so the task isn't garbage-collected.
-    tc._warm_task = asyncio.create_task(
+    # Wait briefly so the prompt can include pre-rendered visuals for concept 0.
+    warm_task = asyncio.create_task(
         tc.anticipation.warm(
             plan,
             start=0,
@@ -1306,8 +1377,13 @@ async def set_lesson_topic(
             graph=tc.concept_graph,
         )
     )
+    with contextlib.suppress(TimeoutError):
+        await asyncio.wait_for(asyncio.shield(warm_task), timeout=5.0)
+    # Keep reference so the task isn't garbage-collected.
+    tc._warm_task = warm_task
 
     # Refresh the system prompt with the full lesson context.
+    # Now includes pre-rendered visuals if warming completed in time.
     await _update_agent_prompt(ctx)
 
     logger.info(

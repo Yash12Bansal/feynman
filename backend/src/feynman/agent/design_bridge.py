@@ -42,7 +42,7 @@ def _load_system_prompt() -> str:
         )
 
     ns: dict[str, Any] = {}
-    exec(compile(_PROMPT_FILE.read_text(), _PROMPT_FILE, "exec"), ns)  # noqa: S102
+    exec(compile(_PROMPT_FILE.read_text(), _PROMPT_FILE, "exec"), ns)
     _cached_prompt = ns["SYSTEM_PROMPT"]
     return _cached_prompt
 

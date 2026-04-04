@@ -31,6 +31,7 @@ from feynman.agent.tools import (
     highlight_walk,
     modify_design_diagram,
     resolve_doubt,
+    scroll_board,
     set_lesson_topic,
     show_equation,
     show_graph,
@@ -68,6 +69,7 @@ ALL_TOOLS = [
     start_doubt_branch,
     resolve_doubt,
     switch_board,
+    scroll_board,
     set_lesson_topic,
 ]
 
@@ -113,7 +115,8 @@ class FeynmanAgent(Agent):
                         graph_nodes=len(graph.nodes),
                     )
                     self._teaching_ctx.audit.record(
-                        "curriculum", "graph_loaded",
+                        "curriculum",
+                        "graph_loaded",
                         f"topic='{self._topic}', nodes={len(graph.nodes)}",
                         source="ConceptGraph",
                     )
@@ -125,7 +128,8 @@ class FeynmanAgent(Agent):
                         grade_level=self._grade_level,
                     )
                     self._teaching_ctx.audit.record(
-                        "curriculum", "graph_missing_fallback_runtime",
+                        "curriculum",
+                        "graph_missing_fallback_runtime",
                         f"topic='{self._topic}' — no pre-computed graph found, "
                         f"fell back to runtime LLM generation",
                         source="LessonPlan",
@@ -135,7 +139,9 @@ class FeynmanAgent(Agent):
                 # Label the initial board with the first concept title.
                 first_concept = plan.concept_at(0)
                 if first_concept:
-                    self._teaching_ctx.board_manager.active_board.label = first_concept.title
+                    self._teaching_ctx.board_manager.active_board.label = (
+                        first_concept.title
+                    )
                 logger.info(
                     "agent.lesson_plan_ready",
                     topic=self._topic,
@@ -156,7 +162,8 @@ class FeynmanAgent(Agent):
             except Exception:
                 logger.exception("agent.lesson_plan_failed", topic=self._topic)
                 self._teaching_ctx.audit.record(
-                    "curriculum", "plan_failed",
+                    "curriculum",
+                    "plan_failed",
                     f"topic='{self._topic}' — exception during plan generation, "
                     f"falling back to free-form teaching",
                 )

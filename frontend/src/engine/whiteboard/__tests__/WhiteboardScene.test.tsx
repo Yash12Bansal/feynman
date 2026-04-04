@@ -13,6 +13,7 @@ import type { VisualInstruction } from "../../../types/visuals";
 // ── Mock GSAP (needed for HandwrittenTextContent) ───────────
 
 vi.mock("gsap", () => {
+  const tween = { kill: vi.fn() };
   const tl = {
     to: vi.fn().mockReturnThis(),
     fromTo: vi.fn().mockReturnThis(),
@@ -22,6 +23,8 @@ vi.mock("gsap", () => {
     default: {
       timeline: () => tl,
       set: vi.fn(),
+      to: vi.fn().mockReturnValue(tween),
+      fromTo: vi.fn().mockReturnValue(tween),
     },
   };
 });

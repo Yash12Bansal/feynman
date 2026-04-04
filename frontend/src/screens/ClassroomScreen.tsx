@@ -14,6 +14,7 @@ export function ClassroomScreen() {
     activeBoardId,
     activeBoardMeta,
     pendingTransition,
+    cameraState,
     clearTransition,
     getBoardInstructions,
   } = useVisualChannel();
@@ -32,6 +33,7 @@ export function ClassroomScreen() {
         activeBoardId={activeBoardId}
         activeBoardMeta={activeBoardMeta}
         pendingTransition={pendingTransition}
+        cameraState={cameraState}
         onTransitionComplete={clearTransition}
         getBoardInstructions={getBoardInstructions}
       />

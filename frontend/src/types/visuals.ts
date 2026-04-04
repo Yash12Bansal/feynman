@@ -128,6 +128,10 @@ interface BaseInstruction {
   term_hints?: TermSyncHint[];
   zone?: BoardZone;
   board_id?: string;
+  /** Client-stamped tile X coordinate (set by board store, not from backend). */
+  _tileX?: number;
+  /** Client-stamped tile Y coordinate (set by board store, not from backend). */
+  _tileY?: number;
 }
 
 export interface ClearInstruction extends BaseInstruction {
@@ -204,6 +208,12 @@ export interface HighlightWalkInstruction extends BaseInstruction {
   type: "highlight_walk";
   target_id: string;
   steps: HighlightWalkStep[];
+}
+
+export interface ScrollViewInstruction extends BaseInstruction {
+  type: "scroll_view";
+  target_x: number;
+  target_y: number;
 }
 
 export interface SceneTemplateRef {
@@ -437,7 +447,8 @@ export type VisualInstruction =
   | AnnotateInstruction
   | SwitchBoardInstruction
   | DrawSceneInstruction
-  | HighlightWalkInstruction;
+  | HighlightWalkInstruction
+  | ScrollViewInstruction;
 
 export type VisualType = VisualInstruction["type"];
 

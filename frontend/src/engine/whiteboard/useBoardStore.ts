@@ -2,7 +2,8 @@
  * Multi-board state management for the whiteboard.
  *
  * Partitions visual instructions by board_id, tracks the active board,
- * and manages transition state consumed by BoardNavigator.
+ * manages transition state consumed by BoardNavigator, and tracks
+ * camera state per board for infinite canvas scrolling.
  *
  * Uses useRef for Maps (no re-render per instruction) and useState
  * for activeBoardId / activeInstructions (re-render on board switch).
@@ -29,17 +30,24 @@ export interface BoardTransition {
   durationMs?: number;
 }
 
+export interface CameraState {
+  tileX: number;
+  tileY: number;
+}
+
 export interface BoardStore {
   activeBoardId: string;
   activeInstructions: VisualInstruction[];
   activeBoardMeta: BoardMeta | null;
   pendingTransition: BoardTransition | null;
+  cameraState: CameraState;
   addInstruction: (instr: VisualInstruction) => void;
   switchBoard: (instr: SwitchBoardInstruction) => void;
   clearBoard: (boardId?: string, targetId?: string) => void;
   getBoardInstructions: (boardId: string) => VisualInstruction[];
   getBoardMeta: (boardId: string) => BoardMeta | null;
   clearTransition: () => void;
+  scrollTo: (tileX: number, tileY: number) => void;
 }
 
 export function useBoardStore(): BoardStore {
@@ -47,6 +55,7 @@ export function useBoardStore(): BoardStore {
     new Map([[DEFAULT_BOARD_ID, []]]),
   );
   const metaRef = useRef<Map<string, BoardMeta>>(new Map());
+  const camerasRef = useRef<Map<string, CameraState>>(new Map());
 
   const [activeBoardId, setActiveBoardId] = useState(DEFAULT_BOARD_ID);
   const [activeInstructions, setActiveInstructions] = useState<
@@ -57,41 +66,60 @@ export function useBoardStore(): BoardStore {
   const [activeBoardMeta, setActiveBoardMeta] = useState<BoardMeta | null>(
     null,
   );
+  const [cameraState, setCameraState] = useState<CameraState>({
+    tileX: 0,
+    tileY: 0,
+  });
 
   // Mirror activeBoardId in a ref so callbacks see the latest value
   // without needing it in their dependency arrays.
   const activeBoardIdRef = useRef(DEFAULT_BOARD_ID);
 
-  const addInstruction = useCallback((instr: VisualInstruction) => {
-    const boardId = instr.board_id ?? activeBoardIdRef.current;
-    const boards = boardsRef.current;
+  /** Get camera for current board (defaults to 0,0). */
+  const getCamera = useCallback(
+    (boardId: string): CameraState =>
+      camerasRef.current.get(boardId) ?? { tileX: 0, tileY: 0 },
+    [],
+  );
 
-    let list = boards.get(boardId);
-    if (!list) {
-      list = [];
-      boards.set(boardId, list);
-    }
+  const addInstruction = useCallback(
+    (instr: VisualInstruction) => {
+      const boardId = instr.board_id ?? activeBoardIdRef.current;
+      const boards = boardsRef.current;
 
-    // In-place update: replace existing instruction with same element_id
-    // (used by modify_design_diagram to update diagrams without duplication).
-    if (instr.element_id) {
-      const existingIdx = list.findIndex(
-        (i) => i.element_id === instr.element_id,
-      );
-      if (existingIdx !== -1) {
-        list[existingIdx] = instr;
+      let list = boards.get(boardId);
+      if (!list) {
+        list = [];
+        boards.set(boardId, list);
+      }
+
+      // Stamp tile coordinates from current camera position
+      const cam = getCamera(boardId);
+      instr._tileX = cam.tileX;
+      instr._tileY = cam.tileY;
+
+      // In-place update: replace existing instruction with same element_id
+      // (used by modify_design_diagram to update diagrams without duplication).
+      if (instr.element_id) {
+        const existingIdx = list.findIndex(
+          (i) => i.element_id === instr.element_id,
+        );
+        if (existingIdx !== -1) {
+          list[existingIdx] = instr;
+        } else {
+          list.push(instr);
+        }
       } else {
         list.push(instr);
       }
-    } else {
-      list.push(instr);
-    }
 
-    // Only trigger re-render if instruction targets the active board
-    if (boardId === activeBoardIdRef.current) {
-      setActiveInstructions([...list]);
-    }
-  }, []);
+      // Only trigger re-render if instruction targets the active board
+      if (boardId === activeBoardIdRef.current) {
+        setActiveInstructions([...list]);
+      }
+    },
+    [getCamera],
+  );
 
   const switchBoard = useCallback((instr: SwitchBoardInstruction) => {
     const targetBoardId = instr.board_id;
@@ -130,6 +158,13 @@ export function useBoardStore(): BoardStore {
     setActiveBoardId(targetBoardId);
     setActiveInstructions([...(boards.get(targetBoardId) ?? [])]);
     setActiveBoardMeta(metaRef.current.get(targetBoardId) ?? null);
+
+    // Restore camera state for the target board (new boards start at 0,0)
+    const cam = camerasRef.current.get(targetBoardId) ?? {
+      tileX: 0,
+      tileY: 0,
+    };
+    setCameraState(cam);
   }, []);
 
   const clearBoard = useCallback((boardId?: string, targetId?: string) => {
@@ -150,6 +185,11 @@ export function useBoardStore(): BoardStore {
       if (resolvedId === activeBoardIdRef.current) {
         setActiveInstructions([]);
       }
+      // Reset camera on full board clear
+      camerasRef.current.set(resolvedId, { tileX: 0, tileY: 0 });
+      if (resolvedId === activeBoardIdRef.current) {
+        setCameraState({ tileX: 0, tileY: 0 });
+      }
     }
   }, []);
 
@@ -168,16 +208,25 @@ export function useBoardStore(): BoardStore {
     setPendingTransition(null);
   }, []);
 
+  const scrollTo = useCallback((tileX: number, tileY: number) => {
+    const boardId = activeBoardIdRef.current;
+    const cam = { tileX, tileY };
+    camerasRef.current.set(boardId, cam);
+    setCameraState(cam);
+  }, []);
+
   return {
     activeBoardId,
     activeInstructions,
     activeBoardMeta,
     pendingTransition,
+    cameraState,
     addInstruction,
     switchBoard,
     clearBoard,
     getBoardInstructions,
     getBoardMeta,
     clearTransition,
+    scrollTo,
   };
 }

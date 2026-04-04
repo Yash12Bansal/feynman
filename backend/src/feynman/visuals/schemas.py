@@ -387,6 +387,18 @@ class SwitchBoardInstruction(_BaseInstruction):
     intent: BoardIntent = BoardIntent.NEW
 
 
+class ScrollViewInstruction(_BaseInstruction):
+    """Scroll the viewport camera to a tile position on the infinite canvas.
+
+    Ephemeral control instruction — not tracked as a board element.
+    The frontend animates a smooth pan to the target tile.
+    """
+
+    type: Literal["scroll_view"] = "scroll_view"
+    target_x: int = 0
+    target_y: int = 0
+
+
 class HighlightWalkInstruction(_BaseInstruction):
     """Speech-synced highlight walk through sub-elements of a diagram or scene.
 

@@ -552,9 +552,36 @@ return to the main lesson flow. The board switches back to where you were before
 - **switch_board(board_id, intent)**: Switch to a different board to show earlier content. \
 Use intent="reference" for a quick peek, intent="revisit" to continue working on it.
 
-**Important**: YOU decide when to advance — the lesson plan is guidance, not a script. \
-Spend more time on concepts the class finds difficult. Skip ahead if they already know something. \
-Use your judgment as a teacher.
+**CRITICAL — One concept at a time**:
+- Teach ONLY the current concept (marked [>> CURRENT] in the sequence below).
+- After covering all its key points and showing at least one visual, call advance_concept().
+- Do NOT teach the next concept until you have called advance_concept().
+- If a student asks about a future concept, briefly acknowledge but stay on the current one.
+- Spend more time on concepts the class finds difficult. Skip ahead if they already know something.
+- The lesson plan is guidance, not a script — use your judgment as a teacher.
+"""
+
+SCROLL_INSTRUCTIONS = """\
+
+## Board Scrolling (Infinite Canvas)
+
+The board is an infinite canvas. You see a 1920x1080 viewport at a time.
+Use scroll_board() to navigate:
+
+- **Fresh space**: When the visible area is filling up (6+ zones occupied), \
+scroll in any direction for a clean slate. Prefer scrolling RIGHT for \
+natural left-to-right flow.
+- **Reference earlier work**: Scroll back to show students a previous \
+diagram or equation. Narrate the scroll: "Let me go back to our earlier \
+diagram of..."
+- **Focus on an element**: Pass element_id to center a specific element on screen.
+
+Rules:
+- Narrate BEFORE scrolling — students should know WHY the view is moving.
+- Scroll right for new content, left to revisit (natural reading direction).
+- The zone grid (top-left, center-center, etc.) always refers to the CURRENT view.
+- After scrolling, you have a fresh set of 9 zones to fill.
+- Do NOT redraw content that already exists — scroll to it instead.
 """
 
 
@@ -631,20 +658,42 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
 def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
     """Build the Board State prompt section from current board state."""
     bm = teaching_ctx.board_manager
+    board_state = bm.active_board.state
 
-    # Free zones info — always available regardless of scene graph.
-    free = bm.free_zones()
+    # Viewport-aware free zones (current tile only).
+    visible_free = board_state.visible_free_zones()
+    visible_used = board_state.visible_zones_in_use()
     free_str = ""
-    if free:
-        free_str = f"\nFree zones: {', '.join(sorted(z.value for z in free))}\n"
+    if visible_free:
+        free_str = f"\nFree zones: {', '.join(sorted(z.value for z in visible_free))}\n"
+
+    # Viewport position info.
+    tile_x, tile_y = board_state.camera_tile_x, board_state.camera_tile_y
+    viewport_str = ""
+    if tile_x > 0 or tile_y > 0:
+        viewport_str = f"\n**Current view**: Tile ({tile_x}, {tile_y}) — {len(visible_used)}/9 zones occupied\n"
+
+    # Off-screen elements hint.
+    offscreen = board_state.offscreen_summary()
+    offscreen_str = f"\n**Off-screen**: {offscreen}\n" if offscreen else ""
+
+    # Fullness hint — prompt agent to scroll when getting crowded.
+    fullness_hint = ""
+    if len(visible_used) >= 6:
+        fullness_hint = (
+            "\n**Board is filling up** — consider calling "
+            'scroll_board(direction="right") for fresh space.\n'
+        )
 
     if bm.board_count == 1:
-        # Single board — keep it simple, same as before.
-        return f"\n## Board State\n\n{bm.summary()}\n{free_str}"
+        return (
+            f"\n## Board State\n\n{bm.summary()}\n"
+            f"{viewport_str}{free_str}{offscreen_str}{fullness_hint}"
+        )
 
     # Multi-board: show active board details + all-boards overview.
     parts = [f"\n## Board State — {bm.active_board.label} ({bm.active_id})\n"]
-    parts.append(f"\n{bm.summary()}\n{free_str}")
+    parts.append(f"\n{bm.summary()}\n{viewport_str}{free_str}{offscreen_str}{fullness_hint}")
     parts.append(f"\n### All Boards ({bm.board_count})\n\n")
     parts.append(bm.boards_summary())
     parts.append("\n\nUse `switch_board(board_id, intent)` to flip to a different board.\n")
@@ -659,8 +708,9 @@ def build_teaching_prompt(
 
     Called after every state change to keep the LLM's context fresh.
     """
-    parts = [
-        TEACHING_SYSTEM_PROMPT,
+    # Reference docs — lookup material, placed LAST so behavioral instructions
+    # aren't buried behind 2000+ tokens of reference text.
+    reference_docs = [
         VISUAL_SYNC_INSTRUCTIONS,
         TOOL_ROUTING_INSTRUCTIONS,
         HIGHLIGHT_WALK_INSTRUCTIONS,
@@ -668,6 +718,11 @@ def build_teaching_prompt(
         MODIFY_DIAGRAM_INSTRUCTIONS,
         SCENE_INSTRUCTIONS,
         ZONE_PLACEMENT_INSTRUCTIONS,
+    ]
+
+    parts = [
+        TEACHING_SYSTEM_PROMPT,
+        SCROLL_INSTRUCTIONS,  # Applies in both free-form and plan modes
     ]
 
     # Board state section — always included (applies in both modes).
@@ -683,9 +738,11 @@ def build_teaching_prompt(
             "sequencing — it unlocks your best teaching.\n\n"
             "Until a topic is set, teach based on what the students ask about."
         )
+        parts.extend(reference_docs)
         return "".join(parts)
 
-    # State tool instructions (only when we have a plan to navigate)
+    # Behavioral instructions FIRST — advance_concept pacing.
+    # Must come before reference docs so the LLM actually follows them.
     parts.append(STATE_TOOL_INSTRUCTIONS)
 
     # Lesson overview
@@ -708,20 +765,55 @@ def build_teaching_prompt(
     # Current concept details
     current = teaching_ctx.current_concept
     if current and not teaching_ctx.is_lesson_complete:
-        parts.append(f"\n### Now Teaching: {current.title}\n")
+        ci = teaching_ctx.current_concept_index + 1
+        total = lesson_plan.total_concepts
+        parts.append(f"\n### Now Teaching [{ci} of {total}]: {current.title}\n")
         parts.append(f"{current.description}\n")
         parts.append("\n**Key points to cover:**\n")
         for point in current.key_points:
             parts.append(f"- {point}\n")
+        # Pre-generated visual prompts (instant rendering) take priority
+        pre_gen = teaching_ctx.anticipation.get_prompts_for_concept(
+            teaching_ctx.current_concept_index
+        )
+        if pre_gen:
+            parts.append(
+                "\n**Pre-rendered visuals** "
+                "(use these exact prompts with draw_design_diagram for instant rendering):\n"
+            )
+            for pi, p in enumerate(pre_gen, 1):
+                parts.append(f'{pi}. prompt="{p}"\n')
+            parts.append(
+                "\nYou may write a custom prompt instead, "
+                "but it will take 5-15 seconds to generate.\n"
+            )
+
+        # Always show visual_suggestions as additional ideas
         if current.visual_suggestions:
-            parts.append("\n**Visual suggestions:**\n")
+            label = "Additional visual ideas:" if pre_gen else "Visual suggestions:"
+            parts.append(f"\n**{label}**\n")
             for suggestion in current.visual_suggestions:
                 parts.append(f"- {suggestion}\n")
+
+        # Inject full ConceptGraph teaching content when available
+        graph_node = teaching_ctx.current_graph_node
+        if graph_node and getattr(graph_node, "summary", None):
+            summary = graph_node.summary[:800]
+            parts.append(
+                f"\n**Teaching reference** (use this content to teach from):\n{summary}\n"
+            )
 
         # Cross-concept connections from ConceptGraph
         graph_ctx = _build_graph_context(teaching_ctx)
         if graph_ctx:
             parts.append(graph_ctx)
+
+        parts.append(
+            "\n**Completion checklist** — call advance_concept() when all done:\n"
+            "- [ ] Covered each key point above\n"
+            "- [ ] Showed at least one visual aid\n"
+            "- [ ] Paused for student questions\n"
+        )
 
     # Branch context
     depth = teaching_ctx.state_machine.depth
@@ -740,5 +832,8 @@ def build_teaching_prompt(
             "All concepts have been covered! Summarize the key takeaways, "
             "ask if there are any final questions, and wrap up the session.\n"
         )
+
+    # Reference docs last — lookup material for tool usage details.
+    parts.extend(reference_docs)
 
     return "".join(parts)
