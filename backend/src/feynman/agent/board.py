@@ -71,9 +71,18 @@ class BoardManager:
         self._id_counters[prefix] += 1
         return f"{prefix}-{self._id_counters[prefix]}"
 
-    def record(self, instruction: _BaseInstruction) -> None:
+    def record(
+        self,
+        instruction: _BaseInstruction,
+        concept_title: str = "",
+        concept_index: int | None = None,
+    ) -> None:
         """Record an instruction on the active board."""
-        self.active_board.state.record(instruction)
+        self.active_board.state.record(
+            instruction,
+            concept_title=concept_title,
+            concept_index=concept_index,
+        )
 
     def remove(self, element_id: str) -> None:
         """Remove a specific element from the active board."""

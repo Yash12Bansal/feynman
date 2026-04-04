@@ -174,6 +174,8 @@ def _make_mock_ctx() -> MagicMock:
 
     userdata = MagicMock()
     userdata.board_manager = BoardManager()
+    userdata.current_concept = None
+    userdata.lesson_plan = None
     ctx.userdata = userdata
 
     return ctx

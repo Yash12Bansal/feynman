@@ -94,11 +94,15 @@ Use plain names — `sin(x)` not `Math.sin(x)`.
 ## Rules
 
 1. **Pixel coordinates**: origin top-left, x right, y DOWN. Canvas default 900x650. Center ≈ (450, 325).
-2. **svg_text** for plain labels, **svg_latex** for ALL math expressions. Write PROPER KaTeX LaTeX — not ascii approximations.
-   - Fractions: `\\frac{x^2}{2}` NOT `x^2/2` or `2x2`
-   - Integrals: `\\int_0^a x\\,dx` NOT `∫0a x dx`
-   - Evaluated: `\\left.\\frac{x^2}{2}\\right|_0^a` NOT `x2/2|0a`
-   - Superscripts: `a^{2}` NOT `a2`
+2. **svg_text** ONLY for plain-language labels. **svg_latex** for ANYTHING with math, symbols, or formulas.
+   - **svg_text examples** (plain labels): "Object", "Screen", "Barrier", "Reactants", "Step 1", "5 kg block"
+   - **svg_latex examples** (must use latex): "f = 10\\text{cm}", "\\theta = 30°", "F = mg", "v^2", "\\Delta x", "R_1 = 100\\,\\Omega"
+   - **Rule of thumb**: if it has subscripts, superscripts, Greek letters, equals signs with variables, fractions, or any math notation → svg_latex. When in doubt, use svg_latex.
+   - Write PROPER KaTeX LaTeX — not ascii approximations:
+     - Fractions: `\\frac{x^2}{2}` NOT `x^2/2` or `2x2`
+     - Integrals: `\\int_0^a x\\,dx` NOT `∫0a x dx`
+     - Evaluated: `\\left.\\frac{x^2}{2}\\right|_0^a` NOT `x2/2|0a`
+     - Superscripts: `a^{2}` NOT `a2`
    - Always double-escape backslashes in JSON: `\\frac`, `\\theta`, `\\int`
    - For step-by-step derivations, show each step as a separate svg_latex element with proper vertical spacing (increment y by ~40px per step).
 3. **Clean layouts**: use the full canvas. Spread elements out. Keep labels offset from elements they describe. Place equations in a separate area (bottom or corner).

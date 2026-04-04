@@ -146,3 +146,27 @@ The board needs a **semantic state model** the LLM can reason about — what's t
 - **Incremental over regenerative**: modify what's there rather than rebuilding from scratch.
 - **The old diagram engine's component library may still be useful** as a fast fallback or building block, even if it can't be the whole solution.
 - **Anticipation > reaction**: the teaching agent knows what's coming in the lesson plan; pre-generate where possible.
+
+## Active Multi-Phase Implementation: Board Intelligence & Latency
+
+**Status**: Phases 1-3 done, 4-9 remaining. Progress tracked in memory file.
+**Design doc**: `docs/design/06-board-intelligence-and-latency.md`
+**Progress**: `~/.claude/projects/-Users-yashbansal-proj-feynman/memory/board-intelligence-progress.md`
+
+### When user says "continue" (or similar):
+1. Read the progress file to find the next NOT STARTED phase
+2. Read the design doc section for that phase (line numbers in progress file)
+3. Implement directly (NOT via sub-agents — full quality requires main-thread judgment)
+4. Run `uv run pytest -x -v` and `uv run ruff check src/ tests/`, fix any issues
+5. Update progress file: mark phase DONE, record test count, note decisions
+6. Tell user: **"Phase X done. `/compact` then `continue`"** (or `/clear` if context heavy)
+7. Wait for user. After compact/clear, user says `continue` → go to step 1
+
+### Context management:
+- I implement directly for quality — sub-agents only for exploration within a phase
+- Each phase boundary = `/compact` or `/clear` from user (can be done from phone via tmux+SSH)
+- Goal: start each phase with <40k tokens occupied
+- Progress file is the durable state — survives compact/clear
+
+### To remove these instructions:
+Delete the "Active Multi-Phase Implementation" section from this file and delete `memory/board-intelligence-progress.md`.

@@ -364,7 +364,7 @@ function renderSvgElement(
             textAnchor={anchor}
             dominantBaseline={baseline}
             fontWeight={el.fontWeight ?? "normal"}
-            fontFamily={el.fontFamily ?? "sans-serif"}
+            fontFamily={el.fontFamily ?? "Inter, system-ui, sans-serif"}
             transform={el.angle ? `rotate(${el.angle}, ${x}, ${y})` : undefined}
             {...dataAttr}
           >
@@ -536,8 +536,18 @@ export function DesignDiagramContent({
     [elements],
   );
 
+  // Fingerprint triggers a CSS fade-in when the spec changes (e.g. modify_design_diagram).
+  const specFingerprint = useMemo(() => {
+    const els = spec.elements ?? [];
+    return `${spec.title ?? ""}-${els.length}-${els[0]?.id ?? ""}`;
+  }, [spec]);
+
   return (
-    <div className="design-diagram-content">
+    <div
+      className="design-diagram-content"
+      key={specFingerprint}
+      style={{ animation: "diagram-fade-in 0.3s ease-out" }}
+    >
       {/* Parameter sliders */}
       {(spec.parameters ?? []).length > 0 && (
         <div
@@ -583,7 +593,7 @@ export function DesignDiagramContent({
           overflow="visible"
           style={{
             display: "block",
-            fontFamily: "sans-serif",
+            fontFamily: "Inter, system-ui, sans-serif",
             borderRadius: 8,
             background: spec.backgroundColor ?? "#ffffff",
           }}

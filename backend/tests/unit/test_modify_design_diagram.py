@@ -186,11 +186,14 @@ def _make_mock_ctx(board_manager: BoardManager | None = None) -> MagicMock:
     ctx = MagicMock()
     ctx.wait_for_playout = AsyncMock()
     ctx.session.room_io.room.local_participant.publish_data = AsyncMock()
+    ctx.session.current_agent.update_instructions = AsyncMock()
 
     userdata = MagicMock()
     userdata.board_manager = board_manager or BoardManager()
     userdata.audit = SessionAudit()
     userdata.current_concept_index = 0
+    userdata.current_concept = None
+    userdata.lesson_plan = None
     userdata.anticipation = MagicMock()
     userdata.anticipation.match = MagicMock(return_value=None)
     ctx.userdata = userdata

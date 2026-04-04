@@ -7,6 +7,7 @@ from feynman.agent.prompts import (
     SCENE_INSTRUCTIONS,
     STATE_TOOL_INSTRUCTIONS,
     TEACHING_SYSTEM_PROMPT,
+    TOOL_ROUTING_INSTRUCTIONS,
     ZONE_PLACEMENT_INSTRUCTIONS,
     build_teaching_prompt,
 )
@@ -180,6 +181,88 @@ class TestZonePlacementInstructions:
         assert "top-left" in prompt
         assert "center-center" in prompt
         assert "bottom-right" in prompt
+
+    def test_pattern_concept_introduction(self):
+        assert "CONCEPT INTRODUCTION" in ZONE_PLACEMENT_INSTRUCTIONS
+
+    def test_pattern_step_by_step_derivation(self):
+        assert "STEP-BY-STEP DERIVATION" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "NEVER scatter derivation steps" in ZONE_PLACEMENT_INSTRUCTIONS
+
+    def test_pattern_problem_solving(self):
+        assert "PROBLEM SOLVING" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "bottom-right" in ZONE_PLACEMENT_INSTRUCTIONS
+
+    def test_pattern_comparison(self):
+        assert "COMPARISON" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Case A" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Case B" in ZONE_PLACEMENT_INSTRUCTIONS
+
+    def test_pattern_single_equation_focus(self):
+        assert "SINGLE EQUATION FOCUS" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "center-center" in ZONE_PLACEMENT_INSTRUCTIONS
+
+    def test_spatial_rules_present(self):
+        rules = ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Adjacent" in rules
+        assert "Top-to-bottom" in rules
+        assert "visual anchor" in rules
+        assert 'annotate(action="arrow")' in rules
+        assert "Clear before reuse" in rules
+        assert ">5 elements" in rules
+
+    def test_board_planning_step_present(self):
+        assert "Before Each Concept" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "teaching moment type" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "main visual" in ZONE_PLACEMENT_INSTRUCTIONS
+
+
+class TestToolRoutingInstructions:
+    def test_included_with_plan(self):
+        plan = _make_plan()
+        ctx = _make_ctx(plan=plan)
+        prompt = build_teaching_prompt(plan, ctx)
+        assert TOOL_ROUTING_INSTRUCTIONS in prompt
+
+    def test_included_without_plan(self):
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert TOOL_ROUTING_INSTRUCTIONS in prompt
+
+    def test_all_tools_routed(self):
+        """Every visual tool must appear in the routing table."""
+        for tool in (
+            "show_text",
+            "show_equation",
+            "step_equation",
+            "draw_design_diagram",
+            "modify_design_diagram",
+            "draw_scene",
+            "draw_diagram",
+            "show_graph",
+        ):
+            assert tool in TOOL_ROUTING_INSTRUCTIONS, f"{tool} missing from routing"
+
+    def test_decision_rules_present(self):
+        assert "Decision rules" in TOOL_ROUTING_INSTRUCTIONS
+        assert "NEVER put plain text" in TOOL_ROUTING_INSTRUCTIONS
+        assert "NEVER draw a diagram just" in TOOL_ROUTING_INSTRUCTIONS
+
+    def test_appears_before_individual_tool_sections(self):
+        """Routing section should appear before detailed tool instructions."""
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        routing_pos = prompt.index("Tool Routing")
+        design_pos = prompt.index("Detailed Diagrams")
+        scene_pos = prompt.index("Scientific Diagrams")
+        assert routing_pos < design_pos
+        assert routing_pos < scene_pos
+
+    def test_no_contradictory_prefer_guidance(self):
+        """Old 'Prefer this over draw_scene' should be gone from design instructions."""
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert "Prefer this over" not in prompt
 
 
 class TestSceneInstructions:

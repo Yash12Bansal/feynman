@@ -23,6 +23,7 @@ from feynman.agent.tools import (
     advance_concept,
     annotate,
     clear_board,
+    clear_cluster,
     draw_design_diagram,
     draw_diagram,
     draw_scene,
@@ -30,6 +31,7 @@ from feynman.agent.tools import (
     highlight_walk,
     modify_design_diagram,
     resolve_doubt,
+    set_lesson_topic,
     show_equation,
     show_graph,
     show_text,
@@ -60,11 +62,13 @@ ALL_TOOLS = [
     highlight_diagram_part,
     highlight_walk,
     clear_board,
+    clear_cluster,
     teach_pause,
     advance_concept,
     start_doubt_branch,
     resolve_doubt,
     switch_board,
+    set_lesson_topic,
 ]
 
 
@@ -108,12 +112,23 @@ class FeynmanAgent(Agent):
                         topic=self._topic,
                         graph_nodes=len(graph.nodes),
                     )
+                    self._teaching_ctx.audit.record(
+                        "curriculum", "graph_loaded",
+                        f"topic='{self._topic}', nodes={len(graph.nodes)}",
+                        source="ConceptGraph",
+                    )
                 else:
                     # Fallback: runtime generation (current behavior).
                     plan = await generate_lesson_plan(
                         topic=self._topic,
                         subject=self._subject,
                         grade_level=self._grade_level,
+                    )
+                    self._teaching_ctx.audit.record(
+                        "curriculum", "graph_missing_fallback_runtime",
+                        f"topic='{self._topic}' — no pre-computed graph found, "
+                        f"fell back to runtime LLM generation",
+                        source="LessonPlan",
                     )
 
                 self._teaching_ctx.lesson_plan = plan
@@ -140,6 +155,11 @@ class FeynmanAgent(Agent):
 
             except Exception:
                 logger.exception("agent.lesson_plan_failed", topic=self._topic)
+                self._teaching_ctx.audit.record(
+                    "curriculum", "plan_failed",
+                    f"topic='{self._topic}' — exception during plan generation, "
+                    f"falling back to free-form teaching",
+                )
                 # Continue without a plan — free-form teaching mode
 
         # Update instructions with lesson context
@@ -147,7 +167,7 @@ class FeynmanAgent(Agent):
             self._teaching_ctx.lesson_plan,
             self._teaching_ctx,
         )
-        self.update_instructions(prompt)
+        await self.update_instructions(prompt)
 
         # Generate greeting
         plan = self._teaching_ctx.lesson_plan
@@ -240,6 +260,7 @@ async def entrypoint(ctx: JobContext) -> None:
         vad=create_vad(),
         userdata=teaching_ctx,
         use_tts_aligned_transcript=True,
+        max_tool_steps=10,
     )
 
     await session.start(agent=agent, room=ctx.room)

@@ -73,6 +73,17 @@
   }
 }
 
+/* ── Design diagram in-place update fade ──────────────── */
+
+@keyframes diagram-fade-in {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* ── Board edge vignette ───────────────────────────────── */
 
 .wb-board-surface::after {
@@ -171,8 +182,9 @@
 /* ── Reduced motion: disable wobble + card animation ───── */
 
 @media (prefers-reduced-motion: reduce) {
-  .wb-card {
-    animation: none;
+  .wb-card,
+  .design-diagram-content {
+    animation: none !important;
   }
 
   .wb-board-layer {

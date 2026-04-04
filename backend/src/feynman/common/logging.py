@@ -1,5 +1,6 @@
 """Structured logging setup with structlog."""
 
+import contextlib
 import logging
 import sys
 
@@ -37,7 +38,29 @@ def setup_logging(log_level: str = "DEBUG") -> None:
         structlog.processors.TimeStamper(fmt="iso"),
     ]
 
-    formatter = structlog.stdlib.ProcessorFormatter(
+    class _IPCSafeFormatter(structlog.stdlib.ProcessorFormatter):
+        """Handle structlog records whose msg was stringified by LiveKit IPC.
+
+        LiveKit's subprocess log queue pickles LogRecords across processes.
+        structlog's ``wrap_for_formatter`` stores ``_logger`` and ``_name``
+        sentinel attrs + sets ``record.msg`` to a dict.  After IPC the
+        sentinels survive but ``msg`` becomes its ``str()`` representation.
+        ``ProcessorFormatter.format()`` checks ``_logger``/``_name`` (NOT
+        ``_structlog``) to decide whether to call ``record.msg.copy()``
+        — which then crashes on the string.
+
+        Fix: strip the sentinels when msg is a string so the record is
+        treated as a foreign (non-structlog) record.
+        """
+
+        def format(self, record: logging.LogRecord) -> str:
+            if isinstance(record.msg, str) and hasattr(record, "_logger"):
+                for attr in ("_logger", "_name"):
+                    with contextlib.suppress(AttributeError):
+                        delattr(record, attr)
+            return super().format(record)
+
+    formatter = _IPCSafeFormatter(
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
             structlog.dev.ConsoleRenderer(),

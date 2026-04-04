@@ -198,6 +198,9 @@ class AnticipationEngine:
         # Keys currently being generated (to avoid duplicate fire)
         self._generating: set[tuple[int, int]] = set()
         self._audit = audit
+        # Doubt branch cache — one-shot, cleared on resolve or first match
+        self._doubt_spec: dict[str, Any] | None = None
+        self._doubt_prompt: str = ""
 
     @property
     def cache_size(self) -> int:
@@ -368,13 +371,30 @@ class AnticipationEngine:
     ) -> dict[str, Any] | None:
         """Find a cached spec matching the agent's draw_design_diagram prompt.
 
-        Checks concept_index's cached suggestions first, then concept_index ± 1
-        as secondary search. Scores by keyword overlap (Jaccard).
-        Returns the best-matching spec if score > 0.3.
+        Checks doubt cache first (one-shot), then concept_index's cached
+        suggestions, then concept_index ± 1 as secondary search.
+        Scores by keyword overlap (Jaccard).
         """
         prompt_tokens = _meaningful_tokens(prompt)
         if not prompt_tokens:
             return None
+
+        # Check doubt cache first (one-shot — cleared after match).
+        if self._doubt_spec and self._doubt_prompt:
+            doubt_tokens = _meaningful_tokens(self._doubt_prompt)
+            score = _jaccard(prompt_tokens, doubt_tokens)
+            if score >= 0.15:
+                logger.info("anticipation.doubt_cache_hit", score=round(score, 3))
+                spec = self._doubt_spec
+                self._doubt_spec = None
+                self._doubt_prompt = ""
+                if self._audit:
+                    self._audit.record(
+                        "doubt",
+                        "visual_ready_before_needed",
+                        f"score={score:.3f}",
+                    )
+                return spec
 
         best_score = 0.0
         best_key: tuple[int, int] | None = None
@@ -410,6 +430,98 @@ class AnticipationEngine:
         )
         return None
 
+    # ── Doubt branch support ─────────────────────────────────
+
+    async def warm_doubt(
+        self,
+        concept_desc: str,
+        board_summary: str = "",
+        parent_concept: str = "",
+    ) -> None:
+        """Pre-generate a visual for a doubt branch.
+
+        Fired as a background task from start_doubt_branch(). The visual may
+        be ready by the time the agent calls draw_design_diagram.
+        """
+        prompt = f"A student has a doubt about: {concept_desc}"
+        if parent_concept:
+            prompt += f"\nThis came up while teaching: {parent_concept}"
+        if board_summary:
+            prompt += f"\nCurrent board shows: {board_summary}"
+        prompt += "\nDraw a clear, focused diagram that helps explain this concept."
+
+        self._doubt_prompt = prompt
+        if self._audit:
+            self._audit.record(
+                "doubt", "background_gen_fired", f"concept='{concept_desc[:60]}'"
+            )
+
+        t0 = time.monotonic()
+        try:
+            from feynman.agent.design_bridge import generate_design_diagram
+
+            spec = await generate_design_diagram(prompt, model="sonnet")
+            self._doubt_spec = spec
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            logger.info(
+                "anticipation.doubt_generated",
+                concept=concept_desc[:60],
+                elapsed_ms=round(elapsed_ms),
+            )
+        except Exception:
+            self._doubt_spec = None
+            logger.warning(
+                "anticipation.doubt_generation_failed",
+                concept=concept_desc[:60],
+                exc_info=True,
+            )
+
+    def clear_doubt_cache(self) -> None:
+        """Clear doubt-specific cache. Called when resolve_doubt() returns to main lesson."""
+        self._doubt_spec = None
+        self._doubt_prompt = ""
+
+    def evict_all(self) -> None:
+        """Clear the entire anticipation cache. Called on topic switch."""
+        count = len(self._cache)
+        self._cache.clear()
+        self._prompts.clear()
+        self._generating.clear()
+        self._doubt_spec = None
+        self._doubt_prompt = ""
+        if count:
+            logger.info("anticipation.evicted_all", former_size=count)
+        if self._audit:
+            self._audit.record(
+                "anticipation", "cache_evicted_all", f"cleared {count} entries",
+            )
+
+    def evict_before(self, concept_index: int) -> int:
+        """Remove cached specs for concepts before the given index.
+
+        Called when advancing concepts — specs for past concepts are unlikely
+        to be needed again. Returns number of entries evicted.
+        """
+        stale_keys = [k for k in self._cache if k[0] < concept_index]
+        for key in stale_keys:
+            del self._cache[key]
+            self._prompts.pop(key, None)
+        if stale_keys:
+            logger.info(
+                "anticipation.evicted",
+                count=len(stale_keys),
+                before_concept=concept_index,
+                cache_size=len(self._cache),
+            )
+            if self._audit:
+                self._audit.record(
+                    "anticipation",
+                    "cache_evicted",
+                    f"evicted={len(stale_keys)}, before_concept={concept_index}",
+                    count=len(stale_keys),
+                )
+        return len(stale_keys)
+
 
 # ── ConceptGraph loading ──────────────────────────────────
 
@@ -428,14 +540,14 @@ async def load_concept_graph(
     """
     search_dir = graph_dir or _GRAPH_OUTPUT_DIR
     if not search_dir.exists():
-        logger.debug("anticipation.no_graph_dir", path=str(search_dir))
+        logger.warning("anticipation.no_graph_dir", path=str(search_dir))
         return None
 
     # Import ConceptGraph from data_pre_compute (may not be installed).
     try:
         from lecture_pipeline.graph.models import ConceptGraph
     except ImportError:
-        logger.debug("anticipation.graph_import_unavailable")
+        logger.warning("anticipation.graph_import_unavailable")
         return None
 
     topic_tokens = _meaningful_tokens(topic)
