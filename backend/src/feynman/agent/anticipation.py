@@ -117,23 +117,20 @@ def _build_prompt_from_graph_node(
 ) -> str | None:
     """Extract a design diagram prompt from a ConceptGraph node's summary.
 
-    Returns None if the node doesn't warrant a design diagram (e.g., purely
-    algebraic concept with no visual/spatial component).
-
-    When it does return a prompt, the prompt is far richer than LessonPlan
-    visual_suggestions because it includes the full node summary with specific
-    labels, setups, and relationships.
+    Returns None only if the node has no summary at all. Every ConceptGraph
+    node with content is worth pre-generating a visual for — the design agent
+    can always create a useful teaching diagram from rich curriculum text,
+    even for equation-heavy topics (it draws annotated equation breakdowns,
+    variable relationship diagrams, etc.).
     """
     summary = node.summary or ""
     topic = node.topic_name or ""
 
-    # Check if this node's content describes something visually spatial.
-    combined = f"{topic} {summary}"
-    if not _needs_design_agent(combined):
+    if not summary:
         return None
 
     # Build a rich prompt from the node's exhaustive summary.
-    parts = [f"Draw a detailed diagram for: {topic}."]
+    parts = [f"Draw a detailed educational diagram for: {topic}."]
 
     if summary:
         # Include relevant visual context from the summary (truncated to keep
@@ -412,7 +409,9 @@ class AnticipationEngine:
                     best_score = score
                     best_key = key
 
-        threshold = 0.3
+        # Lower threshold for same concept (agent likely paraphrased the pre-generated prompt)
+        # Higher threshold for adjacent concepts (±1 lookahead)
+        threshold = 0.15 if (best_key and best_key[0] == concept_index) else 0.3
         if best_key is not None and best_score >= threshold:
             logger.info(
                 "anticipation.match_found",
@@ -429,6 +428,18 @@ class AnticipationEngine:
             prompt=prompt[:60],
         )
         return None
+
+    def get_prompts_for_concept(self, concept_index: int) -> list[str]:
+        """Return pre-generated diagram prompts for a concept.
+
+        May be empty if the concept hasn't been warmed yet or has no visual content.
+        Used by the prompt builder to show the agent what's already cached.
+        """
+        return [
+            prompt
+            for (ci, _si), prompt in self._prompts.items()
+            if ci == concept_index
+        ]
 
     # ── Doubt branch support ─────────────────────────────────
 

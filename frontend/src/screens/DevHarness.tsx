@@ -18,12 +18,15 @@ const TYPE_LABELS: Record<VisualType, string> = {
   show_equation: "Equation",
   step_equation: "Step Equation",
   draw_diagram: "Diagram",
+  draw_design_diagram: "Design Diagram",
   show_graph: "Graph",
   draw_scene: "Scene",
   highlight: "Highlight",
+  highlight_walk: "Highlight Walk",
   annotate: "Annotate",
   clear: "Clear",
   switch_board: "Switch Board",
+  scroll_view: "Scroll View",
 };
 
 const TYPE_COLORS: Record<VisualType, string> = {
@@ -31,12 +34,15 @@ const TYPE_COLORS: Record<VisualType, string> = {
   show_equation: "#fbbf24",
   step_equation: "#fbbf24",
   draw_diagram: "#4ade80",
+  draw_design_diagram: "#34d399",
   show_graph: "#a78bfa",
   draw_scene: "#22d3ee",
   highlight: "#fb923c",
+  highlight_walk: "#fb923c",
   annotate: "#f472b6",
   clear: "#6b7280",
   switch_board: "#94a3b8",
+  scroll_view: "#818cf8",
 };
 
 export function DevHarness() {

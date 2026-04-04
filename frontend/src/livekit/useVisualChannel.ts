@@ -5,11 +5,13 @@ import type {
   SwitchBoardInstruction,
   ClearInstruction,
   HighlightWalkInstruction,
+  ScrollViewInstruction,
 } from "../types/visuals";
 import { useBoardStore } from "../engine/whiteboard/useBoardStore";
 import type {
   BoardMeta,
   BoardTransition,
+  CameraState,
 } from "../engine/whiteboard/useBoardStore";
 
 export interface VisualChannelResult {
@@ -23,6 +25,7 @@ export interface VisualChannelResult {
   activeBoardId: string;
   activeBoardMeta: BoardMeta | null;
   pendingTransition: BoardTransition | null;
+  cameraState: CameraState;
   clearTransition: () => void;
   getBoardInstructions: (boardId: string) => VisualInstruction[];
   getBoardMeta: (boardId: string) => BoardMeta | null;
@@ -42,7 +45,7 @@ export function useVisualChannel(): VisualChannelResult {
 
   const store = useBoardStore();
   // Destructure stable methods (all wrapped in useCallback with [] deps)
-  const { switchBoard, addInstruction, clearBoard } = store;
+  const { switchBoard, addInstruction, clearBoard, scrollTo } = store;
 
   const onMessage = useCallback(
     (msg: { payload: Uint8Array; topic?: string; from?: unknown }) => {
@@ -54,6 +57,10 @@ export function useVisualChannel(): VisualChannelResult {
           switchBoard(parsed as SwitchBoardInstruction);
           // Clear walks on board switch — they're tied to the current board
           setActiveWalks([]);
+        } else if (parsed.type === "scroll_view") {
+          // Ephemeral — update camera position, don't store in board
+          const scroll = parsed as ScrollViewInstruction;
+          scrollTo(scroll.target_x, scroll.target_y);
         } else if (parsed.type === "clear") {
           const clear = parsed as ClearInstruction;
           // boardId defaults to active board inside clearBoard when undefined
@@ -100,7 +107,7 @@ export function useVisualChannel(): VisualChannelResult {
         console.error("[VisualChannel] Failed to parse:", err);
       }
     },
-    [switchBoard, addInstruction, clearBoard],
+    [switchBoard, addInstruction, clearBoard, scrollTo],
   );
 
   useDataChannel("visuals", onMessage);
@@ -113,6 +120,7 @@ export function useVisualChannel(): VisualChannelResult {
     activeBoardId: store.activeBoardId,
     activeBoardMeta: store.activeBoardMeta,
     pendingTransition: store.pendingTransition,
+    cameraState: store.cameraState,
     clearTransition: store.clearTransition,
     getBoardInstructions: store.getBoardInstructions,
     getBoardMeta: store.getBoardMeta,

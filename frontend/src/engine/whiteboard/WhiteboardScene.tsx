@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import gsap from "gsap";
 import type {
   VisualInstruction,
   HighlightInstruction,
@@ -19,10 +27,10 @@ import { AnnotationLayer } from "./content/AnnotationLayer";
 import { AliveFilter } from "./AliveFilter";
 import { BoundsReporter } from "./BoundsReporter";
 import { BoardNavigator } from "./BoardNavigator";
-import type { BoardTransition, BoardMeta } from "./useBoardStore";
+import type { BoardTransition, BoardMeta, CameraState } from "./useBoardStore";
 import "./WhiteboardScene.css";
 
-// ── Scale hook ────────────────────────────────────────────
+// ── Scale hook ────────────���───────────────────────────────
 
 interface BoardScale {
   scale: number;
@@ -106,9 +114,17 @@ function ZoneDebugOverlay({ layout }: { layout: BoardLayout }) {
   );
 }
 
-// ── WhiteboardScene ───────────────────────────────────────
+// ── Tile key helpers ──────────────────────────────────────
+
+/** Encode tile coordinates to a stable string key. */
+function tileKey(tx: number, ty: number): string {
+  return `${tx},${ty}`;
+}
+
+// ── WhiteboardScene ─────────��─────────────────────────────
 
 const DEFAULT_ZONE: BoardZone = "center-center";
+const SCROLL_DURATION = 0.7;
 
 export interface WhiteboardSceneProps {
   instructions: VisualInstruction[];
@@ -120,6 +136,8 @@ export interface WhiteboardSceneProps {
   /** Board navigation — all optional. When absent, renders exactly as before. */
   activeBoardMeta?: BoardMeta | null;
   pendingTransition?: BoardTransition | null;
+  /** Camera position for infinite canvas scrolling. */
+  cameraState?: CameraState;
   onTransitionComplete?: () => void;
   getBoardInstructions?: (boardId: string) => VisualInstruction[];
 }
@@ -131,6 +149,7 @@ export function WhiteboardScene({
   activeBoardId,
   activeBoardMeta,
   pendingTransition,
+  cameraState,
   onTransitionComplete,
   getBoardInstructions,
 }: WhiteboardSceneProps) {
@@ -140,6 +159,9 @@ export function WhiteboardScene({
   const { scale, offsetX, offsetY } = useBoardScale(viewportRef);
 
   const boardSurfaceRef = useRef<HTMLDivElement>(null);
+  const boardElRef = useRef<HTMLDivElement>(null);
+  const cameraTweenRef = useRef<gsap.core.Tween | null>(null);
+  const prevCameraRef = useRef<CameraState>({ tileX: 0, tileY: 0 });
 
   // Separate renderable elements from effects
   const { elements, highlights, annotations } = useMemo(() => {
@@ -152,7 +174,11 @@ export function WhiteboardScene({
         hlights.push(instr);
       } else if (instr.type === "annotate") {
         anns.push(instr);
-      } else if (instr.type !== "clear" && instr.type !== "switch_board") {
+      } else if (
+        instr.type !== "clear" &&
+        instr.type !== "switch_board" &&
+        instr.type !== "scroll_view"
+      ) {
         elems.push(instr);
       }
     }
@@ -160,29 +186,121 @@ export function WhiteboardScene({
     return { elements: elems, highlights: hlights, annotations: anns };
   }, [instructions]);
 
-  // Group elements by zone
-  const zoneGroups = useMemo(() => {
-    const groups = new Map<BoardZone, VisualInstruction[]>();
+  // Group elements by tile, then by zone within each tile
+  const tileGroups = useMemo(() => {
+    const tiles = new Map<
+      string,
+      { tx: number; ty: number; zones: Map<BoardZone, VisualInstruction[]> }
+    >();
 
     for (const instr of elements) {
+      const tx = instr._tileX ?? 0;
+      const ty = instr._tileY ?? 0;
+      const key = tileKey(tx, ty);
+      let tile = tiles.get(key);
+      if (!tile) {
+        tile = { tx, ty, zones: new Map() };
+        tiles.set(key, tile);
+      }
       const zone = instr.zone ?? DEFAULT_ZONE;
-      let list = groups.get(zone);
+      let list = tile.zones.get(zone);
       if (!list) {
         list = [];
-        groups.set(zone, list);
+        tile.zones.set(zone, list);
       }
       list.push(instr);
     }
 
-    return groups;
+    return tiles;
   }, [elements]);
 
   // Inject theme CSS variables on mount
-  const boardRef = useCallback((el: HTMLDivElement | null) => {
+  const themeRef = useCallback((el: HTMLDivElement | null) => {
     if (el) injectThemeVars(el);
   }, []);
 
-  const boardTransform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+  // ── Compute board transform ───────────────────────────────
+
+  const camTileX = cameraState?.tileX ?? 0;
+  const camTileY = cameraState?.tileY ?? 0;
+
+  const boardTransform = `translate(${-(camTileX * BOARD_WIDTH) * scale + offsetX}px, ${-(camTileY * BOARD_HEIGHT) * scale + offsetY}px) scale(${scale})`;
+
+  // ── Animate camera pan ────────────────────────────────────
+  // Uses useLayoutEffect so GSAP overrides the style before paint,
+  // preventing a flash of the final position.
+
+  useLayoutEffect(() => {
+    const el = boardElRef.current;
+    if (!el) return;
+
+    const cameraChanged =
+      prevCameraRef.current.tileX !== camTileX ||
+      prevCameraRef.current.tileY !== camTileY;
+
+    if (!cameraChanged) {
+      // No camera change — just update prev ref (handles initial render)
+      prevCameraRef.current = { tileX: camTileX, tileY: camTileY };
+      // Clear any GSAP inline overrides so React's style prop takes effect
+      gsap.set(el, { clearProps: "transform" });
+      return;
+    }
+
+    // Kill any in-progress tween
+    if (cameraTweenRef.current) {
+      cameraTweenRef.current.kill();
+      cameraTweenRef.current = null;
+    }
+
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (prefersReduced) {
+      prevCameraRef.current = { tileX: camTileX, tileY: camTileY };
+      return;
+    }
+
+    // Compute old and new pixel positions
+    const oldX =
+      -(prevCameraRef.current.tileX * BOARD_WIDTH) * scale + offsetX;
+    const oldY =
+      -(prevCameraRef.current.tileY * BOARD_HEIGHT) * scale + offsetY;
+    const newX = -(camTileX * BOARD_WIDTH) * scale + offsetX;
+    const newY = -(camTileY * BOARD_HEIGHT) * scale + offsetY;
+
+    prevCameraRef.current = { tileX: camTileX, tileY: camTileY };
+
+    // Animate from old position to new position.
+    // GSAP overrides React's style.transform during animation.
+    // On complete, clear GSAP props so React's style prop takes over.
+    cameraTweenRef.current = gsap.fromTo(
+      el,
+      {
+        x: oldX,
+        y: oldY,
+        scale,
+      },
+      {
+        x: newX,
+        y: newY,
+        scale,
+        duration: SCROLL_DURATION,
+        ease: "power2.inOut",
+        onComplete: () => {
+          cameraTweenRef.current = null;
+          gsap.set(el, { clearProps: "transform" });
+        },
+      },
+    );
+
+    return () => {
+      if (cameraTweenRef.current) {
+        cameraTweenRef.current.kill();
+        cameraTweenRef.current = null;
+      }
+    };
+  }, [camTileX, camTileY, scale, offsetX, offsetY]);
 
   const hasBoardNav =
     onTransitionComplete !== undefined && getBoardInstructions !== undefined;
@@ -191,31 +309,45 @@ export function WhiteboardScene({
     <div ref={boardSurfaceRef} className="wb-board-surface">
       <AliveFilter />
       {debugZones && <ZoneDebugOverlay layout={layout} />}
-      {Array.from(zoneGroups.entries()).map(([zone, zoneInstructions]) => {
-        const { inner } = layout.zones[zone];
-        return (
-          <div
-            key={zone}
-            className="wb-zone"
-            data-zone={zone}
-            style={{
-              left: inner.x,
-              top: inner.y,
-              width: inner.width,
-              height: inner.height,
-            }}
-          >
-            {zoneInstructions.map((instr, idx) => (
-              <WhiteboardCard
-                key={instr.element_id ?? `wb-${zone}-${idx}`}
-                instruction={instr}
+      {Array.from(tileGroups.values()).map(({ tx, ty, zones: zoneMap }) => (
+        <div
+          key={tileKey(tx, ty)}
+          className="wb-tile"
+          style={{
+            position: "absolute",
+            left: tx * BOARD_WIDTH,
+            top: ty * BOARD_HEIGHT,
+            width: BOARD_WIDTH,
+            height: BOARD_HEIGHT,
+          }}
+        >
+          {Array.from(zoneMap.entries()).map(([zone, zoneInstructions]) => {
+            const { inner } = layout.zones[zone];
+            return (
+              <div
+                key={zone}
+                className="wb-zone"
+                data-zone={zone}
+                style={{
+                  left: inner.x,
+                  top: inner.y,
+                  width: inner.width,
+                  height: inner.height,
+                }}
               >
-                <InstructionSwitch instruction={instr} />
-              </WhiteboardCard>
-            ))}
-          </div>
-        );
-      })}
+                {zoneInstructions.map((instr, idx) => (
+                  <WhiteboardCard
+                    key={instr.element_id ?? `wb-${zone}-${idx}`}
+                    instruction={instr}
+                  >
+                    <InstructionSwitch instruction={instr} />
+                  </WhiteboardCard>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      ))}
       <AnnotationLayer
         annotations={annotations}
         boardRef={boardSurfaceRef}
@@ -237,7 +369,10 @@ export function WhiteboardScene({
       <ElementRegistryContext.Provider value={registry}>
         <div ref={viewportRef} className="wb-viewport">
           <div
-            ref={boardRef}
+            ref={(el) => {
+              boardElRef.current = el;
+              themeRef(el);
+            }}
             className="wb-board"
             style={{
               width: BOARD_WIDTH,

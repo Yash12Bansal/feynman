@@ -484,3 +484,60 @@ class TestSessionAudit:
         audit.record("anticipation", "cache_hit")
         text = audit.summary_text()
         assert "SESSION AUDIT" in text
+
+
+class TestGetPromptsForConcept:
+    """Accessor that exposes pre-generated prompts for the prompt builder."""
+
+    def test_returns_prompts_for_concept(self):
+        engine = AnticipationEngine()
+        engine._prompts[(2, 0)] = "Draw a lens diagram"
+        engine._prompts[(2, 1)] = "Draw a ray diagram"
+        engine._prompts[(3, 0)] = "Draw a wave diagram"
+
+        result = engine.get_prompts_for_concept(2)
+        assert len(result) == 2
+        assert "Draw a lens diagram" in result
+        assert "Draw a ray diagram" in result
+
+    def test_returns_empty_when_not_warmed(self):
+        engine = AnticipationEngine()
+        assert engine.get_prompts_for_concept(0) == []
+
+    def test_returns_empty_for_wrong_concept(self):
+        engine = AnticipationEngine()
+        engine._prompts[(1, 0)] = "Draw a force diagram"
+        assert engine.get_prompts_for_concept(5) == []
+
+
+class TestLoweredThreshold:
+    """Same-concept matching uses lower threshold (0.15 vs 0.3)."""
+
+    def test_same_concept_lower_threshold_hits(self):
+        """A moderate-similarity prompt should match at the same concept index."""
+        engine = AnticipationEngine()
+        engine._cache[(0, 0)] = {"title": "SHM", "elements": []}
+        engine._prompts[(0, 0)] = (
+            "Draw a detailed diagram for: Simple Harmonic Motion. "
+            "Context: A mass-spring system with displacement x from equilibrium."
+        )
+        # Agent writes a somewhat different prompt for the same concept
+        result = engine.match(
+            "Draw a mass-spring system showing displacement and restoring force",
+            concept_index=0,
+        )
+        # With lowered threshold (0.15) this should match
+        assert result is not None
+        assert result["title"] == "SHM"
+
+    def test_adjacent_concept_keeps_higher_threshold(self):
+        """Adjacent concept (±1) still needs 0.3 threshold."""
+        engine = AnticipationEngine()
+        engine._cache[(0, 0)] = {"title": "X", "elements": []}
+        engine._prompts[(0, 0)] = "Draw a spring mass system oscillating"
+        # Very loose match — should fail at 0.3 threshold for adjacent concept
+        result = engine.match(
+            "Draw a totally different topic about light refraction",
+            concept_index=1,
+        )
+        assert result is None

@@ -456,9 +456,13 @@ function renderSvgElement(
 function LatexOverlay({
   el,
   params,
+  specWidth,
+  specHeight,
 }: {
   el: DesignDiagramElement & { type: "svg_latex" };
   params: Record<string, number>;
+  specWidth: number;
+  specHeight: number;
 }) {
   const x = resolveValue(el.x, params);
   const y = resolveValue(el.y, params);
@@ -482,14 +486,18 @@ function LatexOverlay({
     }
   }, [tex]);
 
+  // Convert spec coordinates to percentages so overlays scale with the SVG viewBox.
+  const leftPct = `${(x / specWidth) * 100}%`;
+  const topPct = `${(y / specHeight) * 100}%`;
+
   return (
     <div
       ref={ref}
       data-design-element={el.id ?? undefined}
       style={{
         position: "absolute",
-        left: x,
-        top: y,
+        left: leftPct,
+        top: topPct,
         fontSize: el.fontSize ?? 16,
         color: el.color ?? "#000",
         pointerEvents: "none",
@@ -586,11 +594,10 @@ export function DesignDiagramContent({
       )}
 
       {/* SVG + KaTeX overlay container */}
-      <div style={{ position: "relative", width: "100%", overflow: "visible" }}>
+      <div style={{ position: "relative", width: "100%" }}>
         <svg
           width="100%"
           viewBox={`0 0 ${width} ${height}`}
-          overflow="visible"
           style={{
             display: "block",
             fontFamily: "Inter, system-ui, sans-serif",
@@ -607,6 +614,8 @@ export function DesignDiagramContent({
             key={`latex-${el.id ?? i}`}
             el={el as DesignDiagramElement & { type: "svg_latex" }}
             params={paramValues}
+            specWidth={width}
+            specHeight={height}
           />
         ))}
       </div>
