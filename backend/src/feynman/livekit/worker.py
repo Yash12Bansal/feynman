@@ -159,6 +159,29 @@ class FeynmanAgent(Agent):
                     )
                 )
 
+                # Rebuild prompt once warm completes — initial prompt goes out
+                # immediately (fast session start), then gets updated with
+                # pre-rendered visual prompts for the agent to use.
+                async def _update_after_warm() -> None:
+                    try:
+                        await self._warm_task
+                    except Exception:
+                        logger.warning("agent.warm_task_failed", exc_info=True)
+                        return
+                    prompt = build_teaching_prompt(
+                        self._teaching_ctx.lesson_plan,
+                        self._teaching_ctx,
+                    )
+                    await self.update_instructions(prompt)
+                    logger.info(
+                        "agent.prompt_updated_post_warm",
+                        cache_size=self._teaching_ctx.anticipation.cache_size,
+                    )
+
+                self._prompt_rebuild_task = asyncio.create_task(
+                    _update_after_warm()
+                )
+
             except Exception:
                 logger.exception("agent.lesson_plan_failed", topic=self._topic)
                 self._teaching_ctx.audit.record(

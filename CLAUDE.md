@@ -147,26 +147,65 @@ The board needs a **semantic state model** the LLM can reason about — what's t
 - **The old diagram engine's component library may still be useful** as a fast fallback or building block, even if it can't be the whole solution.
 - **Anticipation > reaction**: the teaching agent knows what's coming in the lesson plan; pre-generate where possible.
 
-## Active Multi-Phase Implementation: Board Intelligence & Latency
+## Active Multi-Phase Implementation: Curriculum Graph Pipeline
 
-**Status**: Phases 1-3 done, 4-9 remaining. Progress tracked in memory file.
-**Design doc**: `docs/design/06-board-intelligence-and-latency.md`
-**Progress**: `~/.claude/projects/-Users-yashbansal-proj-feynman/memory/board-intelligence-progress.md`
+**Status**: Design complete, Phase 1 next. 13 phases total.
+**Design doc**: `docs/design/08-curriculum-graph-pipeline.md` — the SINGLE SOURCE OF TRUTH for this work.
+**Memory**: `~/.claude/projects/-Users-yashbansal-proj-feynman/memory/curriculum-graph-pipeline.md`
+**Codebase**: `data_pre_compute/` — the pipeline being rebuilt.
 
-### When user says "continue" (or similar):
-1. Read the progress file to find the next NOT STARTED phase
-2. Read the design doc section for that phase (line numbers in progress file)
-3. Implement directly (NOT via sub-agents — full quality requires main-thread judgment)
-4. Run `uv run pytest -x -v` and `uv run ruff check src/ tests/`, fix any issues
-5. Update progress file: mark phase DONE, record test count, note decisions
-6. Tell user: **"Phase X done. `/compact` then `continue`"** (or `/clear` if context heavy)
-7. Wait for user. After compact/clear, user says `continue` → go to step 1
+### Reference Codebase (IMPORTANT)
+**Repo**: `/Users/yashbansal/proj/patient-medical-graph`
+**Branches**: `feature/deployable-feature-branch` and `feature/cyper-standardization-updates-v2`
+**Why**: Production-grade patterns for graph ingestion, validation, entity resolution, Neo4j schema, salience scoring. Reference these for implementation quality — don't copy blindly, adapt the patterns to our educational domain.
+**Key files to reference**:
+- `pmg/src/pmg/ingestion/models/extraction_result.py` — canonical intermediate format
+- `pmg/src/pmg/ingestion/extraction_validator.py` — structural validation pattern
+- `pmg/src/pmg/ingestion/extraction_merger.py` — entity merge pattern
+- `pmg/src/pmg/ingestion/json_to_cypher.py` — deterministic Cypher generation
+- `pmg/src/pmg/ingestion/prompts/schema_context.py` — schema injection into LLM prompts
+- `pmg/src/pmg/ingestion/validation/post_processor.py` — deterministic post-processing
+- `pmg/src/pmg/db/schema.py` — Neo4j schema initialization
+- `pmg/src/pmg/services/salience/` — salience scoring (static + structural + dynamic)
+
+### Phase Summary (13 phases)
+1. **Foundation** — Pydantic models, Neo4j schema, stable ID generation
+2. **Book Skeleton** — Single LLM call extracts entire book's structure
+3. **Anchor Extraction** — Deterministic regex: section numbers, figures, examples (pre-LLM)
+4. **Chapter Extraction** — Book-aware two-pass LLM extraction (structure → content)
+5. **Structural Validation** — Completeness checks against anchors + gap-filling loop
+6. **Entity Resolution** — Hash-based chunk merging within chapters
+7. **Book Unification** — Cross-chapter resolve, hierarchy, shared concept detection
+8. **Neo4j Ingestion** — Cypher generation + embeddings
+9. **Salience Scoring** — Static (rule-based) + structural (PageRank)
+10. **Semantic Validation** — LLM spot-checks on sample
+11. **Pipeline + CLI** — Wire everything, `ingest-book` command
+12. **Visual Pre-Generation** — DiagramSpec for every concept with visual_hint
+13. **Cleanup** — Delete dead code, Poetry → uv
+
+### When user says "continue" or "start phase X":
+1. Read the design doc (`docs/design/08-curriculum-graph-pipeline.md`) for that phase's section
+2. Read the memory file for reference codebase paths and key decisions
+3. Check out the PMG reference branch if needed: `git checkout remotes/origin/feature/deployable-feature-branch`
+4. Implement the phase in `data_pre_compute/src/lecture_pipeline/curriculum/`
+5. Tests alongside code — every phase has test criteria in the design doc
+6. After phase: tell user **"Phase X done. `/compact` then `continue`"**
+
+### Key architectural decisions (don't re-debate these):
+- **Neo4j** as curriculum store (graph evolves at runtime)
+- **Whole-book-first** approach (BookSkeleton → book-aware chapter extraction)
+- **Section numbers as extraction floor** (every numbered section must have ≥1 node)
+- **Typed concept nodes** (FORMULA, DEFINITION, DERIVATION, EXAMPLE, etc.)
+- **Visual hints** bridge curriculum graph → design_agent / board intelligence
+- **Pre-generated DiagramSpecs** eliminate 10-15s latency for ~70% of teaching visuals
+- **No pre-baked lecture scripts** — the graph IS the curriculum
+- **Three-graph architecture**: curriculum (shared spine) + dashboard state (ephemeral) + student knowledge (per-student)
 
 ### Context management:
-- I implement directly for quality — sub-agents only for exploration within a phase
-- Each phase boundary = `/compact` or `/clear` from user (can be done from phone via tmux+SSH)
-- Goal: start each phase with <40k tokens occupied
-- Progress file is the durable state — survives compact/clear
+- Implement directly for quality — sub-agents only for exploration
+- Each phase boundary = `/compact` or `/clear`
+- Design doc + memory file are durable state — survive compact/clear
+- Always reference PMG codebase for implementation patterns
 
 ### To remove these instructions:
-Delete the "Active Multi-Phase Implementation" section from this file and delete `memory/board-intelligence-progress.md`.
+Delete the "Active Multi-Phase Implementation" section and update memory files.

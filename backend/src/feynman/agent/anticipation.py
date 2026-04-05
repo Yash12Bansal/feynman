@@ -393,10 +393,29 @@ class AnticipationEngine:
                     )
                 return spec
 
+        # Direct concept-index match — cache was built from curriculum for
+        # this exact concept, so Jaccard similarity isn't needed.
+        direct_keys = [k for k in self._cache if k[0] == concept_index]
+        if direct_keys:
+            key = min(direct_keys)  # prefer suggestion_index 0
+            logger.info(
+                "anticipation.concept_index_hit",
+                concept=concept_index,
+                key=key,
+            )
+            if self._audit:
+                self._audit.record(
+                    "anticipation",
+                    "concept_index_hit",
+                    f"concept={concept_index}, key={key}",
+                    concept_index=concept_index,
+                )
+            return self._cache[key]
+
         best_score = 0.0
         best_key: tuple[int, int] | None = None
 
-        # Primary: exact concept index. Secondary: ±1.
+        # Fallback: Jaccard matching for cross-concept (±1) lookups.
         search_indices = [concept_index, concept_index - 1, concept_index + 1]
 
         for ci in search_indices:

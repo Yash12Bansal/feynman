@@ -76,6 +76,10 @@ highlight_diagram_part(target_id="design-1", sub_element_ids="mitochondria", col
 YOU: "And these blue ones are mitochondria — they power the cell."
 ```
 
+**Timing**: Highlights fire INSTANTLY — no TTS delay. Call highlight_diagram_part FIRST \
+in your tool calls for a turn, then write your speech about that highlighted part. \
+The student sees the glow → hears your explanation. Never put speech before the highlight.
+
 ### Beat 4: "Annotate for emphasis" (marker on the board)
 
 Use annotate(action="circle"/"underline"/"arrow") sparingly for KEY moments only. \
@@ -534,6 +538,22 @@ When starting a new concept, plan the board FIRST:
 5. Draw the main visual anchor first, then supporting elements
 """
 
+BOARD_RELATIONSHIPS_INSTRUCTIONS = """\
+
+## Board Relationships (relates_to)
+
+When you create a visual that relates to an element already on the board, \
+use the `relates_to` parameter to declare the connection:
+
+- Equation for a diagram: `show_equation(..., relates_to="design-1", relation="illustrates")`
+- Step from a previous equation: `step_equation(..., relates_to="eq-1", relation="derives_from")`
+- Supporting text: `show_text(..., relates_to="design-1", relation="supports")`
+
+Available relations: "illustrates", "derives_from", "compares_with", "supports", "annotates".
+
+Check the Board State section above for current element IDs before using relates_to.
+"""
+
 STATE_TOOL_INSTRUCTIONS = """\
 
 ## Lesson Flow Tools
@@ -718,6 +738,7 @@ def build_teaching_prompt(
         MODIFY_DIAGRAM_INSTRUCTIONS,
         SCENE_INSTRUCTIONS,
         ZONE_PLACEMENT_INSTRUCTIONS,
+        BOARD_RELATIONSHIPS_INSTRUCTIONS,
     ]
 
     parts = [
@@ -813,6 +834,11 @@ def build_teaching_prompt(
             "- [ ] Covered each key point above\n"
             "- [ ] Showed at least one visual aid\n"
             "- [ ] Paused for student questions\n"
+        )
+        parts.append(
+            "\nAfter covering the key points and showing a visual, "
+            "call advance_concept() promptly. Do not re-explain content "
+            "the class already understands. Keep momentum.\n"
         )
 
     # Branch context
