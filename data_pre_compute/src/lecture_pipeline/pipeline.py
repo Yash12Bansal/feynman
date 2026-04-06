@@ -25,6 +25,7 @@ from .curriculum.anchors import DeterministicAnchorExtractor
 from .curriculum.anchors.models import ExtractionAnchors
 from .curriculum.chapter_extractor import ChapterExtractor
 from .curriculum.ingestion import CypherGenerator, EmbeddingGenerator, Neo4jWriter
+from .curriculum.schema import VerificationReport, verify_ingestion
 from .curriculum.merge import ExtractionMerger, MergeReport
 from .curriculum.merge.text_chunker import TextChunk, chunk_text, needs_chunking
 from .curriculum.models import BookSkeleton, CurriculumExtractionResult
@@ -92,6 +93,7 @@ class PipelineReport:
     salience_report: SalienceReport | None = None
     visual_generation_report: VisualGenerationReport | None = None
     visual_write_report: VisualWriteReport | None = None
+    verification_report: VerificationReport | None = None
     total_elapsed_seconds: float = 0.0
 
     def summary(self) -> str:
@@ -118,6 +120,8 @@ class PipelineReport:
             lines.append(f"  {self.visual_generation_report.summary()}")
         if self.visual_write_report:
             lines.append(f"  {self.visual_write_report.summary()}")
+        if self.verification_report:
+            lines.append(f"  {self.verification_report.summary()}")
         lines.append(f"  Total time: {self.total_elapsed_seconds:.1f}s")
         return "\n".join(lines)
 
@@ -259,7 +263,7 @@ class CurriculumPipeline:
 
         # --- Stage 6: Neo4j ingestion ---
         if not skip_neo4j:
-            ingestion_report, embedding_report, salience_report, visual_write_report = (
+            ingestion_report, embedding_report, salience_report, visual_write_report, verification_report = (
                 await self._ingest_to_neo4j(
                     unified,
                     visuals=visuals,
@@ -272,6 +276,7 @@ class CurriculumPipeline:
             report.embedding_report = embedding_report
             report.salience_report = salience_report
             report.visual_write_report = visual_write_report
+            report.verification_report = verification_report
         else:
             logger.info("Skipping Neo4j ingestion (--skip-neo4j).")
 
@@ -442,12 +447,13 @@ class CurriculumPipeline:
         skip_embeddings: bool = False,
         skip_salience: bool = False,
         on_stage: StageCallback | None = None,
-    ) -> tuple[IngestionReport, EmbeddingReport | None, SalienceReport | None, VisualWriteReport | None]:
-        """Ingest unified extraction into Neo4j: cypher → visuals → embeddings → salience."""
+    ) -> tuple[IngestionReport, EmbeddingReport | None, SalienceReport | None, VisualWriteReport | None, VerificationReport | None]:
+        """Ingest unified extraction into Neo4j: cypher → visuals → embeddings → salience → verify."""
         notify = on_stage or (lambda _s, _d: None)
         embedding_report = None
         salience_report = None
         visual_write_report = None
+        verification_report = None
 
         async with Neo4jWriter(self.config.neo4j) as writer:
             # Generate and execute Cypher
@@ -501,4 +507,23 @@ class CurriculumPipeline:
                 except Exception:
                     logger.exception("Salience scoring failed (non-fatal).")
 
-        return ingestion_report, embedding_report, salience_report, visual_write_report
+            # Post-ingestion verification
+            notify("verify", "Verifying ingestion...")
+            try:
+                verification_report = await verify_ingestion(
+                    writer.driver,
+                    expected_node_uids=unified.node_uids,
+                    expected_rel_count=len(unified.relationships),
+                    database=self.config.neo4j.database,
+                )
+                logger.info(verification_report.summary())
+                if not verification_report.passed:
+                    logger.warning(
+                        "VERIFICATION FAILED — %d errors, %d warnings",
+                        verification_report.error_count,
+                        verification_report.warning_count,
+                    )
+            except Exception:
+                logger.exception("Post-ingestion verification failed (non-fatal).")
+
+        return ingestion_report, embedding_report, salience_report, visual_write_report, verification_report

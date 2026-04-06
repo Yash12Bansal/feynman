@@ -388,5 +388,107 @@ def validate(
             console.print(table)
 
 
+# ---------------------------------------------------------------------------
+# verify-graph — post-ingestion verification against Neo4j
+# ---------------------------------------------------------------------------
+
+
+@app.command("verify-graph")
+def verify_graph(
+    extraction_path: Optional[str] = typer.Argument(
+        None, help="Path to unified extraction JSON (for UID comparison). Omit for graph-only checks."
+    ),
+    config: Optional[str] = typer.Option(None, "--config", "-c", help="Path to config.yaml"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+) -> None:
+    """Verify the Neo4j curriculum graph — check for orphans, missing properties, and connectivity."""
+    _setup_logging(verbose)
+    cfg = _load_config(config)
+
+    async def _run_verify() -> None:
+        from neo4j import AsyncGraphDatabase
+
+        from .curriculum.schema import verify_ingestion
+
+        # Load expected UIDs if extraction provided
+        expected_uids: set[str] = set()
+        expected_rels = 0
+        if extraction_path:
+            if not Path(extraction_path).exists():
+                console.print(f"[red]File not found: {extraction_path}[/red]")
+                raise typer.Exit(1)
+            from .curriculum.models import CurriculumExtractionResult
+
+            extraction = CurriculumExtractionResult.model_validate_json(
+                Path(extraction_path).read_text(encoding="utf-8")
+            )
+            expected_uids = extraction.node_uids
+            expected_rels = len(extraction.relationships)
+            console.print(
+                f"  Comparing against extraction: {len(expected_uids)} nodes, "
+                f"{expected_rels} relationships"
+            )
+        else:
+            # No extraction — just verify graph structure
+            console.print("  No extraction file — running graph-only checks")
+
+        driver = AsyncGraphDatabase.driver(
+            cfg.neo4j.uri,
+            auth=(cfg.neo4j.username, cfg.neo4j.password),
+        )
+        try:
+            report = await verify_ingestion(
+                driver,
+                expected_node_uids=expected_uids,
+                expected_rel_count=expected_rels,
+                database=cfg.neo4j.database,
+            )
+        finally:
+            await driver.close()
+
+        # Display results
+        console.print(f"\n[bold]Graph Verification[/bold]\n")
+
+        # Node counts
+        table = Table(title="Nodes by Label")
+        table.add_column("Label", style="cyan")
+        table.add_column("Count", justify="right")
+        for label, cnt in sorted(report.nodes_by_label.items()):
+            table.add_row(label, str(cnt))
+        table.add_row("[bold]Total[/bold]", f"[bold]{report.actual_nodes}[/bold]")
+        console.print(table)
+
+        # Relationship counts
+        table = Table(title="Relationships by Type")
+        table.add_column("Type", style="cyan")
+        table.add_column("Count", justify="right")
+        for rtype, cnt in sorted(report.relationships_by_type.items()):
+            table.add_row(rtype, str(cnt))
+        table.add_row("[bold]Total[/bold]", f"[bold]{report.actual_relationships}[/bold]")
+        console.print(table)
+
+        # Issues
+        if report.issues:
+            table = Table(title="Issues")
+            table.add_column("Severity", style="cyan")
+            table.add_column("Category")
+            table.add_column("Message")
+            for issue in report.issues:
+                style = "red" if issue.severity == "error" else "yellow"
+                table.add_row(f"[{style}]{issue.severity}[/{style}]", issue.category, issue.message)
+            console.print(table)
+
+        # Verdict
+        if report.passed:
+            console.print(f"\n[bold green]PASSED[/bold green] — {report.warning_count} warnings\n")
+        else:
+            console.print(
+                f"\n[bold red]FAILED[/bold red] — {report.error_count} errors, "
+                f"{report.warning_count} warnings\n"
+            )
+
+    asyncio.run(_run_verify())
+
+
 if __name__ == "__main__":
     app()
