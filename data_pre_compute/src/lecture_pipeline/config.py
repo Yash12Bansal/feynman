@@ -26,26 +26,31 @@ class PDFConfig(BaseModel):
     ocr_language: str = "eng"
 
 
-class GraphConfig(BaseModel):
-    max_depth: int = 4
-    min_content_length: int = 100
-
-
-class LectureConfig(BaseModel):
-    audience_level: Literal["beginner", "advanced"] = "advanced"
-    include_images: bool = True
-
-
 class OutputConfig(BaseModel):
     output_dir: str = "./output"
+
+
+class Neo4jConfig(BaseModel):
+    uri: str = "bolt://localhost:7687"
+    username: str = "neo4j"
+    password: str = "password"
+    database: str = "neo4j"
+    embedding_dimensions: int = 1536
+    embedding_model: str = "text-embedding-3-small"
+    embedding_batch_size: int = 100
+
+
+class SalienceConfig(BaseModel):
+    alpha: float = Field(default=0.6, description="Weight for static salience")
+    beta: float = Field(default=0.4, description="Weight for structural salience")
 
 
 class PipelineConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     pdf: PDFConfig = Field(default_factory=PDFConfig)
-    graph: GraphConfig = Field(default_factory=GraphConfig)
-    lecture: LectureConfig = Field(default_factory=LectureConfig)
     output: OutputConfig = Field(default_factory=OutputConfig)
+    neo4j: Neo4jConfig = Field(default_factory=Neo4jConfig)
+    salience: SalienceConfig = Field(default_factory=SalienceConfig)
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> PipelineConfig:
