@@ -209,12 +209,23 @@ class AnticipationEngine:
         start: int = 0,
         count: int = 3,
         graph: Any | None = None,
+        curriculum: Any | None = None,
     ) -> None:
-        """Unified entry point — routes to graph or plan path."""
-        if graph:
+        """Unified entry point — routes to curriculum (Neo4j) or graph path."""
+        if curriculum:
+            await self.warm_from_curriculum(curriculum, plan, start, count)
+        elif graph:
             await self.warm_from_graph(graph, plan, start, count)
         else:
-            await self.warm_from_plan(plan, start, count)
+            # --- COMMENTED OUT: Old fallback to plan-based warming. ---
+            # await self.warm_from_plan(plan, start, count)
+            # --- END COMMENTED OUT ---
+            from feynman.agent.curriculum_loader import CurriculumNotFoundError
+
+            raise CurriculumNotFoundError(
+                plan.topic,
+                detail="warm() called without curriculum data — no fallback allowed",
+            )
 
     async def warm_from_graph(
         self,
@@ -267,34 +278,101 @@ class AnticipationEngine:
 
         await self._generate_batch(tasks)
 
+    async def warm_from_curriculum(
+        self,
+        curriculum: Any,  # CurriculumData from curriculum_loader
+        plan: LessonPlan,
+        start: int = 0,
+        count: int = 3,
+    ) -> None:
+        """Pre-generate using Neo4j CurriculumData (preferred path).
+
+        For each concept in range:
+        1. Check if a pre-generated DiagramSpec exists in Neo4j → instant cache hit
+        2. If not, build a rich prompt from concept.summary + prerequisites → generate via design_bridge
+        """
+        if self._audit:
+            self._audit.record("anticipation", "source_curriculum_neo4j", f"start={start}, count={count}")
+
+        teaching_order = curriculum.get_teaching_order()
+        concept_level = [c for c in teaching_order if c.level == 0]
+
+        end = min(start + count, len(concept_level), plan.total_concepts)
+        tasks: list[tuple[tuple[int, int], str]] = []
+        pre_loaded = 0
+
+        for concept_idx in range(start, end):
+            if concept_idx >= len(concept_level):
+                break
+
+            curr_concept = concept_level[concept_idx]
+            key = (concept_idx, 0)
+
+            # Check for pre-generated visual in Neo4j — instant cache, no LLM call
+            pre_spec = curriculum.pre_generated_visuals.get(curr_concept.uid)
+            if pre_spec:
+                self._cache[key] = pre_spec
+                self._prompts[key] = f"Pre-generated: {curr_concept.topic_name}"
+                pre_loaded += 1
+                if self._audit:
+                    self._audit.record(
+                        "anticipation",
+                        "pre_generated_cache_hit",
+                        f"concept={concept_idx}, topic='{curr_concept.topic_name}'",
+                        concept_index=concept_idx,
+                    )
+                continue
+
+            # No pre-generated visual — build prompt for design_bridge generation
+            prompt = _build_prompt_from_curriculum_concept(curr_concept, curriculum)
+            if prompt:
+                tasks.append((key, prompt))
+
+        if pre_loaded:
+            logger.info(
+                "anticipation.pre_generated_loaded",
+                count=pre_loaded,
+                start=start,
+            )
+
+        if tasks:
+            await self._generate_batch(tasks)
+
     async def warm_from_plan(
         self,
         plan: LessonPlan,
         start: int = 0,
         count: int = 3,
     ) -> None:
-        """Pre-generate using LessonPlan visual_suggestions (fallback path).
+        """Pre-generate using LessonPlan visual_suggestions (fallback path)."""
+        # --- COMMENTED OUT: Old fallback path. Curriculum must come from Neo4j. ---
+        # To restore: uncomment the block below and remove the raise.
+        #
+        # if self._audit:
+        #     self._audit.record("anticipation", "source_plan", f"start={start}, count={count}")
+        #
+        # end = min(start + count, plan.total_concepts)
+        # tasks: list[tuple[tuple[int, int], str]] = []
+        #
+        # for concept_idx in range(start, end):
+        #     concept = plan.concept_at(concept_idx)
+        #     if not concept:
+        #         continue
+        #     for si, prompt in enumerate(
+        #         _extract_visual_prompts_from_plan(concept)
+        #     ):
+        #         key = (concept_idx, si)
+        #         tasks.append((key, prompt))
+        #
+        # await self._generate_batch(tasks)
+        # --- END COMMENTED OUT ---
 
-        For each concept in range, classifies each visual_suggestion and
-        generates design diagrams for those that need the design agent.
-        """
-        if self._audit:
-            self._audit.record("anticipation", "source_plan", f"start={start}, count={count}")
+        from feynman.agent.curriculum_loader import CurriculumNotFoundError
 
-        end = min(start + count, plan.total_concepts)
-        tasks: list[tuple[tuple[int, int], str]] = []
-
-        for concept_idx in range(start, end):
-            concept = plan.concept_at(concept_idx)
-            if not concept:
-                continue
-            for si, prompt in enumerate(
-                _extract_visual_prompts_from_plan(concept)
-            ):
-                key = (concept_idx, si)
-                tasks.append((key, prompt))
-
-        await self._generate_batch(tasks)
+        raise CurriculumNotFoundError(
+            plan.topic,
+            detail="warm_from_plan() is disabled — curriculum must come from Neo4j",
+        )
 
     async def _generate_batch(
         self,
@@ -553,59 +631,107 @@ class AnticipationEngine:
         return len(stale_keys)
 
 
-# ── ConceptGraph loading ──────────────────────────────────
+# ── Curriculum concept prompt builder ────────────────────
 
-# Default directory where data_pre_compute outputs graph JSON files.
-_GRAPH_OUTPUT_DIR = Path(__file__).resolve().parents[4] / "data_pre_compute" / "output" / "graphs"
+
+def _build_prompt_from_curriculum_concept(
+    concept: Any,  # CurriculumConcept from curriculum_loader
+    curriculum: Any,  # CurriculumData from curriculum_loader
+) -> str | None:
+    """Build a design diagram prompt from a Neo4j CurriculumConcept.
+
+    Uses summary, visual_hint, and prerequisite context for a rich prompt.
+    """
+    summary = concept.summary or ""
+    topic = concept.topic_name or ""
+
+    if not summary:
+        return None
+
+    parts = [f"Draw a detailed educational diagram for: {topic}."]
+
+    if concept.visual_hint:
+        parts.append(f"Visual description: {concept.visual_hint}")
+
+    parts.append(f"Context: {summary[:600]}")
+
+    # Add prerequisite context
+    prereqs = curriculum.get_prerequisites(concept.uid)
+    if prereqs:
+        prereq_names = [p.topic_name for p in prereqs[:3]]
+        parts.append(f"Students already understand: {', '.join(prereq_names)}.")
+
+    return " ".join(parts)
+
+
+# ── ConceptGraph loading (COMMENTED OUT — replaced by Neo4j) ──
+
+# --- COMMENTED OUT: Old JSON file loading. Replaced by curriculum_loader.load_curriculum(). ---
+# To restore: uncomment the block below.
+#
+# _GRAPH_OUTPUT_DIR = Path(__file__).resolve().parents[4] / "data_pre_compute" / "output" / "graphs"
+#
+#
+# async def load_concept_graph(
+#     topic: str,
+#     graph_dir: Path | None = None,
+# ) -> Any | None:
+#     """Load a pre-computed ConceptGraph for the given topic.
+#
+#     Searches the output directory of data_pre_compute for matching graph JSON files.
+#     Returns None if no graph exists for this topic.
+#     """
+#     search_dir = graph_dir or _GRAPH_OUTPUT_DIR
+#     if not search_dir.exists():
+#         logger.warning("anticipation.no_graph_dir", path=str(search_dir))
+#         return None
+#
+#     try:
+#         from lecture_pipeline.graph.models import ConceptGraph
+#     except ImportError:
+#         logger.warning("anticipation.graph_import_unavailable")
+#         return None
+#
+#     topic_tokens = _meaningful_tokens(topic)
+#     best_graph = None
+#     best_score = 0.0
+#
+#     for json_file in search_dir.glob("*.json"):
+#         try:
+#             raw = json_file.read_text()
+#             graph = ConceptGraph.from_json(raw)
+#             title_tokens = _meaningful_tokens(graph.chapter_title)
+#             score = _jaccard(topic_tokens, title_tokens)
+#             if score > best_score:
+#                 best_score = score
+#                 best_graph = graph
+#         except Exception:
+#             logger.debug("anticipation.graph_load_error", file=str(json_file), exc_info=True)
+#             continue
+#
+#     if best_graph and best_score > 0.2:
+#         logger.info(
+#             "anticipation.graph_loaded",
+#             topic=topic,
+#             matched_title=best_graph.chapter_title,
+#             score=round(best_score, 3),
+#             nodes=len(best_graph.nodes),
+#         )
+#         return best_graph
+#
+#     logger.info("anticipation.no_graph_match", topic=topic, best_score=round(best_score, 3))
+#     return None
+# --- END COMMENTED OUT ---
 
 
 async def load_concept_graph(
     topic: str,
     graph_dir: Path | None = None,
 ) -> Any | None:
-    """Load a pre-computed ConceptGraph for the given topic.
+    """Stub — old JSON loading disabled. Use curriculum_loader.load_curriculum() instead."""
+    from feynman.agent.curriculum_loader import CurriculumNotFoundError
 
-    Searches the output directory of data_pre_compute for matching graph JSON files.
-    Returns None if no graph exists for this topic.
-    """
-    search_dir = graph_dir or _GRAPH_OUTPUT_DIR
-    if not search_dir.exists():
-        logger.warning("anticipation.no_graph_dir", path=str(search_dir))
-        return None
-
-    # Import ConceptGraph from data_pre_compute (may not be installed).
-    try:
-        from lecture_pipeline.graph.models import ConceptGraph
-    except ImportError:
-        logger.warning("anticipation.graph_import_unavailable")
-        return None
-
-    topic_tokens = _meaningful_tokens(topic)
-    best_graph = None
-    best_score = 0.0
-
-    for json_file in search_dir.glob("*.json"):
-        try:
-            raw = json_file.read_text()
-            graph = ConceptGraph.from_json(raw)
-            title_tokens = _meaningful_tokens(graph.chapter_title)
-            score = _jaccard(topic_tokens, title_tokens)
-            if score > best_score:
-                best_score = score
-                best_graph = graph
-        except Exception:
-            logger.debug("anticipation.graph_load_error", file=str(json_file), exc_info=True)
-            continue
-
-    if best_graph and best_score > 0.2:
-        logger.info(
-            "anticipation.graph_loaded",
-            topic=topic,
-            matched_title=best_graph.chapter_title,
-            score=round(best_score, 3),
-            nodes=len(best_graph.nodes),
-        )
-        return best_graph
-
-    logger.info("anticipation.no_graph_match", topic=topic, best_score=round(best_score, 3))
-    return None
+    raise CurriculumNotFoundError(
+        topic,
+        detail="load_concept_graph() is disabled — use curriculum_loader.load_curriculum()",
+    )

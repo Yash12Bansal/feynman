@@ -1,0 +1,431 @@
+{
+  "prompt": "A detailed double-slit experiment setup showing: a coherent light source (laser) on the left emitting parallel light rays, a barrier in the middle with two narrow vertical slits labeled \"Slit A\" and \"Slit B\", and a detection screen on the right. Show light rays traveling from the source toward the barrier, and indicate that light passes through both slits. The setup should be drawn from a side view with proper spacing and clear labels. Use clean lines and scientific diagram style.",
+  "spec": {
+    "title": "Double-Slit Experiment Setup",
+    "description": "Side view of the classic double-slit experiment showing coherent light from a laser source passing through two parallel slits and traveling toward a detection screen",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "laser_body",
+        "x": 50,
+        "y": 290,
+        "width": 80,
+        "height": 40,
+        "fill": "#444",
+        "stroke": "#000",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_rect",
+        "id": "laser_front",
+        "x": 130,
+        "y": 300,
+        "width": 20,
+        "height": 20,
+        "fill": "#222",
+        "stroke": "#000",
+        "strokeWidth": 2,
+        "rx": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "laser_lens",
+        "cx": 140,
+        "cy": 310,
+        "r": 8,
+        "fill": "#87CEEB",
+        "stroke": "#000",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "laser_label",
+        "x": 90,
+        "y": 280,
+        "text": "Coherent Light Source",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "laser_sublabel",
+        "x": 90,
+        "y": 360,
+        "text": "(Laser)",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "ray1",
+        "x1": 150,
+        "y1": 300,
+        "x2": 400,
+        "y2": 300,
+        "stroke": "#FF4444",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ray2",
+        "x1": 150,
+        "y1": 305,
+        "x2": 400,
+        "y2": 305,
+        "stroke": "#FF4444",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ray3",
+        "x1": 150,
+        "y1": 310,
+        "x2": 400,
+        "y2": 310,
+        "stroke": "#FF4444",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ray4",
+        "x1": 150,
+        "y1": 315,
+        "x2": 400,
+        "y2": 315,
+        "stroke": "#FF4444",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ray5",
+        "x1": 150,
+        "y1": 320,
+        "x2": 400,
+        "y2": 320,
+        "stroke": "#FF4444",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "ray_arrow1",
+        "x1": 250,
+        "y1": 290,
+        "x2": 280,
+        "y2": 290,
+        "stroke": "#FF4444",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "parallel_rays_label",
+        "x": 275,
+        "y": 280,
+        "text": "Parallel Light Rays",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier_top",
+        "x": 400,
+        "y": 150,
+        "width": 15,
+        "height": 110,
+        "fill": "#555",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier_middle",
+        "x": 400,
+        "y": 280,
+        "width": 15,
+        "height": 60,
+        "fill": "#555",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier_bottom",
+        "x": 400,
+        "y": 360,
+        "width": 15,
+        "height": 140,
+        "fill": "#555",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "slit_a_top",
+        "x1": 400,
+        "y1": 260,
+        "x2": 415,
+        "y2": 260,
+        "stroke": "#000",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "slit_a_bottom",
+        "x1": 400,
+        "y1": 280,
+        "x2": 415,
+        "y2": 280,
+        "stroke": "#000",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "slit_b_top",
+        "x1": 400,
+        "y1": 340,
+        "x2": 415,
+        "y2": 340,
+        "stroke": "#000",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "slit_b_bottom",
+        "x1": 400,
+        "y1": 360,
+        "x2": 415,
+        "y2": 360,
+        "stroke": "#000",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_a_label",
+        "x": 360,
+        "y": 270,
+        "text": "Slit A",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_b_label",
+        "x": 360,
+        "y": 350,
+        "text": "Slit B",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "barrier_label",
+        "x": 407,
+        "y": 130,
+        "text": "Double-Slit Barrier",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "transmitted_ray1_a",
+        "x1": 415,
+        "y1": 270,
+        "x2": 750,
+        "y2": 270,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "transmitted_ray2_a",
+        "x1": 415,
+        "y1": 268,
+        "x2": 750,
+        "y2": 280,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "transmitted_ray3_a",
+        "x1": 415,
+        "y1": 272,
+        "x2": 750,
+        "y2": 260,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "transmitted_ray1_b",
+        "x1": 415,
+        "y1": 350,
+        "x2": 750,
+        "y2": 350,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "transmitted_ray2_b",
+        "x1": 415,
+        "y1": 348,
+        "x2": 750,
+        "y2": 340,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "transmitted_ray3_b",
+        "x1": 415,
+        "y1": 352,
+        "x2": 750,
+        "y2": 360,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "detection_screen",
+        "x": 750,
+        "y": 200,
+        "width": 20,
+        "height": 250,
+        "fill": "#F0F0F0",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 760,
+        "y": 190,
+        "text": "Detection Screen",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "distance_d_line",
+        "x1": 407,
+        "y1": 530,
+        "x2": 760,
+        "y2": 530,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_d_label",
+        "x": 583,
+        "y": 550,
+        "text": "Distance D",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "slit_separation_line",
+        "x1": 360,
+        "y1": 270,
+        "x2": 360,
+        "y2": 350,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_separation_label",
+        "x": 330,
+        "y": 310,
+        "text": "d",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "middle",
+        "fontStyle": "italic"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "transmitted_arrow_a",
+        "x1": 550,
+        "y1": 270,
+        "x2": 580,
+        "y2": 275,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "transmitted_arrow_b",
+        "x1": 550,
+        "y1": 350,
+        "x2": 580,
+        "y2": 345,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "transmitted_label",
+        "x": 600,
+        "y": 310,
+        "text": "Light passes through",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "transmitted_label2",
+        "x": 600,
+        "y": 325,
+        "text": "both slits",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_line",
+        "id": "optical_axis",
+        "x1": 50,
+        "y1": 310,
+        "x2": 770,
+        "y2": 310,
+        "stroke": "#999",
+        "strokeWidth": 1,
+        "strokeDasharray": "10,10"
+      },
+      {
+        "type": "svg_text",
+        "id": "optical_axis_label",
+        "x": 800,
+        "y": 315,
+        "text": "Optical Axis",
+        "fontSize": 10,
+        "fill": "#999",
+        "textAnchor": "start"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

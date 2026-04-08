@@ -1,0 +1,354 @@
+{
+  "prompt": "Draw a detailed educational diagram for: SHM as Projection of Circular Motion. Context: A profound connection exists between SHM and uniform circular motion. Consider a particle moving in a circle of radius A with constant angular speed \u03c9. The projections on perpendicular diameters give: x = A cos(\u03c9t) and y = A sin(\u03c9t). Each projection represents SHM with amplitude A and angular frequency \u03c9, but with phases differing by \u03c0/2. This geometric interpretation provides intuitive understanding: (1) The amplitude A is the radius of the reference circle, (2) Angular frequency \u03c9 is the rate of rotation, (3) Phase differences correspond to different starting positions on the circle. This co",
+  "spec": {
+    "title": "SHM as Projection of Circular Motion",
+    "description": "Visualizing how simple harmonic motion emerges from the projection of uniform circular motion onto perpendicular axes",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_circle",
+        "id": "reference_circle",
+        "cx": 300,
+        "cy": 200,
+        "r": "amplitude * 50",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "fill": "none"
+      },
+      {
+        "type": "svg_line",
+        "id": "horizontal_axis",
+        "x1": 150,
+        "y1": 200,
+        "x2": 450,
+        "y2": 200,
+        "stroke": "#ccc",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_line",
+        "id": "vertical_axis",
+        "x1": 300,
+        "y1": 50,
+        "x2": 300,
+        "y2": 350,
+        "stroke": "#ccc",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "particle",
+        "cx": "300 + amplitude * 50 * cos(phase)",
+        "cy": "200 - amplitude * 50 * sin(phase)",
+        "r": 6,
+        "fill": "#D32F2F",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_line",
+        "id": "radius_vector",
+        "x1": 300,
+        "y1": 200,
+        "x2": "300 + amplitude * 50 * cos(phase)",
+        "y2": "200 - amplitude * 50 * sin(phase)",
+        "stroke": "#D32F2F",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "x_projection_line",
+        "x1": "300 + amplitude * 50 * cos(phase)",
+        "y1": "200 - amplitude * 50 * sin(phase)",
+        "x2": "300 + amplitude * 50 * cos(phase)",
+        "y2": 200,
+        "stroke": "#FF9800",
+        "strokeWidth": 2,
+        "strokeDasharray": "4,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "y_projection_line",
+        "x1": "300 + amplitude * 50 * cos(phase)",
+        "y1": "200 - amplitude * 50 * sin(phase)",
+        "x2": 300,
+        "y2": "200 - amplitude * 50 * sin(phase)",
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "strokeDasharray": "4,2"
+      },
+      {
+        "type": "svg_circle",
+        "id": "x_projection_dot",
+        "cx": "300 + amplitude * 50 * cos(phase)",
+        "cy": 200,
+        "r": 4,
+        "fill": "#FF9800",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_circle",
+        "id": "y_projection_dot",
+        "cx": 300,
+        "cy": "200 - amplitude * 50 * sin(phase)",
+        "r": 4,
+        "fill": "#4CAF50",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "particle_label",
+        "x": "300 + amplitude * 50 * cos(phase) + 15",
+        "y": "200 - amplitude * 50 * sin(phase) - 10",
+        "text": "P",
+        "fontSize": 14,
+        "fill": "#000",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_label",
+        "expression": "A",
+        "x": "300 + amplitude * 25 * cos(phase) - 10",
+        "y": "200 - amplitude * 25 * sin(phase) + 5",
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "x_axis_label",
+        "expression": "x",
+        "x": 460,
+        "y": 205,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "y_axis_label",
+        "expression": "y",
+        "x": 305,
+        "y": 45,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "graph",
+        "id": "x_motion_graph",
+        "x": 500,
+        "y": 60,
+        "width": 350,
+        "height": 120,
+        "xDomain": [
+          0,
+          12.57
+        ],
+        "yDomain": [
+          -3,
+          3
+        ],
+        "xLabel": "t",
+        "yLabel": "x(t)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "amplitude * cos(x)",
+            "color": "#FF9800",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "graph",
+        "id": "y_motion_graph",
+        "x": 500,
+        "y": 210,
+        "width": 350,
+        "height": 120,
+        "xDomain": [
+          0,
+          12.57
+        ],
+        "yDomain": [
+          -3,
+          3
+        ],
+        "xLabel": "t",
+        "yLabel": "y(t)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "amplitude * sin(x)",
+            "color": "#4CAF50",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_line",
+        "id": "current_time_x",
+        "x1": "500 + phase * 350 / 12.57",
+        "y1": 60,
+        "x2": "500 + phase * 350 / 12.57",
+        "y2": 180,
+        "stroke": "#D32F2F",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "current_time_y",
+        "x1": "500 + phase * 350 / 12.57",
+        "y1": 210,
+        "x2": "500 + phase * 350 / 12.57",
+        "y2": 330,
+        "stroke": "#D32F2F",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,2"
+      },
+      {
+        "type": "svg_latex",
+        "id": "x_equation",
+        "expression": "x(t) = A\\cos(\\omega t)",
+        "x": 520,
+        "y": 200,
+        "fontSize": 16,
+        "color": "#FF9800"
+      },
+      {
+        "type": "svg_latex",
+        "id": "y_equation",
+        "expression": "y(t) = A\\sin(\\omega t)",
+        "x": 520,
+        "y": 350,
+        "fontSize": 16,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_diff_label",
+        "expression": "\\text{Phase difference: }\\frac{\\pi}{2}",
+        "x": 550,
+        "y": 380,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_arc",
+        "id": "angle_arc",
+        "cx": 300,
+        "cy": 200,
+        "r": 30,
+        "startAngle": 0,
+        "endAngle": "-phase * 180 / 3.14159",
+        "stroke": "#9C27B0",
+        "strokeWidth": 2,
+        "fill": "none"
+      },
+      {
+        "type": "svg_latex",
+        "id": "angle_label",
+        "expression": "\\omega t",
+        "x": 340,
+        "y": 190,
+        "fontSize": 12,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_text",
+        "id": "title_circle",
+        "x": 300,
+        "y": 25,
+        "text": "Reference Circle",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "title_projections",
+        "x": 675,
+        "y": 25,
+        "text": "Harmonic Motion Projections",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "key_insight_1",
+        "expression": "\\text{Amplitude } A = \\text{radius of circle}",
+        "x": 50,
+        "y": 420,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "key_insight_2",
+        "expression": "\\text{Angular frequency } \\omega = \\text{rotation rate}",
+        "x": 50,
+        "y": 450,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "key_insight_3",
+        "expression": "\\text{Phase difference = starting position on circle}",
+        "x": 50,
+        "y": 480,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_rect",
+        "id": "insights_box",
+        "x": 40,
+        "y": 400,
+        "width": 450,
+        "height": 100,
+        "fill": "none",
+        "stroke": "#ddd",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "insights_title",
+        "x": 50,
+        "y": 395,
+        "text": "Key Insights",
+        "fontSize": 14,
+        "fill": "#000",
+        "fontWeight": "bold"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "amplitude",
+        "min": 1,
+        "max": 2.5,
+        "default": 2,
+        "step": 0.1,
+        "label": "Amplitude A"
+      },
+      {
+        "name": "phase",
+        "min": 0,
+        "max": 6.28,
+        "default": 1.57,
+        "step": 0.1,
+        "label": "Phase (\u03c9t)"
+      }
+    ],
+    "animations": []
+  }
+}

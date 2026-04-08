@@ -1,0 +1,445 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Simple Harmonic Motion. Context: Simple harmonic motion (SHM) is a special type of oscillatory motion where a particle oscillates on a straight line with acceleration always directed towards a fixed point (center of oscillation) and proportional to displacement from that point. The defining equation is a = -\u03c9\u00b2x, where \u03c9\u00b2 is a positive constant. This can also be expressed as F = -kx (Hooke's law), where k = m\u03c9\u00b2 is the spring constant. The negative sign indicates the restoring nature of the force. SHM represents the most fundamental type of oscillatory motion in physics, appearing in systems from atomic vibrations to planetary ",
+  "spec": {
+    "title": "Simple Harmonic Motion",
+    "description": "Interactive visualization of SHM showing position, velocity, acceleration, and restoring force relationships",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_line",
+        "id": "horizontal_axis",
+        "x1": 100,
+        "y1": 180,
+        "x2": 500,
+        "y2": 180,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line",
+        "x1": 300,
+        "y1": 150,
+        "x2": 300,
+        "y2": 210,
+        "stroke": "#666",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "equilibrium_label",
+        "x": 300,
+        "y": 140,
+        "text": "Equilibrium",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_block",
+        "x": "300 + amplitude * cos(phase) - 15",
+        "y": 165,
+        "width": 30,
+        "height": 30,
+        "fill": "#4CAF50",
+        "stroke": "#2E7D32",
+        "strokeWidth": 2,
+        "rx": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_label",
+        "x": "300 + amplitude * cos(phase)",
+        "y": 180,
+        "text": "m",
+        "fontSize": 14,
+        "fill": "#fff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_left",
+        "d": "M 120 180 Q 140 170, 160 180 Q 180 190, 200 180 Q 220 170, 240 180 Q 260 190, 280 180 Q 290 175, 300 180",
+        "stroke": "#666",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_right",
+        "d": "M 300 180 Q 310 175, 320 180 Q 340 190, 360 180 Q 380 170, 400 180 Q 420 190, 440 180 Q 460 170, 480 180",
+        "stroke": "#666",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "wall_left",
+        "x": 100,
+        "y": 160,
+        "width": 20,
+        "height": 40,
+        "fill": "#555",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "wall_right",
+        "x": 480,
+        "y": 160,
+        "width": 20,
+        "height": 40,
+        "fill": "#555",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "displacement_vector",
+        "x1": 300,
+        "y1": 220,
+        "x2": "300 + amplitude * cos(phase)",
+        "y2": 220,
+        "stroke": "#2196F3",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "displacement_label",
+        "x": "300 + amplitude * cos(phase) / 2",
+        "y": 240,
+        "expression": "x",
+        "fontSize": 14,
+        "color": "#2196F3"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "velocity_vector",
+        "x1": "300 + amplitude * cos(phase)",
+        "y1": 250,
+        "x2": "300 + amplitude * cos(phase) - 60 * amplitude * sin(phase) / 100",
+        "y2": 250,
+        "stroke": "#FF9800",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_label",
+        "x": "300 + amplitude * cos(phase) - 30 * amplitude * sin(phase) / 100",
+        "y": 270,
+        "expression": "\\vec{v}",
+        "fontSize": 14,
+        "color": "#FF9800"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "force_vector",
+        "x1": "300 + amplitude * cos(phase)",
+        "y1": 130,
+        "x2": "300 + amplitude * cos(phase) - 80 * amplitude * cos(phase) / 100",
+        "y2": 130,
+        "stroke": "#F44336",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_label",
+        "x": "300 + amplitude * cos(phase) - 40 * amplitude * cos(phase) / 100",
+        "y": 115,
+        "expression": "\\vec{F} = -k\\vec{x}",
+        "fontSize": 14,
+        "color": "#F44336"
+      },
+      {
+        "type": "graph",
+        "id": "position_graph",
+        "x": 550,
+        "y": 50,
+        "width": 320,
+        "height": 120,
+        "xDomain": [
+          0,
+          "2 * PI"
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "\u03c9t",
+        "yLabel": "x/A",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "cos(x)",
+            "color": "#2196F3",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_line",
+        "id": "phase_indicator_position",
+        "x1": "550 + 320 * phase / (2 * PI)",
+        "y1": 50,
+        "x2": "550 + 320 * phase / (2 * PI)",
+        "y2": 170,
+        "stroke": "#2196F3",
+        "strokeWidth": 2,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "graph",
+        "id": "velocity_graph",
+        "x": 550,
+        "y": 200,
+        "width": 320,
+        "height": 120,
+        "xDomain": [
+          0,
+          "2 * PI"
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "\u03c9t",
+        "yLabel": "v/(\u03c9A)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "-sin(x)",
+            "color": "#FF9800",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_line",
+        "id": "phase_indicator_velocity",
+        "x1": "550 + 320 * phase / (2 * PI)",
+        "y1": 200,
+        "x2": "550 + 320 * phase / (2 * PI)",
+        "y2": 320,
+        "stroke": "#FF9800",
+        "strokeWidth": 2,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "graph",
+        "id": "acceleration_graph",
+        "x": 550,
+        "y": 350,
+        "width": 320,
+        "height": 120,
+        "xDomain": [
+          0,
+          "2 * PI"
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "\u03c9t",
+        "yLabel": "a/(\u03c9\u00b2A)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "-cos(x)",
+            "color": "#F44336",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_line",
+        "id": "phase_indicator_acceleration",
+        "x1": "550 + 320 * phase / (2 * PI)",
+        "y1": 350,
+        "x2": "550 + 320 * phase / (2 * PI)",
+        "y2": 470,
+        "stroke": "#F44336",
+        "strokeWidth": 2,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_text",
+        "id": "position_title",
+        "x": 710,
+        "y": 40,
+        "text": "Position vs Time",
+        "fontSize": 14,
+        "fill": "#2196F3",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "velocity_title",
+        "x": 710,
+        "y": 190,
+        "text": "Velocity vs Time",
+        "fontSize": 14,
+        "fill": "#FF9800",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "acceleration_title",
+        "x": 710,
+        "y": 340,
+        "text": "Acceleration vs Time",
+        "fontSize": 14,
+        "fill": "#F44336",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "shm_equation",
+        "x": 50,
+        "y": 320,
+        "expression": "F = -kx = -m\\omega^2 x",
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_equation",
+        "x": 50,
+        "y": 350,
+        "expression": "a = -\\omega^2 x",
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_solution",
+        "x": 50,
+        "y": 380,
+        "expression": "x(t) = A\\cos(\\omega t + \\phi)",
+        "fontSize": 16,
+        "color": "#2196F3"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_solution",
+        "x": 50,
+        "y": 410,
+        "expression": "v(t) = -A\\omega\\sin(\\omega t + \\phi)",
+        "fontSize": 16,
+        "color": "#FF9800"
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_solution",
+        "x": 50,
+        "y": 440,
+        "expression": "a(t) = -A\\omega^2\\cos(\\omega t + \\phi)",
+        "fontSize": 16,
+        "color": "#F44336"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_concepts",
+        "x": 50,
+        "y": 490,
+        "text": "Key Concepts:",
+        "fontSize": 14,
+        "fill": "#333",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept1",
+        "x": 50,
+        "y": 510,
+        "text": "\u2022 Restoring force proportional to displacement",
+        "fontSize": 12,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept2",
+        "x": 50,
+        "y": 525,
+        "text": "\u2022 Acceleration opposite to displacement",
+        "fontSize": 12,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept3",
+        "x": 50,
+        "y": 540,
+        "text": "\u2022 Phase relationships: x \u2192 v \u2192 a",
+        "fontSize": 12,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "period_frequency",
+        "x": 300,
+        "y": 490,
+        "expression": "T = \\frac{2\\pi}{\\omega}, \\quad f = \\frac{\\omega}{2\\pi}",
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "angular_frequency",
+        "x": 300,
+        "y": 520,
+        "expression": "\\omega = \\sqrt{\\frac{k}{m}}",
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "energy_relation",
+        "x": 300,
+        "y": 550,
+        "expression": "E = \\frac{1}{2}kA^2 = \\frac{1}{2}mv^2 + \\frac{1}{2}kx^2",
+        "fontSize": 14,
+        "color": "#333"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "amplitude",
+        "min": 20,
+        "max": 100,
+        "default": 60,
+        "step": 5,
+        "label": "Amplitude (A)"
+      },
+      {
+        "name": "phase",
+        "min": 0,
+        "max": "2 * PI",
+        "default": 0,
+        "step": 0.1,
+        "label": "Phase (\u03c9t)"
+      }
+    ],
+    "animations": [
+      {
+        "parameter": "phase",
+        "duration": 4000,
+        "repeat": true
+      }
+    ]
+  }
+}

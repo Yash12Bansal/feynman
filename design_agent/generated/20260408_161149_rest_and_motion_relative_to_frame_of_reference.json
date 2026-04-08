@@ -1,0 +1,365 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Rest and Motion. Context: Rest and motion are fundamental concepts in kinematics that describe the state of an object. An object is said to be at rest when it does not change its position as time passes. An object is said to be in motion when it changes its position with time. However, these concepts are not absolute - they are relative to the observer or frame of reference. For example, a book on a table appears at rest when viewed from the room, but appears to be moving when viewed from the moon (since the Earth rotates and orbits). Motion is a combined property of the object under study and the observer. There is no",
+  "spec": {
+    "title": "Rest and Motion: Relative to Frame of Reference",
+    "description": "Understanding how rest and motion depend on the observer's reference frame",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "title_main",
+        "x": 450,
+        "y": 30,
+        "text": "Rest and Motion are Relative",
+        "fontSize": 24,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "ground_earth",
+        "x": 50,
+        "y": 280,
+        "width": 300,
+        "height": 20,
+        "fill": "#8D6E63",
+        "stroke": "#5D4037",
+        "strokeWidth": 2,
+        "rx": 0
+      },
+      {
+        "type": "svg_rect",
+        "id": "table",
+        "x": 120,
+        "y": 240,
+        "width": 160,
+        "height": 40,
+        "fill": "#FFCC80",
+        "stroke": "#FF8F00",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_rect",
+        "id": "book",
+        "x": 180,
+        "y": 220,
+        "width": 40,
+        "height": 20,
+        "fill": "#E3F2FD",
+        "stroke": "#1976D2",
+        "strokeWidth": 2,
+        "rx": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "book_label",
+        "x": 200,
+        "y": 210,
+        "text": "Book",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer1",
+        "cx": 80,
+        "cy": 260,
+        "r": 15,
+        "stroke": "#4CAF50",
+        "fill": "#81C784",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer1_head",
+        "cx": 80,
+        "cy": 250,
+        "r": 8,
+        "stroke": "#4CAF50",
+        "fill": "#81C784",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer1_label",
+        "x": 80,
+        "y": 320,
+        "text": "Observer on Earth",
+        "fontSize": 12,
+        "fill": "#4CAF50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "observer1_view",
+        "expression": "\\text{Book is at REST}",
+        "x": 200,
+        "y": 340,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "sight_line1",
+        "x1": 95,
+        "y1": 255,
+        "x2": 180,
+        "y2": 230,
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth_orbit",
+        "cx": 700,
+        "cy": 200,
+        "r": 80,
+        "stroke": "#2196F3",
+        "fill": "none",
+        "strokeWidth": 2,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth",
+        "cx": "700 + 80 * cos(time * 0.5)",
+        "cy": "200 + 80 * sin(time * 0.5)",
+        "r": 25,
+        "stroke": "#4CAF50",
+        "fill": "#81C784",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth_rotation",
+        "cx": "700 + 80 * cos(time * 0.5)",
+        "cy": "200 + 80 * sin(time * 0.5)",
+        "r": 20,
+        "stroke": "#388E3C",
+        "fill": "none",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_circle",
+        "id": "book_on_earth",
+        "cx": "700 + 80 * cos(time * 0.5) + 8 * cos(time * 2)",
+        "cy": "200 + 80 * sin(time * 0.5) + 8 * sin(time * 2)",
+        "r": 3,
+        "stroke": "#1976D2",
+        "fill": "#E3F2FD",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "sun",
+        "cx": 700,
+        "cy": 200,
+        "r": 15,
+        "stroke": "#FF9800",
+        "fill": "#FFB74D",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "sun_label",
+        "x": 700,
+        "y": 185,
+        "text": "Sun",
+        "fontSize": 12,
+        "fill": "#FF9800",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer_space",
+        "cx": 600,
+        "cy": 120,
+        "r": 12,
+        "stroke": "#9C27B0",
+        "fill": "#CE93D8",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_space_label",
+        "x": 600,
+        "y": 100,
+        "text": "Observer in Space",
+        "fontSize": 12,
+        "fill": "#9C27B0",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "observer_space_view",
+        "expression": "\\text{Book is in MOTION}",
+        "x": 600,
+        "y": 320,
+        "fontSize": 14,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "sight_line2",
+        "x1": 608,
+        "y1": 130,
+        "x2": "700 + 80 * cos(time * 0.5) + 8 * cos(time * 2)",
+        "y2": "200 + 80 * sin(time * 0.5) + 8 * sin(time * 2)",
+        "stroke": "#9C27B0",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_path",
+        "id": "motion_trail",
+        "d": "M 650 150 Q 720 180 790 210 Q 720 240 650 270 Q 580 240 510 210 Q 580 180 650 150",
+        "stroke": "#FF5722",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_text",
+        "id": "trail_label",
+        "x": 520,
+        "y": 250,
+        "text": "Path of book",
+        "fontSize": 10,
+        "fill": "#FF5722",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "concept_box",
+        "x": 50,
+        "y": 400,
+        "width": 800,
+        "height": 200,
+        "fill": "#F5F5F5",
+        "stroke": "#E0E0E0",
+        "strokeWidth": 2,
+        "rx": 10
+      },
+      {
+        "type": "svg_text",
+        "id": "concept_title",
+        "x": 450,
+        "y": 430,
+        "text": "Key Concepts",
+        "fontSize": 18,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "definition_rest",
+        "expression": "\\textbf{Rest:} \\text{ An object is at rest when its position does not change with time}",
+        "x": 80,
+        "y": 470,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "definition_motion",
+        "expression": "\\textbf{Motion:} \\text{ An object is in motion when its position changes with time}",
+        "x": 80,
+        "y": 500,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "relativity_principle",
+        "expression": "\\textbf{Relativity:} \\text{ Rest and motion are relative to the frame of reference}",
+        "x": 80,
+        "y": 530,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "example_explanation",
+        "expression": "\\text{The same book appears at rest to Earth observer but in motion to space observer}",
+        "x": 80,
+        "y": 560,
+        "fontSize": 14,
+        "color": "#1976D2"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "earth_velocity",
+        "x1": "700 + 80 * cos(time * 0.5) - 15",
+        "y1": "200 + 80 * sin(time * 0.5)",
+        "x2": "700 + 80 * cos(time * 0.5) - 40",
+        "y2": "200 + 80 * sin(time * 0.5) - 15",
+        "stroke": "#FF5722",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_label",
+        "expression": "\\vec{v}",
+        "x": "700 + 80 * cos(time * 0.5) - 50",
+        "y": "200 + 80 * sin(time * 0.5) - 20",
+        "fontSize": 16,
+        "color": "#FF5722"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame_label1",
+        "x": 200,
+        "y": 60,
+        "text": "Earth Reference Frame",
+        "fontSize": 16,
+        "fill": "#4CAF50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame_label2",
+        "x": 650,
+        "y": 60,
+        "text": "Space Reference Frame",
+        "fontSize": 16,
+        "fill": "#9C27B0",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "divider",
+        "x1": 450,
+        "y1": 80,
+        "x2": 450,
+        "y2": 380,
+        "stroke": "#BDBDBD",
+        "strokeWidth": 2,
+        "strokeDasharray": "10,5"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "time",
+        "min": 0,
+        "max": 10,
+        "default": 0,
+        "step": 0.1,
+        "label": "Time"
+      }
+    ],
+    "animations": []
+  }
+}

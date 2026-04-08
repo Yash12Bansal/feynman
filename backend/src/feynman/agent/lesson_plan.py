@@ -68,49 +68,53 @@ async def generate_lesson_plan(
     Uses the raw Anthropic SDK (not the LiveKit LLM plugin) because this is
     a one-shot planning call, not part of the voice pipeline.
     """
-    client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+    # --- COMMENTED OUT: Old runtime LLM fallback. Curriculum must come from Neo4j. ---
+    # To restore: uncomment the block below and remove the raise.
+    #
+    # client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+    #
+    # user_message = f"Topic: {topic}"
+    # if subject:
+    #     user_message += f"\nSubject: {subject.value}"
+    # if grade_level:
+    #     user_message += f"\nGrade level: {grade_level}"
+    #
+    # logger.info("lesson_plan.generating", topic=topic, subject=subject, grade_level=grade_level)
+    #
+    # response = await client.messages.create(
+    #     model="claude-sonnet-4-20250514",
+    #     max_tokens=4096,
+    #     system=LESSON_PLAN_PROMPT,
+    #     messages=[{"role": "user", "content": user_message}],
+    #     tools=[
+    #         {
+    #             "name": "create_lesson_plan",
+    #             "description": "Create a structured lesson plan.",
+    #             "input_schema": LessonPlan.model_json_schema(),
+    #         }
+    #     ],
+    #     tool_choice={"type": "tool", "name": "create_lesson_plan"},
+    # )
+    #
+    # for block in response.content:
+    #     if block.type == "tool_use" and block.name == "create_lesson_plan":
+    #         plan = LessonPlan.model_validate(block.input)
+    #         plan.topic = topic
+    #         plan.subject = subject
+    #         plan.grade_level = grade_level
+    #         logger.info("lesson_plan.generated", topic=topic, num_concepts=plan.total_concepts)
+    #         return plan
+    #
+    # msg = "LLM did not return a lesson plan tool call"
+    # raise RuntimeError(msg)
+    # --- END COMMENTED OUT ---
 
-    user_message = f"Topic: {topic}"
-    if subject:
-        user_message += f"\nSubject: {subject.value}"
-    if grade_level:
-        user_message += f"\nGrade level: {grade_level}"
+    from feynman.agent.curriculum_loader import CurriculumNotFoundError
 
-    logger.info("lesson_plan.generating", topic=topic, subject=subject, grade_level=grade_level)
-
-    response = await client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=4096,
-        system=LESSON_PLAN_PROMPT,
-        messages=[{"role": "user", "content": user_message}],
-        tools=[
-            {
-                "name": "create_lesson_plan",
-                "description": "Create a structured lesson plan.",
-                "input_schema": LessonPlan.model_json_schema(),
-            }
-        ],
-        tool_choice={"type": "tool", "name": "create_lesson_plan"},
+    raise CurriculumNotFoundError(
+        topic,
+        detail="generate_lesson_plan() is disabled — curriculum must come from Neo4j",
     )
-
-    # Extract the tool use block containing the structured output
-    for block in response.content:
-        if block.type == "tool_use" and block.name == "create_lesson_plan":
-            plan = LessonPlan.model_validate(block.input)
-            # Override with the actual values passed in (LLM might alter them)
-            plan.topic = topic
-            plan.subject = subject
-            plan.grade_level = grade_level
-            logger.info(
-                "lesson_plan.generated",
-                topic=topic,
-                num_concepts=plan.total_concepts,
-            )
-            return plan
-
-    # Fallback — should never happen with tool_choice=tool
-    msg = "LLM did not return a lesson plan tool call"
-    raise RuntimeError(msg)
 
 
 # ── ConceptGraph → LessonPlan conversion ─────────────────
@@ -189,32 +193,125 @@ def lesson_plan_from_graph(
     Only includes top-level (level 0) and first-level (level 1) nodes.
     Deeper sub-topics are folded into their parent's key_points.
     """
-    teaching_order = graph.get_teaching_order()
+    # --- COMMENTED OUT: Old ConceptGraph path. Replaced by lesson_plan_from_curriculum(). ---
+    # To restore: uncomment the block below and remove the raise.
+    #
+    # teaching_order = graph.get_teaching_order()
+    # concepts: list[ConceptNode] = []
+    #
+    # for node in teaching_order:
+    #     if node.level > 1:
+    #         continue
+    #
+    #     concepts.append(ConceptNode(
+    #         title=node.topic_name,
+    #         description=node.summary[:200] if node.summary else node.topic_name,
+    #         key_points=_extract_key_points_from_node(node),
+    #         visual_suggestions=_extract_visual_suggestions_from_node(node, graph),
+    #         estimated_minutes=_estimate_time_from_node(node),
+    #     ))
+    #
+    # plan = LessonPlan(
+    #     topic=graph.chapter_title,
+    #     subject=subject,
+    #     grade_level=grade_level,
+    #     objective=f"Teach {graph.chapter_title}",
+    #     concepts=concepts,
+    # )
+    # logger.info(
+    #     "lesson_plan.from_graph",
+    #     chapter=graph.chapter_title,
+    #     num_concepts=len(concepts),
+    #     graph_nodes=len(graph.nodes),
+    # )
+    # return plan
+    # --- END COMMENTED OUT ---
+
+    from feynman.agent.curriculum_loader import CurriculumNotFoundError
+
+    raise CurriculumNotFoundError(
+        str(getattr(graph, "chapter_title", "unknown")),
+        detail="lesson_plan_from_graph() is disabled — use lesson_plan_from_curriculum()",
+    )
+
+
+def lesson_plan_from_curriculum(
+    curriculum: Any,  # CurriculumData from curriculum_loader
+    grade_level: str = "",
+    subject: Subject | None = None,
+) -> LessonPlan:
+    """Derive a LessonPlan from Neo4j CurriculumData.
+
+    Maps curriculum concepts (sorted by teaching order) → LessonPlan concept sequence.
+    Uses summaries, visual_hints, and salience from the Neo4j graph.
+
+    Only includes concept-level nodes (level=0). Details are folded into key_points.
+    """
+    teaching_order = curriculum.get_teaching_order()
     concepts: list[ConceptNode] = []
 
-    for node in teaching_order:
-        if node.level > 1:
-            continue  # fold deeper nodes into parent
+    # Collect details per concept for key_points enrichment
+    details_by_parent: dict[str, list[Any]] = {}
+    for c in teaching_order:
+        if c.level == 1:  # detail
+            # Find parent concept by looking at CONTAINS/EXAMPLE_OF edges
+            for edge in curriculum.relationships:
+                if edge.to_uid == c.uid and edge.rel_type in ("EXAMPLE_OF", "DERIVED_FROM", "CONTAINS"):
+                    details_by_parent.setdefault(edge.from_uid, []).append(c)
+                    break
+
+    for concept in teaching_order:
+        if concept.level > 0:
+            continue  # only top-level concepts in the plan
+
+        # Key points from summary sentences
+        summary = concept.summary or ""
+        sentences = [s.strip() for s in re.split(r"[.!?]+", summary) if len(s.strip()) > 20]
+        key_points = sentences[:5] if sentences else [summary[:200]] if summary else [concept.topic_name]
+
+        # Add detail names as extra key points
+        child_details = details_by_parent.get(concept.uid, [])
+        for detail in child_details[:3]:
+            key_points.append(f"{detail.concept_type}: {detail.topic_name}")
+
+        # Visual suggestions from visual_hint + content analysis
+        visual_suggestions: list[str] = []
+        if concept.visual_hint:
+            visual_suggestions.append(concept.visual_hint)
+        if _VISUAL_KEYWORDS.search(summary):
+            visual_suggestions.append(f"Draw detailed diagram for {concept.topic_name}")
+        if re.search(r"[=∝∞∫∑]|formula|equation", summary):
+            visual_suggestions.append(f"Show key equation for {concept.topic_name}")
+        if not visual_suggestions:
+            visual_suggestions.append(f"Visual aid for {concept.topic_name}")
+
+        # Estimated time: salience-weighted (higher salience = more time)
+        base_time = max(3.0, min(10.0, len(summary) / 200))
+        if concept.salience_total > 7:
+            base_time = min(10.0, base_time * 1.3)
+        elif concept.salience_total < 3:
+            base_time = max(3.0, base_time * 0.7)
 
         concepts.append(ConceptNode(
-            title=node.topic_name,
-            description=node.summary[:200] if node.summary else node.topic_name,
-            key_points=_extract_key_points_from_node(node),
-            visual_suggestions=_extract_visual_suggestions_from_node(node, graph),
-            estimated_minutes=_estimate_time_from_node(node),
+            title=concept.topic_name,
+            description=summary[:200] if summary else concept.topic_name,
+            key_points=key_points,
+            visual_suggestions=visual_suggestions,
+            estimated_minutes=round(base_time, 1),
         ))
 
     plan = LessonPlan(
-        topic=graph.chapter_title,
+        topic=curriculum.chapter_title,
         subject=subject,
         grade_level=grade_level,
-        objective=f"Teach {graph.chapter_title}",
+        objective=f"Teach {curriculum.chapter_title}",
         concepts=concepts,
     )
     logger.info(
-        "lesson_plan.from_graph",
-        chapter=graph.chapter_title,
+        "lesson_plan.from_curriculum",
+        chapter=curriculum.chapter_title,
         num_concepts=len(concepts),
-        graph_nodes=len(graph.nodes),
+        total_nodes=len(teaching_order),
+        visuals_available=len(curriculum.pre_generated_visuals),
     )
     return plan

@@ -13,8 +13,8 @@ import structlog
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
-from feynman.agent.anticipation import load_concept_graph
-from feynman.agent.lesson_plan import generate_lesson_plan, lesson_plan_from_graph
+from feynman.agent.curriculum_loader import CurriculumNotFoundError, load_curriculum
+from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
 from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.agent.state_machine import TeachingStateMachine
@@ -95,102 +95,76 @@ class FeynmanAgent(Agent):
     async def on_enter(self) -> None:
         logger.info("agent.entered_room", topic=self._topic)
 
-        # Generate lesson plan if a topic was provided
+        # Load curriculum from Neo4j — no fallbacks
         if self._topic:
-            try:
-                # Try to load pre-computed ConceptGraph for richer curriculum data.
-                graph = await load_concept_graph(self._topic)
+            # Load curriculum from Neo4j. Raises CurriculumNotFoundError if not found.
+            curriculum = await load_curriculum(self._topic, self._subject.value if self._subject else None)
+            self._teaching_ctx.curriculum = curriculum
 
-                if graph:
-                    # Derive lesson plan from graph (richer than runtime generation).
-                    plan = lesson_plan_from_graph(
-                        graph,
-                        grade_level=self._grade_level,
-                        subject=self._subject,
-                    )
-                    self._teaching_ctx.concept_graph = graph
-                    logger.info(
-                        "agent.using_concept_graph",
-                        topic=self._topic,
-                        graph_nodes=len(graph.nodes),
-                    )
-                    self._teaching_ctx.audit.record(
-                        "curriculum",
-                        "graph_loaded",
-                        f"topic='{self._topic}', nodes={len(graph.nodes)}",
-                        source="ConceptGraph",
-                    )
-                else:
-                    # Fallback: runtime generation (current behavior).
-                    plan = await generate_lesson_plan(
-                        topic=self._topic,
-                        subject=self._subject,
-                        grade_level=self._grade_level,
-                    )
-                    self._teaching_ctx.audit.record(
-                        "curriculum",
-                        "graph_missing_fallback_runtime",
-                        f"topic='{self._topic}' — no pre-computed graph found, "
-                        f"fell back to runtime LLM generation",
-                        source="LessonPlan",
-                    )
+            plan = lesson_plan_from_curriculum(
+                curriculum,
+                grade_level=self._grade_level,
+                subject=self._subject,
+            )
 
-                self._teaching_ctx.lesson_plan = plan
-                # Label the initial board with the first concept title.
-                first_concept = plan.concept_at(0)
-                if first_concept:
-                    self._teaching_ctx.board_manager.active_board.label = (
-                        first_concept.title
-                    )
+            self._teaching_ctx.lesson_plan = plan
+            self._teaching_ctx.audit.record(
+                "curriculum",
+                "loaded_from_neo4j",
+                f"topic='{self._topic}', chapter='{curriculum.chapter_title}', "
+                f"concepts={len(curriculum.concepts)}, visuals={len(curriculum.pre_generated_visuals)}",
+                source="Neo4j",
+            )
+
+            # Label the initial board with the first concept title.
+            first_concept = plan.concept_at(0)
+            if first_concept:
+                self._teaching_ctx.board_manager.active_board.label = first_concept.title
+
+            logger.info(
+                "agent.lesson_plan_ready",
+                topic=self._topic,
+                chapter=curriculum.chapter_title,
+                num_concepts=plan.total_concepts,
+                pre_generated_visuals=len(curriculum.pre_generated_visuals),
+                source="neo4j",
+            )
+
+            # Fire anticipation pre-generation for first 3 concepts.
+            # With pre-generated visuals from Neo4j, many will be instant cache hits.
+            self._warm_task = asyncio.create_task(
+                self._teaching_ctx.anticipation.warm(
+                    plan,
+                    start=0,
+                    count=3,
+                    curriculum=curriculum,
+                )
+            )
+
+            # Rebuild prompt once warm completes
+            async def _update_after_warm() -> None:
+                try:
+                    await self._warm_task
+                except Exception:
+                    logger.warning("agent.warm_task_failed", exc_info=True)
+                    return
+                prompt = build_teaching_prompt(
+                    self._teaching_ctx.lesson_plan,
+                    self._teaching_ctx,
+                )
+                await self.update_instructions(prompt)
                 logger.info(
-                    "agent.lesson_plan_ready",
-                    topic=self._topic,
-                    num_concepts=plan.total_concepts,
-                    source="graph" if graph else "runtime",
+                    "agent.prompt_updated_post_warm",
+                    cache_size=self._teaching_ctx.anticipation.cache_size,
                 )
 
-                # Fire anticipation pre-generation for first 3 concepts.
-                self._warm_task = asyncio.create_task(
-                    self._teaching_ctx.anticipation.warm(
-                        plan,
-                        start=0,
-                        count=3,
-                        graph=self._teaching_ctx.concept_graph,
-                    )
-                )
+            self._prompt_rebuild_task = asyncio.create_task(_update_after_warm())
 
-                # Rebuild prompt once warm completes — initial prompt goes out
-                # immediately (fast session start), then gets updated with
-                # pre-rendered visual prompts for the agent to use.
-                async def _update_after_warm() -> None:
-                    try:
-                        await self._warm_task
-                    except Exception:
-                        logger.warning("agent.warm_task_failed", exc_info=True)
-                        return
-                    prompt = build_teaching_prompt(
-                        self._teaching_ctx.lesson_plan,
-                        self._teaching_ctx,
-                    )
-                    await self.update_instructions(prompt)
-                    logger.info(
-                        "agent.prompt_updated_post_warm",
-                        cache_size=self._teaching_ctx.anticipation.cache_size,
-                    )
-
-                self._prompt_rebuild_task = asyncio.create_task(
-                    _update_after_warm()
-                )
-
-            except Exception:
-                logger.exception("agent.lesson_plan_failed", topic=self._topic)
-                self._teaching_ctx.audit.record(
-                    "curriculum",
-                    "plan_failed",
-                    f"topic='{self._topic}' — exception during plan generation, "
-                    f"falling back to free-form teaching",
-                )
-                # Continue without a plan — free-form teaching mode
+            # --- COMMENTED OUT: Old fallback paths. ---
+            # Previously: if graph not found → generate_lesson_plan() via LLM
+            # Previously: if exception → continue without plan (free-form teaching)
+            # Now: CurriculumNotFoundError propagates — session fails with clear error.
+            # --- END COMMENTED OUT ---
 
         # Update instructions with lesson context
         prompt = build_teaching_prompt(

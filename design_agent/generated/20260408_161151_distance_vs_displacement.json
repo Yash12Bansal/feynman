@@ -1,0 +1,460 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Distance and Displacement. Context: Distance and displacement are two fundamental quantities used to describe motion, but they have distinctly different meanings and properties. This topic introduces the key differences between these concepts and their importance in kinematics. Distance is a scalar quantity that measures the total length of the path traveled by an object, regardless of direction. Displacement is a vector quantity that measures the straight-line distance from the initial position to the final position, including direction. Understanding the distinction between these two quantities is crucial for solving kinematic",
+  "spec": {
+    "title": "Distance vs Displacement",
+    "description": "Understanding the fundamental difference between distance (scalar) and displacement (vector) in kinematics",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Distance vs Displacement",
+        "fontSize": 24,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "path_background",
+        "x": 50,
+        "y": 80,
+        "width": 500,
+        "height": 300,
+        "fill": "#f8f9fa",
+        "stroke": "#dee2e6",
+        "strokeWidth": 2,
+        "rx": 10
+      },
+      {
+        "type": "svg_text",
+        "id": "path_title",
+        "x": 300,
+        "y": 105,
+        "text": "Motion Path Example",
+        "fontSize": 18,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "start_point",
+        "cx": 100,
+        "cy": 200,
+        "r": 8,
+        "fill": "#28a745",
+        "stroke": "#1e7e34",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "start_label",
+        "x": 100,
+        "y": 225,
+        "text": "Start",
+        "fontSize": 14,
+        "fill": "#28a745",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "end_point",
+        "cx": 450,
+        "cy": 150,
+        "r": 8,
+        "fill": "#dc3545",
+        "stroke": "#c82333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "end_label",
+        "x": 450,
+        "y": 175,
+        "text": "End",
+        "fontSize": 14,
+        "fill": "#dc3545",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_path",
+        "id": "curved_path",
+        "d": "M 100 200 Q 200 120 300 180 Q 350 220 450 150",
+        "stroke": "#6f42c1",
+        "strokeWidth": 4,
+        "fill": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_path_label",
+        "x": 250,
+        "y": 140,
+        "text": "Actual Path Taken",
+        "fontSize": 12,
+        "fill": "#6f42c1",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "displacement_arrow",
+        "x1": 100,
+        "y1": 200,
+        "x2": 450,
+        "y2": 150,
+        "stroke": "#fd7e14",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_label",
+        "x": 275,
+        "y": 190,
+        "text": "Displacement",
+        "fontSize": 12,
+        "fill": "#fd7e14",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "distance_formula",
+        "expression": "\\text{Distance} = 520\\,\\text{m}",
+        "x": 150,
+        "y": 320,
+        "fontSize": 14,
+        "color": "#6f42c1"
+      },
+      {
+        "type": "svg_latex",
+        "id": "displacement_formula",
+        "expression": "\\text{Displacement} = 367\\,\\text{m, 8.1\u00b0\\,N\\,of\\,E}",
+        "x": 150,
+        "y": 345,
+        "fontSize": 14,
+        "color": "#fd7e14"
+      },
+      {
+        "type": "svg_rect",
+        "id": "definitions_box",
+        "x": 580,
+        "y": 80,
+        "width": 280,
+        "height": 200,
+        "fill": "#e7f3ff",
+        "stroke": "#007bff",
+        "strokeWidth": 2,
+        "rx": 10
+      },
+      {
+        "type": "svg_text",
+        "id": "definitions_title",
+        "x": 720,
+        "y": 105,
+        "text": "Key Definitions",
+        "fontSize": 18,
+        "fill": "#007bff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_def_title",
+        "x": 590,
+        "y": 135,
+        "text": "Distance (Scalar)",
+        "fontSize": 16,
+        "fill": "#6f42c1",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_def",
+        "x": 590,
+        "y": 155,
+        "text": "\u2022 Total path length traveled",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_def2",
+        "x": 590,
+        "y": 175,
+        "text": "\u2022 Always positive",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_def3",
+        "x": 590,
+        "y": 195,
+        "text": "\u2022 No direction information",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_def_title",
+        "x": 590,
+        "y": 225,
+        "text": "Displacement (Vector)",
+        "fontSize": 16,
+        "fill": "#fd7e14",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_def",
+        "x": 590,
+        "y": 245,
+        "text": "\u2022 Straight-line distance",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_def2",
+        "x": 590,
+        "y": 265,
+        "text": "\u2022 Includes direction",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "comparison_box",
+        "x": 50,
+        "y": 400,
+        "width": 800,
+        "height": 200,
+        "fill": "#f8f9fa",
+        "stroke": "#6c757d",
+        "strokeWidth": 2,
+        "rx": 10
+      },
+      {
+        "type": "svg_text",
+        "id": "comparison_title",
+        "x": 450,
+        "y": 425,
+        "text": "Key Comparisons",
+        "fontSize": 18,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "divider",
+        "x1": 450,
+        "y1": 440,
+        "x2": 450,
+        "y2": 580,
+        "stroke": "#6c757d",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_comparison_title",
+        "x": 250,
+        "y": 460,
+        "text": "Distance",
+        "fontSize": 16,
+        "fill": "#6f42c1",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_comparison_title",
+        "x": 650,
+        "y": 460,
+        "text": "Displacement",
+        "fontSize": 16,
+        "fill": "#fd7e14",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "distance_symbol",
+        "expression": "d \\text{ or } s",
+        "x": 250,
+        "y": 485,
+        "fontSize": 14,
+        "color": "#6f42c1"
+      },
+      {
+        "type": "svg_latex",
+        "id": "displacement_symbol",
+        "expression": "\\vec{d} \\text{ or } \\Delta \\vec{r}",
+        "x": 650,
+        "y": 485,
+        "fontSize": 14,
+        "color": "#fd7e14"
+      },
+      {
+        "type": "svg_text",
+        "id": "scalar_label",
+        "x": 250,
+        "y": 510,
+        "text": "Scalar quantity",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "vector_label",
+        "x": 650,
+        "y": 510,
+        "text": "Vector quantity",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "magnitude_only",
+        "x": 250,
+        "y": 535,
+        "text": "Magnitude only",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "magnitude_direction",
+        "x": 650,
+        "y": 535,
+        "text": "Magnitude + Direction",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "always_positive",
+        "x": 250,
+        "y": 560,
+        "text": "Always \u2265 0",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "can_be_zero",
+        "x": 650,
+        "y": 560,
+        "text": "Can be zero",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "path_dependent",
+        "x": 250,
+        "y": 585,
+        "text": "Path dependent",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "path_independent",
+        "x": 650,
+        "y": 585,
+        "text": "Path independent",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "coordinate_system",
+        "x": 580,
+        "y": 300,
+        "width": 280,
+        "height": 80,
+        "fill": "#fff3cd",
+        "stroke": "#856404",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "coordinate_title",
+        "x": 720,
+        "y": 320,
+        "text": "Coordinate System",
+        "fontSize": 14,
+        "fill": "#856404",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "x_axis",
+        "x1": 620,
+        "y1": 350,
+        "x2": 670,
+        "y2": 350,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "y_axis",
+        "x1": 620,
+        "y1": 350,
+        "x2": 620,
+        "y2": 300,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "x_label",
+        "x": 680,
+        "y": 355,
+        "text": "E",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "y_label",
+        "x": 615,
+        "y": 295,
+        "text": "N",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

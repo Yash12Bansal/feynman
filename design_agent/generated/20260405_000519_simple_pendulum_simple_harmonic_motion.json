@@ -1,0 +1,316 @@
+{
+  "prompt": "A simple pendulum showing simple harmonic motion. Draw a pendulum with a string attached to a fixed point at the top, with a bob (mass) at the bottom. Show the bob in three positions: at equilibrium (center, vertical position) and at two extreme positions (left and right). Use dotted lines to show the arc of motion. Add arrows showing the direction of motion and label the positions as \"Left extreme\", \"Equilibrium\", and \"Right extreme\". Include angle markings \u03b8 to show displacement from vertical. Make it clean and educational with clear labels.",
+  "spec": {
+    "title": "Simple Pendulum - Simple Harmonic Motion",
+    "description": "A pendulum showing three key positions during oscillation with angle markings and motion indicators",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_circle",
+        "id": "pivot_point",
+        "cx": 450,
+        "cy": 80,
+        "r": 8,
+        "fill": "#333",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ceiling_support",
+        "x1": 400,
+        "y1": 80,
+        "x2": 500,
+        "y2": 80,
+        "stroke": "#666",
+        "strokeWidth": 4
+      },
+      {
+        "type": "svg_arc",
+        "id": "motion_arc",
+        "cx": 450,
+        "cy": 80,
+        "r": 250,
+        "startAngle": 135,
+        "endAngle": 45,
+        "stroke": "#999",
+        "strokeWidth": 2,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_line",
+        "id": "vertical_reference",
+        "x1": 450,
+        "y1": 90,
+        "x2": 450,
+        "y2": 340,
+        "stroke": "#ccc",
+        "strokeWidth": 1,
+        "strokeDasharray": "4,4"
+      },
+      {
+        "type": "svg_line",
+        "id": "string_left",
+        "x1": 450,
+        "y1": 80,
+        "x2": 273,
+        "y2": 257,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "bob_left",
+        "cx": 273,
+        "cy": 257,
+        "r": 20,
+        "fill": "#4682b4",
+        "stroke": "#2c5aa0",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "string_center",
+        "x1": 450,
+        "y1": 80,
+        "x2": 450,
+        "y2": 320,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "bob_center",
+        "cx": 450,
+        "cy": 320,
+        "r": 20,
+        "fill": "#4CAF50",
+        "stroke": "#388e3c",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "string_right",
+        "x1": 450,
+        "y1": 80,
+        "x2": 627,
+        "y2": 257,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "bob_right",
+        "cx": 627,
+        "cy": 257,
+        "r": 20,
+        "fill": "#FF5722",
+        "stroke": "#d84315",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "angle_arc_left",
+        "cx": 450,
+        "cy": 80,
+        "r": 80,
+        "startAngle": 270,
+        "endAngle": 225,
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "angle_arc_right",
+        "cx": 450,
+        "cy": 80,
+        "r": 80,
+        "startAngle": 270,
+        "endAngle": 315,
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "motion_arrow_left",
+        "x1": 320,
+        "y1": 280,
+        "x2": 380,
+        "y2": 300,
+        "stroke": "#9C27B0",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "motion_arrow_right",
+        "x1": 580,
+        "y1": 280,
+        "x2": 520,
+        "y2": 300,
+        "stroke": "#9C27B0",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "label_left",
+        "x": 220,
+        "y": 280,
+        "text": "Left extreme",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "label_center",
+        "x": 450,
+        "y": 360,
+        "text": "Equilibrium",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "label_right",
+        "x": 680,
+        "y": 280,
+        "text": "Right extreme",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "angle_label_left",
+        "expression": "\\theta",
+        "x": 390,
+        "y": 130,
+        "fontSize": 16,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "angle_label_right",
+        "expression": "\\theta",
+        "x": 510,
+        "y": 130,
+        "fontSize": 16,
+        "color": "#666"
+      },
+      {
+        "type": "svg_text",
+        "id": "pivot_label",
+        "x": 450,
+        "y": 60,
+        "text": "Fixed pivot",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_latex",
+        "id": "length_label",
+        "expression": "L",
+        "x": 380,
+        "y": 180,
+        "fontSize": 14,
+        "color": "#666"
+      },
+      {
+        "type": "svg_text",
+        "id": "motion_direction",
+        "x": 450,
+        "y": 420,
+        "text": "Direction of motion",
+        "fontSize": 12,
+        "fill": "#9C27B0",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "title_text",
+        "x": 450,
+        "y": 30,
+        "text": "Simple Pendulum - Simple Harmonic Motion",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_group",
+        "id": "explanation_box",
+        "transform": "translate(50, 480)",
+        "elements": [
+          {
+            "type": "svg_rect",
+            "id": "explanation_bg",
+            "x": 0,
+            "y": 0,
+            "width": 800,
+            "height": 120,
+            "fill": "#f8f9fa",
+            "stroke": "#dee2e6",
+            "strokeWidth": 1,
+            "rx": 5
+          },
+          {
+            "type": "svg_text",
+            "id": "explanation_title",
+            "x": 20,
+            "y": 25,
+            "text": "Key Features:",
+            "fontSize": 14,
+            "fill": "#333",
+            "fontWeight": "bold"
+          },
+          {
+            "type": "svg_text",
+            "id": "explanation_1",
+            "x": 20,
+            "y": 45,
+            "text": "\u2022 The pendulum oscillates between two extreme positions, passing through equilibrium",
+            "fontSize": 12,
+            "fill": "#555"
+          },
+          {
+            "type": "svg_text",
+            "id": "explanation_2",
+            "x": 20,
+            "y": 65,
+            "text": "\u2022 Maximum displacement angle \u03b8 occurs at the extremes, zero at equilibrium",
+            "fontSize": 12,
+            "fill": "#555"
+          },
+          {
+            "type": "svg_text",
+            "id": "explanation_3",
+            "x": 20,
+            "y": 85,
+            "text": "\u2022 The bob moves fastest at equilibrium and momentarily stops at the extremes",
+            "fontSize": 12,
+            "fill": "#555"
+          },
+          {
+            "type": "svg_text",
+            "id": "explanation_4",
+            "x": 20,
+            "y": 105,
+            "text": "\u2022 For small angles, the motion approximates simple harmonic motion",
+            "fontSize": 12,
+            "fill": "#555"
+          }
+        ]
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

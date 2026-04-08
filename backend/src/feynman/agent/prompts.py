@@ -611,43 +611,36 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
     Helps the agent reference prerequisite visuals on earlier boards,
     keep current visuals for upcoming concepts, and draw connections.
     """
-    if not teaching_ctx.concept_graph:
+    if not teaching_ctx.curriculum:
         teaching_ctx.audit.record(
             "concept_context", "missing",
-            f"concept={teaching_ctx.current_concept_index} — no ConceptGraph available",
+            f"concept={teaching_ctx.current_concept_index} — no curriculum data available",
         )
         return ""
 
-    current_node = teaching_ctx.current_graph_node
+    current_node = teaching_ctx.current_curriculum_concept
     if not current_node:
         concept = teaching_ctx.current_concept
         teaching_ctx.audit.record(
-            "concept_context", "no_graph_node_match",
+            "concept_context", "no_curriculum_concept",
             f"concept={teaching_ctx.current_concept_index} "
-            f"'{concept.title if concept else '?'}' — no matching graph node found",
+            f"'{concept.title if concept else '?'}' — no matching curriculum concept found",
         )
         return ""
 
-    try:
-        edges = teaching_ctx.concept_graph.get_related_edges(current_node.node_id)
-    except (AttributeError, TypeError):
-        return ""
+    # Get relationships for the current concept from CurriculumData
+    edges = [
+        e for e in teaching_ctx.curriculum.relationships
+        if e.from_uid == current_node.uid or e.to_uid == current_node.uid
+    ]
 
     hints: list[str] = []
     for edge in edges:
-        rel_value = getattr(edge.relation, "value", str(edge.relation))
+        rel_value = edge.rel_type.lower()
 
-        # Resolve the other node's name for display.
-        other_id = (
-            edge.target_id
-            if edge.source_id == current_node.node_id
-            else edge.source_id
-        )
-        try:
-            other_node = teaching_ctx.concept_graph.nodes.get(other_id)
-            name = edge.label or (other_node.topic_name if other_node else other_id)
-        except (AttributeError, TypeError):
-            name = edge.label or other_id
+        other_uid = edge.to_uid if edge.from_uid == current_node.uid else edge.from_uid
+        other = teaching_ctx.curriculum.concept_by_uid(other_uid)
+        name = edge.label or (other.topic_name if other else other_uid)
 
         if rel_value == "prerequisite":
             hints.append(f"- Prerequisite: {name} (check earlier boards)")
@@ -816,15 +809,15 @@ def build_teaching_prompt(
             for suggestion in current.visual_suggestions:
                 parts.append(f"- {suggestion}\n")
 
-        # Inject full ConceptGraph teaching content when available
-        graph_node = teaching_ctx.current_graph_node
-        if graph_node and getattr(graph_node, "summary", None):
-            summary = graph_node.summary[:800]
+        # Inject full curriculum teaching content from Neo4j
+        curr_concept = teaching_ctx.current_curriculum_concept
+        if curr_concept and getattr(curr_concept, "summary", None):
+            summary = curr_concept.summary[:800]
             parts.append(
                 f"\n**Teaching reference** (use this content to teach from):\n{summary}\n"
             )
 
-        # Cross-concept connections from ConceptGraph
+        # Cross-concept connections from curriculum
         graph_ctx = _build_graph_context(teaching_ctx)
         if graph_ctx:
             parts.append(graph_ctx)

@@ -1,0 +1,411 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Average Velocity and Instantaneous Velocity. Context: This topic covers two fundamental concepts in kinematics that describe how velocity is measured over different time scales. Average velocity is defined for a time interval and represents the overall rate of change of position. It is calculated as the displacement divided by the time interval, giving the net effect of motion without considering variations during the interval. Only the initial and final positions matter for average velocity calculation - the actual path taken is irrelevant. Instantaneous velocity, on the other hand, is defined at a specific instant in time and represents the rat",
+  "spec": {
+    "title": "Average Velocity vs Instantaneous Velocity",
+    "description": "Understanding the difference between average velocity over a time interval and instantaneous velocity at a specific moment",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Average Velocity vs Instantaneous Velocity",
+        "fontSize": 20,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "graph",
+        "id": "position_time_graph",
+        "x": 50,
+        "y": 80,
+        "width": 400,
+        "height": 280,
+        "xDomain": [
+          0,
+          10
+        ],
+        "yDomain": [
+          0,
+          15
+        ],
+        "xLabel": "Time (s)",
+        "yLabel": "Position (m)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#333",
+        "curves": [
+          {
+            "expression": "2 + 0.5*x^2 + sin(2*x)",
+            "color": "#2563eb",
+            "strokeWidth": 3
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_circle",
+        "id": "point_t1",
+        "cx": "50 + (t1/10) * 400",
+        "cy": "80 + 280 - ((2 + 0.5*t1^2 + sin(2*t1))/15) * 280",
+        "r": 6,
+        "fill": "#dc2626",
+        "stroke": "#dc2626",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "point_t2",
+        "cx": "50 + (t2/10) * 400",
+        "cy": "80 + 280 - ((2 + 0.5*t2^2 + sin(2*t2))/15) * 280",
+        "r": 6,
+        "fill": "#dc2626",
+        "stroke": "#dc2626",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "average_velocity_line",
+        "x1": "50 + (t1/10) * 400",
+        "y1": "80 + 280 - ((2 + 0.5*t1^2 + sin(2*t1))/15) * 280",
+        "x2": "50 + (t2/10) * 400",
+        "y2": "80 + 280 - ((2 + 0.5*t2^2 + sin(2*t2))/15) * 280",
+        "stroke": "#dc2626",
+        "strokeWidth": 3,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_line",
+        "id": "instantaneous_tangent",
+        "x1": "50 + (t_instant/10) * 400 - 40",
+        "y1": "80 + 280 - ((2 + 0.5*t_instant^2 + sin(2*t_instant))/15) * 280 + 40 * (t_instant + 4*cos(2*t_instant))/15 * 280/400",
+        "x2": "50 + (t_instant/10) * 400 + 40",
+        "y2": "80 + 280 - ((2 + 0.5*t_instant^2 + sin(2*t_instant))/15) * 280 - 40 * (t_instant + 4*cos(2*t_instant))/15 * 280/400",
+        "stroke": "#16a34a",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "instantaneous_point",
+        "cx": "50 + (t_instant/10) * 400",
+        "cy": "80 + 280 - ((2 + 0.5*t_instant^2 + sin(2*t_instant))/15) * 280",
+        "r": 6,
+        "fill": "#16a34a",
+        "stroke": "#16a34a",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "t1_label",
+        "expression": "t_1",
+        "x": "50 + (t1/10) * 400",
+        "y": "80 + 280 + 25",
+        "fontSize": 14,
+        "color": "#dc2626"
+      },
+      {
+        "type": "svg_latex",
+        "id": "t2_label",
+        "expression": "t_2",
+        "x": "50 + (t2/10) * 400",
+        "y": "80 + 280 + 25",
+        "fontSize": 14,
+        "color": "#dc2626"
+      },
+      {
+        "type": "svg_latex",
+        "id": "t_instant_label",
+        "expression": "t",
+        "x": "50 + (t_instant/10) * 400 + 15",
+        "y": "80 + 280 - ((2 + 0.5*t_instant^2 + sin(2*t_instant))/15) * 280 - 10",
+        "fontSize": 14,
+        "color": "#16a34a"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_vel_title",
+        "x": 550,
+        "y": 100,
+        "text": "Average Velocity",
+        "fontSize": 18,
+        "fill": "#dc2626",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "avg_vel_formula",
+        "expression": "v_{\\text{avg}} = \\frac{\\Delta x}{\\Delta t} = \\frac{x_2 - x_1}{t_2 - t_1}",
+        "x": 550,
+        "y": 130,
+        "fontSize": 16,
+        "color": "#dc2626"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_vel_desc1",
+        "x": 550,
+        "y": 160,
+        "text": "\u2022 Calculated over a time interval",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_vel_desc2",
+        "x": 550,
+        "y": 180,
+        "text": "\u2022 Slope of secant line (red dashed)",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_vel_desc3",
+        "x": 550,
+        "y": 200,
+        "text": "\u2022 Only depends on endpoints",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_vel_desc4",
+        "x": 550,
+        "y": 220,
+        "text": "\u2022 Path between points irrelevant",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "inst_vel_title",
+        "x": 550,
+        "y": 270,
+        "text": "Instantaneous Velocity",
+        "fontSize": 18,
+        "fill": "#16a34a",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "inst_vel_formula",
+        "expression": "v(t) = \\lim_{\\Delta t \\to 0} \\frac{\\Delta x}{\\Delta t} = \\frac{dx}{dt}",
+        "x": 550,
+        "y": 300,
+        "fontSize": 16,
+        "color": "#16a34a"
+      },
+      {
+        "type": "svg_text",
+        "id": "inst_vel_desc1",
+        "x": 550,
+        "y": 330,
+        "text": "\u2022 Velocity at a specific instant",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "inst_vel_desc2",
+        "x": 550,
+        "y": 350,
+        "text": "\u2022 Slope of tangent line (green solid)",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "inst_vel_desc3",
+        "x": 550,
+        "y": 370,
+        "text": "\u2022 Derivative of position function",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "inst_vel_desc4",
+        "x": 550,
+        "y": 390,
+        "text": "\u2022 Can vary from moment to moment",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "comparison_box",
+        "x": 50,
+        "y": 420,
+        "width": 800,
+        "height": 180,
+        "fill": "#f8fafc",
+        "stroke": "#64748b",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "comparison_title",
+        "x": 450,
+        "y": 445,
+        "text": "Key Differences",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff_avg_title",
+        "x": 200,
+        "y": 475,
+        "text": "Average Velocity",
+        "fontSize": 14,
+        "fill": "#dc2626",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff_inst_title",
+        "x": 700,
+        "y": 475,
+        "text": "Instantaneous Velocity",
+        "fontSize": 14,
+        "fill": "#16a34a",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "comparison_divider",
+        "x1": 450,
+        "y1": 485,
+        "x2": 450,
+        "y2": 585,
+        "stroke": "#64748b",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "diff1_left",
+        "x": 70,
+        "y": 505,
+        "text": "\u2022 Time interval \u0394t > 0",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff1_right",
+        "x": 470,
+        "y": 505,
+        "text": "\u2022 Single point in time (\u0394t \u2192 0)",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff2_left",
+        "x": 70,
+        "y": 525,
+        "text": "\u2022 Net displacement / time",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff2_right",
+        "x": 470,
+        "y": 525,
+        "text": "\u2022 Rate of change at instant",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff3_left",
+        "x": 70,
+        "y": 545,
+        "text": "\u2022 Constant over interval",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff3_right",
+        "x": 470,
+        "y": 545,
+        "text": "\u2022 Can change continuously",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff4_left",
+        "x": 70,
+        "y": 565,
+        "text": "\u2022 Geometrically: secant slope",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "diff4_right",
+        "x": 470,
+        "y": 565,
+        "text": "\u2022 Geometrically: tangent slope",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "t1",
+        "min": 1,
+        "max": 5,
+        "default": 2,
+        "step": 0.1,
+        "label": "Start time t\u2081 (s)"
+      },
+      {
+        "name": "t2",
+        "min": 6,
+        "max": 9,
+        "default": 8,
+        "step": 0.1,
+        "label": "End time t\u2082 (s)"
+      },
+      {
+        "name": "t_instant",
+        "min": 1,
+        "max": 9,
+        "default": 5,
+        "step": 0.1,
+        "label": "Instant time t (s)"
+      }
+    ],
+    "animations": []
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "prompt": "A complete double-slit experiment setup showing: 1) A coherent light source (laser) on the left emitting a beam, 2) A barrier with two parallel vertical slits labeled \"Slit A\" and \"Slit B\" separated by distance 'd', 3) A detection screen on the right showing the characteristic interference pattern with bright and dark fringes, 4) Arrows showing light paths from source through both slits to the screen, 5) Labels for key distances: 'L' for slit-to-screen distance, 'd' for slit separation, 6) The interference pattern clearly showing alternating bright and dark bands with the central bright fringe labeled",
+  "spec": {
+    "title": "Double-Slit Experiment Setup",
+    "description": "A visual representation of a double-slit experiment, including a coherent light source, slits, and the resulting interference pattern.",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_group",
+        "id": "source",
+        "transform": "translate(20, 200)",
+        "elements": [
+          {
+            "type": "svg_rect",
+            "id": "laser",
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 50,
+            "fill": "#4682b4",
+            "stroke": "#000",
+            "strokeWidth": 2
+          },
+          {
+            "type": "svg_text",
+            "id": "laser_label",
+            "x": 10,
+            "y": 55,
+            "text": "Coherent Light Source",
+            "fontSize": 12,
+            "fill": "#333"
+          }
+        ]
+      },
+      {
+        "type": "svg_group",
+        "id": "barrier",
+        "transform": "translate(200, 200)",
+        "elements": [
+          {
+            "type": "svg_line",
+            "id": "slit_a",
+            "x1": 0,
+            "y1": 0,
+            "x2": 0,
+            "y2": 100,
+            "stroke": "#4682b4",
+            "strokeWidth": 2
+          },
+          {
+            "type": "svg_text",
+            "id": "slit_a_label",
+            "x": -10,
+            "y": 50,
+            "text": "Slit A",
+            "fontSize": 12,
+            "fill": "#333"
+          },
+          {
+            "type": "svg_line",
+            "id": "slit_b",
+            "x1": 20,
+            "y1": 0,
+            "x2": 20,
+            "y2": 100,
+            "stroke": "#4682b4",
+            "strokeWidth": 2
+          },
+          {
+            "type": "svg_text",
+            "id": "slit_b_label",
+            "x": 30,
+            "y": 50,
+            "text": "Slit B",
+            "fontSize": 12,
+            "fill": "#333"
+          },
+          {
+            "type": "svg_line",
+            "id": "slit_gap",
+            "x1": 0,
+            "y1": 0,
+            "x2": 20,
+            "y2": 0,
+            "stroke": "#4682b4",
+            "strokeWidth": 2
+          },
+          {
+            "type": "svg_text",
+            "id": "slit_gap_label",
+            "x": 10,
+            "y": -10,
+            "text": "d",
+            "fontSize": 12,
+            "fill": "#333"
+          }
+        ]
+      },
+      {
+        "type": "svg_group",
+        "id": "screen",
+        "transform": "translate(400, 200)",
+        "elements": [
+          {
+            "type": "svg_rect",
+            "id": "screen",
+            "x": 0,
+            "y": 0,
+            "width": 200,
+            "height": 200,
+            "fill": "#ffffff",
+            "stroke": "#4682b4",
+            "strokeWidth": 2
+          },
+          {
+            "type": "svg_text",
+            "id": "screen_label",
+            "x": 100,
+            "y": 210,
+            "text": "Detection Screen",
+            "fontSize": 12,
+            "fill": "#333"
+          }
+        ]
+      },
+      {
+        "type": "svg_group",
+        "id": "light_paths",
+        "transform": "translate(200, 400)",
+        "elements": [
+          {
+            "type": "svg_line",
+            "id": "path_a",
+            "x1": 0,
+            "y1": 0,
+            "x2": 200,
+            "y2": 100,
+            "stroke": "#4682b4",
+            "strokeWidth": 2
+          },
+          {
+            "type": "svg_line",
+            "id": "path_b",
+            "x1": 20,
+            "y1": 0,
+            "x2": 200,
+            "y2": 100,
+            "stroke": "#4682b4",
+            "strokeWidth": 2
+          }
+        ]
+      },
+      {
+        "type": "svg_group",
+        "id": "interference_pattern",
+        "transform": "translate(600, 200)",
+        "elements": [
+          {
+            "type": "svg_text",
+            "id": "bright_fringe_label",
+            "x": 700,
+            "y": 50,
+            "text": "Bright Fringe",
+            "fontSize": 12,
+            "fill": "#333"
+          },
+          {
+            "type": "svg_text",
+            "id": "dark_fringe_label",
+            "x": 700,
+            "y": 100,
+            "text": "Dark Fringe",
+            "fontSize": 12,
+            "fill": "#333"
+          }
+        ]
+      },
+      {
+        "type": "svg_group",
+        "id": "distance_labels",
+        "transform": "translate(20, 500)",
+        "elements": [
+          {
+            "type": "svg_text",
+            "id": "l_label",
+            "x": 10,
+            "y": 550,
+            "text": "L",
+            "fontSize": 12,
+            "fill": "#333"
+          },
+          {
+            "type": "svg_text",
+            "id": "d_label",
+            "x": 10,
+            "y": 580,
+            "text": "d",
+            "fontSize": 12,
+            "fill": "#333"
+          }
+        ]
+      },
+      {
+        "type": "svg_text",
+        "id": "pattern_label",
+        "x": 700,
+        "y": 250,
+        "text": "Interference Pattern",
+        "fontSize": 14,
+        "fill": "#333"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "L",
+        "min": 0,
+        "max": 10,
+        "default": 5,
+        "step": 0.1,
+        "label": "Slit-to-Screen Distance"
+      },
+      {
+        "name": "d",
+        "min": 0,
+        "max": 10,
+        "default": 2,
+        "step": 0.1,
+        "label": "Slit Separation"
+      }
+    ],
+    "animations": []
+  }
+}

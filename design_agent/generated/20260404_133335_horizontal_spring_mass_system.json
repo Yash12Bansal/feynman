@@ -1,0 +1,355 @@
+{
+  "prompt": "A horizontal spring-mass system showing simple harmonic motion. Draw a horizontal spring (coiled, about 6 coils) attached to a wall on the left. At the right end of the spring, attach a blue rectangular mass labeled \"m\". Show the mass at its equilibrium position. Draw a horizontal axis below with markings for positions, with the equilibrium position labeled \"x = 0\" in the center. Add arrows showing the direction of possible motion (left and right). Make the spring realistic with proper coiling, and use clear labels. Include a coordinate system with x-axis pointing right.",
+  "spec": {
+    "title": "Horizontal Spring-Mass System",
+    "description": "A mass attached to a horizontal spring showing simple harmonic motion setup",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "wall",
+        "x": 50,
+        "y": 200,
+        "width": 30,
+        "height": 150,
+        "fill": "#666",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_1",
+        "x1": 45,
+        "y1": 210,
+        "x2": 35,
+        "y2": 200,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_2",
+        "x1": 45,
+        "y1": 230,
+        "x2": 35,
+        "y2": 220,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_3",
+        "x1": 45,
+        "y1": 250,
+        "x2": 35,
+        "y2": 240,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_4",
+        "x1": 45,
+        "y1": 270,
+        "x2": 35,
+        "y2": 260,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_5",
+        "x1": 45,
+        "y1": 290,
+        "x2": 35,
+        "y2": 280,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_6",
+        "x1": 45,
+        "y1": 310,
+        "x2": 35,
+        "y2": 300,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_7",
+        "x1": 45,
+        "y1": 330,
+        "x2": 35,
+        "y2": 320,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "spring_attachment",
+        "x1": 80,
+        "y1": 275,
+        "x2": 120,
+        "y2": 275,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coil_1",
+        "d": "M 120 275 Q 135 255 150 275 Q 165 295 180 275",
+        "stroke": "#333",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coil_2",
+        "d": "M 180 275 Q 195 255 210 275 Q 225 295 240 275",
+        "stroke": "#333",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coil_3",
+        "d": "M 240 275 Q 255 255 270 275 Q 285 295 300 275",
+        "stroke": "#333",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coil_4",
+        "d": "M 300 275 Q 315 255 330 275 Q 345 295 360 275",
+        "stroke": "#333",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coil_5",
+        "d": "M 360 275 Q 375 255 390 275 Q 405 295 420 275",
+        "stroke": "#333",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coil_6",
+        "d": "M 420 275 Q 435 255 450 275 Q 465 295 480 275",
+        "stroke": "#333",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_line",
+        "id": "spring_end",
+        "x1": 480,
+        "y1": 275,
+        "x2": 520,
+        "y2": 275,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass",
+        "x": 520,
+        "y": 230,
+        "width": 80,
+        "height": 90,
+        "fill": "#4682b4",
+        "stroke": "#2c5aa0",
+        "strokeWidth": 3,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_label",
+        "x": 560,
+        "y": 285,
+        "text": "m",
+        "fontSize": 28,
+        "fill": "#ffffff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "surface",
+        "x1": 30,
+        "y1": 350,
+        "x2": 750,
+        "y2": 350,
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "axis",
+        "x1": 150,
+        "y1": 450,
+        "x2": 700,
+        "y2": 450,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "axis_arrow",
+        "x1": 700,
+        "y1": 450,
+        "x2": 720,
+        "y2": 450,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_mark",
+        "x1": 560,
+        "y1": 445,
+        "x2": 560,
+        "y2": 455,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_label",
+        "expression": "x = 0",
+        "x": 560,
+        "y": 480,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_line",
+        "id": "left_mark",
+        "x1": 360,
+        "y1": 445,
+        "x2": 360,
+        "y2": 455,
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "right_mark",
+        "x1": 760,
+        "y1": 445,
+        "x2": 760,
+        "y2": 455,
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "left_mark_label",
+        "expression": "-A",
+        "x": 360,
+        "y": 480,
+        "fontSize": 14,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "right_mark_label",
+        "expression": "+A",
+        "x": 760,
+        "y": 480,
+        "fontSize": 14,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "x_axis_label",
+        "expression": "x",
+        "x": 730,
+        "y": 440,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "motion_arrow_left",
+        "x1": 520,
+        "y1": 170,
+        "x2": 460,
+        "y2": 170,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "motion_arrow_right",
+        "x1": 600,
+        "y1": 170,
+        "x2": 660,
+        "y2": 170,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "motion_label",
+        "x": 560,
+        "y": 155,
+        "text": "Possible Motion",
+        "fontSize": 14,
+        "fill": "#D32F2F",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_reference",
+        "x1": 560,
+        "y1": 320,
+        "x2": 560,
+        "y2": 370,
+        "stroke": "#999",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "title_spring",
+        "x": 300,
+        "y": 120,
+        "text": "Spring",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "title_mass",
+        "x": 560,
+        "y": 120,
+        "text": "Mass",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "equilibrium_position",
+        "x": 450,
+        "y": 550,
+        "text": "Equilibrium Position",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

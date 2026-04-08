@@ -71,6 +71,6 @@ function MainApp() {
   }
 
   return (
-    <WaitingScreen onStart={startSession} isLoading={status === "connecting"} />
+    <WaitingScreen onStart={(body) => startSession(body)} isLoading={status === "connecting"} />
   );
 }

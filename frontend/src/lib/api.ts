@@ -17,8 +17,20 @@ export interface CreateSessionResponse {
   room_name: string;
 }
 
-export async function createSession(): Promise<CreateSessionResponse> {
-  const res = await fetch(`${BASE_URL}/sessions`, { method: "POST" });
+export interface CreateSessionRequest {
+  topic: string;
+  subject?: string;
+  grade_level?: string;
+}
+
+export async function createSession(
+  body?: CreateSessionRequest,
+): Promise<CreateSessionResponse> {
+  const res = await fetch(`${BASE_URL}/sessions`, {
+    method: "POST",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
   if (!res.ok) throw new Error(`Failed to create session: ${res.status}`);
   return res.json();
 }

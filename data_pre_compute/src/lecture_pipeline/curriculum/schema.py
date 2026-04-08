@@ -144,10 +144,10 @@ FULLTEXT_QUERIES = [
        FOR (n:Detail)
        ON EACH [n.topic_name, n.summary, n.source_text]""",
 
-    # Chapter search
+    # Chapter search (uses topic_name, not title — that's the actual property name)
     """CREATE FULLTEXT INDEX chapter_search IF NOT EXISTS
        FOR (n:Chapter)
-       ON EACH [n.title, n.summary]""",
+       ON EACH [n.topic_name, n.summary]""",
 ]
 
 

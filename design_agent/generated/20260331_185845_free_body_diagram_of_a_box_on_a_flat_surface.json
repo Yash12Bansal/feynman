@@ -1,0 +1,87 @@
+{
+  "prompt": "A simple free body diagram of a box on a flat surface with weight force (mg) pointing down and normal force (N) pointing up. Label both forces clearly.",
+  "spec": {
+    "title": "Free Body Diagram of a Box on a Flat Surface",
+    "description": "A simple free body diagram showing the weight force (mg) acting downward and the normal force (N) acting upward on a box.",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_group",
+        "id": "box",
+        "transform": "translate(350, 300)",
+        "elements": [
+          {
+            "type": "svg_rect",
+            "id": "box_body",
+            "x": -50,
+            "y": -50,
+            "width": 100,
+            "height": 100,
+            "fill": "#555",
+            "stroke": "#000",
+            "strokeWidth": 2
+          },
+          {
+            "type": "svg_text",
+            "id": "box_label",
+            "x": 0,
+            "y": 10,
+            "text": "Box",
+            "fontSize": 14,
+            "fill": "#333",
+            "textAnchor": "middle",
+            "fontWeight": "bold"
+          }
+        ]
+      },
+      {
+        "type": "svg_line",
+        "id": "weight_force",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": -50,
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "strokeDasharray": ""
+      },
+      {
+        "type": "svg_text",
+        "id": "weight_label",
+        "x": -20,
+        "y": -60,
+        "text": "Weight Force (mg)",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "normal_force",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 50,
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "strokeDasharray": ""
+      },
+      {
+        "type": "svg_text",
+        "id": "normal_label",
+        "x": -20,
+        "y": 60,
+        "text": "Normal Force (N)",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

@@ -1,0 +1,402 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Energy in SHM. Context: Energy analysis reveals the conservative nature of ideal SHM. The potential energy U(x) = \u00bdkx\u00b2 = \u00bdm\u03c9\u00b2x\u00b2, derived from work done against the restoring force. Kinetic energy K = \u00bdmv\u00b2. For x = A sin(\u03c9t + \u03b4) and v = A\u03c9 cos(\u03c9t + \u03b4): U = \u00bdm\u03c9\u00b2A\u00b2 sin\u00b2(\u03c9t + \u03b4) and K = \u00bdm\u03c9\u00b2A\u00b2 cos\u00b2(\u03c9t + \u03b4). Total energy E = U + K = \u00bdm\u03c9\u00b2A\u00b2 (constant). Energy oscillates between kinetic and potential forms: (1) At equilibrium (x=0): all kinetic (K = \u00bdm\u03c9\u00b2A\u00b2), (2) At extremes (x=\u00b1A): all potential (U = \u00bdm\u03c9\u00b2A\u00b2). This constant total energy demonstrates conservation and determines amplitude from initial conditions. Example: For  Students already understand: Key Parameters of SHM.",
+  "spec": {
+    "title": "Energy in Simple Harmonic Motion",
+    "description": "Energy analysis showing the conservative nature of SHM with oscillation between kinetic and potential energy forms",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Energy in Simple Harmonic Motion",
+        "fontSize": 20,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line",
+        "x1": 200,
+        "y1": 200,
+        "x2": 700,
+        "y2": 200,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "equilibrium_label",
+        "x": 180,
+        "y": 205,
+        "text": "x = 0",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "end"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_block",
+        "x": "450 + 120 * sin(phase)",
+        "y": 175,
+        "width": 50,
+        "height": 50,
+        "fill": "#4682B4",
+        "stroke": "#2F5F8F",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_label",
+        "x": "475 + 120 * sin(phase)",
+        "y": 205,
+        "text": "m",
+        "fontSize": 14,
+        "fill": "#fff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "spring_left",
+        "x1": 200,
+        "y1": 200,
+        "x2": "450 + 120 * sin(phase)",
+        "y2": 200,
+        "stroke": "#FF6B35",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coils",
+        "d": "M 220 200 Q 240 190, 260 200 Q 280 210, 300 200 Q 320 190, 340 200 Q 360 210, 380 200 Q 400 190, 420 200",
+        "stroke": "#FF6B35",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "wall",
+        "x": 195,
+        "y": 180,
+        "width": 10,
+        "height": 40,
+        "fill": "#333",
+        "stroke": "#000",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_line",
+        "id": "position_arrow",
+        "x1": 450,
+        "y1": 250,
+        "x2": "450 + 120 * sin(phase)",
+        "y2": 250,
+        "stroke": "#8B4513",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "position_arrowhead",
+        "x1": 450,
+        "y1": 250,
+        "x2": "450 + 120 * sin(phase)",
+        "y2": 250,
+        "stroke": "#8B4513",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_label",
+        "expression": "x",
+        "x": "450 + 60 * sin(phase)",
+        "y": 240,
+        "fontSize": 14,
+        "color": "#8B4513"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "velocity_arrow",
+        "x1": "475 + 120 * sin(phase)",
+        "y1": 150,
+        "x2": "475 + 120 * sin(phase) + 60 * cos(phase)",
+        "y2": 150,
+        "stroke": "#228B22",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_label",
+        "expression": "v",
+        "x": "475 + 120 * sin(phase) + 30 * cos(phase)",
+        "y": 140,
+        "fontSize": 14,
+        "color": "#228B22"
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_left",
+        "x1": 330,
+        "y1": 270,
+        "x2": 330,
+        "y2": 290,
+        "stroke": "#DC143C",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_right",
+        "x1": 570,
+        "y1": 270,
+        "x2": 570,
+        "y2": 290,
+        "stroke": "#DC143C",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_span",
+        "x1": 330,
+        "y1": 280,
+        "x2": 570,
+        "y2": 280,
+        "stroke": "#DC143C",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_label",
+        "expression": "2A",
+        "x": 450,
+        "y": 300,
+        "fontSize": 14,
+        "color": "#DC143C"
+      },
+      {
+        "type": "graph",
+        "id": "energy_plot",
+        "x": 50,
+        "y": 350,
+        "width": 400,
+        "height": 250,
+        "xDomain": [
+          0,
+          6.28
+        ],
+        "yDomain": [
+          0,
+          1.2
+        ],
+        "xLabel": "\u03c9t",
+        "yLabel": "Energy (normalized)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "0.5 * (1 + cos(2*x))",
+            "color": "#FF6B35",
+            "strokeWidth": 3
+          },
+          {
+            "expression": "0.5 * (1 - cos(2*x))",
+            "color": "#228B22",
+            "strokeWidth": 3
+          },
+          {
+            "expression": "1",
+            "color": "#DC143C",
+            "strokeWidth": 3
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_latex",
+        "id": "energy_plot_title",
+        "expression": "\\text{Energy vs Time}",
+        "x": 250,
+        "y": 340,
+        "fontSize": 16,
+        "color": "#000"
+      },
+      {
+        "type": "svg_rect",
+        "id": "legend_box",
+        "x": 320,
+        "y": 370,
+        "width": 120,
+        "height": 80,
+        "fill": "#fff",
+        "stroke": "#ccc",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_line",
+        "id": "legend_u",
+        "x1": 330,
+        "y1": 385,
+        "x2": 350,
+        "y2": 385,
+        "stroke": "#FF6B35",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "legend_u_label",
+        "expression": "U(t)",
+        "x": 360,
+        "y": 390,
+        "fontSize": 12,
+        "color": "#FF6B35"
+      },
+      {
+        "type": "svg_line",
+        "id": "legend_k",
+        "x1": 330,
+        "y1": 405,
+        "x2": 350,
+        "y2": 405,
+        "stroke": "#228B22",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "legend_k_label",
+        "expression": "K(t)",
+        "x": 360,
+        "y": 410,
+        "fontSize": 12,
+        "color": "#228B22"
+      },
+      {
+        "type": "svg_line",
+        "id": "legend_e",
+        "x1": 330,
+        "y1": 425,
+        "x2": 350,
+        "y2": 425,
+        "stroke": "#DC143C",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "legend_e_label",
+        "expression": "E = U + K",
+        "x": 360,
+        "y": 430,
+        "fontSize": 12,
+        "color": "#DC143C"
+      },
+      {
+        "type": "svg_latex",
+        "id": "energy_equations",
+        "expression": "\\begin{aligned} U(x) &= \\frac{1}{2}kx^2 = \\frac{1}{2}m\\omega^2x^2 \\\\ K(v) &= \\frac{1}{2}mv^2 \\\\ E &= U + K = \\frac{1}{2}m\\omega^2A^2 \\text{ (constant)} \\end{aligned}",
+        "x": 500,
+        "y": 400,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "energy_conditions",
+        "expression": "\\text{Key Energy States:}",
+        "x": 500,
+        "y": 480,
+        "fontSize": 14,
+        "color": "#000",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_energy",
+        "expression": "\\text{At } x = 0: \\quad K = \\frac{1}{2}m\\omega^2A^2, \\quad U = 0",
+        "x": 500,
+        "y": 510,
+        "fontSize": 12,
+        "color": "#228B22"
+      },
+      {
+        "type": "svg_latex",
+        "id": "extreme_energy",
+        "expression": "\\text{At } x = \\pm A: \\quad K = 0, \\quad U = \\frac{1}{2}m\\omega^2A^2",
+        "x": 500,
+        "y": 530,
+        "fontSize": 12,
+        "color": "#FF6B35"
+      },
+      {
+        "type": "svg_latex",
+        "id": "time_expressions",
+        "expression": "\\text{For } x = A\\sin(\\omega t + \\delta):",
+        "x": 500,
+        "y": 570,
+        "fontSize": 12,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "u_time",
+        "expression": "U(t) = \\frac{1}{2}m\\omega^2A^2\\sin^2(\\omega t + \\delta)",
+        "x": 500,
+        "y": 590,
+        "fontSize": 12,
+        "color": "#FF6B35"
+      },
+      {
+        "type": "svg_latex",
+        "id": "k_time",
+        "expression": "K(t) = \\frac{1}{2}m\\omega^2A^2\\cos^2(\\omega t + \\delta)",
+        "x": 500,
+        "y": 610,
+        "fontSize": 12,
+        "color": "#228B22"
+      },
+      {
+        "type": "svg_circle",
+        "id": "phase_indicator",
+        "cx": "90 + 40 * cos(phase - 1.57)",
+        "cy": "520 - 40 * sin(phase - 1.57)",
+        "r": 5,
+        "fill": "#DC143C",
+        "stroke": "#000",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "phase_circle",
+        "cx": 90,
+        "cy": 520,
+        "r": 40,
+        "fill": "none",
+        "stroke": "#ccc",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_label",
+        "expression": "\\omega t",
+        "x": 90,
+        "y": 575,
+        "fontSize": 12,
+        "color": "#666"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "phase",
+        "min": 0,
+        "max": 6.28,
+        "default": 0,
+        "step": 0.1,
+        "label": "Phase (\u03c9t)"
+      }
+    ],
+    "animations": []
+  }
+}

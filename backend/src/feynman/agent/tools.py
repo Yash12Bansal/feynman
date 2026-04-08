@@ -1079,7 +1079,7 @@ async def advance_concept(ctx: RunContext) -> str:
                 tc.lesson_plan,
                 start=new_index + 1,
                 count=2,
-                graph=tc.concept_graph,
+                curriculum=tc.curriculum,
             )
         )
 
@@ -1316,8 +1316,8 @@ async def set_lesson_topic(
         subject: Optional subject area — "physics", "chemistry", "biology", "math".
         grade_level: Optional grade level (e.g., "Class 11", "Grade 10").
     """
-    from feynman.agent.anticipation import load_concept_graph
-    from feynman.agent.lesson_plan import generate_lesson_plan, lesson_plan_from_graph
+    from feynman.agent.curriculum_loader import load_curriculum
+    from feynman.agent.lesson_plan import lesson_plan_from_curriculum
     from feynman.common.types import Subject
 
     tc: TeachingContext = ctx.userdata
@@ -1337,28 +1337,30 @@ async def set_lesson_topic(
         source="spoken_request",
     )
 
-    # Try pre-computed ConceptGraph first, fall back to runtime generation.
-    graph = await load_concept_graph(topic)
+    # Load curriculum from Neo4j — no fallbacks.
+    # Raises CurriculumNotFoundError if topic not in Neo4j.
+    curriculum = await load_curriculum(topic, subject or None)
+    tc.curriculum = curriculum
 
-    if graph:
-        plan = lesson_plan_from_graph(
-            graph,
-            grade_level=grade_level,
-            subject=parsed_subject,
-        )
-        tc.concept_graph = graph
-        logger.info(
-            "set_lesson_topic.graph_loaded",
-            topic=topic,
-            graph_nodes=len(graph.nodes),
-        )
-    else:
-        plan = await generate_lesson_plan(
-            topic=topic,
-            subject=parsed_subject,
-            grade_level=grade_level,
-        )
-        logger.info("set_lesson_topic.runtime_plan", topic=topic)
+    plan = lesson_plan_from_curriculum(
+        curriculum,
+        grade_level=grade_level,
+        subject=parsed_subject,
+    )
+    logger.info(
+        "set_lesson_topic.loaded_from_neo4j",
+        topic=topic,
+        chapter=curriculum.chapter_title,
+        concepts=len(curriculum.concepts),
+        visuals=len(curriculum.pre_generated_visuals),
+    )
+
+    # --- COMMENTED OUT: Old fallback paths. ---
+    # Previously: graph = await load_concept_graph(topic)
+    # if graph: plan = lesson_plan_from_graph(...)
+    # else: plan = await generate_lesson_plan(...)  # runtime LLM fallback
+    # Now: CurriculumNotFoundError propagates if topic not in Neo4j.
+    # --- END COMMENTED OUT ---
 
     tc.lesson_plan = plan
 
@@ -1368,18 +1370,17 @@ async def set_lesson_topic(
         tc.board_manager.active_board.label = first_concept.title
 
     # Fire anticipation pre-generation for first 3 concepts.
-    # Wait briefly so the prompt can include pre-rendered visuals for concept 0.
+    # With pre-generated visuals from Neo4j, many will be instant cache hits.
     warm_task = asyncio.create_task(
         tc.anticipation.warm(
             plan,
             start=0,
             count=3,
-            graph=tc.concept_graph,
+            curriculum=tc.curriculum,
         )
     )
     with contextlib.suppress(TimeoutError):
         await asyncio.wait_for(asyncio.shield(warm_task), timeout=5.0)
-    # Keep reference so the task isn't garbage-collected.
     tc._warm_task = warm_task
 
     # Refresh the system prompt with the full lesson context.

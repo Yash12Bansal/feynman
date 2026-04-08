@@ -1,0 +1,464 @@
+{
+  "prompt": "A complete qualitative analysis of SHM showing a horizontal mass-spring system with the block at three different positions: 1) At maximum displacement to the right (amplitude +A) with zero velocity, 2) At equilibrium (x=0) with maximum velocity to the left, 3) At maximum displacement to the left (amplitude -A) with zero velocity. For each position, show velocity vectors (blue arrows) and acceleration vectors (red arrows). Include labels for positions x=+A, x=0, x=-A. Show the amplitude A clearly marked. Add a small graph below showing how velocity and acceleration vary with position.",
+  "spec": {
+    "title": "Simple Harmonic Motion: Position, Velocity, and Acceleration Analysis",
+    "description": "Three snapshots of a horizontal mass-spring system showing the relationship between position, velocity, and acceleration vectors at key points in the oscillation cycle.",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Simple Harmonic Motion Analysis",
+        "fontSize": 20,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_1",
+        "x1": 50,
+        "y1": 80,
+        "x2": 50,
+        "y2": 150,
+        "stroke": "#333",
+        "strokeWidth": 6
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_1",
+        "x1": 40,
+        "y1": 85,
+        "x2": 50,
+        "y2": 95,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_2",
+        "x1": 40,
+        "y1": 100,
+        "x2": 50,
+        "y2": 110,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_3",
+        "x1": 40,
+        "y1": 115,
+        "x2": 50,
+        "y2": 125,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern_4",
+        "x1": 40,
+        "y1": 130,
+        "x2": 50,
+        "y2": 140,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "reference_line",
+        "x1": 50,
+        "y1": 170,
+        "x2": 750,
+        "y2": 170,
+        "stroke": "#888",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "position_1_label",
+        "x": 400,
+        "y": 60,
+        "text": "Position 1: Maximum Displacement Right",
+        "fontSize": 14,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_1_compressed",
+        "d": "M 50 115 L 70 115 L 80 105 L 90 125 L 100 105 L 110 125 L 120 105 L 130 125 L 140 105 L 150 125 L 160 105 L 170 125 L 180 105 L 190 125 L 200 105 L 210 125 L 220 105 L 230 125 L 240 105 L 250 125 L 260 105 L 270 125 L 280 105 L 290 125 L 300 105 L 310 125 L 320 105 L 330 125 L 340 105 L 350 125 L 360 105 L 370 115 L 380 115",
+        "stroke": "#555",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_1",
+        "x": 380,
+        "y": 95,
+        "width": 40,
+        "height": 40,
+        "fill": "#ddd",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_1_label",
+        "x": 400,
+        "y": 120,
+        "text": "m",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_1_zero",
+        "expression": "v = 0",
+        "x": 460,
+        "y": 115,
+        "fontSize": 14,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "acceleration_1",
+        "x1": 420,
+        "y1": 115,
+        "x2": 350,
+        "y2": 115,
+        "stroke": "#d32f2f",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_1_label",
+        "expression": "a = -\\omega^2 A",
+        "x": 320,
+        "y": 105,
+        "fontSize": 12,
+        "color": "#d32f2f"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_1_coord",
+        "expression": "x = +A",
+        "x": 400,
+        "y": 155,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "position_2_label",
+        "x": 400,
+        "y": 210,
+        "text": "Position 2: Equilibrium Position",
+        "fontSize": 14,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_2_natural",
+        "d": "M 50 265 L 70 265 L 80 255 L 90 275 L 100 255 L 110 275 L 120 255 L 130 275 L 140 255 L 150 275 L 160 255 L 170 275 L 180 255 L 190 275 L 200 255 L 210 275 L 220 255 L 230 275 L 240 255 L 250 275 L 260 255 L 270 275 L 280 255 L 290 275 L 300 255 L 310 275 L 320 265 L 330 265",
+        "stroke": "#555",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_2",
+        "x": 330,
+        "y": 245,
+        "width": 40,
+        "height": 40,
+        "fill": "#ddd",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_2_label",
+        "x": 350,
+        "y": 270,
+        "text": "m",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "velocity_2",
+        "x1": 330,
+        "y1": 265,
+        "x2": 260,
+        "y2": 265,
+        "stroke": "#4682b4",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_2_label",
+        "expression": "v = -\\omega A",
+        "x": 230,
+        "y": 255,
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_2_zero",
+        "expression": "a = 0",
+        "x": 410,
+        "y": 265,
+        "fontSize": 14,
+        "color": "#d32f2f"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_2_coord",
+        "expression": "x = 0",
+        "x": 350,
+        "y": 305,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "position_3_label",
+        "x": 400,
+        "y": 360,
+        "text": "Position 3: Maximum Displacement Left",
+        "fontSize": 14,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_3_extended",
+        "d": "M 50 415 L 70 415 L 75 405 L 80 425 L 85 405 L 90 425 L 95 405 L 100 425 L 105 405 L 110 425 L 115 405 L 120 425 L 125 405 L 130 425 L 135 405 L 140 425 L 145 405 L 150 425 L 155 405 L 160 425 L 165 405 L 170 425 L 175 405 L 180 425 L 185 405 L 190 425 L 195 405 L 200 425 L 205 405 L 210 425 L 215 405 L 220 425 L 225 405 L 230 425 L 235 405 L 240 425 L 245 405 L 250 425 L 255 405 L 260 425 L 265 405 L 270 425 L 275 405 L 280 425 L 285 405 L 290 425 L 295 405 L 300 425 L 305 405 L 310 425 L 315 405 L 320 425 L 325 405 L 330 425 L 335 405 L 340 425 L 345 405 L 350 425 L 355 405 L 360 425 L 365 405 L 370 425 L 375 405 L 380 425 L 385 405 L 390 425 L 395 405 L 400 425 L 405 405 L 410 425 L 415 405 L 420 425 L 425 405 L 430 425 L 435 405 L 440 425 L 445 405 L 450 425 L 455 405 L 460 425 L 465 405 L 470 425 L 475 405 L 480 425 L 485 405 L 490 425 L 495 405 L 500 425 L 510 415 L 520 415",
+        "stroke": "#555",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_3",
+        "x": 260,
+        "y": 395,
+        "width": 40,
+        "height": 40,
+        "fill": "#ddd",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_3_label",
+        "x": 280,
+        "y": 420,
+        "text": "m",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_3_zero",
+        "expression": "v = 0",
+        "x": 200,
+        "y": 415,
+        "fontSize": 14,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "acceleration_3",
+        "x1": 300,
+        "y1": 415,
+        "x2": 370,
+        "y2": 415,
+        "stroke": "#d32f2f",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_3_label",
+        "expression": "a = +\\omega^2 A",
+        "x": 400,
+        "y": 405,
+        "fontSize": 12,
+        "color": "#d32f2f"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_3_coord",
+        "expression": "x = -A",
+        "x": 280,
+        "y": 455,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_line_right",
+        "x1": 350,
+        "y1": 180,
+        "x2": 400,
+        "y2": 180,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_line_left",
+        "x1": 280,
+        "y1": 180,
+        "x2": 350,
+        "y2": 180,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_label",
+        "expression": "A",
+        "x": 325,
+        "y": 175,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_title",
+        "x": 600,
+        "y": 100,
+        "text": "Vector Legend:",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "legend_velocity",
+        "x1": 600,
+        "y1": 120,
+        "x2": 650,
+        "y2": 120,
+        "stroke": "#4682b4",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_velocity_text",
+        "x": 660,
+        "y": 125,
+        "text": "Velocity (blue)",
+        "fontSize": 14,
+        "fill": "#4682b4",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "legend_acceleration",
+        "x1": 600,
+        "y1": 150,
+        "x2": 650,
+        "y2": 150,
+        "stroke": "#d32f2f",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_acceleration_text",
+        "x": 660,
+        "y": 155,
+        "text": "Acceleration (red)",
+        "fontSize": 14,
+        "fill": "#d32f2f",
+        "textAnchor": "start"
+      },
+      {
+        "type": "graph",
+        "id": "velocity_acceleration_graph",
+        "x": 500,
+        "y": 250,
+        "width": 350,
+        "height": 200,
+        "xDomain": [
+          -1.5,
+          1.5
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "Position x/A",
+        "yLabel": "Normalized v, a",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "-sqrt(1 - x*x)",
+            "color": "#4682b4",
+            "strokeWidth": 3
+          },
+          {
+            "expression": "-x",
+            "color": "#d32f2f",
+            "strokeWidth": 3
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_text",
+        "id": "graph_title",
+        "x": 675,
+        "y": 240,
+        "text": "v and a vs. Position",
+        "fontSize": 14,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "graph_velocity_label",
+        "expression": "\\frac{v}{\\omega A} = -\\sqrt{1-\\left(\\frac{x}{A}\\right)^2}",
+        "x": 650,
+        "y": 480,
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "graph_acceleration_label",
+        "expression": "\\frac{a}{\\omega^2 A} = -\\frac{x}{A}",
+        "x": 650,
+        "y": 500,
+        "fontSize": 12,
+        "color": "#d32f2f"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

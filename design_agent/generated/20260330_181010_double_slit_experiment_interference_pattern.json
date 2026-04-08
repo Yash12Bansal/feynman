@@ -1,0 +1,331 @@
+{
+  "prompt": "Show the actual result of the double-slit experiment: a detection screen displaying an interference pattern with multiple bright and dark fringes. The pattern should show a central bright fringe in the middle, with alternating bright and dark bands on either side, getting dimmer as they move away from center. Label it \"Actual Result: Interference Pattern\" with arrows pointing to \"Bright Fringes\" and \"Dark Fringes\".",
+  "spec": {
+    "title": "Double-Slit Experiment: Interference Pattern",
+    "description": "The actual detection screen showing the characteristic bright and dark fringes of wave interference",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "detection_screen",
+        "x": 150,
+        "y": 100,
+        "width": 600,
+        "height": 450,
+        "fill": "#f8f8f8",
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 450,
+        "y": 85,
+        "text": "Detection Screen",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "central_bright",
+        "x": 425,
+        "y": 120,
+        "width": 50,
+        "height": 410,
+        "fill": "#ffeb3b",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_1_left",
+        "x": 340,
+        "y": 140,
+        "width": 35,
+        "height": 370,
+        "fill": "#fff176",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_1_right",
+        "x": 525,
+        "y": 140,
+        "width": 35,
+        "height": 370,
+        "fill": "#fff176",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_2_left",
+        "x": 270,
+        "y": 160,
+        "width": 25,
+        "height": 330,
+        "fill": "#fff59d",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_2_right",
+        "x": 605,
+        "y": 160,
+        "width": 25,
+        "height": 330,
+        "fill": "#fff59d",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_3_left",
+        "x": 210,
+        "y": 180,
+        "width": 18,
+        "height": 290,
+        "fill": "#fff9c4",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_3_right",
+        "x": 672,
+        "y": 180,
+        "width": 18,
+        "height": 290,
+        "fill": "#fff9c4",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_4_left",
+        "x": 170,
+        "y": 200,
+        "width": 12,
+        "height": 250,
+        "fill": "#fffde7",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_4_right",
+        "x": 718,
+        "y": 200,
+        "width": 12,
+        "height": 250,
+        "fill": "#fffde7",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_1_left",
+        "x": 385,
+        "y": 120,
+        "width": 30,
+        "height": 410,
+        "fill": "#424242",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_1_right",
+        "x": 485,
+        "y": 120,
+        "width": 30,
+        "height": 410,
+        "fill": "#424242",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_2_left",
+        "x": 305,
+        "y": 140,
+        "width": 25,
+        "height": 370,
+        "fill": "#616161",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_2_right",
+        "x": 570,
+        "y": 140,
+        "width": 25,
+        "height": 370,
+        "fill": "#616161",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_3_left",
+        "x": 240,
+        "y": 160,
+        "width": 20,
+        "height": 330,
+        "fill": "#757575",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_3_right",
+        "x": 640,
+        "y": 160,
+        "width": 20,
+        "height": 330,
+        "fill": "#757575",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_4_left",
+        "x": 190,
+        "y": 180,
+        "width": 15,
+        "height": 290,
+        "fill": "#9e9e9e",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_4_right",
+        "x": 695,
+        "y": 180,
+        "width": 15,
+        "height": 290,
+        "fill": "#9e9e9e",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "title_label",
+        "x": 450,
+        "y": 40,
+        "text": "Actual Result: Interference Pattern",
+        "fontSize": 24,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "center_line",
+        "x1": 450,
+        "y1": 60,
+        "x2": 450,
+        "y2": 565,
+        "stroke": "#ccc",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "bright_arrow_1",
+        "x1": 100,
+        "y1": 200,
+        "x2": 440,
+        "y2": 250,
+        "stroke": "#ff6f00",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "bright_label",
+        "x": 80,
+        "y": 190,
+        "text": "Bright Fringes",
+        "fontSize": 14,
+        "fill": "#ff6f00",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "bright_arrow_2",
+        "x1": 100,
+        "y1": 210,
+        "x2": 350,
+        "y2": 280,
+        "stroke": "#ff6f00",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "dark_arrow_1",
+        "x1": 800,
+        "y1": 200,
+        "x2": 500,
+        "y2": 250,
+        "stroke": "#1976d2",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "dark_label",
+        "x": 820,
+        "y": 190,
+        "text": "Dark Fringes",
+        "fontSize": 14,
+        "fill": "#1976d2",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "dark_arrow_2",
+        "x1": 800,
+        "y1": 210,
+        "x2": 580,
+        "y2": 280,
+        "stroke": "#1976d2",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "central_label",
+        "x": 450,
+        "y": 590,
+        "text": "Central Maximum",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "central_arrow",
+        "x1": 450,
+        "y1": 575,
+        "x2": 450,
+        "y2": 540,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "intensity_note",
+        "x": 80,
+        "y": 580,
+        "text": "Note: Intensity decreases",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "intensity_note_2",
+        "x": 80,
+        "y": 600,
+        "text": "with distance from center",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "start"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

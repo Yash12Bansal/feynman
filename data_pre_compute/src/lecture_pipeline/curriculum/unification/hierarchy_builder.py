@@ -177,12 +177,27 @@ class HierarchyBuilder:
             if not cr.chapter_title:
                 continue
 
-            # Determine chapter_index from skeleton
+            # Determine chapter_index — prefer the actual chapter_order from
+            # the extraction's concept nodes (reliable), fall back to skeleton
+            # title lookup (can fail when PDF TOC names differ from skeleton).
+            ch_index_from_nodes = None
+            if cr.nodes:
+                # All concepts in a chapter share the same chapter_order
+                ch_index_from_nodes = cr.nodes[0].chapter_order
+
             ch_summary = self._skeleton.chapter_by_title(cr.chapter_title)
-            ch_index = ch_summary.chapter_index if ch_summary else 0
-            ch_page_start = ch_summary.page_start if ch_summary else 1
-            ch_page_end = ch_summary.page_end if ch_summary else 1
+            if not ch_summary and ch_index_from_nodes:
+                # Title lookup failed — try by index instead
+                ch_summary = self._skeleton.chapter_by_index(ch_index_from_nodes)
+
+            ch_index = ch_index_from_nodes or (ch_summary.chapter_index if ch_summary else 0)
+            ch_page_start = ch_summary.page_start if ch_summary else (cr.nodes[0].page_start if cr.nodes else 1)
+            ch_page_end = ch_summary.page_end if ch_summary else (cr.nodes[-1].page_end if cr.nodes else 1)
             ch_skeleton_summary = ch_summary.summary if ch_summary else ""
+
+            # Use human-readable title from skeleton when available,
+            # otherwise keep the PDF bookmark name
+            ch_display_title = ch_summary.title if ch_summary else cr.chapter_title
 
             chapter_uid = generate_chapter_uid(self._subject, cr.chapter_title)
 
@@ -211,7 +226,7 @@ class HierarchyBuilder:
 
             chapter_node = ExtractionNode(
                 uid=chapter_uid,
-                topic_name=cr.chapter_title,
+                topic_name=ch_display_title,
                 concept_type=ConceptType.TOPIC,
                 resolution_level=ResolutionLevel.CHAPTER,
                 summary=ch_skeleton_summary,
@@ -223,28 +238,46 @@ class HierarchyBuilder:
                 difficulty=Difficulty.INTERMEDIATE,
                 parent_uid=parent_uid,
                 children_uids=[],
-                metadata={"hierarchy_node": True},
+                metadata={
+                    "hierarchy_node": True,
+                    "pdf_toc_title": cr.chapter_title,  # preserve original PDF name
+                },
             )
             chapter_nodes[ch_index] = chapter_node
 
-        # --- Wire top-level concepts to chapter nodes ---
+        # --- Wire concepts to chapter nodes ---
+        # Create Chapter→Concept CONTAINS for concept-level nodes
+        # (resolution_level in {concept, detail with no parent concept}).
+        # Details that already point to a parent concept keep that parent,
+        # but still get a Chapter→Concept edge for traversal.
         updated_nodes: list[ExtractionNode] = []
+        wired_to_chapter: set[str] = set()
+
         for node in all_concept_nodes:
             ch_node = chapter_nodes.get(node.chapter_order)
-            if ch_node and node.parent_uid is None:
-                # Top-level concept → parent is chapter
+            if not ch_node:
+                updated_nodes.append(node)
+                continue
+
+            # Set parent_uid to chapter for top-level concepts (no parent yet)
+            if node.parent_uid is None:
                 updated = node.model_copy(update={"parent_uid": ch_node.uid})
                 updated_nodes.append(updated)
+            else:
+                updated_nodes.append(node)
+
+            # Create Chapter → Node CONTAINS edge for ALL nodes in this chapter
+            # (not just orphans). This ensures the teaching agent can traverse
+            # Chapter → Concept/Detail via CONTAINS relationships.
+            if node.uid not in wired_to_chapter:
                 ch_node.children_uids.append(node.uid)
-                # Chapter → Concept edges
                 result.hierarchy_relationships.append(
                     _make_contains_edge(ch_node.uid, node.uid)
                 )
                 result.hierarchy_relationships.append(
                     _make_summarizes_edge(ch_node.uid, node.uid)
                 )
-            else:
-                updated_nodes.append(node)
+                wired_to_chapter.add(node.uid)
 
         # Assemble result
         result.hierarchy_nodes = [subject_node]
