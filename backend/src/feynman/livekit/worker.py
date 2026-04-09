@@ -13,6 +13,7 @@ import structlog
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
+from feynman.agent.board_verifier import BoardVerifier
 from feynman.agent.curriculum_loader import CurriculumNotFoundError, load_curriculum
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
@@ -231,22 +232,44 @@ async def entrypoint(ctx: JobContext) -> None:
         state_machine=state_machine,
     )
 
+    # Initialize board verifier for async visual quality checks.
+    async def _publish_capture(data: str, topic: str) -> None:
+        await ctx.room.local_participant.publish_data(
+            data.encode(), reliable=True, topic=topic,
+        )
+
+    teaching_ctx.board_verifier = BoardVerifier(
+        publish_fn=_publish_capture,
+        audit=teaching_ctx.audit,
+    )
+
     # Listen for bounds reports from the frontend
     @ctx.room.on("data_received")
     def _on_data_received(packet: DataPacket) -> None:
-        if packet.topic != "bounds":
-            return
-        try:
-            payload = json.loads(packet.data)
-            report = BoundsReportPayload.model_validate(payload)
-            teaching_ctx.board_manager.update_bounds(report.board_id, report)
-            logger.debug(
-                "bounds.received",
-                board_id=report.board_id,
-                element_count=len(report.elements),
-            )
-        except Exception:
-            logger.warning("bounds.parse_failed", exc_info=True)
+        if packet.topic == "bounds":
+            try:
+                payload = json.loads(packet.data)
+                report = BoundsReportPayload.model_validate(payload)
+                teaching_ctx.board_manager.update_bounds(report.board_id, report)
+                logger.debug(
+                    "bounds.received",
+                    board_id=report.board_id,
+                    element_count=len(report.elements),
+                )
+            except Exception:
+                logger.warning("bounds.parse_failed", exc_info=True)
+        elif packet.topic == "board_capture":
+            try:
+                payload = json.loads(packet.data)
+                if (
+                    payload.get("type") == "capture_response"
+                    and teaching_ctx.board_verifier
+                ):
+                    teaching_ctx.board_verifier.resolve_capture(
+                        payload["request_id"], payload["image_data"],
+                    )
+            except (json.JSONDecodeError, KeyError):
+                logger.warning("board_capture.invalid_response")
 
     # Create agent with teaching context
     agent = FeynmanAgent(

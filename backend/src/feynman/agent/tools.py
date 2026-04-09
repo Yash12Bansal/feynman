@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from feynman.agent.teaching_context import TeachingContext
 
 from feynman.agent.board_graph import BoardRelation
+from feynman.agent.placement_executor import resolve_placement
+from feynman.agent.scenario_planner import detect_scenario, plan_scenario
 from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
@@ -39,6 +41,7 @@ from feynman.visuals.schemas import (
     HighlightStyle,
     HighlightWalkInstruction,
     HighlightWalkStep,
+    PlacementIntent,
     SceneTemplateId,
     SceneTemplateRef,
     ScrollViewInstruction,
@@ -46,6 +49,7 @@ from feynman.visuals.schemas import (
     ShowEquationInstruction,
     ShowGraphInstruction,
     ShowTextInstruction,
+    SizeHint,
     StepEquationInstruction,
     SwitchBoardInstruction,
     SyncMode,
@@ -121,6 +125,21 @@ def _declare_relation(
     )
 
 
+def _build_placement(near: str, near_side: str, size_hint: str) -> PlacementIntent | None:
+    """Build PlacementIntent from tool params. Returns None if no placement params set."""
+    if not (near or near_side or size_hint):
+        return None
+    try:
+        hint = SizeHint(size_hint) if size_hint else SizeHint.MEDIUM
+    except ValueError:
+        hint = SizeHint.MEDIUM
+    return PlacementIntent(
+        near=near or None,
+        relation=near_side or None,
+        size_hint=hint,
+    )
+
+
 async def _publish_visual(
     ctx: RunContext,
     instruction: _BaseInstruction,
@@ -134,6 +153,11 @@ async def _publish_visual(
 
     # Stamp active board ID on the instruction for frontend context.
     instruction.board_id = tc.board_manager.active_id
+
+    # Resolve placement intent → exact coordinates.
+    board_state = tc.board_manager.active_board.state
+    resolve_placement(instruction, board_state.spatial_solver, board_state.scenario_plan)
+    instruction.placement = None  # Strip before serialization (defense in depth)
 
     # Infer wait behavior from the instruction's sync_mode when not explicit.
     if wait_for_speech is None:
@@ -219,25 +243,33 @@ async def show_text(
     timing: str = "",
     relates_to: str = "",
     relation: str = "",
+    near: str = "",
+    near_side: str = "",
+    size_hint: str = "",
 ) -> str:
     """Display text on the classroom screen. Use for key points, definitions, important info.
 
     Args:
         text: The text content to display on the board.
         title: Optional heading for the text block.
-        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
-"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
-Leave empty for default placement.
+        zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
         timing: When the visual appears relative to your speech. \
 "visual_first" (appears while you speak), "after_speech" (default — waits for your sentence to finish).
         relates_to: Element ID this text relates to (e.g., "design-1", "eq-2"). \
 Declares a semantic relationship for board intelligence.
         relation: Relationship type: "supports" (default — supporting detail), \
 "illustrates", "compares_with".
+        near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
+The system computes exact position. Prefer this over zone.
+        near_side: Which side of the `near` element: "right_of" (default), \
+"below", "above", "left_of".
+        size_hint: Expected size: "small", "medium" (default), "large". \
+Helps the system check fit before placing.
     """
     instruction = ShowTextInstruction(
         text=text, title=title, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
     )
+    instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
         _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.SUPPORTS)
@@ -255,6 +287,9 @@ async def show_equation(
     timing: str = "",
     relates_to: str = "",
     relation: str = "",
+    near: str = "",
+    near_side: str = "",
+    size_hint: str = "",
 ) -> str:
     """Display a math equation on the classroom screen. Use LaTeX notation.
 
@@ -267,15 +302,19 @@ async def show_equation(
             Example: [{"term_id": "term-F", "trigger_words": ["force", "F"]},
                        {"term_id": "term-m", "trigger_words": ["mass", "m"]}]
             When provided with animation="term_by_term", terms reveal as you speak.
-        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
-"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
-Leave empty for default placement.
+        zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
         timing: When the equation appears. "visual_first" (while you speak), \
 "after_speech" (default), or "term_sync" (terms reveal as you say them — use with term_by_term animation).
         relates_to: Element ID this equation relates to (e.g., "design-1"). \
 Declares a semantic relationship for board intelligence.
         relation: Relationship type: "illustrates" (default — equation for a diagram), \
 "derives_from" (next step in chain), "supports" (supporting detail).
+        near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
+The system computes exact position. Prefer this over zone.
+        near_side: Which side of the `near` element: "right_of" (default), \
+"below", "above", "left_of".
+        size_hint: Expected size: "small", "medium" (default), "large". \
+Helps the system check fit before placing.
     """
     eq_animation = EquationAnimation(animation)
     term_hints = None
@@ -292,6 +331,7 @@ Declares a semantic relationship for board intelligence.
         term_hints=term_hints,
         zone=_parse_zone(zone),
     )
+    instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
         _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
@@ -319,6 +359,9 @@ async def draw_diagram(
     timing: str = "visual_first",
     relates_to: str = "",
     relation: str = "",
+    near: str = "",
+    near_side: str = "",
+    size_hint: str = "",
 ) -> str:
     """Draw a structured diagram on the classroom screen — flowcharts, force diagrams, concept maps, etc.
 
@@ -340,14 +383,18 @@ async def draw_diagram(
             - "directed" (optional): true (default) for arrow, false for plain line.
             Example: [{"from_id": "a", "to_id": "b", "label": "next"}]
         progressive: Whether to animate nodes and edges appearing progressively (default true).
-        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
-"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
-Leave empty for default placement.
+        zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
         timing: When the diagram appears. "visual_first" (default — starts drawing while you speak, \
 use with "Let me draw this..."), "after_speech" (waits for your sentence).
         relates_to: Element ID this diagram relates to (e.g., "eq-1"). \
 Declares a semantic relationship for board intelligence.
         relation: Relationship type: "illustrates" (default), "compares_with", "supports".
+        near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
+The system computes exact position. Prefer this over zone.
+        near_side: Which side of the `near` element: "right_of" (default), \
+"below", "above", "left_of".
+        size_hint: Expected size: "small", "medium" (default), "large". \
+Helps the system check fit before placing.
     """
     nodes = [DiagramNode(**n) for n in json.loads(nodes_json)] if nodes_json else []
     edges = [DiagramEdge(**e) for e in json.loads(edges_json)] if edges_json else []
@@ -362,6 +409,7 @@ Declares a semantic relationship for board intelligence.
         zone=_parse_zone(zone),
         sync_mode=_parse_timing(timing),
     )
+    instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
         _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
@@ -377,6 +425,9 @@ async def step_equation(
     timing: str = "",
     relates_to: str = "",
     relation: str = "",
+    near: str = "",
+    near_side: str = "",
+    size_hint: str = "",
 ) -> str:
     """Show a step-by-step equation solve on the classroom screen. Perfect for walking through algebra, simplification, or any multi-step derivation.
 
@@ -387,20 +438,25 @@ async def step_equation(
             - "highlight_terms" (optional): List of htmlId refs for changed terms.
             Example: [{"latex": "2x + 4 = 10"}, {"latex": "2x = 6", "annotation": "Subtract 4 from both sides"}]
         title: Optional heading (e.g., "Solving for x").
-        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
-"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
-Leave empty for default placement.
+        zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
         timing: When the steps appear. "visual_first" (while you speak), "after_speech" (default).
         relates_to: Element ID this derivation relates to (e.g., "design-1", "eq-1"). \
 Declares a semantic relationship for board intelligence.
         relation: Relationship type: "derives_from" (default — derivation from a source), \
 "illustrates", "supports".
+        near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
+The system computes exact position. Prefer this over zone.
+        near_side: Which side of the `near` element: "right_of" (default), \
+"below", "above", "left_of".
+        size_hint: Expected size: "small", "medium" (default), "large". \
+Helps the system check fit before placing.
     """
     raw_steps = json.loads(steps_json)
     steps = [EquationStep(**s) for s in raw_steps]
     instruction = StepEquationInstruction(
         title=title, steps=steps, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
     )
+    instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     # Declare relationship to the referenced element.
     if relates_to and instruction.element_id:
@@ -434,6 +490,9 @@ async def show_graph(
     timing: str = "visual_first",
     relates_to: str = "",
     relation: str = "",
+    near: str = "",
+    near_side: str = "",
+    size_hint: str = "",
 ) -> str:
     """Display a graph or chart on the classroom screen — line charts, bar charts, scatter plots, or function plots.
 
@@ -459,15 +518,19 @@ async def show_graph(
             - "domain_max" (optional): Maximum x value to plot.
             Example: [{"expression": "x^2 - 4", "label": "f(x) = x² - 4"}, {"expression": "2*x", "label": "g(x) = 2x", "color": "#60a5fa"}]
         animated: Whether to animate the chart drawing in (default true).
-        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
-"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
-Leave empty for default placement.
+        zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
         timing: When the graph appears. "visual_first" (default — starts drawing while you speak), \
 "after_speech" (waits for your sentence).
         relates_to: Element ID this graph relates to (e.g., "eq-1", "design-1"). \
 Declares a semantic relationship for board intelligence.
         relation: Relationship type: "illustrates" (default — graph visualizing an equation/concept), \
 "supports", "compares_with".
+        near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
+The system computes exact position. Prefer this over zone.
+        near_side: Which side of the `near` element: "right_of" (default), \
+"below", "above", "left_of".
+        size_hint: Expected size: "small", "medium" (default), "large". \
+Helps the system check fit before placing.
     """
     series = [DataSeries(**s) for s in json.loads(series_json)] if series_json else []
     functions = [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
@@ -485,6 +548,7 @@ Declares a semantic relationship for board intelligence.
         zone=_parse_zone(zone),
         sync_mode=_parse_timing(timing),
     )
+    instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
         _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
@@ -673,6 +737,9 @@ async def draw_design_diagram(
     timing: str = "visual_first",
     relates_to: str = "",
     relation: str = "",
+    near: str = "",
+    near_side: str = "",
+    size_hint: str = "",
 ) -> str:
     """Draw a detailed, precise SVG diagram using the AI design agent.
 
@@ -688,14 +755,18 @@ async def draw_design_diagram(
 labels, colors, layout. Example: "A free body diagram of a 5kg block on a 30-degree \
 inclined plane showing weight (mg), normal force (N), and friction (f) vectors with \
 proper angles labeled."
-        zone: Board zone for placement. Options: "top-left", "top-center", "top-right", \
-"center-left", "center-center", "center-right", "bottom-left", "bottom-center", "bottom-right". \
-Leave empty for default placement.
+        zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
         timing: When the diagram appears. "visual_first" (default — starts rendering while you speak), \
 "after_speech" (waits for your sentence).
         relates_to: Element ID this diagram relates to (e.g., "eq-1"). \
 Declares a semantic relationship for board intelligence.
         relation: Relationship type: "illustrates" (default), "compares_with", "supports".
+        near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
+The system computes exact position. Prefer this over zone.
+        near_side: Which side of the `near` element: "right_of" (default), \
+"below", "above", "left_of".
+        size_hint: Expected size: "small", "medium" (default), "large". \
+Helps the system check fit before placing.
     """
     from feynman.agent.design_bridge import generate_design_diagram
 
@@ -743,6 +814,7 @@ Declares a semantic relationship for board intelligence.
         zone=_parse_zone(zone),
         sync_mode=_parse_timing(timing),
     )
+    instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
 
     # Store the design spec for future modification via modify_design_diagram.
@@ -768,6 +840,19 @@ Declares a semantic relationship for board intelligence.
     # Collect sub-element IDs so the agent can reference them in highlight_walk.
     sub_ids = [el.get("id") for el in spec.get("elements", []) if el.get("id")]
     eid = instruction.element_id  # e.g. "design-1"
+
+    # Background visual verification (at most once per concept).
+    if tc.board_verifier and not tc._verified_this_concept:
+        board_ctx = tc.board_manager.active_board.state.summary()
+        _verify_task = asyncio.create_task(  # noqa: RUF006
+            tc.board_verifier.request_verification(
+                element_id=eid,
+                concept_index=tc.current_concept_index,
+                board_context=board_ctx,
+            )
+        )
+        tc._verified_this_concept = True
+        logger.info("visual_verification.fired", element_id=eid, concept=tc.current_concept_index)
 
     result = f"Drew design diagram (element_id: \"{eid}\"): {title or prompt[:80]}"
     if sub_ids:
@@ -909,6 +994,9 @@ async def draw_scene(
     timing: str = "visual_first",
     relates_to: str = "",
     relation: str = "",
+    near: str = "",
+    near_side: str = "",
+    size_hint: str = "",
 ) -> str:
     """Draw a scientific diagram on the classroom screen — physics apparatus, optics setups, circuits, geometry.
 
@@ -938,13 +1026,21 @@ async def draw_scene(
             Optional fields: "from" and "to" (anchor references), "direction", "angle", "magnitude", "color",
             "extras" (dict of component-specific params).
         progressive: Animate drawing in progressively (default true).
-        zone: Board zone ("center-left", "center-right", etc). Leave empty for default.
+        zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
         timing: When the scene appears. "visual_first" (default — starts drawing while you speak), \
 "after_speech" (waits for your sentence).
         relates_to: Element ID this scene relates to (e.g., "eq-1"). \
 Declares a semantic relationship for board intelligence.
         relation: Relationship type: "illustrates" (default), "compares_with", "supports".
+        near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
+The system computes exact position. Prefer this over zone.
+        near_side: Which side of the `near` element: "right_of" (default), \
+"below", "above", "left_of".
+        size_hint: Expected size: "small", "medium" (default), "large". \
+Helps the system check fit before placing.
     """
+    tc: TeachingContext = ctx.userdata
+
     # Parse semantic elements — graceful on malformed JSON.
     elements: list[dict] = []
     if elements_json:
@@ -967,6 +1063,7 @@ Declares a semantic relationship for board intelligence.
             zone=_parse_zone(zone),
             sync_mode=sync_mode,
         )
+        instruction.placement = _build_placement(near, near_side, size_hint)
         await _publish_visual(ctx, instruction)
         if relates_to and instruction.element_id:
             _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
@@ -974,6 +1071,20 @@ Declares a semantic relationship for board intelligence.
         # Semantic specs: base 800ms + 150ms per element.
         duration_s = (800 + len(validated_elements) * 150) / 1000.0
         await asyncio.sleep(duration_s)
+
+        # Background visual verification (at most once per concept).
+        if tc.board_verifier and not tc._verified_this_concept:
+            eid = instruction.element_id
+            board_ctx = tc.board_manager.active_board.state.summary()
+            _verify_task = asyncio.create_task(  # noqa: RUF006
+                tc.board_verifier.request_verification(
+                    element_id=eid,
+                    concept_index=tc.current_concept_index,
+                    board_context=board_ctx,
+                )
+            )
+            tc._verified_this_concept = True
+            logger.info("visual_verification.fired", element_id=eid, concept=tc.current_concept_index)
 
         label = title or description or scene_type
         return f"Drew scene: {label}"
@@ -1008,6 +1119,7 @@ Declares a semantic relationship for board intelligence.
         zone=_parse_zone(zone),
         sync_mode=sync_mode,
     )
+    instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
         _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
@@ -1015,6 +1127,20 @@ Declares a semantic relationship for board intelligence.
     # Sleep for estimated animation duration so the LLM doesn't talk over draw-in.
     duration_s = _SCENE_DURATION_MS.get(template_id, 1000) / 1000.0
     await asyncio.sleep(duration_s)
+
+    # Background visual verification (at most once per concept).
+    if tc.board_verifier and not tc._verified_this_concept:
+        eid = instruction.element_id
+        board_ctx = tc.board_manager.active_board.state.summary()
+        _verify_task = asyncio.create_task(  # noqa: RUF006
+            tc.board_verifier.request_verification(
+                element_id=eid,
+                concept_index=tc.current_concept_index,
+                board_context=board_ctx,
+            )
+        )
+        tc._verified_this_concept = True
+        logger.info("visual_verification.fired", element_id=eid, concept=tc.current_concept_index)
 
     label = title or description or template_id
     return f"Drew scene: {label}"
@@ -1063,11 +1189,27 @@ async def advance_concept(ctx: RunContext) -> str:
 
     next_concept = tc.advance()
 
+    # Reset verification guard for the new concept.
+    tc._verified_this_concept = False
+
     if next_concept is not None:
         # Create a new board for the next concept.
         branch = tc.state_machine.current
         new_board = tc.board_manager.create_and_switch(next_concept.title, branch.id)
         await _publish_switch_board(ctx, new_board.id, new_board.label, BoardIntent.NEW)
+
+        # Detect teaching scenario and pre-plan board layout.
+        scenario = detect_scenario(
+            next_concept.description, next_concept.visual_suggestions,
+        )
+        board_state = new_board.state
+        board_state.scenario_plan = plan_scenario(scenario, board_state.spatial_solver)
+        logger.info(
+            "scenario.planned",
+            scenario=scenario.value,
+            slots=len(board_state.scenario_plan.slots),
+            concept=next_concept.title,
+        )
 
         # Evict stale anticipation cache entries (concepts we've passed).
         new_index = tc.current_concept_index

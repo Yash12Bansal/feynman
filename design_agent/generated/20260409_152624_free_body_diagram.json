@@ -1,0 +1,43 @@
+{
+  "prompt": "MODIFY: change color",
+  "spec": {
+    "title": "Free Body Diagram",
+    "description": "Forces on a block with applied force",
+    "width": 900,
+    "height": 650,
+    "elements": [
+      {
+        "id": "weight-arrow",
+        "type": "svg_arrow",
+        "x1": 450,
+        "y1": 300,
+        "x2": 450,
+        "y2": 500
+      },
+      {
+        "id": "normal-arrow",
+        "type": "svg_arrow",
+        "x1": 450,
+        "y1": 300,
+        "x2": 450,
+        "y2": 100
+      },
+      {
+        "id": "friction-arrow",
+        "type": "svg_arrow",
+        "x1": 450,
+        "y1": 300,
+        "x2": 250,
+        "y2": 300
+      },
+      {
+        "id": "applied-arrow",
+        "type": "svg_arrow",
+        "x1": 450,
+        "y1": 300,
+        "x2": 650,
+        "y2": 300
+      }
+    ]
+  }
+}

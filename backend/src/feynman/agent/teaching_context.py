@@ -30,6 +30,8 @@ class TeachingContext:
     audit: SessionAudit = field(default_factory=SessionAudit)
     anticipation: AnticipationEngine = field(init=False)
     curriculum: Any | None = None  # CurriculumData from curriculum_loader (Neo4j)
+    board_verifier: Any | None = None  # BoardVerifier (set by worker.py at session start)
+    _verified_this_concept: bool = field(default=False, init=False, repr=False)
     # --- COMMENTED OUT: Old ConceptGraph field. Replaced by curriculum. ---
     # concept_graph: Any | None = None  # ConceptGraph from data_pre_compute (optional)
     # _graph_node_map: dict[int, str] | None = field(default=None, init=False, repr=False)

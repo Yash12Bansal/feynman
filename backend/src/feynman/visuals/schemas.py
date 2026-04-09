@@ -100,6 +100,15 @@ class BoardZone(StrEnum):
     BOTTOM_RIGHT = "bottom-right"
 
 
+class SizeHint(StrEnum):
+    """Size category for placement intent."""
+
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE = "large"
+    FULL = "full"
+
+
 class SceneTemplateId(StrEnum):
     """Known scene templates — backend validates against this enum."""
 
@@ -110,6 +119,20 @@ class SceneTemplateId(StrEnum):
 # ──────────────────────────────────────────────
 # Sub-models (used inside instruction payloads)
 # ──────────────────────────────────────────────
+
+
+class PlacementIntent(BaseModel):
+    """Semantic placement intent from the LLM.
+
+    The LLM outputs one of:
+    1. near + relation: place relative to an existing element
+    2. zone: backward-compatible zone placement
+    3. Neither: solver picks best position automatically
+    """
+
+    near: str | None = None
+    relation: str | None = None
+    size_hint: SizeHint = SizeHint.MEDIUM
 
 
 class DiagramNode(BaseModel):
@@ -218,6 +241,11 @@ class _BaseInstruction(BaseModel):
     term_hints: list[TermSyncHint] | None = None
     zone: BoardZone | None = None
     board_id: str | None = None
+    # Board Cortex: exact position from solver (sent to frontend).
+    position_x: float | None = None
+    position_y: float | None = None
+    # Board Cortex: LLM intent (backend-only, never sent to frontend).
+    placement: PlacementIntent | None = Field(None, exclude=True)
 
 
 # ──────────────────────────────────────────────

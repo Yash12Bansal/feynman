@@ -25,6 +25,7 @@ import { HighlightOverlay } from "../content/HighlightOverlay";
 import { HighlightWalkOverlay } from "../content/HighlightWalkOverlay";
 import { AnnotationLayer } from "./content/AnnotationLayer";
 import { AliveFilter } from "./AliveFilter";
+import { BoardCapture } from "./BoardCapture";
 import { BoundsReporter } from "./BoundsReporter";
 import { BoardNavigator } from "./BoardNavigator";
 import type { BoardTransition, BoardMeta, CameraState } from "./useBoardStore";
@@ -186,11 +187,17 @@ export function WhiteboardScene({
     return { elements: elems, highlights: hlights, annotations: anns };
   }, [instructions]);
 
-  // Group elements by tile, then by zone within each tile
+  // Group elements by tile, then by zone within each tile.
+  // Elements with exact position_x/y bypass zones and render absolutely.
   const tileGroups = useMemo(() => {
     const tiles = new Map<
       string,
-      { tx: number; ty: number; zones: Map<BoardZone, VisualInstruction[]> }
+      {
+        tx: number;
+        ty: number;
+        zones: Map<BoardZone, VisualInstruction[]>;
+        positioned: VisualInstruction[];
+      }
     >();
 
     for (const instr of elements) {
@@ -199,16 +206,22 @@ export function WhiteboardScene({
       const key = tileKey(tx, ty);
       let tile = tiles.get(key);
       if (!tile) {
-        tile = { tx, ty, zones: new Map() };
+        tile = { tx, ty, zones: new Map(), positioned: [] };
         tiles.set(key, tile);
       }
-      const zone = instr.zone ?? DEFAULT_ZONE;
-      let list = tile.zones.get(zone);
-      if (!list) {
-        list = [];
-        tile.zones.set(zone, list);
+
+      if (instr.position_x != null && instr.position_y != null) {
+        // Exact placement from Board Cortex — bypass zone layout.
+        tile.positioned.push(instr);
+      } else {
+        const zone = instr.zone ?? DEFAULT_ZONE;
+        let list = tile.zones.get(zone);
+        if (!list) {
+          list = [];
+          tile.zones.set(zone, list);
+        }
+        list.push(instr);
       }
-      list.push(instr);
     }
 
     return tiles;
@@ -309,45 +322,62 @@ export function WhiteboardScene({
     <div ref={boardSurfaceRef} className="wb-board-surface">
       <AliveFilter />
       {debugZones && <ZoneDebugOverlay layout={layout} />}
-      {Array.from(tileGroups.values()).map(({ tx, ty, zones: zoneMap }) => (
-        <div
-          key={tileKey(tx, ty)}
-          className="wb-tile"
-          style={{
-            position: "absolute",
-            left: tx * BOARD_WIDTH,
-            top: ty * BOARD_HEIGHT,
-            width: BOARD_WIDTH,
-            height: BOARD_HEIGHT,
-          }}
-        >
-          {Array.from(zoneMap.entries()).map(([zone, zoneInstructions]) => {
-            const { inner } = layout.zones[zone];
-            return (
+      {Array.from(tileGroups.values()).map(
+        ({ tx, ty, zones: zoneMap, positioned }) => (
+          <div
+            key={tileKey(tx, ty)}
+            className="wb-tile"
+            style={{
+              position: "absolute",
+              left: tx * BOARD_WIDTH,
+              top: ty * BOARD_HEIGHT,
+              width: BOARD_WIDTH,
+              height: BOARD_HEIGHT,
+            }}
+          >
+            {Array.from(zoneMap.entries()).map(([zone, zoneInstructions]) => {
+              const { inner } = layout.zones[zone];
+              return (
+                <div
+                  key={zone}
+                  className="wb-zone"
+                  data-zone={zone}
+                  style={{
+                    left: inner.x,
+                    top: inner.y,
+                    width: inner.width,
+                    height: inner.height,
+                  }}
+                >
+                  {zoneInstructions.map((instr, idx) => (
+                    <WhiteboardCard
+                      key={instr.element_id ?? `wb-${zone}-${idx}`}
+                      instruction={instr}
+                    >
+                      <InstructionSwitch instruction={instr} />
+                    </WhiteboardCard>
+                  ))}
+                </div>
+              );
+            })}
+            {positioned.map((instr, idx) => (
               <div
-                key={zone}
-                className="wb-zone"
-                data-zone={zone}
+                key={instr.element_id ?? `wb-pos-${idx}`}
+                className="wb-positioned"
                 style={{
-                  left: inner.x,
-                  top: inner.y,
-                  width: inner.width,
-                  height: inner.height,
+                  position: "absolute",
+                  left: instr.position_x,
+                  top: instr.position_y,
                 }}
               >
-                {zoneInstructions.map((instr, idx) => (
-                  <WhiteboardCard
-                    key={instr.element_id ?? `wb-${zone}-${idx}`}
-                    instruction={instr}
-                  >
-                    <InstructionSwitch instruction={instr} />
-                  </WhiteboardCard>
-                ))}
+                <WhiteboardCard instruction={instr}>
+                  <InstructionSwitch instruction={instr} />
+                </WhiteboardCard>
               </div>
-            );
-          })}
-        </div>
-      ))}
+            ))}
+          </div>
+        ),
+      )}
       <AnnotationLayer
         annotations={annotations}
         boardRef={boardSurfaceRef}
@@ -360,6 +390,9 @@ export function WhiteboardScene({
           activeBoardId={activeBoardId}
           activeInstructions={elements}
         />
+      )}
+      {activeBoardId && (
+        <BoardCapture boardSurfaceRef={boardSurfaceRef} />
       )}
     </div>
   );

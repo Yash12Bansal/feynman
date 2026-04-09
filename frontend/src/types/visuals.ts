@@ -128,6 +128,10 @@ interface BaseInstruction {
   term_hints?: TermSyncHint[];
   zone?: BoardZone;
   board_id?: string;
+  /** Exact X position from Board Cortex solver (overrides zone placement). */
+  position_x?: number;
+  /** Exact Y position from Board Cortex solver (overrides zone placement). */
+  position_y?: number;
   /** Client-stamped tile X coordinate (set by board store, not from backend). */
   _tileX?: number;
   /** Client-stamped tile Y coordinate (set by board store, not from backend). */

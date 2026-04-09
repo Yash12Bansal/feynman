@@ -127,6 +127,30 @@
           "default": null,
           "title": "Board Id"
         },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
         "type": {
           "const": "clear",
           "default": "clear",
@@ -328,6 +352,30 @@
           "default": null,
           "title": "Board Id"
         },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
         "type": {
           "const": "draw_diagram",
           "default": "draw_diagram",
@@ -528,6 +576,30 @@
           "default": null,
           "title": "Board Id"
         },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
         "type": {
           "const": "highlight",
           "default": "highlight",
@@ -638,6 +710,30 @@
           "default": null,
           "title": "Board Id"
         },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
         "type": {
           "const": "show_equation",
           "default": "show_equation",
@@ -730,6 +826,30 @@
           ],
           "default": null,
           "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
         },
         "type": {
           "const": "show_graph",
@@ -856,6 +976,30 @@
           "default": null,
           "title": "Board Id"
         },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
         "type": {
           "const": "show_text",
           "default": "show_text",
@@ -948,6 +1092,30 @@
           ],
           "default": null,
           "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
         },
         "type": {
           "const": "step_equation",
@@ -1103,6 +1271,30 @@
           "default": null,
           "title": "Board Id"
         },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
         "type": {
           "const": "highlight_walk",
           "default": "highlight_walk",
@@ -1193,6 +1385,30 @@
           ],
           "default": null,
           "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
         },
         "type": {
           "const": "annotate",
@@ -1296,6 +1512,30 @@
           ],
           "default": null,
           "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
         },
         "type": {
           "const": "switch_board",
@@ -1483,6 +1723,30 @@
           "default": null,
           "title": "Board Id"
         },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
         "type": {
           "const": "draw_scene",
           "default": "draw_scene",
@@ -1575,6 +1839,16 @@
           "default": null,
           "title": "Board Id"
         },
+        "position_x": {
+          "anyOf": [{"type": "number"}, {"type": "null"}],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [{"type": "number"}, {"type": "null"}],
+          "default": null,
+          "title": "Position Y"
+        },
         "type": {
           "const": "scroll_view",
           "default": "scroll_view",
@@ -1629,6 +1903,16 @@
           "anyOf": [{"type": "string"}, {"type": "null"}],
           "default": null,
           "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [{"type": "number"}, {"type": "null"}],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [{"type": "number"}, {"type": "null"}],
+          "default": null,
+          "title": "Position Y"
         },
         "type": {
           "const": "draw_design_diagram",

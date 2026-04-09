@@ -5,11 +5,11 @@ from uuid import uuid4
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
 from feynman.agent.prompts import (
     BOARD_RELATIONSHIPS_INSTRUCTIONS,
+    PLACEMENT_INSTRUCTIONS,
     SCENE_INSTRUCTIONS,
     STATE_TOOL_INSTRUCTIONS,
     TEACHING_SYSTEM_PROMPT,
     TOOL_ROUTING_INSTRUCTIONS,
-    ZONE_PLACEMENT_INSTRUCTIONS,
     build_teaching_prompt,
 )
 from feynman.agent.state_machine import TeachingStateMachine
@@ -164,58 +164,52 @@ class TestBuildTeachingPromptLessonComplete:
         assert "Summarize" in prompt
 
 
-class TestZonePlacementInstructions:
+class TestPlacementInstructions:
     def test_included_with_plan(self):
         plan = _make_plan()
         ctx = _make_ctx(plan=plan)
         prompt = build_teaching_prompt(plan, ctx)
-        assert ZONE_PLACEMENT_INSTRUCTIONS in prompt
+        assert PLACEMENT_INSTRUCTIONS in prompt
 
     def test_included_without_plan(self):
         ctx = _make_ctx(plan=None)
         prompt = build_teaching_prompt(None, ctx)
-        assert ZONE_PLACEMENT_INSTRUCTIONS in prompt
+        assert PLACEMENT_INSTRUCTIONS in prompt
 
-    def test_zone_names_listed(self):
-        ctx = _make_ctx(plan=None)
-        prompt = build_teaching_prompt(None, ctx)
-        assert "top-left" in prompt
-        assert "center-center" in prompt
-        assert "bottom-right" in prompt
+    def test_near_and_near_side_documented(self):
+        assert "near=" in PLACEMENT_INSTRUCTIONS
+        assert "near_side=" in PLACEMENT_INSTRUCTIONS
+
+    def test_three_placement_options(self):
+        assert "Option 1: Near an existing element" in PLACEMENT_INSTRUCTIONS
+        assert "Option 2: Zone placement" in PLACEMENT_INSTRUCTIONS
+        assert "Option 3: Auto-placement" in PLACEMENT_INSTRUCTIONS
 
     def test_pattern_concept_introduction(self):
-        assert "CONCEPT INTRODUCTION" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Concept Introduction" in PLACEMENT_INSTRUCTIONS
 
     def test_pattern_step_by_step_derivation(self):
-        assert "STEP-BY-STEP DERIVATION" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "NEVER scatter derivation steps" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Step-by-step Derivation" in PLACEMENT_INSTRUCTIONS
 
     def test_pattern_problem_solving(self):
-        assert "PROBLEM SOLVING" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "bottom-right" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Problem Solving" in PLACEMENT_INSTRUCTIONS
 
     def test_pattern_comparison(self):
-        assert "COMPARISON" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "Case A" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "Case B" in ZONE_PLACEMENT_INSTRUCTIONS
-
-    def test_pattern_single_equation_focus(self):
-        assert "SINGLE EQUATION FOCUS" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "center-center" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Comparison" in PLACEMENT_INSTRUCTIONS
+        assert "Case A" in PLACEMENT_INSTRUCTIONS
+        assert "Case B" in PLACEMENT_INSTRUCTIONS
 
     def test_spatial_rules_present(self):
-        rules = ZONE_PLACEMENT_INSTRUCTIONS
-        assert "Adjacent" in rules
-        assert "Top-to-bottom" in rules
-        assert "visual anchor" in rules
-        assert 'annotate(action="arrow")' in rules
-        assert "Clear before reuse" in rules
-        assert ">5 elements" in rules
+        rules = PLACEMENT_INSTRUCTIONS
+        assert "Related" in rules
+        assert "Reading flow" in rules
+        assert "anchor" in rules
+        assert "snapshot" in rules
+        assert "Size matters" in rules
 
-    def test_board_planning_step_present(self):
-        assert "Before Each Concept" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "teaching moment type" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "main visual" in ZONE_PLACEMENT_INSTRUCTIONS
+    def test_size_hint_documented(self):
+        assert 'size_hint="large"' in PLACEMENT_INSTRUCTIONS
+        assert '"small"' in PLACEMENT_INSTRUCTIONS
 
 
 class TestToolRoutingInstructions:

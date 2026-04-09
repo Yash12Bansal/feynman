@@ -1,0 +1,458 @@
+{
+  "prompt": "MODIFY: Add a third scenario at the bottom showing a passenger sitting in a moving train. Show the passenger at rest relative to the train interior, but in motion relative to someone standing on the platform outside. Include labels \"Passenger at rest relative to train\" and \"Passenger in motion relative to platform observer\"",
+  "spec": {
+    "title": "Rest and Motion: Reference Frame Dependence",
+    "description": "Interactive demonstration showing how rest and motion are relative concepts that depend on the observer's frame of reference",
+    "width": 900,
+    "height": 750,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Rest and Motion are Relative to the Observer",
+        "fontSize": 20,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "ground_frame",
+        "x": 50,
+        "y": 80,
+        "width": 350,
+        "height": 200,
+        "fill": "#f8f9fa",
+        "stroke": "#6c757d",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "ground_title",
+        "x": 225,
+        "y": 100,
+        "text": "Ground Frame (Observer A)",
+        "fontSize": 16,
+        "fill": "#495057",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "table",
+        "x": 120,
+        "y": 200,
+        "width": 120,
+        "height": 15,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "book_ground",
+        "x": 165,
+        "y": 185,
+        "width": 30,
+        "height": 15,
+        "fill": "#e74c3c",
+        "stroke": "#c0392b",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "book_label_ground",
+        "x": 180,
+        "y": 175,
+        "text": "Book",
+        "fontSize": 12,
+        "fill": "#2c3e50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "ground_observation",
+        "x": 225,
+        "y": 240,
+        "text": "Book appears AT REST",
+        "fontSize": 14,
+        "fill": "#27ae60",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "ground_detail",
+        "x": 225,
+        "y": 260,
+        "text": "Position unchanged relative to table",
+        "fontSize": 12,
+        "fill": "#7f8c8d",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "moving_frame",
+        "x": 500,
+        "y": 80,
+        "width": 350,
+        "height": 200,
+        "fill": "#e8f4f8",
+        "stroke": "#3498db",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "moving_title",
+        "x": 675,
+        "y": 100,
+        "text": "Moving Frame (Observer B)",
+        "fontSize": 16,
+        "fill": "#2980b9",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "table_moving",
+        "x": "570 + motion_offset",
+        "y": 200,
+        "width": 120,
+        "height": 15,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "book_moving",
+        "x": "615 + motion_offset",
+        "y": 185,
+        "width": 30,
+        "height": 15,
+        "fill": "#e74c3c",
+        "stroke": "#c0392b",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "book_label_moving",
+        "x": "630 + motion_offset",
+        "y": 175,
+        "text": "Book",
+        "fontSize": 12,
+        "fill": "#2c3e50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "motion_arrow",
+        "x1": "560 + motion_offset",
+        "y1": 225,
+        "x2": "590 + motion_offset",
+        "y2": 225,
+        "stroke": "#e74c3c",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "motion_label",
+        "x": "575 + motion_offset",
+        "y": 245,
+        "text": "Motion",
+        "fontSize": 10,
+        "fill": "#e74c3c",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "moving_observation",
+        "x": 675,
+        "y": 240,
+        "text": "Book appears IN MOTION",
+        "fontSize": 14,
+        "fill": "#e74c3c",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "moving_detail",
+        "x": 675,
+        "y": 260,
+        "text": "Position changes relative to observer",
+        "fontSize": 12,
+        "fill": "#7f8c8d",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "train_scenario_title",
+        "x": 450,
+        "y": 310,
+        "text": "Train Example: Multiple Reference Frames",
+        "fontSize": 18,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "train_car",
+        "x": "250 + motion_offset * 2",
+        "y": 340,
+        "width": 180,
+        "height": 60,
+        "fill": "#f0f8ff",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_rect",
+        "id": "train_window1",
+        "x": "270 + motion_offset * 2",
+        "y": 350,
+        "width": 25,
+        "height": 20,
+        "fill": "#e6f3ff",
+        "stroke": "#4682b4",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "train_window2",
+        "x": "385 + motion_offset * 2",
+        "y": 350,
+        "width": 25,
+        "height": 20,
+        "fill": "#e6f3ff",
+        "stroke": "#4682b4",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "passenger",
+        "cx": "340 + motion_offset * 2",
+        "cy": 370,
+        "r": 8,
+        "fill": "#ff6b6b",
+        "stroke": "#e55555",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "passenger_label",
+        "x": "340 + motion_offset * 2",
+        "y": 385,
+        "text": "Passenger",
+        "fontSize": 10,
+        "fill": "#2c3e50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "train_wheels1",
+        "x": "260 + motion_offset * 2",
+        "y": 400,
+        "width": 12,
+        "height": 12,
+        "fill": "#333",
+        "stroke": "#000",
+        "strokeWidth": 1,
+        "rx": 6
+      },
+      {
+        "type": "svg_rect",
+        "id": "train_wheels2",
+        "x": "408 + motion_offset * 2",
+        "y": 400,
+        "width": 12,
+        "height": 12,
+        "fill": "#333",
+        "stroke": "#000",
+        "strokeWidth": 1,
+        "rx": 6
+      },
+      {
+        "type": "svg_line",
+        "id": "platform",
+        "x1": 50,
+        "y1": 420,
+        "x2": 850,
+        "y2": 420,
+        "stroke": "#8B4513",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "platform_observer",
+        "cx": 150,
+        "cy": 410,
+        "r": 8,
+        "fill": "#4CAF50",
+        "stroke": "#388E3C",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "platform_observer_label",
+        "x": 150,
+        "y": 440,
+        "text": "Platform Observer",
+        "fontSize": 10,
+        "fill": "#2c3e50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "train_motion_arrow",
+        "x1": "200 + motion_offset * 2",
+        "y1": 320,
+        "x2": "240 + motion_offset * 2",
+        "y2": 320,
+        "stroke": "#e74c3c",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "train_motion_label",
+        "x": "220 + motion_offset * 2",
+        "y": 315,
+        "text": "Train Motion",
+        "fontSize": 10,
+        "fill": "#e74c3c",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "passenger_rest_label",
+        "x": 450,
+        "y": 460,
+        "text": "Passenger at rest relative to train",
+        "fontSize": 14,
+        "fill": "#27ae60",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "passenger_motion_label",
+        "x": 450,
+        "y": 480,
+        "text": "Passenger in motion relative to platform observer",
+        "fontSize": 14,
+        "fill": "#e74c3c",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_concept_title",
+        "x": 450,
+        "y": 520,
+        "text": "Key Concepts",
+        "fontSize": 18,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "concept_box",
+        "x": 100,
+        "y": 540,
+        "width": 700,
+        "height": 120,
+        "fill": "#fff3cd",
+        "stroke": "#ffc107",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "concept1",
+        "x": 120,
+        "y": 565,
+        "text": "\u2022 REST: Object does not change position relative to the observer",
+        "fontSize": 14,
+        "fill": "#2c3e50",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept2",
+        "x": 120,
+        "y": 585,
+        "text": "\u2022 MOTION: Object changes position relative to the observer",
+        "fontSize": 14,
+        "fill": "#2c3e50",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept3",
+        "x": 120,
+        "y": 605,
+        "text": "\u2022 These states are RELATIVE - they depend on the frame of reference",
+        "fontSize": 14,
+        "fill": "#2c3e50",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept4",
+        "x": 120,
+        "y": 625,
+        "text": "\u2022 There is NO absolute rest or motion - everything is relative to the observer",
+        "fontSize": 14,
+        "fill": "#2c3e50",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "real_example_title",
+        "x": 450,
+        "y": 690,
+        "text": "Real-World Example",
+        "fontSize": 16,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "earth_rotation",
+        "expression": "\\text{Earth rotates: } \\omega \\approx 1000 \\text{ mph at equator}",
+        "x": 450,
+        "y": 720,
+        "fontSize": 12,
+        "color": "#6c757d"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "motion_offset",
+        "min": -30,
+        "max": 30,
+        "default": 0,
+        "step": 1,
+        "label": "Observer B Motion"
+      }
+    ],
+    "animations": [
+      {
+        "type": "oscillate",
+        "target": "motion_offset",
+        "amplitude": 25,
+        "period": 3000,
+        "enabled": true
+      }
+    ]
+  }
+}
