@@ -319,6 +319,26 @@ class TestZoneOnlyBackwardCompat:
         assert 400 < instr.position_x < 1500
         assert instr.position_y < 400
 
+    def test_zone_used_when_size_hint_only(self):
+        """Zone + size_hint (no near) → zone strategy fires, not intent."""
+        from feynman.visuals.schemas import PlacementIntent, SizeHint
+
+        solver = SpatialSolver()
+        instr = DrawDesignDiagramInstruction(
+            description="Diagram",
+            spec={"width": 500, "height": 400, "elements": []},
+            zone=BoardZone.CENTER_LEFT,
+        )
+        instr.element_id = "design-1"
+        # Simulate _build_placement with only size_hint
+        instr.placement = PlacementIntent(near=None, relation=None, size_hint=SizeHint.LARGE)
+
+        resolve_placement(instr, solver)
+        assert instr.position_x is not None
+        # Should be in center-left zone area, NOT at top-left (20, 20)
+        assert instr.position_x < 700
+        assert instr.position_y > 100
+
     def test_zone_only_all_nine_zones_work(self):
         """All 9 zones produce valid placements."""
         for zone in BoardZone:

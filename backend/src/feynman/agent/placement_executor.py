@@ -114,7 +114,9 @@ def resolve_placement(
             return
 
     # Strategy 1: PlacementIntent with near + relation
-    if instruction.placement:
+    # Only fire when there's an actual anchor element — size_hint alone
+    # should not bypass zone strategy.
+    if instruction.placement and instruction.placement.near:
         result = _resolve_intent(instruction.placement, size, solver)
         if result:
             instruction.position_x = result.x

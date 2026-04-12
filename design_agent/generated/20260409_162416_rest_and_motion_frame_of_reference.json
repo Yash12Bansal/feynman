@@ -1,0 +1,402 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Rest and Motion. Context: Rest and motion are fundamental concepts in kinematics that describe the state of an object. An object is said to be at rest when it does not change its position as time passes. An object is said to be in motion when it changes its position with time. However, these concepts are not absolute - they are relative to the observer or frame of reference. For example, a book on a table appears at rest when viewed from the room, but appears to be moving when viewed from the moon (since the Earth rotates and orbits). Motion is a combined property of the object under study and the observer. There is no",
+  "spec": {
+    "title": "Rest and Motion - Frame of Reference",
+    "description": "Interactive diagram showing how rest and motion are relative concepts that depend on the observer's frame of reference",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "title_main",
+        "x": 450,
+        "y": 30,
+        "text": "Rest and Motion are Relative to the Observer",
+        "fontSize": 20,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "earth_surface",
+        "x": 50,
+        "y": 200,
+        "width": 350,
+        "height": 20,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "table",
+        "x": 150,
+        "y": 170,
+        "width": 100,
+        "height": 30,
+        "fill": "#D2691E",
+        "stroke": "#8B4513",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "book",
+        "x": "170 + book_offset * 10",
+        "y": 155,
+        "width": 30,
+        "height": 15,
+        "fill": "#FF6B6B",
+        "stroke": "#D63031",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "book_label",
+        "x": "185 + book_offset * 10",
+        "y": 145,
+        "text": "Book",
+        "fontSize": 12,
+        "fill": "#2c3e50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer1",
+        "cx": 300,
+        "cy": 180,
+        "r": 15,
+        "fill": "#74B9FF",
+        "stroke": "#0984E3",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer1_label",
+        "x": 300,
+        "y": 210,
+        "text": "Observer A",
+        "fontSize": 12,
+        "fill": "#0984E3",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "observer1_frame",
+        "x": 300,
+        "y": 225,
+        "text": "(Room Frame)",
+        "fontSize": 10,
+        "fill": "#0984E3",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "observer1_view",
+        "x1": 285,
+        "y1": 175,
+        "x2": "185 + book_offset * 10",
+        "y2": 162,
+        "stroke": "#0984E3",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth",
+        "cx": 550,
+        "cy": 200,
+        "r": 80,
+        "fill": "#00B894",
+        "stroke": "#00A085",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "earth_label",
+        "x": 550,
+        "y": 290,
+        "text": "Earth",
+        "fontSize": 14,
+        "fill": "#00A085",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "moon",
+        "cx": "750 + cos(moon_angle * PI / 180) * 100",
+        "cy": "200 + sin(moon_angle * PI / 180) * 100",
+        "r": 25,
+        "fill": "#DDD",
+        "stroke": "#AAA",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "moon_label",
+        "x": "750 + cos(moon_angle * PI / 180) * 100",
+        "y": "220 + sin(moon_angle * PI / 180) * 100",
+        "text": "Moon",
+        "fontSize": 10,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer2",
+        "cx": "750 + cos(moon_angle * PI / 180) * 100 - 15",
+        "cy": "200 + sin(moon_angle * PI / 180) * 100",
+        "r": 8,
+        "fill": "#E17055",
+        "stroke": "#D63031",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer2_label",
+        "x": "750 + cos(moon_angle * PI / 180) * 100 - 15",
+        "y": "185 + sin(moon_angle * PI / 180) * 100",
+        "text": "Observer B",
+        "fontSize": 10,
+        "fill": "#D63031",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "observer2_view",
+        "x1": "750 + cos(moon_angle * PI / 180) * 100 - 25",
+        "y1": "200 + sin(moon_angle * PI / 180) * 100",
+        "x2": 570,
+        "y2": 190,
+        "stroke": "#D63031",
+        "strokeWidth": 2,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_path",
+        "id": "orbit_path",
+        "d": "M 650 200 A 100 100 0 1 1 650 200.1",
+        "stroke": "#AAA",
+        "strokeWidth": 1,
+        "fill": "none",
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_arc",
+        "id": "rotation_arc",
+        "cx": 550,
+        "cy": 200,
+        "r": 95,
+        "startAngle": 0,
+        "endAngle": "earth_rotation * 36",
+        "stroke": "#00A085",
+        "strokeWidth": 2,
+        "fill": "none"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "rotation_arrow",
+        "x1": 645,
+        "y1": 200,
+        "x2": "645 + cos(earth_rotation * 36 * PI / 180) * 15",
+        "y2": "200 + sin(earth_rotation * 36 * PI / 180) * 15",
+        "stroke": "#00A085",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "rotation_label",
+        "expression": "\\omega_{Earth}",
+        "x": 660,
+        "y": 180,
+        "fontSize": 12,
+        "color": "#00A085"
+      },
+      {
+        "type": "svg_rect",
+        "id": "analysis_box",
+        "x": 50,
+        "y": 350,
+        "width": 800,
+        "height": 250,
+        "fill": "#F8F9FA",
+        "stroke": "#E9ECEF",
+        "strokeWidth": 2,
+        "rx": 10
+      },
+      {
+        "type": "svg_text",
+        "id": "analysis_title",
+        "x": 450,
+        "y": 375,
+        "text": "Analysis from Different Frames of Reference",
+        "fontSize": 16,
+        "fill": "#2c3e50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_a_title",
+        "x": 200,
+        "y": 405,
+        "text": "Observer A (Room Frame):",
+        "fontSize": 14,
+        "fill": "#0984E3",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "observer_a_position",
+        "expression": "\\vec{r}_{book} = \\text{constant}",
+        "x": 200,
+        "y": 430,
+        "fontSize": 14,
+        "color": "#0984E3"
+      },
+      {
+        "type": "svg_latex",
+        "id": "observer_a_velocity",
+        "expression": "\\vec{v}_{book} = \\frac{d\\vec{r}}{dt} = 0",
+        "x": 200,
+        "y": 455,
+        "fontSize": 14,
+        "color": "#0984E3"
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_a_conclusion",
+        "x": 200,
+        "y": 480,
+        "text": "Book is AT REST",
+        "fontSize": 12,
+        "fill": "#0984E3",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_b_title",
+        "x": 700,
+        "y": 405,
+        "text": "Observer B (Moon Frame):",
+        "fontSize": 14,
+        "fill": "#D63031",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "observer_b_position",
+        "expression": "\\vec{r}_{book} = \\vec{r}_{Earth} + \\vec{r}_{rel}",
+        "x": 700,
+        "y": 430,
+        "fontSize": 14,
+        "color": "#D63031"
+      },
+      {
+        "type": "svg_latex",
+        "id": "observer_b_velocity",
+        "expression": "\\vec{v}_{book} = \\omega R_{Earth} \\neq 0",
+        "x": 700,
+        "y": 455,
+        "fontSize": 14,
+        "color": "#D63031"
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_b_conclusion",
+        "x": 700,
+        "y": 480,
+        "text": "Book is IN MOTION",
+        "fontSize": 12,
+        "fill": "#D63031",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "separator_line",
+        "x1": 450,
+        "y1": 395,
+        "x2": 450,
+        "y2": 490,
+        "stroke": "#BDC3C7",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_concept",
+        "x": 450,
+        "y": 520,
+        "text": "Key Concept: There is no absolute frame of reference",
+        "fontSize": 14,
+        "fill": "#E74C3C",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "conclusion",
+        "x": 450,
+        "y": 545,
+        "text": "Rest and motion are relative concepts that depend on the observer's frame of reference",
+        "fontSize": 12,
+        "fill": "#2c3e50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_latex",
+        "id": "math_relation",
+        "expression": "\\vec{v}_{AB} = \\vec{v}_{AC} + \\vec{v}_{CB}",
+        "x": 450,
+        "y": 570,
+        "fontSize": 14,
+        "color": "#8E44AD"
+      },
+      {
+        "type": "svg_text",
+        "id": "velocity_explanation",
+        "x": 450,
+        "y": 585,
+        "text": "Velocity of A relative to B = Velocity of A relative to C + Velocity of C relative to B",
+        "fontSize": 10,
+        "fill": "#7F8C8D",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "book_offset",
+        "min": 0,
+        "max": 5,
+        "default": 0,
+        "step": 0.1,
+        "label": "Book Position (Room Frame)"
+      },
+      {
+        "name": "earth_rotation",
+        "min": 0,
+        "max": 10,
+        "default": 2,
+        "step": 0.1,
+        "label": "Earth Rotation"
+      },
+      {
+        "name": "moon_angle",
+        "min": 0,
+        "max": 360,
+        "default": 45,
+        "step": 5,
+        "label": "Moon Position (degrees)"
+      }
+    ],
+    "animations": []
+  }
+}

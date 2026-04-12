@@ -1,0 +1,527 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Rest and Motion. Context: Rest and motion are fundamental concepts in kinematics that describe the state of an object. An object is said to be at rest when it does not change its position as time passes. An object is said to be in motion when it changes its position with time. However, these concepts are not absolute - they are relative to the observer or frame of reference. For example, a book on a table appears at rest when viewed from the room, but appears to be moving when viewed from the moon (since the Earth rotates and orbits). Motion is a combined property of the object under study and the observer. There is no",
+  "spec": {
+    "title": "Rest and Motion: Relative to Frame of Reference",
+    "description": "Interactive diagram showing how rest and motion depend on the observer's frame of reference",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Rest and Motion are Relative",
+        "fontSize": 20,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "ground",
+        "x": 50,
+        "y": 450,
+        "width": 800,
+        "height": 20,
+        "fill": "#8B4513",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "train",
+        "x": "150 + train_position * 40",
+        "y": 390,
+        "width": 200,
+        "height": 60,
+        "fill": "#4682B4",
+        "stroke": "#333",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_circle",
+        "id": "wheel1",
+        "cx": "180 + train_position * 40",
+        "cy": 460,
+        "r": 15,
+        "fill": "#333",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "wheel2",
+        "cx": "320 + train_position * 40",
+        "cy": 460,
+        "r": 15,
+        "fill": "#333",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "window",
+        "x": "200 + train_position * 40",
+        "y": 405,
+        "width": 30,
+        "height": 30,
+        "fill": "#87CEEB",
+        "stroke": "#333",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "train_label",
+        "x": "250 + train_position * 40",
+        "y": 425,
+        "text": "Train",
+        "fontSize": 14,
+        "fill": "#fff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_in_train",
+        "cx": "280 + train_position * 40",
+        "cy": 380,
+        "r": 8,
+        "fill": "#FF4444",
+        "stroke": "#000",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "ball_label",
+        "x": "280 + train_position * 40",
+        "y": 365,
+        "text": "Ball",
+        "fontSize": 10,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer_ground",
+        "cx": 100,
+        "cy": 420,
+        "r": 20,
+        "fill": "#FFD700",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_ground_label",
+        "x": 100,
+        "y": 425,
+        "text": "\ud83d\udc64",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "ground_observer_title",
+        "x": 100,
+        "y": 485,
+        "text": "Ground Observer",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer_train",
+        "cx": "240 + train_position * 40",
+        "cy": 370,
+        "r": 12,
+        "fill": "#FFD700",
+        "stroke": "#333",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_train_icon",
+        "x": "240 + train_position * 40",
+        "y": 375,
+        "text": "\ud83d\udc64",
+        "fontSize": 10,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "train_observer_title",
+        "x": "240 + train_position * 40",
+        "y": 355,
+        "text": "Train Observer",
+        "fontSize": 10,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "train_velocity",
+        "x1": "350 + train_position * 40",
+        "y1": 420,
+        "x2": "400 + train_position * 40",
+        "y2": 420,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "train_velocity_label",
+        "x": "410 + train_position * 40",
+        "y": 420,
+        "expression": "\\vec{v}_{train}",
+        "fontSize": 14,
+        "color": "#FF6B6B"
+      },
+      {
+        "type": "svg_line",
+        "id": "sight_line_ground",
+        "x1": 120,
+        "y1": 420,
+        "x2": "280 + train_position * 40",
+        "y2": 380,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "sight_line_train",
+        "x1": "252 + train_position * 40",
+        "y1": 370,
+        "x2": "280 + train_position * 40",
+        "y2": 380,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_rect",
+        "id": "frame1_box",
+        "x": 50,
+        "y": 520,
+        "width": 350,
+        "height": 110,
+        "fill": "#f0f8ff",
+        "stroke": "#4682B4",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "frame1_title",
+        "x": 225,
+        "y": 540,
+        "text": "Ground Reference Frame",
+        "fontSize": 14,
+        "fill": "#4682B4",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame1_train",
+        "x": 70,
+        "y": 560,
+        "text": "Train:",
+        "fontSize": 12,
+        "fill": "#333",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame1_train_state",
+        "x": 120,
+        "y": 560,
+        "text": "In Motion",
+        "fontSize": 12,
+        "fill": "#FF6B6B"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame1_ball",
+        "x": 70,
+        "y": 580,
+        "text": "Ball:",
+        "fontSize": 12,
+        "fill": "#333",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame1_ball_state",
+        "x": 120,
+        "y": 580,
+        "text": "In Motion",
+        "fontSize": 12,
+        "fill": "#FF6B6B"
+      },
+      {
+        "type": "svg_latex",
+        "id": "frame1_equation",
+        "x": 70,
+        "y": 610,
+        "expression": "\\vec{v}_{ball} = \\vec{v}_{train} \\neq 0",
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_rect",
+        "id": "frame2_box",
+        "x": 450,
+        "y": 520,
+        "width": 350,
+        "height": 110,
+        "fill": "#fff8f0",
+        "stroke": "#FF8C00",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "frame2_title",
+        "x": 625,
+        "y": 540,
+        "text": "Train Reference Frame",
+        "fontSize": 14,
+        "fill": "#FF8C00",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame2_train",
+        "x": 470,
+        "y": 560,
+        "text": "Train:",
+        "fontSize": 12,
+        "fill": "#333",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame2_train_state",
+        "x": 520,
+        "y": 560,
+        "text": "At Rest",
+        "fontSize": 12,
+        "fill": "#4CAF50"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame2_ball",
+        "x": 470,
+        "y": 580,
+        "text": "Ball:",
+        "fontSize": 12,
+        "fill": "#333",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "frame2_ball_state",
+        "x": 520,
+        "y": 580,
+        "text": "At Rest",
+        "fontSize": 12,
+        "fill": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "frame2_equation",
+        "x": 470,
+        "y": 610,
+        "expression": "\\vec{v}_{ball} = 0",
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_rect",
+        "id": "concept_box",
+        "x": 520,
+        "y": 60,
+        "width": 350,
+        "height": 140,
+        "fill": "#f9f9f9",
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "concept_title",
+        "x": 695,
+        "y": 85,
+        "text": "Key Concepts",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept1",
+        "x": 540,
+        "y": 110,
+        "text": "\u2022 Rest and motion are RELATIVE",
+        "fontSize": 12,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept2",
+        "x": 540,
+        "y": 130,
+        "text": "\u2022 They depend on the frame of reference",
+        "fontSize": 12,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept3",
+        "x": 540,
+        "y": 150,
+        "text": "\u2022 Same object can be at rest AND",
+        "fontSize": 12,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept4",
+        "x": 540,
+        "y": 170,
+        "text": "  in motion simultaneously",
+        "fontSize": 12,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept5",
+        "x": 540,
+        "y": 190,
+        "text": "\u2022 No absolute rest or motion exists",
+        "fontSize": 12,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_rect",
+        "id": "definition_box",
+        "x": 50,
+        "y": 60,
+        "width": 450,
+        "height": 140,
+        "fill": "#f0f0f0",
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "definition_title",
+        "x": 275,
+        "y": 85,
+        "text": "Definitions",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "rest_def_title",
+        "x": 70,
+        "y": 110,
+        "text": "Rest:",
+        "fontSize": 12,
+        "fill": "#4CAF50",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "rest_def",
+        "x": 70,
+        "y": 125,
+        "text": "An object is at rest when it does not",
+        "fontSize": 11,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "rest_def2",
+        "x": 70,
+        "y": 140,
+        "text": "change position with time",
+        "fontSize": 11,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "motion_def_title",
+        "x": 70,
+        "y": 165,
+        "text": "Motion:",
+        "fontSize": 12,
+        "fill": "#FF6B6B",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "motion_def",
+        "x": 70,
+        "y": 180,
+        "text": "An object is in motion when it changes",
+        "fontSize": 11,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "motion_def2",
+        "x": 70,
+        "y": 195,
+        "text": "position with time",
+        "fontSize": 11,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_path",
+        "id": "motion_trail",
+        "d": "M 150 410 Q 200 405 250 410 T 350 410 T 450 410 T 550 410",
+        "stroke": "#FF6B6B",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "10,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "trail_label",
+        "x": 350,
+        "y": 500,
+        "text": "Path of motion (from ground observer)",
+        "fontSize": 10,
+        "fill": "#FF6B6B",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "train_position",
+        "min": 0,
+        "max": 8,
+        "default": 2,
+        "step": 0.5,
+        "label": "Train Position"
+      }
+    ],
+    "animations": []
+  }
+}

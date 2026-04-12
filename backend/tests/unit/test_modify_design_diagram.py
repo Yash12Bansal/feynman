@@ -17,6 +17,7 @@ import pytest
 from feynman.agent.board import BoardManager
 from feynman.agent.board_state import BoardState
 from feynman.agent.session_audit import SessionAudit
+from feynman.agent.spatial_solver import Rect
 from feynman.visuals.schemas import (
     DrawDesignDiagramInstruction,
     ShowTextInstruction,
@@ -408,3 +409,52 @@ class TestModifyDiagramPromptInstructions:
         tc._lesson_plan = plan
         prompt = build_teaching_prompt(plan, tc)
         assert "modify_design_diagram" in prompt
+
+
+class TestModifyPreservesPosition:
+    @pytest.mark.asyncio
+    async def test_modify_keeps_existing_position(self) -> None:
+        """Modified diagram preserves its original x,y position."""
+        from feynman.agent.tools import modify_design_diagram
+
+        ctx = _make_mock_ctx()
+        bm = ctx.userdata.board_manager
+        ctx.userdata.board_verifier = None
+        ctx.userdata._verified_this_concept = False
+
+        # Simulate draw_design_diagram having placed design-1 with bounds.
+        original_spec = {"title": "Forces", "width": 400, "height": 300, "elements": [{"id": "e1"}]}
+        instr = DrawDesignDiagramInstruction(
+            title="Forces",
+            description="Force diagram",
+            spec=original_spec,
+        )
+        instr.element_id = "design-1"
+        instr.position_x = 200.0
+        instr.position_y = 150.0
+        bm.record(instr)
+        bm.store_design_spec("design-1", original_spec)
+
+        # Add the element to the spatial solver (simulating bounds report).
+        board_state = bm.active_board.state
+        board_state.spatial_solver.update_occupied("design-1", Rect(200, 150, 400, 300))
+
+        # Modify the diagram.
+        modified_spec = {"title": "Forces v2", "width": 500, "height": 400, "elements": [{"id": "e1"}, {"id": "e2"}]}
+        with patch(
+            "feynman.agent.design_bridge.modify_design_diagram_spec",
+            new_callable=AsyncMock,
+            return_value=modified_spec,
+        ):
+            result = await modify_design_diagram(
+                ctx, target_id="design-1", modification="add friction vector",
+            )
+
+        assert "design-1" in result
+        # Verify the published instruction has the ORIGINAL position, not a new one.
+        published_calls = ctx.session.room_io.room.local_participant.publish_data.call_args_list
+        assert len(published_calls) >= 1
+        import json
+        last_payload = json.loads(published_calls[-1][0][0])
+        assert last_payload["position_x"] == 200.0
+        assert last_payload["position_y"] == 150.0

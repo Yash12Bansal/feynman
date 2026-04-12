@@ -36,7 +36,7 @@ from feynman.agent.tools import (
     set_lesson_topic,
     show_equation,
     show_graph,
-    show_text,
+    # show_text,
     start_doubt_branch,
     step_equation,
     switch_board,
@@ -52,7 +52,7 @@ logger = structlog.get_logger()
 
 # All tools the agent can use — visual + state management
 ALL_TOOLS = [
-    show_text,
+    # show_text,
     show_equation,
     draw_design_diagram,
     modify_design_diagram,

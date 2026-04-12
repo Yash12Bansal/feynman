@@ -1,0 +1,417 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Average Speed and Instantaneous Speed. Context: Speed describes the rapidity of motion. Average speed gives the overall rate of motion over a time interval, calculated as total distance divided by total time. It provides the general effect over the entire interval, similar to how average run rate in cricket gives overall performance despite variations in individual overs. Instantaneous speed describes the rate of motion at a specific instant, defined as the limit of average speed as the time interval approaches zero. When an athlete starts running, they begin slowly and gradually increase their rate - instantaneous speed captures this momen",
+  "spec": {
+    "title": "Average Speed vs Instantaneous Speed",
+    "description": "Understanding the difference between average speed (total distance/total time) and instantaneous speed (speed at a specific moment)",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Average Speed vs Instantaneous Speed",
+        "fontSize": 18,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "position_graph_bg",
+        "x": 50,
+        "y": 80,
+        "width": 380,
+        "height": 220,
+        "fill": "#f8f9fa",
+        "stroke": "#dee2e6",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "graph",
+        "id": "position_vs_time",
+        "x": 60,
+        "y": 90,
+        "width": 360,
+        "height": 200,
+        "xDomain": [
+          0,
+          8
+        ],
+        "yDomain": [
+          0,
+          25
+        ],
+        "xLabel": "Time (s)",
+        "yLabel": "Position (m)",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#6c757d",
+        "curves": [
+          {
+            "expression": "0.5 * x^2",
+            "color": "#007bff",
+            "strokeWidth": 3
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_text",
+        "id": "position_title",
+        "x": 240,
+        "y": 75,
+        "text": "Position vs Time Graph",
+        "fontSize": 14,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "avg_speed_line",
+        "x1": "60 + (2/8) * 360",
+        "y1": "290 - (2/25) * 200",
+        "x2": "60 + (6/8) * 360",
+        "y2": "290 - (18/25) * 200",
+        "stroke": "#28a745",
+        "strokeWidth": 3,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_circle",
+        "id": "start_point",
+        "cx": "60 + (2/8) * 360",
+        "cy": "290 - (2/25) * 200",
+        "r": 4,
+        "fill": "#28a745",
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "end_point",
+        "cx": "60 + (6/8) * 360",
+        "cy": "290 - (18/25) * 200",
+        "r": 4,
+        "fill": "#28a745",
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "start_label",
+        "expression": "t_1 = 2\\text{s}, x_1 = 2\\text{m}",
+        "x": "60 + (2/8) * 360 - 40",
+        "y": "290 - (2/25) * 200 + 20",
+        "fontSize": 12,
+        "color": "#28a745"
+      },
+      {
+        "type": "svg_latex",
+        "id": "end_label",
+        "expression": "t_2 = 6\\text{s}, x_2 = 18\\text{m}",
+        "x": "60 + (6/8) * 360 + 40",
+        "y": "290 - (18/25) * 200 - 10",
+        "fontSize": 12,
+        "color": "#28a745"
+      },
+      {
+        "type": "svg_line",
+        "id": "tangent_line",
+        "x1": "60 + (3.5/8) * 360",
+        "y1": "290 - (6.125/25) * 200 - 30",
+        "x2": "60 + (4.5/8) * 360",
+        "y2": "290 - (10.125/25) * 200 + 30",
+        "stroke": "#dc3545",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "instant_point",
+        "cx": "60 + (4/8) * 360",
+        "cy": "290 - (8/25) * 200",
+        "r": 4,
+        "fill": "#dc3545",
+        "stroke": "#ffffff",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "instant_label",
+        "expression": "t = 4\\text{s}",
+        "x": "60 + (4/8) * 360 + 25",
+        "y": "290 - (8/25) * 200 - 15",
+        "fontSize": 12,
+        "color": "#dc3545"
+      },
+      {
+        "type": "svg_rect",
+        "id": "calculation_box",
+        "x": 480,
+        "y": 80,
+        "width": 370,
+        "height": 220,
+        "fill": "#f8f9fa",
+        "stroke": "#dee2e6",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "calc_title",
+        "x": 665,
+        "y": 105,
+        "text": "Calculations",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "avg_speed_title",
+        "expression": "\\textbf{Average Speed:}",
+        "x": 500,
+        "y": 135,
+        "fontSize": 14,
+        "color": "#28a745"
+      },
+      {
+        "type": "svg_latex",
+        "id": "avg_speed_formula",
+        "expression": "v_{avg} = \\frac{\\Delta x}{\\Delta t} = \\frac{x_2 - x_1}{t_2 - t_1}",
+        "x": 500,
+        "y": 160,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "avg_speed_calc",
+        "expression": "v_{avg} = \\frac{18 - 2}{6 - 2} = \\frac{16}{4} = 4\\text{ m/s}",
+        "x": 500,
+        "y": 185,
+        "fontSize": 14,
+        "color": "#28a745"
+      },
+      {
+        "type": "svg_latex",
+        "id": "instant_speed_title",
+        "expression": "\\textbf{Instantaneous Speed:}",
+        "x": 500,
+        "y": 220,
+        "fontSize": 14,
+        "color": "#dc3545"
+      },
+      {
+        "type": "svg_latex",
+        "id": "instant_speed_formula",
+        "expression": "v(t) = \\lim_{\\Delta t \\to 0} \\frac{\\Delta x}{\\Delta t} = \\frac{dx}{dt}",
+        "x": 500,
+        "y": 245,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "instant_speed_calc",
+        "expression": "\\text{At } t = 4\\text{s: } v(4) = \\frac{d}{dt}(0.5t^2) = t = 4\\text{ m/s}",
+        "x": 500,
+        "y": 270,
+        "fontSize": 14,
+        "color": "#dc3545"
+      },
+      {
+        "type": "svg_rect",
+        "id": "analogy_box",
+        "x": 50,
+        "y": 330,
+        "width": 800,
+        "height": 120,
+        "fill": "#fff3cd",
+        "stroke": "#ffc107",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "analogy_title",
+        "x": 450,
+        "y": 355,
+        "text": "Cricket Analogy",
+        "fontSize": 16,
+        "fill": "#856404",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "analogy_text1",
+        "x": 70,
+        "y": 380,
+        "text": "\u2022 Average Speed \u2248 Overall Run Rate: Total runs scored divided by total overs",
+        "fontSize": 14,
+        "fill": "#856404"
+      },
+      {
+        "type": "svg_text",
+        "id": "analogy_text2",
+        "x": 70,
+        "y": 405,
+        "text": "\u2022 Instantaneous Speed \u2248 Current Over Rate: Runs scored in the current over",
+        "fontSize": 14,
+        "fill": "#856404"
+      },
+      {
+        "type": "svg_text",
+        "id": "analogy_text3",
+        "x": 70,
+        "y": 430,
+        "text": "Just as a batsman may score slowly initially then accelerate, motion can have varying instantaneous speeds",
+        "fontSize": 14,
+        "fill": "#856404"
+      },
+      {
+        "type": "svg_rect",
+        "id": "key_points_box",
+        "x": 50,
+        "y": 480,
+        "width": 380,
+        "height": 140,
+        "fill": "#e7f3ff",
+        "stroke": "#007bff",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "key_points_title",
+        "x": 240,
+        "y": 505,
+        "text": "Key Differences",
+        "fontSize": 16,
+        "fill": "#0056b3",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_point1",
+        "x": 70,
+        "y": 530,
+        "text": "\u2022 Average speed covers entire time interval",
+        "fontSize": 13,
+        "fill": "#0056b3"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_point2",
+        "x": 70,
+        "y": 550,
+        "text": "\u2022 Instantaneous speed is at one specific moment",
+        "fontSize": 13,
+        "fill": "#0056b3"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_point3",
+        "x": 70,
+        "y": 570,
+        "text": "\u2022 Average = slope of secant line",
+        "fontSize": 13,
+        "fill": "#0056b3"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_point4",
+        "x": 70,
+        "y": 590,
+        "text": "\u2022 Instantaneous = slope of tangent line",
+        "fontSize": 13,
+        "fill": "#0056b3"
+      },
+      {
+        "type": "svg_rect",
+        "id": "example_box",
+        "x": 470,
+        "y": 480,
+        "width": 380,
+        "height": 140,
+        "fill": "#f0fff0",
+        "stroke": "#28a745",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "example_title",
+        "x": 660,
+        "y": 505,
+        "text": "Real-World Example",
+        "fontSize": 16,
+        "fill": "#155724",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_text1",
+        "x": 490,
+        "y": 530,
+        "text": "An athlete starts from rest and accelerates:",
+        "fontSize": 13,
+        "fill": "#155724"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_text2",
+        "x": 490,
+        "y": 550,
+        "text": "\u2022 At start: instantaneous speed = 0 m/s",
+        "fontSize": 13,
+        "fill": "#155724"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_text3",
+        "x": 490,
+        "y": 570,
+        "text": "\u2022 At t = 4s: instantaneous speed = 4 m/s",
+        "fontSize": 13,
+        "fill": "#155724"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_text4",
+        "x": 490,
+        "y": 590,
+        "text": "\u2022 Average over 2-6s interval = 4 m/s",
+        "fontSize": 13,
+        "fill": "#155724"
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_avg",
+        "x": 70,
+        "y": 320,
+        "text": "Average Speed (Green dashed line)",
+        "fontSize": 12,
+        "fill": "#28a745"
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_inst",
+        "x": 300,
+        "y": 320,
+        "text": "Instantaneous Speed (Red tangent line)",
+        "fontSize": 12,
+        "fill": "#dc3545"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

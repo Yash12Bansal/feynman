@@ -117,7 +117,8 @@ def _declare_relation(
         relation=rel,
     )
     tc.audit.record(
-        "board_graph", "edge_declared",
+        "board_graph",
+        "edge_declared",
         f"{source_id} --{rel.value}--> {relates_to}",
         source_id=source_id,
         target_id=relates_to,
@@ -125,7 +126,9 @@ def _declare_relation(
     )
 
 
-def _build_placement(near: str, near_side: str, size_hint: str) -> PlacementIntent | None:
+def _build_placement(
+    near: str, near_side: str, size_hint: str
+) -> PlacementIntent | None:
     """Build PlacementIntent from tool params. Returns None if no placement params set."""
     if not (near or near_side or size_hint):
         return None
@@ -156,7 +159,9 @@ async def _publish_visual(
 
     # Resolve placement intent → exact coordinates.
     board_state = tc.board_manager.active_board.state
-    resolve_placement(instruction, board_state.spatial_solver, board_state.scenario_plan)
+    resolve_placement(
+        instruction, board_state.spatial_solver, board_state.scenario_plan
+    )
     instruction.placement = None  # Strip before serialization (defense in depth)
 
     # Infer wait behavior from the instruction's sync_mode when not explicit.
@@ -167,7 +172,9 @@ async def _publish_visual(
         try:
             await ctx.wait_for_playout()
         except Exception:
-            logger.warning("visual.playout_wait_failed", type=instruction.type, exc_info=True)
+            logger.warning(
+                "visual.playout_wait_failed", type=instruction.type, exc_info=True
+            )
 
     room = ctx.session.room_io.room
     data = json.dumps(instruction.model_dump(exclude_none=True, by_alias=True))
@@ -183,7 +190,8 @@ async def _publish_visual(
     # Audit: track every tool call for the routing summary.
     zone_str = str(instruction.zone.value) if instruction.zone else "none"
     tc.audit.record(
-        "routing", "tool_call",
+        "routing",
+        "tool_call",
         f"{instruction.type} zone={zone_str}",
         tool=instruction.type,
         element_id=instruction.element_id or "",
@@ -195,7 +203,8 @@ async def _publish_visual(
     spatial_types = {"draw_design_diagram", "draw_diagram", "show_graph", "draw_scene"}
     if instruction.type in spatial_types and not instruction.zone:
         tc.audit.record(
-            "layout", "zone_missing",
+            "layout",
+            "zone_missing",
             f"{instruction.type} {instruction.element_id or ''} placed without explicit zone",
             tool=instruction.type,
             element_id=instruction.element_id or "",
@@ -234,46 +243,46 @@ async def _publish_switch_board(
     )
 
 
-@function_tool()
-async def show_text(
-    ctx: RunContext,
-    text: str,
-    title: str = "",
-    zone: str = "",
-    timing: str = "",
-    relates_to: str = "",
-    relation: str = "",
-    near: str = "",
-    near_side: str = "",
-    size_hint: str = "",
-) -> str:
-    """Display text on the classroom screen. Use for key points, definitions, important info.
+# @function_tool()
+# async def show_text(
+#     ctx: RunContext,
+#     text: str,
+#     title: str = "",
+#     zone: str = "",
+#     timing: str = "",
+#     relates_to: str = "",
+#     relation: str = "",
+#     near: str = "",
+#     near_side: str = "",
+#     size_hint: str = "",
+# ) -> str:
+#     """Display text on the classroom screen. Use for key points, definitions, important info.
 
-    Args:
-        text: The text content to display on the board.
-        title: Optional heading for the text block.
-        zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
-        timing: When the visual appears relative to your speech. \
-"visual_first" (appears while you speak), "after_speech" (default — waits for your sentence to finish).
-        relates_to: Element ID this text relates to (e.g., "design-1", "eq-2"). \
-Declares a semantic relationship for board intelligence.
-        relation: Relationship type: "supports" (default — supporting detail), \
-"illustrates", "compares_with".
-        near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
-The system computes exact position. Prefer this over zone.
-        near_side: Which side of the `near` element: "right_of" (default), \
-"below", "above", "left_of".
-        size_hint: Expected size: "small", "medium" (default), "large". \
-Helps the system check fit before placing.
-    """
-    instruction = ShowTextInstruction(
-        text=text, title=title, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
-    )
-    instruction.placement = _build_placement(near, near_side, size_hint)
-    await _publish_visual(ctx, instruction)
-    if relates_to and instruction.element_id:
-        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.SUPPORTS)
-    return f"Displayed on board: {text[:80]}"
+#     Args:
+#         text: The text content to display on the board.
+#         title: Optional heading for the text block.
+#         zone: Board zone for placement (9-zone grid). Prefer near+near_side for precise placement.
+#         timing: When the visual appears relative to your speech. \
+# "visual_first" (appears while you speak), "after_speech" (default — waits for your sentence to finish).
+#         relates_to: Element ID this text relates to (e.g., "design-1", "eq-2"). \
+# Declares a semantic relationship for board intelligence.
+#         relation: Relationship type: "supports" (default — supporting detail), \
+# "illustrates", "compares_with".
+#         near: Place near an existing element by its ID (e.g., "design-1", "eq-2"). \
+# The system computes exact position. Prefer this over zone.
+#         near_side: Which side of the `near` element: "right_of" (default), \
+# "below", "above", "left_of".
+#         size_hint: Expected size: "small", "medium" (default), "large". \
+# Helps the system check fit before placing.
+#     """
+#     instruction = ShowTextInstruction(
+#         text=text, title=title, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
+#     )
+#     instruction.placement = _build_placement(near, near_side, size_hint)
+#     await _publish_visual(ctx, instruction)
+#     if relates_to and instruction.element_id:
+#         _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.SUPPORTS)
+#     return f"Displayed on board: {text[:80]}"
 
 
 @function_tool()
@@ -334,11 +343,14 @@ Helps the system check fit before placing.
     instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
-        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
+        _declare_relation(
+            ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES
+        )
     elif not relates_to and instruction.element_id:
         tc: TeachingContext = ctx.userdata
         tc.audit.record(
-            "board_graph", "orphan_element",
+            "board_graph",
+            "orphan_element",
             f"Equation {instruction.element_id} ({latex[:40]}) created without relates_to",
             element_id=instruction.element_id,
             tool="show_equation",
@@ -412,7 +424,9 @@ Helps the system check fit before placing.
     instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
-        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
+        _declare_relation(
+            ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES
+        )
     return f"Drew diagram: {title or description or diagram_type}"
 
 
@@ -454,17 +468,27 @@ Helps the system check fit before placing.
     raw_steps = json.loads(steps_json)
     steps = [EquationStep(**s) for s in raw_steps]
     instruction = StepEquationInstruction(
-        title=title, steps=steps, zone=_parse_zone(zone), sync_mode=_parse_timing(timing)
+        title=title,
+        steps=steps,
+        zone=_parse_zone(zone),
+        sync_mode=_parse_timing(timing),
     )
     instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     # Declare relationship to the referenced element.
     if relates_to and instruction.element_id:
-        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.DERIVES_FROM)
+        _declare_relation(
+            ctx,
+            instruction.element_id,
+            relates_to,
+            relation,
+            BoardRelation.DERIVES_FROM,
+        )
     elif not relates_to and instruction.element_id:
         tc: TeachingContext = ctx.userdata
         tc.audit.record(
-            "board_graph", "orphan_element",
+            "board_graph",
+            "orphan_element",
             f"Step equation {instruction.element_id} ({title or 'untitled'}) created without relates_to",
             element_id=instruction.element_id,
             tool="step_equation",
@@ -533,7 +557,9 @@ The system computes exact position. Prefer this over zone.
 Helps the system check fit before placing.
     """
     series = [DataSeries(**s) for s in json.loads(series_json)] if series_json else []
-    functions = [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
+    functions = (
+        [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
+    )
     gtype = GraphType(graph_type)
     x_axis = AxisConfig(label=x_axis_label, min=x_min, max=x_max)
     y_axis = AxisConfig(label=y_axis_label, min=y_min, max=y_max)
@@ -551,7 +577,9 @@ Helps the system check fit before placing.
     instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
-        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
+        _declare_relation(
+            ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES
+        )
     return f"Displayed graph: {title or graph_type}"
 
 
@@ -630,7 +658,11 @@ Use "#ef4444" for red, "#60a5fa" for blue, "#4ade80" for green, "#a78bfa" for pu
     if not ids:
         return "No sub-element IDs provided."
 
-    hl_style = HighlightStyle(style) if style in HighlightStyle.__members__.values() else HighlightStyle.GLOW
+    hl_style = (
+        HighlightStyle(style)
+        if style in HighlightStyle.__members__.values()
+        else HighlightStyle.GLOW
+    )
     instruction = HighlightInstruction(
         target_id=target_id,
         style=hl_style,
@@ -677,7 +709,8 @@ this step's highlight. When you say any of these words, this part lights up.
 
     # Populate term_hints so the frontend SyncManager can reuse its word-matching.
     term_hints = [
-        TermSyncHint(term_id=s.sub_element_id, trigger_words=s.trigger_words) for s in steps
+        TermSyncHint(term_id=s.sub_element_id, trigger_words=s.trigger_words)
+        for s in steps
     ]
 
     instruction = HighlightWalkInstruction(
@@ -783,7 +816,8 @@ Helps the system check fit before placing.
                 prompt=prompt[:60],
             )
             tc.audit.record(
-                "anticipation", "cache_hit",
+                "anticipation",
+                "cache_hit",
                 f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
             )
         else:
@@ -794,7 +828,8 @@ Helps the system check fit before placing.
                 prompt=prompt[:60],
             )
             tc.audit.record(
-                "anticipation", "cache_miss",
+                "anticipation",
+                "cache_miss",
                 f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
             )
     except Exception:
@@ -823,10 +858,13 @@ Helps the system check fit before placing.
 
     # Declare semantic relationship.
     if relates_to and instruction.element_id:
-        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
+        _declare_relation(
+            ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES
+        )
     elif not relates_to and instruction.element_id:
         tc.audit.record(
-            "board_graph", "orphan_element",
+            "board_graph",
+            "orphan_element",
             f"Design diagram {instruction.element_id} ({prompt[:40]}) created without relates_to",
             element_id=instruction.element_id,
             tool="draw_design_diagram",
@@ -852,13 +890,17 @@ Helps the system check fit before placing.
             )
         )
         tc._verified_this_concept = True
-        logger.info("visual_verification.fired", element_id=eid, concept=tc.current_concept_index)
+        logger.info(
+            "visual_verification.fired",
+            element_id=eid,
+            concept=tc.current_concept_index,
+        )
 
-    result = f"Drew design diagram (element_id: \"{eid}\"): {title or prompt[:80]}"
+    result = f'Drew design diagram (element_id: "{eid}"): {title or prompt[:80]}'
     if sub_ids:
         result += (
             f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
-            f"\nUse highlight_walk(target_id=\"{eid}\", ...) with these IDs as sub_element_id."
+            f'\nUse highlight_walk(target_id="{eid}", ...) with these IDs as sub_element_id.'
         )
     return result
 
@@ -903,7 +945,7 @@ to keep it in place.
     existing_spec = tc.board_manager.get_design_spec(target_id)
     if existing_spec is None:
         return (
-            f"No design diagram found with element_id \"{target_id}\". "
+            f'No design diagram found with element_id "{target_id}". '
             f"It may have been cleared. Use draw_design_diagram to create a new one."
         )
 
@@ -912,9 +954,13 @@ to keep it in place.
         modified_spec = await modify_design_diagram_spec(existing_spec, modification)
         elapsed_ms = (time.monotonic() - t0) * 1000
     except Exception:
-        logger.exception("modify_design_diagram.failed", target_id=target_id, modification=modification[:100])
+        logger.exception(
+            "modify_design_diagram.failed",
+            target_id=target_id,
+            modification=modification[:100],
+        )
         return (
-            f"Failed to modify diagram \"{target_id}\". "
+            f'Failed to modify diagram "{target_id}". '
             f"Try using draw_design_diagram with a fresh prompt instead."
         )
 
@@ -930,6 +976,14 @@ to keep it in place.
     # Use the SAME element_id so the frontend replaces in-place.
     instruction.element_id = target_id
 
+    # Preserve existing position — modification stays in place, not re-placed.
+    existing_rect = tc.board_manager.active_board.state.spatial_solver.occupied.get(
+        target_id
+    )
+    if existing_rect:
+        instruction.position_x = existing_rect.x
+        instruction.position_y = existing_rect.y
+
     await _publish_visual(ctx, instruction)
 
     # Update the stored spec with the modified version.
@@ -942,7 +996,8 @@ to keep it in place.
         elements=len(modified_spec.get("elements", [])),
     )
     tc.audit.record(
-        "modify_diagram", "modified",
+        "modify_diagram",
+        "modified",
         f"target={target_id}, concept={tc.current_concept_index}, "
         f"elapsed={elapsed_ms:.0f}ms",
         target_id=target_id,
@@ -963,11 +1018,11 @@ to keep it in place.
     # Collect sub-element IDs.
     sub_ids = [el.get("id") for el in modified_spec.get("elements", []) if el.get("id")]
 
-    result = f"Modified design diagram (element_id: \"{target_id}\"): {modification[:80]}"
+    result = f'Modified design diagram (element_id: "{target_id}"): {modification[:80]}'
     if sub_ids:
         result += (
             f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
-            f"\nUse highlight_walk(target_id=\"{target_id}\", ...) with these IDs."
+            f'\nUse highlight_walk(target_id="{target_id}", ...) with these IDs.'
         )
     return result
 
@@ -1066,7 +1121,13 @@ Helps the system check fit before placing.
         instruction.placement = _build_placement(near, near_side, size_hint)
         await _publish_visual(ctx, instruction)
         if relates_to and instruction.element_id:
-            _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
+            _declare_relation(
+                ctx,
+                instruction.element_id,
+                relates_to,
+                relation,
+                BoardRelation.ILLUSTRATES,
+            )
 
         # Semantic specs: base 800ms + 150ms per element.
         duration_s = (800 + len(validated_elements) * 150) / 1000.0
@@ -1084,7 +1145,11 @@ Helps the system check fit before placing.
                 )
             )
             tc._verified_this_concept = True
-            logger.info("visual_verification.fired", element_id=eid, concept=tc.current_concept_index)
+            logger.info(
+                "visual_verification.fired",
+                element_id=eid,
+                concept=tc.current_concept_index,
+            )
 
         label = title or description or scene_type
         return f"Drew scene: {label}"
@@ -1122,7 +1187,9 @@ Helps the system check fit before placing.
     instruction.placement = _build_placement(near, near_side, size_hint)
     await _publish_visual(ctx, instruction)
     if relates_to and instruction.element_id:
-        _declare_relation(ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES)
+        _declare_relation(
+            ctx, instruction.element_id, relates_to, relation, BoardRelation.ILLUSTRATES
+        )
 
     # Sleep for estimated animation duration so the LLM doesn't talk over draw-in.
     duration_s = _SCENE_DURATION_MS.get(template_id, 1000) / 1000.0
@@ -1140,7 +1207,11 @@ Helps the system check fit before placing.
             )
         )
         tc._verified_this_concept = True
-        logger.info("visual_verification.fired", element_id=eid, concept=tc.current_concept_index)
+        logger.info(
+            "visual_verification.fired",
+            element_id=eid,
+            concept=tc.current_concept_index,
+        )
 
     label = title or description or template_id
     return f"Drew scene: {label}"
@@ -1200,7 +1271,8 @@ async def advance_concept(ctx: RunContext) -> str:
 
         # Detect teaching scenario and pre-plan board layout.
         scenario = detect_scenario(
-            next_concept.description, next_concept.visual_suggestions,
+            next_concept.description,
+            next_concept.visual_suggestions,
         )
         board_state = new_board.state
         board_state.scenario_plan = plan_scenario(scenario, board_state.spatial_solver)
@@ -1317,14 +1389,18 @@ async def resolve_doubt(ctx: RunContext) -> str:
     # Pop board stack before popping branch — return to parent board.
     tc.board_manager.pop_board()
     parent_board = tc.board_manager.active_board
-    await _publish_switch_board(ctx, parent_board.id, parent_board.label, BoardIntent.REVISIT)
+    await _publish_switch_board(
+        ctx, parent_board.id, parent_board.label, BoardIntent.REVISIT
+    )
 
     popped = await tc.state_machine.pop_branch()
     tc.anticipation.clear_doubt_cache()
     await _update_agent_prompt(ctx)
 
     current = tc.current_concept
-    continue_msg = f"Continue teaching: {current.title}" if current else "Lesson complete"
+    continue_msg = (
+        f"Continue teaching: {current.title}" if current else "Lesson complete"
+    )
 
     logger.info(
         "doubt.resolved",
@@ -1340,7 +1416,9 @@ async def resolve_doubt(ctx: RunContext) -> str:
 
 
 @function_tool()
-async def switch_board(ctx: RunContext, board_id: str, intent: str = "reference") -> str:
+async def switch_board(
+    ctx: RunContext, board_id: str, intent: str = "reference"
+) -> str:
     """Switch to a different board to show previously drawn content.
 
     Use this to flip back to an earlier board when referencing a concept,
@@ -1424,7 +1502,8 @@ on screen. Pass the element's ID (e.g., "diagram-3").
     tile_pos = f"({board_state.camera_tile_x}, {board_state.camera_tile_y})"
 
     tc.audit.record(
-        "scroll", "viewport_moved",
+        "scroll",
+        "viewport_moved",
         f"tile={tile_pos}, visible={visible_count}, total={total_count}",
     )
 
@@ -1474,7 +1553,8 @@ async def set_lesson_topic(
             parsed_subject = Subject(subject.lower())
 
     tc.audit.record(
-        "curriculum", "set_lesson_topic",
+        "curriculum",
+        "set_lesson_topic",
         f"topic='{topic}', subject={subject or 'auto'}, grade={grade_level or 'auto'}",
         source="spoken_request",
     )

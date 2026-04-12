@@ -378,3 +378,42 @@ class TestGuardsAndIntegration:
         single_size = _estimate_size(single)
         multi_size = _estimate_size(multi)
         assert multi_size.width >= single_size.width
+
+
+# ── Size-hint-only intent should not bypass zone ─────────────
+
+
+class TestSizeHintOnlyDoesNotFireIntent:
+    def test_zone_used_when_placement_has_no_near(self):
+        """PlacementIntent with near=None should not trigger intent strategy."""
+        from feynman.visuals.schemas import PlacementIntent, SizeHint
+
+        solver = SpatialSolver()
+        instr = ShowEquationInstruction(latex="F=ma", zone=BoardZone.CENTER_LEFT)
+        instr.element_id = "eq-1"
+        # Simulate _build_placement with only size_hint (no near)
+        instr.placement = PlacementIntent(near=None, relation=None, size_hint=SizeHint.LARGE)
+
+        resolve_placement(instr, solver)
+        assert instr.position_x is not None
+        # Should be in center-left zone (~320, ~540), NOT at top-left (20, 20)
+        assert instr.position_x < 700  # Left side
+        assert instr.position_y > 200  # Not at very top
+
+    def test_intent_fires_when_near_is_set(self):
+        """PlacementIntent with near set should still use intent strategy."""
+        from feynman.visuals.schemas import PlacementIntent, SizeHint
+
+        solver = SpatialSolver()
+        solver.update_occupied("anchor", Rect(100, 100, 300, 200))
+
+        instr = ShowEquationInstruction(latex="E=mc^2")
+        instr.element_id = "eq-1"
+        instr.placement = PlacementIntent(
+            near="anchor", relation="right_of", size_hint=SizeHint.MEDIUM,
+        )
+
+        resolve_placement(instr, solver)
+        assert instr.position_x is not None
+        # Should be to the right of anchor (x >= 100 + 300 = 400)
+        assert instr.position_x >= 400
