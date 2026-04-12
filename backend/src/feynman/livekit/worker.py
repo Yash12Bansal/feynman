@@ -13,6 +13,7 @@ import structlog
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
+from feynman.agent.concept_planner import plan_concept
 from feynman.agent.curriculum_loader import CurriculumNotFoundError, load_curriculum
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
@@ -141,13 +142,43 @@ class FeynmanAgent(Agent):
                 )
             )
 
-            # Rebuild prompt once warm completes
+            # Plan concept 0 (current) + fire async planning for concept 1.
+            # Concept 1 receives concept 0's plan for continuity.
+            async def _plan_concepts() -> None:
+                plan0 = await plan_concept(
+                    0, curriculum, plan,
+                    audit=self._teaching_ctx.audit,
+                )
+                if plan0:
+                    self._teaching_ctx.concept_plans[0] = plan0
+                    logger.info("agent.concept_0_planned", beats=len(plan0.beats))
+
+                # Fire concept 1 planning — pass plan0 so it knows how NodeA ends
+                if plan.total_concepts > 1:
+                    async def _plan_next() -> None:
+                        plan1 = await plan_concept(
+                            1, curriculum, plan,
+                            audit=self._teaching_ctx.audit,
+                            prev_plan=self._teaching_ctx.concept_plans.get(0),
+                        )
+                        if plan1:
+                            self._teaching_ctx.concept_plans[1] = plan1
+                            logger.info("agent.concept_1_planned", beats=len(plan1.beats))
+
+                    asyncio.create_task(_plan_next())  # noqa: RUF006
+
+            self._plan_task = asyncio.create_task(_plan_concepts())
+
+            # Rebuild prompt once warm + planning complete
             async def _update_after_warm() -> None:
                 try:
                     await self._warm_task
                 except Exception:
                     logger.warning("agent.warm_task_failed", exc_info=True)
-                    return
+                try:
+                    await self._plan_task
+                except Exception:
+                    logger.warning("agent.plan_task_failed", exc_info=True)
                 prompt = build_teaching_prompt(
                     self._teaching_ctx.lesson_plan,
                     self._teaching_ctx,
@@ -156,6 +187,7 @@ class FeynmanAgent(Agent):
                 logger.info(
                     "agent.prompt_updated_post_warm",
                     cache_size=self._teaching_ctx.anticipation.cache_size,
+                    plans_ready=len(self._teaching_ctx.concept_plans),
                 )
 
             self._prompt_rebuild_task = asyncio.create_task(_update_after_warm())
