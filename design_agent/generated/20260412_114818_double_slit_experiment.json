@@ -1,0 +1,405 @@
+{
+  "prompt": "A classic double-slit experiment setup showing: a coherent light source (laser) on the left, a barrier in the middle with two parallel vertical slits labeled \"Slit A\" and \"Slit B\", and a detection screen on the right. The slits should be close together and parallel. Include light rays from the source approaching the barrier, and indicate the detection screen where the interference pattern would appear. Use clear labels and make it scientifically accurate.",
+  "spec": {
+    "title": "Double-Slit Experiment",
+    "description": "Classic setup showing coherent light source, double-slit barrier, and detection screen for wave interference",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "laser_body",
+        "x": 50,
+        "y": 290,
+        "width": 80,
+        "height": 40,
+        "fill": "#e74c3c",
+        "stroke": "#c0392b",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_circle",
+        "id": "laser_aperture",
+        "cx": 130,
+        "cy": 310,
+        "r": 8,
+        "fill": "#000000",
+        "stroke": "none",
+        "strokeWidth": 0
+      },
+      {
+        "type": "svg_text",
+        "id": "laser_label",
+        "x": 90,
+        "y": 275,
+        "text": "Coherent Light Source",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "laser_sublabel",
+        "x": 90,
+        "y": 350,
+        "text": "(Laser)",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier",
+        "x": 400,
+        "y": 150,
+        "width": 20,
+        "height": 320,
+        "fill": "#555555",
+        "stroke": "#333333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_a",
+        "x": 400,
+        "y": 280,
+        "width": 20,
+        "height": 8,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_b",
+        "x": 400,
+        "y": 332,
+        "width": 20,
+        "height": 8,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_a_label",
+        "x": 350,
+        "y": 288,
+        "text": "Slit A",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_b_label",
+        "x": 350,
+        "y": 340,
+        "text": "Slit B",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "barrier_label",
+        "x": 410,
+        "y": 135,
+        "text": "Double-Slit Barrier",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "detection_screen",
+        "x": 750,
+        "y": 150,
+        "width": 15,
+        "height": 320,
+        "fill": "#f8f8f8",
+        "stroke": "#333333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 757,
+        "y": 135,
+        "text": "Detection Screen",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "incident_ray_1",
+        "x1": 140,
+        "y1": 300,
+        "x2": 390,
+        "y2": 280,
+        "stroke": "#ff6b35",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "incident_ray_2",
+        "x1": 140,
+        "y1": 310,
+        "x2": 390,
+        "y2": 310,
+        "stroke": "#ff6b35",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "incident_ray_3",
+        "x1": 140,
+        "y1": 320,
+        "x2": 390,
+        "y2": 340,
+        "stroke": "#ff6b35",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wave_line_1",
+        "x1": 150,
+        "y1": 295,
+        "x2": 380,
+        "y2": 275,
+        "stroke": "#4682b4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_line",
+        "id": "wave_line_2",
+        "x1": 150,
+        "y1": 305,
+        "x2": 380,
+        "y2": 305,
+        "stroke": "#4682b4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_line",
+        "id": "wave_line_3",
+        "x1": 150,
+        "y1": 315,
+        "x2": 380,
+        "y2": 315,
+        "stroke": "#4682b4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_line",
+        "id": "wave_line_4",
+        "x1": 150,
+        "y1": 325,
+        "x2": 380,
+        "y2": 345,
+        "stroke": "#4682b4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_line",
+        "id": "diffracted_ray_a_center",
+        "x1": 420,
+        "y1": 284,
+        "x2": 740,
+        "y2": 310,
+        "stroke": "#ff6b35",
+        "strokeWidth": 1.5,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "diffracted_ray_a_up",
+        "x1": 420,
+        "y1": 284,
+        "x2": 740,
+        "y2": 220,
+        "stroke": "#ff6b35",
+        "strokeWidth": 1.5,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "diffracted_ray_a_down",
+        "x1": 420,
+        "y1": 284,
+        "x2": 740,
+        "y2": 400,
+        "stroke": "#ff6b35",
+        "strokeWidth": 1.5,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "diffracted_ray_b_center",
+        "x1": 420,
+        "y1": 336,
+        "x2": 740,
+        "y2": 310,
+        "stroke": "#ff6b35",
+        "strokeWidth": 1.5,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "diffracted_ray_b_up",
+        "x1": 420,
+        "y1": 336,
+        "x2": 740,
+        "y2": 220,
+        "stroke": "#ff6b35",
+        "strokeWidth": 1.5,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "diffracted_ray_b_down",
+        "x1": 420,
+        "y1": 336,
+        "x2": 740,
+        "y2": 400,
+        "stroke": "#ff6b35",
+        "strokeWidth": 1.5,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_rect",
+        "id": "interference_region",
+        "x": 770,
+        "y": 200,
+        "width": 100,
+        "height": 220,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "interference_label",
+        "x": 820,
+        "y": 190,
+        "text": "Interference Pattern",
+        "fontSize": 12,
+        "fill": "#4682b4",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "bright_fringe_1",
+        "x1": 775,
+        "y1": 310,
+        "x2": 865,
+        "y2": 310,
+        "stroke": "#ffeb3b",
+        "strokeWidth": 4
+      },
+      {
+        "type": "svg_line",
+        "id": "bright_fringe_2",
+        "x1": 775,
+        "y1": 280,
+        "x2": 865,
+        "y2": 280,
+        "stroke": "#ffeb3b",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "bright_fringe_3",
+        "x1": 775,
+        "y1": 340,
+        "x2": 865,
+        "y2": 340,
+        "stroke": "#ffeb3b",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "bright_fringe_4",
+        "x1": 775,
+        "y1": 250,
+        "x2": 865,
+        "y2": 250,
+        "stroke": "#ffeb3b",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "bright_fringe_5",
+        "x1": 775,
+        "y1": 370,
+        "x2": 865,
+        "y2": 370,
+        "stroke": "#ffeb3b",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "central_maximum_label",
+        "x": 820,
+        "y": 325,
+        "text": "Central Max",
+        "fontSize": 10,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_latex",
+        "id": "wavelength_equation",
+        "expression": "\\lambda = \\frac{hc}{E}",
+        "x": 450,
+        "y": 550,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "coherent_note",
+        "x": 450,
+        "y": 580,
+        "text": "Coherent light is required for stable interference patterns",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle",
+        "fontWeight": "italic"
+      },
+      {
+        "type": "svg_latex",
+        "id": "path_difference",
+        "expression": "\\Delta = d\\sin\\theta",
+        "x": 450,
+        "y": 50,
+        "fontSize": 14,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_text",
+        "id": "path_diff_label",
+        "x": 450,
+        "y": 75,
+        "text": "Path difference between rays from slits A and B",
+        "fontSize": 11,
+        "fill": "#666",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}
