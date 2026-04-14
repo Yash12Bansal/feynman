@@ -1938,6 +1938,320 @@
       },
       "title": "DrawDesignDiagramInstruction",
       "type": "object"
+    },
+    "SlidePendingInstruction": {
+      "description": "Generation in progress — frontend shows the DraftingLoader while a slow slide-producing tool call (cache-miss draw_design_diagram) completes.",
+      "properties": {
+        "element_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [{"type": "integer"}, {"type": "null"}],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "default": "on_playout",
+          "title": "Sync Mode",
+          "type": "string"
+        },
+        "board_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Board Id"
+        },
+        "panel": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Panel"
+        },
+        "type": {
+          "const": "slide_pending",
+          "default": "slide_pending",
+          "title": "Type"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "title": "SlidePendingInstruction",
+      "type": "object"
+    },
+    "WriteEquationInstruction": {
+      "description": "Write an equation into the notebook's working column. Equations sharing align_group align at =.",
+      "properties": {
+        "element_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Element Id"
+        },
+        "board_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Board Id"
+        },
+        "panel": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Panel"
+        },
+        "type": {
+          "const": "write_equation",
+          "default": "write_equation",
+          "title": "Type"
+        },
+        "latex": {
+          "title": "Latex",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "align_group": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Align Group"
+        },
+        "indent": {
+          "default": 0,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Indent",
+          "type": "integer"
+        }
+      },
+      "required": ["latex"],
+      "title": "WriteEquationInstruction",
+      "type": "object"
+    },
+    "WriteStepInstruction": {
+      "description": "Write a working step — narrative line in the notebook.",
+      "properties": {
+        "element_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Element Id"
+        },
+        "board_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Board Id"
+        },
+        "panel": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Panel"
+        },
+        "type": {
+          "const": "write_step",
+          "default": "write_step",
+          "title": "Type"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "number": {
+          "anyOf": [{"type": "integer"}, {"type": "null"}],
+          "default": null,
+          "title": "Number"
+        },
+        "indent": {
+          "default": 0,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Indent",
+          "type": "integer"
+        }
+      },
+      "required": ["text"],
+      "title": "WriteStepInstruction",
+      "type": "object"
+    },
+    "WriteTextInstruction": {
+      "description": "Write a plain text line or key-point box in the notebook.",
+      "properties": {
+        "element_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Element Id"
+        },
+        "board_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Board Id"
+        },
+        "panel": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Panel"
+        },
+        "type": {
+          "const": "write_text",
+          "default": "write_text",
+          "title": "Type"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "style": {
+          "default": "default",
+          "enum": ["default", "key_point"],
+          "title": "Style",
+          "type": "string"
+        },
+        "indent": {
+          "default": 0,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Indent",
+          "type": "integer"
+        }
+      },
+      "required": ["text"],
+      "title": "WriteTextInstruction",
+      "type": "object"
+    },
+    "WriteSectionInstruction": {
+      "description": "Write a section header in the notebook.",
+      "properties": {
+        "element_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Element Id"
+        },
+        "board_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Board Id"
+        },
+        "panel": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Panel"
+        },
+        "type": {
+          "const": "write_section",
+          "default": "write_section",
+          "title": "Type"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": ["title"],
+      "title": "WriteSectionInstruction",
+      "type": "object"
+    },
+    "WriteAnswerInstruction": {
+      "description": "Write the boxed final answer in the notebook (LaTeX or text).",
+      "properties": {
+        "element_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Element Id"
+        },
+        "board_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Board Id"
+        },
+        "panel": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Panel"
+        },
+        "type": {
+          "const": "write_answer",
+          "default": "write_answer",
+          "title": "Type"
+        },
+        "latex": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Latex"
+        },
+        "text": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "title": "WriteAnswerInstruction",
+      "type": "object"
+    },
+    "StrikethroughInstruction": {
+      "description": "Cross out an existing notebook entry by element_id.",
+      "properties": {
+        "element_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Element Id"
+        },
+        "board_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Board Id"
+        },
+        "panel": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Panel"
+        },
+        "type": {
+          "const": "strikethrough",
+          "default": "strikethrough",
+          "title": "Type"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": ["target_id"],
+      "title": "StrikethroughInstruction",
+      "type": "object"
+    },
+    "NewPageInstruction": {
+      "description": "Turn to a fresh blank page in the notebook. `carry_forward_ids` optionally carries matching entries forward as muted reminders.",
+      "properties": {
+        "element_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Element Id"
+        },
+        "board_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Board Id"
+        },
+        "panel": {
+          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "default": null,
+          "title": "Panel"
+        },
+        "type": {
+          "const": "new_page",
+          "default": "new_page",
+          "title": "Type"
+        },
+        "carry_forward_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": [],
+          "title": "Carry Forward Ids"
+        }
+      },
+      "title": "NewPageInstruction",
+      "type": "object"
     }
   },
   "definitions": {
@@ -1951,12 +2265,20 @@
           "draw_scene": "#/$defs/DrawSceneInstruction",
           "highlight": "#/$defs/HighlightInstruction",
           "highlight_walk": "#/$defs/HighlightWalkInstruction",
+          "new_page": "#/$defs/NewPageInstruction",
           "show_equation": "#/$defs/ShowEquationInstruction",
           "step_equation": "#/$defs/StepEquationInstruction",
           "show_graph": "#/$defs/ShowGraphInstruction",
           "show_text": "#/$defs/ShowTextInstruction",
           "scroll_view": "#/$defs/ScrollViewInstruction",
-          "switch_board": "#/$defs/SwitchBoardInstruction"
+          "slide_pending": "#/$defs/SlidePendingInstruction",
+          "strikethrough": "#/$defs/StrikethroughInstruction",
+          "switch_board": "#/$defs/SwitchBoardInstruction",
+          "write_answer": "#/$defs/WriteAnswerInstruction",
+          "write_equation": "#/$defs/WriteEquationInstruction",
+          "write_section": "#/$defs/WriteSectionInstruction",
+          "write_step": "#/$defs/WriteStepInstruction",
+          "write_text": "#/$defs/WriteTextInstruction"
         },
         "propertyName": "type"
       },
@@ -1998,7 +2320,31 @@
           "$ref": "#/$defs/ScrollViewInstruction"
         },
         {
+          "$ref": "#/$defs/SlidePendingInstruction"
+        },
+        {
           "$ref": "#/$defs/SwitchBoardInstruction"
+        },
+        {
+          "$ref": "#/$defs/WriteEquationInstruction"
+        },
+        {
+          "$ref": "#/$defs/WriteStepInstruction"
+        },
+        {
+          "$ref": "#/$defs/WriteTextInstruction"
+        },
+        {
+          "$ref": "#/$defs/WriteSectionInstruction"
+        },
+        {
+          "$ref": "#/$defs/WriteAnswerInstruction"
+        },
+        {
+          "$ref": "#/$defs/StrikethroughInstruction"
+        },
+        {
+          "$ref": "#/$defs/NewPageInstruction"
         }
       ]
     },

@@ -253,6 +253,20 @@ function renderSvgElement(
 ): React.ReactNode {
   try {
     const dataAttr = el.id ? { "data-design-element": el.id } : {};
+    // Split-board stroke-reveal: classes + per-element draw order. The CSS
+    // selectors are scoped under `.sb-slide-live`, so these are no-ops in the
+    // legacy WhiteboardScene path.
+    const strokeOrderStyle = {
+      ["--sb-stroke-order" as string]: idx,
+    } as React.CSSProperties;
+    const strokeAttr = {
+      className: "dd-stroke-path",
+      style: strokeOrderStyle,
+    };
+    const labelAttr = {
+      className: "dd-label-fade",
+      style: strokeOrderStyle,
+    };
 
     switch (el.type) {
       case "svg_line": {
@@ -270,6 +284,7 @@ function renderSvgElement(
             stroke={el.stroke ?? "#000"}
             strokeWidth={el.strokeWidth ?? 2}
             strokeDasharray={el.strokeDasharray || undefined}
+            {...strokeAttr}
             {...dataAttr}
           />
         );
@@ -291,6 +306,7 @@ function renderSvgElement(
             stroke={el.stroke ?? "#000"}
             strokeWidth={el.strokeWidth ?? 2}
             rx={rx}
+            {...strokeAttr}
             {...dataAttr}
           />
         );
@@ -309,6 +325,7 @@ function renderSvgElement(
             fill={el.fill ?? "none"}
             strokeWidth={el.strokeWidth ?? 2}
             strokeDasharray={el.strokeDasharray || undefined}
+            {...strokeAttr}
             {...dataAttr}
           />
         );
@@ -328,6 +345,7 @@ function renderSvgElement(
             stroke={el.stroke ?? "#000"}
             fill={el.fill ?? "none"}
             strokeWidth={el.strokeWidth ?? 2}
+            {...strokeAttr}
             {...dataAttr}
           />
         );
@@ -341,6 +359,7 @@ function renderSvgElement(
             strokeWidth={el.strokeWidth ?? 2}
             fill={el.fill ?? "none"}
             strokeDasharray={el.strokeDasharray || undefined}
+            {...strokeAttr}
             {...dataAttr}
           />
         );
@@ -366,6 +385,7 @@ function renderSvgElement(
             fontWeight={el.fontWeight ?? "normal"}
             fontFamily={el.fontFamily ?? "Inter, system-ui, sans-serif"}
             transform={el.angle ? `rotate(${el.angle}, ${x}, ${y})` : undefined}
+            {...labelAttr}
             {...dataAttr}
           >
             {el.text ?? ""}
@@ -387,6 +407,7 @@ function renderSvgElement(
             strokeWidth={el.strokeWidth ?? 2}
             fill={el.fill ?? "none"}
             strokeDasharray={el.strokeDasharray || undefined}
+            {...strokeAttr}
             {...dataAttr}
           />
         );
@@ -436,6 +457,7 @@ function renderSvgElement(
               strokeWidth={el.strokeWidth ?? 2}
               strokeDasharray={el.strokeDasharray || undefined}
               markerEnd={`url(#${markerId})`}
+              {...strokeAttr}
             />
           </g>
         );
@@ -458,11 +480,13 @@ function LatexOverlay({
   params,
   specWidth,
   specHeight,
+  order,
 }: {
   el: DesignDiagramElement & { type: "svg_latex" };
   params: Record<string, number>;
   specWidth: number;
   specHeight: number;
+  order: number;
 }) {
   const x = resolveValue(el.x, params);
   const y = resolveValue(el.y, params);
@@ -493,16 +517,20 @@ function LatexOverlay({
   return (
     <div
       ref={ref}
+      className="dd-label-fade"
       data-design-element={el.id ?? undefined}
-      style={{
-        position: "absolute",
-        left: leftPct,
-        top: topPct,
-        fontSize: el.fontSize ?? 16,
-        color: el.color ?? "#000",
-        pointerEvents: "none",
-        whiteSpace: "nowrap",
-      }}
+      style={
+        {
+          position: "absolute",
+          left: leftPct,
+          top: topPct,
+          fontSize: el.fontSize ?? 16,
+          color: el.color ?? "#000",
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+          ["--sb-stroke-order" as string]: order,
+        } as React.CSSProperties
+      }
     />
   );
 }
@@ -616,6 +644,7 @@ export function DesignDiagramContent({
             params={paramValues}
             specWidth={width}
             specHeight={height}
+            order={elements.length + i}
           />
         ))}
       </div>

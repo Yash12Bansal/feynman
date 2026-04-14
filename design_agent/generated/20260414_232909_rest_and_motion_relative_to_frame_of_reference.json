@@ -1,0 +1,356 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Rest and Motion. Context: Rest and motion are fundamental concepts in kinematics that describe the state of an object. An object is said to be at rest when it does not change its position as time passes. An object is said to be in motion when it changes its position with time. However, these concepts are not absolute - they are relative to the observer or frame of reference. For example, a book on a table appears at rest when viewed from the room, but appears to be moving when viewed from the moon (since the Earth rotates and orbits). Motion is a combined property of the object under study and the observer. There is no",
+  "spec": {
+    "title": "Rest and Motion: Relative to Frame of Reference",
+    "description": "Understanding how rest and motion depend on the observer's frame of reference",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Rest and Motion are Relative",
+        "fontSize": 20,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "earth_surface",
+        "x": 50,
+        "y": 150,
+        "width": 350,
+        "height": 200,
+        "fill": "#E8F5E8",
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "earth_label",
+        "x": 225,
+        "y": 140,
+        "text": "Earth's Surface (Frame 1)",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "table",
+        "x": 150,
+        "y": 290,
+        "width": 150,
+        "height": 15,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "book",
+        "x": 200,
+        "y": 275,
+        "width": 50,
+        "height": 15,
+        "fill": "#FF6B6B",
+        "stroke": "#D32F2F",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "book_label",
+        "x": 225,
+        "y": 270,
+        "text": "Book",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer1",
+        "cx": 100,
+        "cy": 250,
+        "r": 15,
+        "fill": "#4682B4",
+        "stroke": "#1E3A8A",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer1_label",
+        "x": 100,
+        "y": 220,
+        "text": "Observer 1",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "observer1_view",
+        "x1": 115,
+        "y1": 250,
+        "x2": 190,
+        "y2": 285,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "rest_observation",
+        "x": 225,
+        "y": 330,
+        "text": "Book appears AT REST",
+        "fontSize": 12,
+        "fill": "#4CAF50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "space_frame",
+        "x": 500,
+        "y": 150,
+        "width": 350,
+        "height": 200,
+        "fill": "#E8E8FF",
+        "stroke": "#3F51B5",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "space_label",
+        "x": 675,
+        "y": 140,
+        "text": "Space/Moon (Frame 2)",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth_from_space",
+        "cx": 675,
+        "cy": 250,
+        "r": 60,
+        "fill": "#87CEEB",
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "earth_from_space_label",
+        "x": 675,
+        "y": 255,
+        "text": "Earth",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "book_dot",
+        "cx": 690,
+        "cy": 235,
+        "r": 3,
+        "fill": "#FF6B6B",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer2",
+        "cx": 550,
+        "cy": 200,
+        "r": 15,
+        "fill": "#FF9800",
+        "stroke": "#E65100",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer2_label",
+        "x": 550,
+        "y": 180,
+        "text": "Observer 2",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "observer2_view",
+        "x1": 565,
+        "y1": 205,
+        "x2": 650,
+        "y2": 240,
+        "stroke": "#FF9800",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "earth_rotation",
+        "cx": 675,
+        "cy": 250,
+        "r": 75,
+        "startAngle": -45,
+        "endAngle": 45,
+        "stroke": "#9C27B0",
+        "strokeWidth": 3,
+        "fill": "none",
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "rotation_label",
+        "x": 750,
+        "y": 210,
+        "text": "Earth rotates",
+        "fontSize": 10,
+        "fill": "#9C27B0",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "motion_observation",
+        "x": 675,
+        "y": 330,
+        "text": "Book appears IN MOTION",
+        "fontSize": 12,
+        "fill": "#D32F2F",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "divider",
+        "x1": 450,
+        "y1": 120,
+        "x2": 450,
+        "y2": 380,
+        "stroke": "#999",
+        "strokeWidth": 2,
+        "strokeDasharray": "10,5"
+      },
+      {
+        "type": "svg_rect",
+        "id": "key_concepts_box",
+        "x": 50,
+        "y": 400,
+        "width": 800,
+        "height": 200,
+        "fill": "#FFFEF7",
+        "stroke": "#FFC107",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "concepts_title",
+        "x": 450,
+        "y": 425,
+        "text": "Key Concepts",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "bullet1",
+        "cx": 80,
+        "cy": 450,
+        "r": 3,
+        "fill": "#333",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept1",
+        "x": 95,
+        "y": 455,
+        "text": "REST: An object does not change its position with time (relative to observer)",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_circle",
+        "id": "bullet2",
+        "cx": 80,
+        "cy": 475,
+        "r": 3,
+        "fill": "#333",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept2",
+        "x": 95,
+        "y": 480,
+        "text": "MOTION: An object changes its position with time (relative to observer)",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_circle",
+        "id": "bullet3",
+        "cx": 80,
+        "cy": 500,
+        "r": 3,
+        "fill": "#333",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept3",
+        "x": 95,
+        "y": 505,
+        "text": "There is NO absolute rest or motion - everything depends on the frame of reference",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_circle",
+        "id": "bullet4",
+        "cx": 80,
+        "cy": 525,
+        "r": 3,
+        "fill": "#333",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "concept4",
+        "x": 95,
+        "y": 530,
+        "text": "Motion is a combined property of the object AND the observer",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equation",
+        "x": 450,
+        "y": 570,
+        "expression": "\\text{State of object} = f(\\text{object position}, \\text{observer frame})",
+        "fontSize": 14,
+        "color": "#2E7D32"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

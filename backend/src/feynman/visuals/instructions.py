@@ -25,14 +25,23 @@ from feynman.visuals.schemas import (
     DrawSceneInstruction,
     HighlightInstruction,
     HighlightWalkInstruction,
+    NewPageInstruction,
+    Panel,
     PlacementIntent,
     ScrollViewInstruction,
     ShowEquationInstruction,
     ShowGraphInstruction,
     ShowTextInstruction,
     SizeHint,
+    SlidePendingInstruction,
     StepEquationInstruction,
+    StrikethroughInstruction,
     SwitchBoardInstruction,
+    WriteAnswerInstruction,
+    WriteEquationInstruction,
+    WriteSectionInstruction,
+    WriteStepInstruction,
+    WriteTextInstruction,
 )
 
 VisualInstruction = Annotated[
@@ -48,7 +57,15 @@ VisualInstruction = Annotated[
     | AnnotateInstruction
     | HighlightWalkInstruction
     | SwitchBoardInstruction
-    | ScrollViewInstruction,
+    | ScrollViewInstruction
+    | SlidePendingInstruction
+    | WriteEquationInstruction
+    | WriteStepInstruction
+    | WriteTextInstruction
+    | WriteSectionInstruction
+    | WriteAnswerInstruction
+    | StrikethroughInstruction
+    | NewPageInstruction,
     Discriminator("type"),
 ]
 
@@ -61,13 +78,22 @@ __all__ = [
     "DrawSceneInstruction",
     "HighlightInstruction",
     "HighlightWalkInstruction",
+    "NewPageInstruction",
+    "Panel",
     "PlacementIntent",
     "ScrollViewInstruction",
     "ShowEquationInstruction",
     "ShowGraphInstruction",
     "ShowTextInstruction",
     "SizeHint",
+    "SlidePendingInstruction",
     "StepEquationInstruction",
+    "StrikethroughInstruction",
     "SwitchBoardInstruction",
     "VisualInstruction",
+    "WriteAnswerInstruction",
+    "WriteEquationInstruction",
+    "WriteSectionInstruction",
+    "WriteStepInstruction",
+    "WriteTextInstruction",
 ]

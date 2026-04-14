@@ -58,6 +58,12 @@ export type BoardZone =
   | "bottom-center"
   | "bottom-right";
 
+/**
+ * Split-board panel assignment. Stamped by the backend based on instruction
+ * type; the LLM never sets this. Consumed by the SplitBoard renderer.
+ */
+export type Panel = "slide" | "notebook" | "reference";
+
 // ── Sub-models ────────────────────────────────────────────────
 
 export interface TermSyncHint {
@@ -132,6 +138,8 @@ interface BaseInstruction {
   position_x?: number;
   /** Exact Y position from Board Cortex solver (overrides zone placement). */
   position_y?: number;
+  /** Split-board panel assignment, stamped by backend based on instruction type. */
+  panel?: Panel;
   /** Client-stamped tile X coordinate (set by board store, not from backend). */
   _tileX?: number;
   /** Client-stamped tile Y coordinate (set by board store, not from backend). */
@@ -437,6 +445,63 @@ export interface DrawDesignDiagramInstruction extends BaseInstruction {
   spec: DesignDiagramSpec;
 }
 
+/**
+ * Generation in progress — split-board shows DraftingLoader while a slow
+ * slide tool (cache-miss draw_design_diagram) completes. Cleared on arrival
+ * of any slide-typed instruction for the same board, or on switch_board.
+ */
+export interface SlidePendingInstruction extends BaseInstruction {
+  type: "slide_pending";
+  title?: string;
+}
+
+// ── Notebook write-tools (split-board Phase 5) ────────────────
+
+export type NotebookTextStyle = "default" | "key_point";
+
+export interface WriteEquationInstruction extends BaseInstruction {
+  type: "write_equation";
+  latex: string;
+  label?: string;
+  align_group?: string | null;
+  indent?: number;
+}
+
+export interface WriteStepInstruction extends BaseInstruction {
+  type: "write_step";
+  text: string;
+  number?: number | null;
+  indent?: number;
+}
+
+export interface WriteTextInstruction extends BaseInstruction {
+  type: "write_text";
+  text: string;
+  style?: NotebookTextStyle;
+  indent?: number;
+}
+
+export interface WriteSectionInstruction extends BaseInstruction {
+  type: "write_section";
+  title: string;
+}
+
+export interface WriteAnswerInstruction extends BaseInstruction {
+  type: "write_answer";
+  latex?: string | null;
+  text?: string | null;
+}
+
+export interface StrikethroughInstruction extends BaseInstruction {
+  type: "strikethrough";
+  target_id: string;
+}
+
+export interface NewPageInstruction extends BaseInstruction {
+  type: "new_page";
+  carry_forward_ids?: readonly string[];
+}
+
 // ── Discriminated union ───────────────────────────────────────
 
 export type VisualInstruction =
@@ -452,7 +517,15 @@ export type VisualInstruction =
   | SwitchBoardInstruction
   | DrawSceneInstruction
   | HighlightWalkInstruction
-  | ScrollViewInstruction;
+  | ScrollViewInstruction
+  | SlidePendingInstruction
+  | WriteEquationInstruction
+  | WriteStepInstruction
+  | WriteTextInstruction
+  | WriteSectionInstruction
+  | WriteAnswerInstruction
+  | StrikethroughInstruction
+  | NewPageInstruction;
 
 export type VisualType = VisualInstruction["type"];
 

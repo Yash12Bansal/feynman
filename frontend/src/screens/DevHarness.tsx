@@ -27,6 +27,14 @@ const TYPE_LABELS: Record<VisualType, string> = {
   clear: "Clear",
   switch_board: "Switch Board",
   scroll_view: "Scroll View",
+  slide_pending: "Slide Pending",
+  write_equation: "Write Equation",
+  write_step: "Write Step",
+  write_text: "Write Text",
+  write_section: "Write Section",
+  write_answer: "Write Answer",
+  strikethrough: "Strikethrough",
+  new_page: "New Page",
 };
 
 const TYPE_COLORS: Record<VisualType, string> = {
@@ -43,6 +51,14 @@ const TYPE_COLORS: Record<VisualType, string> = {
   clear: "#6b7280",
   switch_board: "#94a3b8",
   scroll_view: "#818cf8",
+  slide_pending: "#7fd4ff",
+  write_equation: "#f5d76e",
+  write_step: "#c4b5fd",
+  write_text: "#93c5fd",
+  write_section: "#fca5a5",
+  write_answer: "#86efac",
+  strikethrough: "#f87171",
+  new_page: "#d1d5db",
 };
 
 export function DevHarness() {

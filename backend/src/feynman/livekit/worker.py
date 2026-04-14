@@ -31,6 +31,7 @@ from feynman.agent.tools import (
     highlight_diagram_part,
     highlight_walk,
     modify_design_diagram,
+    new_page,
     resolve_doubt,
     scroll_board,
     set_lesson_topic,
@@ -39,8 +40,14 @@ from feynman.agent.tools import (
     # show_text,
     start_doubt_branch,
     step_equation,
+    strikethrough,
     switch_board,
     teach_pause,
+    write_answer,
+    write_equation,
+    write_section,
+    write_step,
+    write_text,
 )
 from feynman.common.logging import setup_logging
 from feynman.common.types import Subject
@@ -60,6 +67,14 @@ ALL_TOOLS = [
     draw_scene,
     step_equation,
     show_graph,
+    # Notebook write-tools (split-board Phase 5 native surface)
+    write_equation,
+    write_step,
+    write_text,
+    write_section,
+    write_answer,
+    strikethrough,
+    new_page,
     annotate,
     highlight_diagram_part,
     highlight_walk,

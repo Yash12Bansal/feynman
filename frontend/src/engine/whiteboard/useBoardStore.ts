@@ -18,6 +18,12 @@ import type {
 
 const DEFAULT_BOARD_ID = "board-1";
 
+const SLIDE_TYPES = new Set([
+  "draw_diagram",
+  "draw_design_diagram",
+  "draw_scene",
+]);
+
 export interface BoardMeta {
   id: string;
   label: string;
@@ -35,12 +41,17 @@ export interface CameraState {
   tileY: number;
 }
 
+export interface PendingSlide {
+  title: string;
+}
+
 export interface BoardStore {
   activeBoardId: string;
   activeInstructions: VisualInstruction[];
   activeBoardMeta: BoardMeta | null;
   pendingTransition: BoardTransition | null;
   cameraState: CameraState;
+  pendingSlide: Record<string, PendingSlide | undefined>;
   addInstruction: (instr: VisualInstruction) => void;
   switchBoard: (instr: SwitchBoardInstruction) => void;
   clearBoard: (boardId?: string, targetId?: string) => void;
@@ -70,6 +81,9 @@ export function useBoardStore(): BoardStore {
     tileX: 0,
     tileY: 0,
   });
+  const [pendingSlide, setPendingSlide] = useState<
+    Record<string, PendingSlide | undefined>
+  >({});
 
   // Mirror activeBoardId in a ref so callbacks see the latest value
   // without needing it in their dependency arrays.
@@ -85,6 +99,16 @@ export function useBoardStore(): BoardStore {
   const addInstruction = useCallback(
     (instr: VisualInstruction) => {
       const boardId = instr.board_id ?? activeBoardIdRef.current;
+
+      // slide_pending is ephemeral loader state — set pending entry and return.
+      if (instr.type === "slide_pending") {
+        setPendingSlide((prev) => ({
+          ...prev,
+          [boardId]: { title: instr.title ?? "" },
+        }));
+        return;
+      }
+
       const boards = boardsRef.current;
 
       let list = boards.get(boardId);
@@ -111,6 +135,16 @@ export function useBoardStore(): BoardStore {
         }
       } else {
         list.push(instr);
+      }
+
+      // Any slide-typed arrival clears this board's pending loader.
+      if (SLIDE_TYPES.has(instr.type)) {
+        setPendingSlide((prev) => {
+          if (prev[boardId] === undefined) return prev;
+          const next = { ...prev };
+          delete next[boardId];
+          return next;
+        });
       }
 
       // Only trigger re-render if instruction targets the active board
@@ -148,6 +182,15 @@ export function useBoardStore(): BoardStore {
       to: targetBoardId,
       intent,
       durationMs: instr.duration_ms,
+    });
+
+    // Clear any pending slide loader on the source board — switching boards
+    // means the generation-in-progress indicator is no longer relevant there.
+    setPendingSlide((prev) => {
+      if (prev[fromBoardId] === undefined) return prev;
+      const next = { ...prev };
+      delete next[fromBoardId];
+      return next;
     });
 
     // Reference peeks don't change the active board
@@ -221,6 +264,7 @@ export function useBoardStore(): BoardStore {
     activeBoardMeta,
     pendingTransition,
     cameraState,
+    pendingSlide,
     addInstruction,
     switchBoard,
     clearBoard,

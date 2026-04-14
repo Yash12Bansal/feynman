@@ -6,7 +6,7 @@
  * Page-turn animation on page number change.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NotebookState } from "./types";
 import { NotebookEntryView } from "./NotebookEntry";
 
@@ -18,11 +18,41 @@ interface NotebookProps {
 type PerEntryMeasure = ReadonlyMap<string, number>;
 type GroupMeasures = ReadonlyMap<string, PerEntryMeasure>;
 
+const PAGE_TURN_MS = 450;
+
 export function Notebook({ state, title = "Notebook" }: NotebookProps) {
   const { page, turning } = state;
   const [groupMeasures, setGroupMeasures] = useState<GroupMeasures>(
     () => new Map(),
   );
+
+  // Page-turn animation ownership lives here, not in the adapter. When
+  // page.pageNum changes, flash `localTurning=true` for PAGE_TURN_MS so the
+  // `.sb-notebook-turning` class triggers the CSS flip.
+  //
+  // We detect the page change during render (React-sanctioned pattern — see
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders)
+  // so we don't land in the `set-state-in-effect` antipattern. The timer-based
+  // clear is still an effect because it's an external subscription (a timeout).
+  const [turnState, setTurnState] = useState<{ page: number; turning: boolean }>(
+    () => ({ page: page.pageNum, turning: false }),
+  );
+  if (turnState.page !== page.pageNum) {
+    setTurnState({ page: page.pageNum, turning: true });
+  }
+  useEffect(() => {
+    if (!turnState.turning) return;
+    const t = setTimeout(
+      () =>
+        setTurnState((s) =>
+          s.turning && s.page === turnState.page ? { ...s, turning: false } : s,
+        ),
+      PAGE_TURN_MS,
+    );
+    return () => clearTimeout(t);
+  }, [turnState.turning, turnState.page]);
+
+  const isTurning = turning || turnState.turning;
 
   // Map entry id → alignGroup for entries currently on the page. Entries from
   // previous pages are filtered out implicitly — their ids are missing here.
@@ -102,7 +132,7 @@ export function Notebook({ state, title = "Notebook" }: NotebookProps) {
       </div>
 
       <div
-        className={`sb-notebook-body${turning ? " sb-notebook-turning" : ""}`}
+        className={`sb-notebook-body${isTurning ? " sb-notebook-turning" : ""}`}
         key={page.pageNum}
       >
         {renderedEntries}

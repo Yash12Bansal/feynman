@@ -6,18 +6,38 @@
  */
 
 import { useMemo } from "react";
+import type { VisualInstruction } from "../../../types/visuals";
 import type { SlideState, SlideSketch } from "./types";
 import { DraftingLoader } from "./DraftingLoader";
+import { InstructionSwitch } from "../InstructionSwitch";
 
 interface SlidePanelProps {
   readonly state: SlideState;
 }
 
-export function SlidePanel({ state }: SlidePanelProps) {
-  const { status, active, pendingTitle } = state;
+function liveTitleFor(instr: VisualInstruction): { title: string; subtitle: string } {
+  switch (instr.type) {
+    case "draw_design_diagram":
+      return { title: instr.title ?? "", subtitle: "diagram" };
+    case "draw_diagram":
+      return { title: instr.title ?? "", subtitle: "diagram" };
+    case "draw_scene":
+      return { title: instr.title ?? "", subtitle: "scene" };
+    default:
+      return { title: "", subtitle: "" };
+  }
+}
 
-  const headerTitle = active?.title ?? pendingTitle ?? "";
-  const headerSubtitle = active?.subtitle ?? (status === "loading" ? "loading" : "");
+export function SlidePanel({ state }: SlidePanelProps) {
+  const { status, active, pendingTitle, liveInstruction } = state;
+
+  const liveHeader = liveInstruction ? liveTitleFor(liveInstruction) : null;
+  const headerTitle =
+    liveHeader?.title || active?.title || pendingTitle || "";
+  const headerSubtitle =
+    liveHeader?.subtitle ||
+    active?.subtitle ||
+    (status === "loading" ? "loading" : "");
 
   return (
     <section className="sb-slide" aria-label="Slide panel">
@@ -38,7 +58,15 @@ export function SlidePanel({ state }: SlidePanelProps) {
             }
           />
         )}
-        {status === "ready" && active && (
+        {status === "ready" && liveInstruction && (
+          <div
+            className="sb-slide-live sb-slide-active"
+            key={liveInstruction.element_id ?? `${liveInstruction.type}-live`}
+          >
+            <InstructionSwitch instruction={liveInstruction} />
+          </div>
+        )}
+        {status === "ready" && !liveInstruction && active && (
           <SlideSketchView key={active.id} sketch={active.sketch} />
         )}
         {status === "empty" && (

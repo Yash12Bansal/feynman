@@ -9,6 +9,8 @@ if TYPE_CHECKING:
     from feynman.agent.teaching_context import TeachingContext
 
 from feynman.agent.board_snapshot import generate_board_context
+from feynman.agent.notebook import reconstruct as reconstruct_notebook
+from feynman.agent.notebook import render_prompt_section as render_notebook_section
 
 TEACHING_SYSTEM_PROMPT = """\
 You are Feynman, an AI teacher inspired by Richard Feynman — "The Great Explainer."
@@ -110,6 +112,17 @@ Don't batch multiple tools.
 3. **Pause after complex visuals**: teach_pause(2) lets students absorb.
 4. **Clean between topics**: clear_board between major concept transitions.
 5. **Annotate sparingly**: Circle/underline at KEY moments, not every mention.
+
+### Notebook working (split-board)
+
+For the notebook's working column — step-by-step solving, boxed answers, \
+sectioned derivations, page turns, correcting a wrong step — prefer the \
+notebook-native write tools (``write_equation``, ``write_step``, ``write_text``, \
+``write_section``, ``write_answer``, ``strikethrough``, ``new_page``) over the \
+slide-era ``show_*`` equivalents. Equations sharing an ``align_group`` line up \
+at the ``=``; use ``strikethrough`` on a previously written entry to visibly \
+correct a wrong line before writing the right one; call ``new_page`` before the \
+page gets too full.
 """
 
 HIGHLIGHT_WALK_INSTRUCTIONS = """\
@@ -757,6 +770,14 @@ def build_teaching_prompt(
 
     # Board state section — always included (applies in both modes).
     parts.append(_build_board_state_section(teaching_ctx))
+
+    # Notebook state section (Phase 5b) — reconstructed live from audit so the
+    # agent sees what it has already written and can reason across turns.
+    # Appears after the 2D board state; under the split-board frontend flag
+    # the notebook is the primary writing surface and this section is the
+    # LLM's source of truth about it.
+    notebook_state = reconstruct_notebook(teaching_ctx.audit)
+    parts.append(render_notebook_section(notebook_state, history_pages=1))
 
     if lesson_plan is None:
         parts.append(

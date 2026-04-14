@@ -6,7 +6,7 @@ import asyncio
 import contextlib
 import json
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal
 
 import structlog
 from livekit.agents import RunContext, function_tool
@@ -41,6 +41,8 @@ from feynman.visuals.schemas import (
     HighlightStyle,
     HighlightWalkInstruction,
     HighlightWalkStep,
+    NewPageInstruction,
+    Panel,
     PlacementIntent,
     SceneTemplateId,
     SceneTemplateRef,
@@ -50,10 +52,17 @@ from feynman.visuals.schemas import (
     ShowGraphInstruction,
     ShowTextInstruction,
     SizeHint,
+    SlidePendingInstruction,
     StepEquationInstruction,
+    StrikethroughInstruction,
     SwitchBoardInstruction,
     SyncMode,
     TermSyncHint,
+    WriteAnswerInstruction,
+    WriteEquationInstruction,
+    WriteSectionInstruction,
+    WriteStepInstruction,
+    WriteTextInstruction,
     _BaseInstruction,
 )
 
@@ -61,6 +70,48 @@ logger = structlog.get_logger()
 
 # Instruction types that skip auto-ID assignment.
 _NO_AUTO_ID_TYPES = frozenset({"clear", "highlight", "annotate", "highlight_walk"})
+
+
+# Split-board panel assignment, keyed by instruction `type` literal. This is the
+# single source of truth: any new instruction type MUST get an entry here (the
+# mapping-coverage test in test_panel_routing.py enforces this).
+INSTRUCTION_TYPE_TO_PANEL: dict[str, Panel] = {
+    # Notebook (right panel — written content)
+    "show_text": Panel.NOTEBOOK,
+    "show_equation": Panel.NOTEBOOK,
+    "step_equation": Panel.NOTEBOOK,
+    "show_graph": Panel.NOTEBOOK,
+    # Notebook (write-tools — Phase 5 native surface)
+    "write_equation": Panel.NOTEBOOK,
+    "write_step": Panel.NOTEBOOK,
+    "write_text": Panel.NOTEBOOK,
+    "write_section": Panel.NOTEBOOK,
+    "write_answer": Panel.NOTEBOOK,
+    "strikethrough": Panel.NOTEBOOK,
+    "new_page": Panel.NOTEBOOK,
+    # Slide (left panel — one diagram at a time)
+    "draw_diagram": Panel.SLIDE,
+    "draw_design_diagram": Panel.SLIDE,
+    "draw_scene": Panel.SLIDE,
+    "slide_pending": Panel.SLIDE,
+    # Reference (targets an existing element or is a meta-operation)
+    "highlight": Panel.REFERENCE,
+    "highlight_walk": Panel.REFERENCE,
+    "annotate": Panel.REFERENCE,
+    "clear": Panel.REFERENCE,
+    "switch_board": Panel.REFERENCE,
+    "scroll_view": Panel.REFERENCE,
+}
+
+
+def _stamp_panel(instruction: _BaseInstruction) -> None:
+    """Stamp `panel` on an instruction based on its `type` literal.
+
+    Raises `KeyError` if the instruction type has no mapping — this is a
+    correctness contract, not a runtime failure: the mapping-coverage test
+    guarantees every registered instruction type is present.
+    """
+    instruction.panel = INSTRUCTION_TYPE_TO_PANEL[instruction.type]
 
 
 def _parse_zone(zone: str) -> BoardZone | None:
@@ -126,9 +177,7 @@ def _declare_relation(
     )
 
 
-def _build_placement(
-    near: str, near_side: str, size_hint: str
-) -> PlacementIntent | None:
+def _build_placement(near: str, near_side: str, size_hint: str) -> PlacementIntent | None:
     """Build PlacementIntent from tool params. Returns None if no placement params set."""
     if not (near or near_side or size_hint):
         return None
@@ -159,10 +208,11 @@ async def _publish_visual(
 
     # Resolve placement intent → exact coordinates.
     board_state = tc.board_manager.active_board.state
-    resolve_placement(
-        instruction, board_state.spatial_solver, board_state.scenario_plan
-    )
+    resolve_placement(instruction, board_state.spatial_solver, board_state.scenario_plan)
     instruction.placement = None  # Strip before serialization (defense in depth)
+
+    # Split-board: stamp panel deterministically from instruction type.
+    _stamp_panel(instruction)
 
     # Infer wait behavior from the instruction's sync_mode when not explicit.
     if wait_for_speech is None:
@@ -172,9 +222,7 @@ async def _publish_visual(
         try:
             await ctx.wait_for_playout()
         except Exception:
-            logger.warning(
-                "visual.playout_wait_failed", type=instruction.type, exc_info=True
-            )
+            logger.warning("visual.playout_wait_failed", type=instruction.type, exc_info=True)
 
     room = ctx.session.room_io.room
     data = json.dumps(instruction.model_dump(exclude_none=True, by_alias=True))
@@ -187,16 +235,25 @@ async def _publish_visual(
         board_id=instruction.board_id,
     )
 
-    # Audit: track every tool call for the routing summary.
+    # Audit: track every tool call for the routing summary. For notebook
+    # instructions (Phase 5b), also record the full payload so `notebook.py`
+    # can reconstruct the live page state for prompt injection.
     zone_str = str(instruction.zone.value) if instruction.zone else "none"
+    audit_meta: dict[str, Any] = {
+        "tool": instruction.type,
+        "element_id": instruction.element_id or "",
+        "zone": zone_str,
+        "concept_index": tc.current_concept_index if tc.lesson_plan else -1,
+    }
+    if INSTRUCTION_TYPE_TO_PANEL.get(instruction.type) == Panel.NOTEBOOK:
+        audit_meta["content"] = instruction.model_dump(
+            exclude_none=True, mode="json"
+        )
     tc.audit.record(
         "routing",
         "tool_call",
         f"{instruction.type} zone={zone_str}",
-        tool=instruction.type,
-        element_id=instruction.element_id or "",
-        zone=zone_str,
-        concept_index=tc.current_concept_index if tc.lesson_plan else -1,
+        **audit_meta,
     )
 
     # Warn when spatial content is placed without an explicit zone.
@@ -232,6 +289,7 @@ async def _publish_switch_board(
         intent=intent,
         sync_mode=SyncMode.IMMEDIATE,
     )
+    _stamp_panel(instruction)
     room = ctx.session.room_io.room
     data = json.dumps(instruction.model_dump(exclude_none=True, by_alias=True))
     await room.local_participant.publish_data(data, reliable=True, topic="visuals")
@@ -557,9 +615,7 @@ The system computes exact position. Prefer this over zone.
 Helps the system check fit before placing.
     """
     series = [DataSeries(**s) for s in json.loads(series_json)] if series_json else []
-    functions = (
-        [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
-    )
+    functions = [FunctionDef(**f) for f in json.loads(functions_json)] if functions_json else []
     gtype = GraphType(graph_type)
     x_axis = AxisConfig(label=x_axis_label, min=x_min, max=x_max)
     y_axis = AxisConfig(label=y_axis_label, min=y_min, max=y_max)
@@ -709,8 +765,7 @@ this step's highlight. When you say any of these words, this part lights up.
 
     # Populate term_hints so the frontend SyncManager can reuse its word-matching.
     term_hints = [
-        TermSyncHint(term_id=s.sub_element_id, trigger_words=s.trigger_words)
-        for s in steps
+        TermSyncHint(term_id=s.sub_element_id, trigger_words=s.trigger_words) for s in steps
     ]
 
     instruction = HighlightWalkInstruction(
@@ -760,6 +815,220 @@ All semantically connected elements will also be cleared.
         instruction = ClearInstruction(target_id=eid, sync_mode=SyncMode.IMMEDIATE)
         await _publish_visual(ctx, instruction, wait_for_speech=False)
     return f"Cleared cluster ({len(cluster)} elements): {', '.join(sorted(cluster))}"
+
+
+# ──────────────────────────────────────────────
+# Notebook write-tools (split-board Phase 5)
+#
+# Native surface for writing in the notebook panel. Prefer these over the
+# slide-era `show_*` tools when composing equations/steps/answers as part of
+# the notebook's working column. Panel is stamped deterministically to
+# `Panel.NOTEBOOK` via INSTRUCTION_TYPE_TO_PANEL.
+# ──────────────────────────────────────────────
+
+
+@function_tool()
+async def write_equation(
+    ctx: RunContext,
+    latex: str,
+    label: str = "",
+    align_group: str = "",
+    indent: int = 0,
+) -> str:
+    """Write an equation in the notebook's working column.
+
+    Use this instead of ``show_equation`` when the equation is part of the
+    notebook's working — solving, deriving, re-arranging in sequence.
+    Multiple equations that share the same ``align_group`` render vertically
+    aligned at the ``=`` sign (like hand-written algebra).
+
+    Args:
+        latex: The equation in LaTeX (e.g., ``"F = m a"``, ``"a = \\frac{F}{m}"``).
+        label: Optional annotation shown to the right of the equation.
+        align_group: Any stable string identifier (e.g. ``"solve-for-a"``). \
+Equations sharing this value line up at the ``=`` sign. Leave empty for no alignment.
+        indent: Indent level 0-3 (24px each). Use 1 for sub-steps of a derivation.
+    """
+    instruction = WriteEquationInstruction(
+        latex=latex,
+        label=label,
+        align_group=align_group or None,
+        indent=indent,
+    )
+    await _publish_visual(ctx, instruction)
+    return f"Wrote equation: {latex[:40]}"
+
+
+@function_tool()
+async def write_step(
+    ctx: RunContext,
+    text: str,
+    number: int = 0,
+    indent: int = 0,
+) -> str:
+    """Write a working step — a narrative line in the notebook.
+
+    Use for text that describes the next move in a derivation or solution
+    (e.g., ``"Solve for a"``, ``"Substitute F = 10 into the equation"``).
+
+    Args:
+        text: The step text in plain prose; no LaTeX.
+        number: Optional step number (1, 2, 3...). Pass 0 for an unnumbered step.
+        indent: Indent level 0-3 (24px each). Use 1 for sub-steps.
+    """
+    instruction = WriteStepInstruction(
+        text=text,
+        number=number if number > 0 else None,
+        indent=indent,
+    )
+    await _publish_visual(ctx, instruction)
+    return f"Wrote step: {text[:40]}"
+
+
+@function_tool()
+async def write_text(
+    ctx: RunContext,
+    text: str,
+    style: str = "default",
+    indent: int = 0,
+) -> str:
+    """Write a plain text line or a key-point box in the notebook.
+
+    Args:
+        text: The text content (plain prose; no LaTeX).
+        style: ``"default"`` for a plain line, or ``"key_point"`` for a \
+bordered box that draws extra attention.
+        indent: Indent level 0-3 (24px each).
+    """
+    resolved_style: Literal["default", "key_point"] = (
+        "key_point" if style == "key_point" else "default"
+    )
+    instruction = WriteTextInstruction(
+        text=text,
+        style=resolved_style,
+        indent=indent,
+    )
+    await _publish_visual(ctx, instruction)
+    return f"Wrote text: {text[:40]}"
+
+
+@function_tool()
+async def write_section(
+    ctx: RunContext,
+    title: str,
+) -> str:
+    """Write a section header in the notebook.
+
+    Use at the start of each new concept, worked example, or sub-topic. Renders
+    as a bold line marked with ``§`` and a divider below — a visual "now we're
+    starting a new section of the working" cue.
+
+    Args:
+        title: The section heading (e.g., ``"Newton's Second Law"``).
+    """
+    instruction = WriteSectionInstruction(title=title)
+    await _publish_visual(ctx, instruction)
+    return f"Wrote section: {title}"
+
+
+@function_tool()
+async def write_answer(
+    ctx: RunContext,
+    latex: str = "",
+    text: str = "",
+) -> str:
+    """Write the boxed final answer in the notebook.
+
+    The answer renders with a green border and a subtle glow — a visual "this
+    is the result we were after" cue. Provide exactly one of ``latex`` or
+    ``text``.
+
+    Args:
+        latex: LaTeX for the boxed answer (e.g., ``"a = 5\\,\\text{m/s}^2"``).
+        text: Plain text for the boxed answer (e.g., ``"pH = 7.0"``).
+    """
+    instruction = WriteAnswerInstruction(
+        latex=latex or None,
+        text=text or None,
+    )
+    await _publish_visual(ctx, instruction)
+    return f"Wrote answer: {(latex or text)[:40]}"
+
+
+@function_tool()
+async def strikethrough(
+    ctx: RunContext,
+    target_id: str,
+) -> str:
+    """Cross out an existing notebook entry — like striking through a wrong step.
+
+    Use when you realize a previously written line is wrong and want to visibly
+    correct it before writing the right version. The struck line stays visible
+    but has a red line drawn through it.
+
+    Args:
+        target_id: The ``element_id`` of the notebook entry to strike \
+(e.g., ``"eq-3"``, ``"step-5"``). The ID is returned by the previous write tool.
+    """
+    instruction = StrikethroughInstruction(
+        target_id=target_id,
+        sync_mode=SyncMode.IMMEDIATE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return f"Struck entry: {target_id}"
+
+
+@function_tool()
+async def new_page(
+    ctx: RunContext,
+    carry_forward_ids: list[str] | None = None,
+) -> str:
+    """Turn to a fresh blank page in the notebook.
+
+    Call when the current page is full and you want to keep writing. The
+    students see the page flip, then the notebook is clean for the next batch
+    of working. Previous pages are retained in history.
+
+    Pass ``element_id``s in ``carry_forward_ids`` to show those entries at
+    the top of the new page as muted, inert reminders — useful when a
+    premise (e.g. the starting equation) from the previous page still
+    applies. Carried reminders track the original's state (they appear
+    struck-through if the original was crossed out).
+    """
+    instruction = NewPageInstruction(
+        carry_forward_ids=list(carry_forward_ids or []),
+        sync_mode=SyncMode.IMMEDIATE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return "Turned to new page"
+
+
+def _recent_notebook_entries(ctx: RunContext, n: int = 5) -> list[dict[str, str]]:
+    """Return the last ``n`` notebook-panel tool calls from the audit log.
+
+    Used by Phase 5b prompt integration to show the agent a compact recap of
+    what it has already written. Not wired into the prompt in Phase 5 — this
+    helper is here so the next phase can insert it without a new file hop.
+    """
+    tc: TeachingContext = ctx.userdata
+    notebook_tools = {
+        t for t, panel in INSTRUCTION_TYPE_TO_PANEL.items() if panel == Panel.NOTEBOOK
+    }
+    hits: list[dict[str, str]] = []
+    for evt in reversed(tc.audit.events_for("routing")):
+        tool = evt.metadata.get("tool", "")
+        if tool in notebook_tools:
+            hits.append(
+                {
+                    "tool": tool,
+                    "element_id": evt.metadata.get("element_id", ""),
+                    "detail": evt.detail,
+                }
+            )
+            if len(hits) >= n:
+                break
+    hits.reverse()
+    return hits
 
 
 @function_tool()
@@ -821,6 +1090,15 @@ Helps the system check fit before placing.
                 f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
             )
         else:
+            concept = tc.current_concept
+            caption_title = (concept.title if concept else "") or prompt.strip().split(
+                "\n", 1
+            )[0][:80]
+            await _publish_visual(
+                ctx,
+                SlidePendingInstruction(title=caption_title),
+                wait_for_speech=False,
+            )
             spec = await generate_design_diagram(prompt, model="sonnet")
             logger.info(
                 "draw_design_diagram.cache_miss",
@@ -977,9 +1255,7 @@ to keep it in place.
     instruction.element_id = target_id
 
     # Preserve existing position — modification stays in place, not re-placed.
-    existing_rect = tc.board_manager.active_board.state.spatial_solver.occupied.get(
-        target_id
-    )
+    existing_rect = tc.board_manager.active_board.state.spatial_solver.occupied.get(target_id)
     if existing_rect:
         instruction.position_x = existing_rect.x
         instruction.position_y = existing_rect.y
@@ -998,8 +1274,7 @@ to keep it in place.
     tc.audit.record(
         "modify_diagram",
         "modified",
-        f"target={target_id}, concept={tc.current_concept_index}, "
-        f"elapsed={elapsed_ms:.0f}ms",
+        f"target={target_id}, concept={tc.current_concept_index}, elapsed={elapsed_ms:.0f}ms",
         target_id=target_id,
         concept_index=tc.current_concept_index,
         elapsed_ms=elapsed_ms,
@@ -1389,18 +1664,14 @@ async def resolve_doubt(ctx: RunContext) -> str:
     # Pop board stack before popping branch — return to parent board.
     tc.board_manager.pop_board()
     parent_board = tc.board_manager.active_board
-    await _publish_switch_board(
-        ctx, parent_board.id, parent_board.label, BoardIntent.REVISIT
-    )
+    await _publish_switch_board(ctx, parent_board.id, parent_board.label, BoardIntent.REVISIT)
 
     popped = await tc.state_machine.pop_branch()
     tc.anticipation.clear_doubt_cache()
     await _update_agent_prompt(ctx)
 
     current = tc.current_concept
-    continue_msg = (
-        f"Continue teaching: {current.title}" if current else "Lesson complete"
-    )
+    continue_msg = f"Continue teaching: {current.title}" if current else "Lesson complete"
 
     logger.info(
         "doubt.resolved",
@@ -1416,9 +1687,7 @@ async def resolve_doubt(ctx: RunContext) -> str:
 
 
 @function_tool()
-async def switch_board(
-    ctx: RunContext, board_id: str, intent: str = "reference"
-) -> str:
+async def switch_board(ctx: RunContext, board_id: str, intent: str = "reference") -> str:
     """Switch to a different board to show previously drawn content.
 
     Use this to flip back to an earlier board when referencing a concept,
@@ -1490,6 +1759,7 @@ on screen. Pass the element's ID (e.g., "diagram-3").
         target_y=board_state.camera_tile_y,
     )
     scroll_instr.board_id = tc.board_manager.active_id
+    _stamp_panel(scroll_instr)
     room = ctx.session.room_io.room
     data = json.dumps(scroll_instr.model_dump(exclude_none=True, by_alias=True))
     await room.local_participant.publish_data(data, reliable=True, topic="visuals")

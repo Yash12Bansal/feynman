@@ -126,6 +126,25 @@
   text-transform: uppercase;
 }
 
+/* Live slide host — wraps a real backend instruction (Phase 3+).
+   Fills the stage and lets the underlying renderer (DesignDiagramContent,
+   RoughDiagramContent, SceneContent) own its own layout. */
+.sb-slide-live {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sb-slide-live > * {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .sb-slide-active {
   animation: sb-slide-fade-in 0.45s ease both;
 }
@@ -494,13 +513,36 @@
 }
 
 .sb-entry--indent-1 {
-  padding-left: 28px;
+  padding-left: 24px;
 }
 .sb-entry--indent-2 {
-  padding-left: 56px;
+  padding-left: 48px;
 }
 .sb-entry--indent-3 {
-  padding-left: 84px;
+  padding-left: 72px;
+}
+
+/* Subtle dashed hint line per indent level — a faint left rule that reads as
+   "this line is nested." One line per entry at its own indent column; the
+   cumulative visual across consecutive nested entries reads as a tree. */
+.sb-entry--indent-1::before,
+.sb-entry--indent-2::before,
+.sb-entry--indent-3::before {
+  content: "";
+  position: absolute;
+  top: 0.25em;
+  bottom: 0.25em;
+  border-left: 1px dashed var(--sb-ink-faint);
+  pointer-events: none;
+}
+.sb-entry--indent-1::before {
+  left: 10px;
+}
+.sb-entry--indent-2::before {
+  left: 34px;
+}
+.sb-entry--indent-3::before {
+  left: 58px;
 }
 
 .sb-entry--section {
@@ -578,15 +620,43 @@
   font-size: 22px;
   margin-top: 10px;
   padding: 14px 20px;
-  border: 1.5px solid var(--sb-answer);
   border-radius: 6px;
   color: var(--sb-answer);
   background: rgba(158, 255, 201, 0.04);
   align-self: flex-start;
   position: relative;
+  /* Border is drawn by an SVG overlay (`.sb-answer-rect`) so it can trace its
+     perimeter on arrival. The glow delay is tuned so the pulse begins just
+     after the stroke finishes drawing (write-in 0.35s + stroke 0.08s delay
+     + 0.32s draw ≈ 0.72s). */
   animation:
     sb-entry-write-in 0.35s cubic-bezier(0.45, 0, 0.2, 1) both,
-    sb-answer-glow 2.4s ease-in-out infinite 0.8s;
+    sb-answer-glow 2.4s ease-in-out infinite 0.72s;
+}
+
+.sb-answer-rect {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.sb-answer-rect rect {
+  fill: none;
+  stroke: var(--sb-answer);
+  stroke-width: 1.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  animation: sb-answer-draw 0.32s cubic-bezier(0.45, 0, 0.2, 1) 0.08s forwards;
+}
+
+@keyframes sb-answer-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 @keyframes sb-answer-glow {
@@ -599,30 +669,79 @@
   }
 }
 
+/* Live graph entry — wraps RoughGraphContent inside the notebook column.
+   Constrains height so a single chart doesn't dominate the page. May be
+   revisited (or moved back to slide) after Phase 3 dogfood. */
+.sb-entry--graph {
+  width: 100%;
+  height: 220px;
+  margin: 8px 0;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.012);
+  overflow: hidden;
+}
+
+.sb-entry--graph > * {
+  width: 100%;
+  height: 100%;
+}
+
 .sb-entry--struck {
   position: relative;
   color: var(--sb-ink-muted);
+  /* Delay the dim slightly so the pen stroke starts first; the text fades
+     under the ink as the stroke finishes. */
+  transition: color 0.22s ease 0.1s;
 }
 
-.sb-entry--struck::after {
-  content: "";
+/* Hand-drawn strikethrough: an SVG path with `pathLength=1` normalized
+   dasharray animated from 1 → 0. The slight quadratic curve + round linecap
+   reads as a felt-tip swipe, not a ruler-straight bar. */
+.sb-strike-svg {
   position: absolute;
-  left: -4px;
-  right: 0;
-  top: 50%;
-  height: 1.5px;
-  background: var(--sb-danger);
-  transform-origin: left center;
-  animation: sb-strike-draw 0.3s cubic-bezier(0.45, 0, 0.2, 1) both;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
 }
 
-@keyframes sb-strike-draw {
-  from {
-    transform: scaleX(0);
-  }
+.sb-strike-svg path {
+  fill: none;
+  stroke: var(--sb-danger);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  animation: sb-strike-pen 0.22s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+@keyframes sb-strike-pen {
   to {
-    transform: scaleX(1);
+    stroke-dashoffset: 0;
   }
+}
+
+/* Carried-forward entries: muted copies of a previous-page entry shown as
+   inert reminders at the top of the new page. Opacity + dashed left rule
+   reads as "not active — carried over." The derived id (`__carried__pN`)
+   makes them inert to strikethrough targeting. */
+.sb-entry--carried {
+  opacity: 0.55;
+  border-left: 1.5px dashed var(--sb-ink-muted);
+  padding-left: 14px;
+}
+.sb-entry--carried.sb-entry--indent-1 {
+  padding-left: 28px;
+}
+.sb-entry--carried.sb-entry--indent-2 {
+  padding-left: 52px;
+}
+.sb-entry--carried.sb-entry--indent-3 {
+  padding-left: 76px;
 }
 
 /* ── Mode helpers ──────────────────────────────────────────── */
@@ -647,6 +766,23 @@
   flex: 1 1 100%;
 }
 
+/* ── Live design-diagram stroke reveal ─────────────────────── */
+/* Scoped under `.sb-slide-live` so the legacy WhiteboardScene path is
+   bit-identical (no slide-live ancestor → these rules don't apply). */
+
+.sb-slide-live .dd-stroke-path {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  animation: sb-stroke-draw 1.1s cubic-bezier(0.45, 0, 0.2, 1) both;
+  animation-delay: calc(var(--sb-stroke-order, 0) * 180ms);
+}
+
+.sb-slide-live .dd-label-fade {
+  opacity: 0;
+  animation: sb-fill-fade 0.4s ease forwards;
+  animation-delay: calc(var(--sb-stroke-order, 0) * 180ms + 700ms);
+}
+
 /* ── Reduced motion ────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -664,10 +800,19 @@
   .sb-notebook-turning,
   .sb-entry,
   .sb-entry--answer,
-  .sb-entry--struck::after {
+  .sb-strike-svg path,
+  .sb-answer-rect rect,
+  .sb-slide-live .dd-stroke-path,
+  .sb-slide-live .dd-label-fade {
     animation: none !important;
     stroke-dashoffset: 0 !important;
     opacity: 1;
+  }
+  .sb-entry--struck {
+    transition: none !important;
+  }
+  .sb-entry--equation[data-align-group] {
+    transition: none !important;
   }
   .sb-slide,
   .sb-notebook {

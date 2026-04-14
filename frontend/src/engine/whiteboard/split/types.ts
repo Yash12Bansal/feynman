@@ -1,3 +1,5 @@
+import type { ShowGraphInstruction, VisualInstruction } from "../../../types/visuals";
+
 export type PanelMode = "split" | "slide_full" | "notebook_full";
 
 export type SlideStatus = "empty" | "loading" | "ready";
@@ -26,6 +28,13 @@ export interface SlideState {
   readonly status: SlideStatus;
   readonly active?: SlideSpec;
   readonly pendingTitle?: string;
+  /**
+   * Live mode: a real backend visual instruction routed to the slide. When
+   * present (and status === "ready"), SlidePanel renders this via the shared
+   * InstructionSwitch instead of `active.sketch`. Used in production; the
+   * prototype path keeps using `active`.
+   */
+  readonly liveInstruction?: VisualInstruction;
 }
 
 export type NotebookEntryKind =
@@ -34,7 +43,8 @@ export type NotebookEntryKind =
   | "step"
   | "text"
   | "key_point"
-  | "answer";
+  | "answer"
+  | "graph";
 
 export interface NotebookEntryBase {
   readonly id: string;
@@ -43,6 +53,13 @@ export interface NotebookEntryBase {
   readonly struck?: boolean;
   readonly boxed?: boolean;
   readonly alignGroup?: string;
+  /**
+   * True when this entry is a muted reminder copy carried onto a new page
+   * via `new_page(carry_forward_ids=[...])`. Carried copies are inert:
+   * strikethrough won't target them directly (their id is suffixed
+   * `__carried__pN`) but their visual state mirrors the original's.
+   */
+  readonly carriedForward?: boolean;
 }
 
 export interface EquationEntry extends NotebookEntryBase {
@@ -77,13 +94,25 @@ export interface AnswerEntry extends NotebookEntryBase {
   readonly text?: string;
 }
 
+/**
+ * A graph rendered inside a notebook entry. Wraps the original
+ * ShowGraphInstruction so the existing RoughGraphContent renderer can be
+ * reused without re-implementation. May be revisited after Phase 3 dogfood
+ * — graphs in a narrow notebook column may need to move back to the slide.
+ */
+export interface GraphEntry extends NotebookEntryBase {
+  readonly kind: "graph";
+  readonly instr: ShowGraphInstruction;
+}
+
 export type NotebookEntry =
   | EquationEntry
   | StepEntry
   | TextEntry
   | KeyPointEntry
   | SectionEntry
-  | AnswerEntry;
+  | AnswerEntry
+  | GraphEntry;
 
 export interface NotebookPage {
   readonly pageNum: number;
