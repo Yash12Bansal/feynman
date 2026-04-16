@@ -294,6 +294,22 @@ class AnticipationEngine:
         if self._audit:
             self._audit.record("anticipation", "source_curriculum_neo4j", f"start={start}, count={count}")
 
+        # Flag to bypass Neo4j pre-generated visuals (baked at Phase 12 ingestion
+        # time under the prompt of the day). When iterating on design_agent prompts,
+        # set FEYNMAN_BYPASS_PREGEN_VISUALS=true in .env so every diagram regenerates
+        # fresh under the current prompt instead of being served from stale Neo4j.
+        from feynman.config import settings
+
+        bypass_pregen = settings.bypass_pregen_visuals
+        if bypass_pregen:
+            logger.info("anticipation.bypass_pregen_active")
+            if self._audit:
+                self._audit.record(
+                    "anticipation",
+                    "bypass_pregen_active",
+                    "skipping Neo4j pre_generated_visuals; will regenerate all diagrams",
+                )
+
         teaching_order = curriculum.get_teaching_order()
         concept_level = [c for c in teaching_order if c.level == 0]
 
@@ -308,8 +324,13 @@ class AnticipationEngine:
             curr_concept = concept_level[concept_idx]
             key = (concept_idx, 0)
 
-            # Check for pre-generated visual in Neo4j — instant cache, no LLM call
-            pre_spec = curriculum.pre_generated_visuals.get(curr_concept.uid)
+            # Check for pre-generated visual in Neo4j — instant cache, no LLM call.
+            # Skipped entirely when `settings.bypass_pregen_visuals` is True so
+            # prompt iteration isn't short-circuited by stale Neo4j specs.
+            pre_spec = (
+                None if bypass_pregen
+                else curriculum.pre_generated_visuals.get(curr_concept.uid)
+            )
             if pre_spec:
                 self._cache[key] = pre_spec
                 self._prompts[key] = f"Pre-generated: {curr_concept.topic_name}"

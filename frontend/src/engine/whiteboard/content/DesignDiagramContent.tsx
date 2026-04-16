@@ -281,7 +281,7 @@ function renderSvgElement(
             y1={y1}
             x2={x2}
             y2={y2}
-            stroke={el.stroke ?? "#000"}
+            stroke={el.stroke ?? "var(--sb-ink, #222)"}
             strokeWidth={el.strokeWidth ?? 2}
             strokeDasharray={el.strokeDasharray || undefined}
             {...strokeAttr}
@@ -303,7 +303,7 @@ function renderSvgElement(
             width={w}
             height={h}
             fill={el.fill ?? "none"}
-            stroke={el.stroke ?? "#000"}
+            stroke={el.stroke ?? "var(--sb-ink, #222)"}
             strokeWidth={el.strokeWidth ?? 2}
             rx={rx}
             {...strokeAttr}
@@ -321,7 +321,7 @@ function renderSvgElement(
             cx={cx}
             cy={cy}
             r={r}
-            stroke={el.stroke ?? "#000"}
+            stroke={el.stroke ?? "var(--sb-ink, #222)"}
             fill={el.fill ?? "none"}
             strokeWidth={el.strokeWidth ?? 2}
             strokeDasharray={el.strokeDasharray || undefined}
@@ -342,7 +342,7 @@ function renderSvgElement(
             cy={cy}
             rx={rx}
             ry={ry}
-            stroke={el.stroke ?? "#000"}
+            stroke={el.stroke ?? "var(--sb-ink, #222)"}
             fill={el.fill ?? "none"}
             strokeWidth={el.strokeWidth ?? 2}
             {...strokeAttr}
@@ -355,7 +355,7 @@ function renderSvgElement(
           <path
             key={idx}
             d={el.d ?? ""}
-            stroke={el.stroke ?? "#000"}
+            stroke={el.stroke ?? "var(--sb-ink, #222)"}
             strokeWidth={el.strokeWidth ?? 2}
             fill={el.fill ?? "none"}
             strokeDasharray={el.strokeDasharray || undefined}
@@ -379,7 +379,7 @@ function renderSvgElement(
             x={x}
             y={y}
             fontSize={el.fontSize ?? 14}
-            fill={el.fill ?? "#000"}
+            fill={el.fill ?? "var(--sb-ink, #222)"}
             textAnchor={anchor}
             dominantBaseline={baseline}
             fontWeight={el.fontWeight ?? "normal"}
@@ -403,7 +403,7 @@ function renderSvgElement(
           <path
             key={idx}
             d={d}
-            stroke={el.stroke ?? "#000"}
+            stroke={el.stroke ?? "var(--sb-ink, #222)"}
             strokeWidth={el.strokeWidth ?? 2}
             fill={el.fill ?? "none"}
             strokeDasharray={el.strokeDasharray || undefined}
@@ -432,7 +432,7 @@ function renderSvgElement(
         const y1 = resolveValue(el.y1, params);
         const x2 = resolveValue(el.x2, params);
         const y2 = resolveValue(el.y2, params);
-        const color = el.stroke ?? "#000";
+        const color = el.stroke ?? "var(--sb-ink, #222)";
         const markerId = `da-arrow-${idx}`;
         return (
           <g key={idx} {...dataAttr}>
@@ -459,6 +459,67 @@ function renderSvgElement(
               markerEnd={`url(#${markerId})`}
               {...strokeAttr}
             />
+          </g>
+        );
+      }
+      case "svg_frame": {
+        // Labeled comparison panel — a rounded rect + title + optional caption.
+        // Place ONE `svg_frame` per sub-scene and draw other primitives
+        // inside its bounds as later spec-siblings (SVG paints in spec order,
+        // so later elements sit on top of the frame).
+        const x = resolveValue(el.x, params);
+        const y = resolveValue(el.y, params);
+        const w = resolveValue(el.width, params, 300);
+        const h = resolveValue(el.height, params, 200);
+        const rx = resolveValue(el.rx, params, 14);
+        const background = el.background || "var(--sb-panel-cream, #f4ead2)";
+        // Solid dark ink by default so titles + borders read cleanly on the
+        // light panel fills. Muted caption text has its own fallback below.
+        const accent = el.accent || "var(--sb-panel-ink, #1f2430)";
+        const centerX = x + w / 2;
+        const titleY = y + 26;
+        const captionY = y + h - 14;
+        return (
+          <g key={idx} {...dataAttr}>
+            <rect
+              x={x}
+              y={y}
+              width={w}
+              height={h}
+              fill={background}
+              stroke={accent}
+              strokeWidth={1.5}
+              rx={rx}
+              {...strokeAttr}
+            />
+            {el.title && (
+              <text
+                x={centerX}
+                y={titleY}
+                textAnchor="middle"
+                fontSize={18}
+                fontWeight={600}
+                fill={accent}
+                className="dd-label-fade dd-frame-title"
+                style={strokeOrderStyle}
+              >
+                {el.title}
+              </text>
+            )}
+            {el.caption && (
+              <text
+                x={centerX}
+                y={captionY}
+                textAnchor="middle"
+                fontSize={13}
+                fontStyle="italic"
+                fill="var(--sb-panel-ink-muted, rgba(31, 36, 48, 0.65))"
+                className="dd-label-fade dd-frame-caption"
+                style={strokeOrderStyle}
+              >
+                {el.caption}
+              </text>
+            )}
           </g>
         );
       }
@@ -525,7 +586,7 @@ function LatexOverlay({
           left: leftPct,
           top: topPct,
           fontSize: el.fontSize ?? 16,
-          color: el.color ?? "#000",
+          color: el.color ?? "var(--sb-ink, #222)",
           pointerEvents: "none",
           whiteSpace: "nowrap",
           ["--sb-stroke-order" as string]: order,
@@ -630,7 +691,10 @@ export function DesignDiagramContent({
             display: "block",
             fontFamily: "Inter, system-ui, sans-serif",
             borderRadius: 8,
-            background: spec.backgroundColor ?? "#ffffff",
+            // Default to transparent so the host panel's background (dark in
+            // split-board, light in legacy card-list) shows through. LLM-set
+            // spec backgrounds still win when explicitly provided.
+            background: spec.backgroundColor ?? "transparent",
           }}
         >
           {elements.map((el, i) => renderSvgElement(el, i, paramValues))}

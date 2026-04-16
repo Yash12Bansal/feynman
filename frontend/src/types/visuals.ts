@@ -397,6 +397,32 @@ export interface DesignDiagramSvgArrow {
   strokeDasharray?: string;
 }
 
+/**
+ * Labeled panel — a rounded rectangle with an optional title at the top
+ * and caption at the bottom, rendered BEFORE its spec-siblings so other
+ * primitives can be drawn inside it. Enables the prototype's warm
+ * comparison-frame aesthetic (e.g. "Earth's Surface" vs "Space/Moon") on
+ * any design_agent diagram at runtime.
+ */
+export interface DesignDiagramSvgFrame {
+  type: "svg_frame";
+  id?: string;
+  x?: DiagramCoord;
+  y?: DiagramCoord;
+  width?: DiagramCoord;
+  height?: DiagramCoord;
+  /** Rendered top-center, Crimson Pro via CSS in split-board mode. */
+  title?: string;
+  /** Rendered bottom-center, muted. */
+  caption?: string;
+  /** Panel fill — hex or palette token name (e.g. "sb-panel-earth"). */
+  background?: string;
+  /** Border + title color — hex or palette token. Defaults to muted ink. */
+  accent?: string;
+  /** Corner radius. Defaults to 14. */
+  rx?: DiagramCoord;
+}
+
 export interface DesignDiagramGraph {
   type: "graph";
   id?: string;
@@ -425,6 +451,7 @@ export type DesignDiagramElement =
   | DesignDiagramSvgGroup
   | DesignDiagramSvgLatex
   | DesignDiagramSvgArrow
+  | DesignDiagramSvgFrame
   | DesignDiagramGraph;
 
 /** Full diagram specification from the design agent. */

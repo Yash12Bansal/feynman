@@ -114,7 +114,9 @@ class FeynmanAgent(Agent):
         # Load curriculum from Neo4j — no fallbacks
         if self._topic:
             # Load curriculum from Neo4j. Raises CurriculumNotFoundError if not found.
-            curriculum = await load_curriculum(self._topic, self._subject.value if self._subject else None)
+            curriculum = await load_curriculum(
+                self._topic, self._subject.value if self._subject else None
+            )
             self._teaching_ctx.curriculum = curriculum
 
             plan = lesson_plan_from_curriculum(
@@ -135,7 +137,9 @@ class FeynmanAgent(Agent):
             # Label the initial board with the first concept title.
             first_concept = plan.concept_at(0)
             if first_concept:
-                self._teaching_ctx.board_manager.active_board.label = first_concept.title
+                self._teaching_ctx.board_manager.active_board.label = (
+                    first_concept.title
+                )
 
             logger.info(
                 "agent.lesson_plan_ready",
@@ -250,7 +254,9 @@ async def entrypoint(ctx: JobContext) -> None:
     # Initialize board verifier for async visual quality checks.
     async def _publish_capture(data: str, topic: str) -> None:
         await ctx.room.local_participant.publish_data(
-            data.encode(), reliable=True, topic=topic,
+            data.encode(),
+            reliable=True,
+            topic=topic,
         )
 
     teaching_ctx.board_verifier = BoardVerifier(
@@ -281,7 +287,8 @@ async def entrypoint(ctx: JobContext) -> None:
                     and teaching_ctx.board_verifier
                 ):
                     teaching_ctx.board_verifier.resolve_capture(
-                        payload["request_id"], payload["image_data"],
+                        payload["request_id"],
+                        payload["image_data"],
                     )
             except (json.JSONDecodeError, KeyError):
                 logger.warning("board_capture.invalid_response")
@@ -302,7 +309,10 @@ async def entrypoint(ctx: JobContext) -> None:
         vad=create_vad(),
         userdata=teaching_ctx,
         use_tts_aligned_transcript=True,
-        max_tool_steps=10,
+        # Bumped from 10 → 30 so a dense teaching beat (write_section + several
+        # write_equation + draw_design_diagram + write_answer) can complete in
+        # one turn. 30 still catches runaway loops.
+        max_tool_steps=30,
     )
 
     await session.start(agent=agent, room=ctx.room)
