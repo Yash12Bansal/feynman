@@ -1,5 +1,9 @@
 import { useCallback, useState } from "react";
-import { createSession, type CreateSessionResponse } from "../lib/api";
+import {
+  createSession,
+  type CreateSessionRequest,
+  type CreateSessionResponse,
+} from "../lib/api";
 
 type SessionStatus = "idle" | "connecting" | "connected" | "error";
 
@@ -8,11 +12,11 @@ export function useSession() {
   const [status, setStatus] = useState<SessionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const startSession = useCallback(async () => {
+  const startSession = useCallback(async (body?: CreateSessionRequest) => {
     setStatus("connecting");
     setError(null);
     try {
-      const response = await createSession();
+      const response = await createSession(body);
       setSession(response);
       setStatus("connected");
     } catch (err) {

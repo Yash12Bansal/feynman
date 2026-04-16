@@ -1,0 +1,322 @@
+{
+  "prompt": "A simple illustration showing two scenarios: 1) A book sitting on a table in a room (labeled \"Book at rest relative to room\") and 2) The same book and table but viewed from space showing Earth rotating (labeled \"Same book moving relative to space\"). Show the Earth as a blue sphere with the room and table on its surface, with arrows indicating Earth's rotation. Make it clear this is the same book in both reference frames.",
+  "spec": {
+    "title": "Reference Frames: Rest vs Motion",
+    "description": "The same book appears at rest in one reference frame but moving in another",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "scenario1_title",
+        "x": 200,
+        "y": 40,
+        "text": "Book at rest relative to room",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "room_wall",
+        "x": 50,
+        "y": 80,
+        "width": 300,
+        "height": 200,
+        "fill": "#f5f5f5",
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "table_room",
+        "x": 120,
+        "y": 220,
+        "width": 160,
+        "height": 20,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "table_leg1",
+        "x": 130,
+        "y": 240,
+        "width": 8,
+        "height": 30,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "table_leg2",
+        "x": 262,
+        "y": 240,
+        "width": 8,
+        "height": 30,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "book_room",
+        "x": 180,
+        "y": 200,
+        "width": 40,
+        "height": 20,
+        "fill": "#DC143C",
+        "stroke": "#B22222",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "book_label_room",
+        "x": 200,
+        "y": 195,
+        "text": "Book",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "scenario2_title",
+        "x": 650,
+        "y": 40,
+        "text": "Same book moving relative to space",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth",
+        "cx": 650,
+        "cy": 200,
+        "r": 120,
+        "fill": "#4682B4",
+        "stroke": "#2F4F4F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth_continent1",
+        "cx": 620,
+        "cy": 170,
+        "r": 25,
+        "fill": "#228B22",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth_continent2",
+        "cx": 680,
+        "cy": 230,
+        "r": 18,
+        "fill": "#228B22",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "room_on_earth",
+        "x": 630,
+        "y": 90,
+        "width": 40,
+        "height": 30,
+        "fill": "#f5f5f5",
+        "stroke": "#666",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "table_on_earth",
+        "x": 640,
+        "y": 115,
+        "width": 20,
+        "height": 3,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "book_on_earth",
+        "x": 647,
+        "y": 112,
+        "width": 6,
+        "height": 3,
+        "fill": "#DC143C",
+        "stroke": "#B22222",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_arrow",
+        "id": "rotation_arrow1",
+        "x1": 750,
+        "y1": 150,
+        "x2": 780,
+        "y2": 180,
+        "stroke": "#FF6347",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "rotation_arrow2",
+        "x1": 780,
+        "y1": 220,
+        "x2": 750,
+        "y2": 250,
+        "stroke": "#FF6347",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "rotation_arrow3",
+        "x1": 720,
+        "y1": 280,
+        "x2": 580,
+        "y2": 280,
+        "stroke": "#FF6347",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "rotation_arrow4",
+        "x1": 550,
+        "y1": 250,
+        "x2": 520,
+        "y2": 220,
+        "stroke": "#FF6347",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "rotation_arrow5",
+        "x1": 520,
+        "y1": 180,
+        "x2": 550,
+        "y2": 150,
+        "stroke": "#FF6347",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "rotation_arrow6",
+        "x1": 580,
+        "y1": 120,
+        "x2": 720,
+        "y2": 120,
+        "stroke": "#FF6347",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "rotation_label",
+        "x": 800,
+        "y": 200,
+        "text": "Earth's rotation",
+        "fontSize": 14,
+        "fill": "#FF6347",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "space_observer",
+        "x": 450,
+        "y": 350,
+        "text": "Observer in space",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer_space",
+        "cx": 450,
+        "cy": 380,
+        "r": 8,
+        "fill": "#FFD700",
+        "stroke": "#DAA520",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "room_observer",
+        "x": 200,
+        "y": 320,
+        "text": "Observer in room",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer_room",
+        "cx": 200,
+        "cy": 350,
+        "r": 8,
+        "fill": "#FFD700",
+        "stroke": "#DAA520",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "connection_line",
+        "x1": 350,
+        "y1": 200,
+        "x2": 530,
+        "y2": 200,
+        "stroke": "#999",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "same_book",
+        "x": 440,
+        "y": 190,
+        "text": "Same book",
+        "fontSize": 12,
+        "fill": "#999",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_earth",
+        "expression": "v \\approx 1000 \\text{ mph}",
+        "x": 650,
+        "y": 380,
+        "fontSize": 14,
+        "color": "#FF6347"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_room",
+        "expression": "v = 0",
+        "x": 200,
+        "y": 300,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_insight",
+        "x": 450,
+        "y": 580,
+        "text": "Key Insight: Motion is relative to the reference frame",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

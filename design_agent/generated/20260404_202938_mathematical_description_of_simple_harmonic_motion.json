@@ -1,0 +1,408 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Mathematical Description of SHM. Context: Starting from F = -kx and Newton's second law, we derive the complete mathematical description. The acceleration a = -\u03c9\u00b2x where \u03c9 = \u221a(k/m). Using calculus: dv/dt = -\u03c9\u00b2x leads to v dv/dx = -\u03c9\u00b2x. Integrating with initial conditions (x\u2080, v\u2080) at t=0 gives v\u00b2 = v\u2080\u00b2 + \u03c9\u00b2x\u2080\u00b2 - \u03c9\u00b2x\u00b2. Defining A\u00b2 = (v\u2080/\u03c9)\u00b2 + x\u2080\u00b2, we get v = \u03c9\u221a(A\u00b2 - x\u00b2). Further integration yields x = A sin(\u03c9t + \u03b4) where \u03b4 = sin\u207b\u00b9(x\u2080/A). The velocity is v = A\u03c9 cos(\u03c9t + \u03b4). These equations completely describe the position and velocity at any time t, showing the sinusoidal nature of SHM with amplitude A and angular frequency \u03c9. Students already understand: Definition and Basic Concepts.",
+  "spec": {
+    "title": "Mathematical Description of Simple Harmonic Motion",
+    "description": "Complete derivation from Hooke's Law to the sinusoidal equations of motion",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "title",
+        "x": 450,
+        "y": 30,
+        "text": "Mathematical Description of Simple Harmonic Motion",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "derivation_box",
+        "x": 50,
+        "y": 60,
+        "width": 400,
+        "height": 520,
+        "fill": "#f8f9fa",
+        "stroke": "#ddd",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "derivation_title",
+        "x": 250,
+        "y": 85,
+        "text": "Mathematical Derivation",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "step1_label",
+        "x": 70,
+        "y": 115,
+        "text": "Step 1: Starting Point",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "hookes_law",
+        "expression": "F = -kx \\text{ (Hooke's Law)}",
+        "x": 70,
+        "y": 140,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "newtons_law",
+        "expression": "F = ma \\text{ (Newton's Second Law)}",
+        "x": 70,
+        "y": 165,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_text",
+        "id": "step2_label",
+        "x": 70,
+        "y": 200,
+        "text": "Step 2: Combine Laws",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_eq",
+        "expression": "ma = -kx \\Rightarrow a = -\\frac{k}{m}x",
+        "x": 70,
+        "y": 225,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "omega_definition",
+        "expression": "\\text{Let } \\omega = \\sqrt{\\frac{k}{m}} \\text{, so } a = -\\omega^2 x",
+        "x": 70,
+        "y": 250,
+        "fontSize": 14,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_text",
+        "id": "step3_label",
+        "x": 70,
+        "y": 285,
+        "text": "Step 3: Use Chain Rule",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "chain_rule",
+        "expression": "\\frac{dv}{dt} = -\\omega^2 x \\text{ and } \\frac{dv}{dt} = \\frac{dv}{dx} \\cdot \\frac{dx}{dt} = v\\frac{dv}{dx}",
+        "x": 70,
+        "y": 310,
+        "fontSize": 13,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "differential_eq",
+        "expression": "v\\frac{dv}{dx} = -\\omega^2 x",
+        "x": 70,
+        "y": 335,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_text",
+        "id": "step4_label",
+        "x": 70,
+        "y": 370,
+        "text": "Step 4: First Integration",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "first_integral",
+        "expression": "\\int v\\,dv = \\int -\\omega^2 x\\,dx",
+        "x": 70,
+        "y": 395,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "energy_eq",
+        "expression": "\\frac{v^2}{2} = -\\frac{\\omega^2 x^2}{2} + C",
+        "x": 70,
+        "y": 420,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "initial_conditions",
+        "expression": "\\text{At } t=0: x = x_0, v = v_0 \\Rightarrow C = \\frac{v_0^2 + \\omega^2 x_0^2}{2}",
+        "x": 70,
+        "y": 445,
+        "fontSize": 13,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_squared",
+        "expression": "v^2 = v_0^2 + \\omega^2 x_0^2 - \\omega^2 x^2",
+        "x": 70,
+        "y": 470,
+        "fontSize": 14,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_text",
+        "id": "step5_label",
+        "x": 70,
+        "y": 505,
+        "text": "Step 5: Define Amplitude",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_def",
+        "expression": "A^2 = \\left(\\frac{v_0}{\\omega}\\right)^2 + x_0^2",
+        "x": 70,
+        "y": 530,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_amplitude",
+        "expression": "v = \\pm\\omega\\sqrt{A^2 - x^2}",
+        "x": 70,
+        "y": 555,
+        "fontSize": 14,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_rect",
+        "id": "solution_box",
+        "x": 480,
+        "y": 60,
+        "width": 370,
+        "height": 300,
+        "fill": "#f0f8ff",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "solution_title",
+        "x": 665,
+        "y": 85,
+        "text": "Final Solution",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "step6_label",
+        "x": 500,
+        "y": 115,
+        "text": "Step 6: Second Integration",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "second_integral",
+        "expression": "\\frac{dx}{dt} = \\omega\\sqrt{A^2 - x^2}",
+        "x": 500,
+        "y": 140,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "separation",
+        "expression": "\\frac{dx}{\\sqrt{A^2 - x^2}} = \\omega\\,dt",
+        "x": 500,
+        "y": 165,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "integral_result",
+        "expression": "\\sin^{-1}\\left(\\frac{x}{A}\\right) = \\omega t + \\delta",
+        "x": 500,
+        "y": 190,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_constant",
+        "expression": "\\text{where } \\delta = \\sin^{-1}\\left(\\frac{x_0}{A}\\right)",
+        "x": 500,
+        "y": 215,
+        "fontSize": 13,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_rect",
+        "id": "final_equations_box",
+        "x": 490,
+        "y": 240,
+        "width": 350,
+        "height": 110,
+        "fill": "#fffacd",
+        "stroke": "#DAA520",
+        "strokeWidth": 2,
+        "rx": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "final_title",
+        "x": 665,
+        "y": 265,
+        "text": "Complete SHM Equations",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_eq",
+        "expression": "x(t) = A\\sin(\\omega t + \\delta)",
+        "x": 500,
+        "y": 290,
+        "fontSize": 16,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_eq",
+        "expression": "v(t) = A\\omega\\cos(\\omega t + \\delta)",
+        "x": 500,
+        "y": 320,
+        "fontSize": 16,
+        "color": "#FF9800"
+      },
+      {
+        "type": "graph",
+        "id": "shm_graph",
+        "x": 480,
+        "y": 380,
+        "width": 370,
+        "height": 200,
+        "xDomain": [
+          0,
+          12.56
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "Time (t)",
+        "yLabel": "Normalized",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "sin(x)",
+            "color": "#4CAF50",
+            "strokeWidth": 3
+          },
+          {
+            "expression": "cos(x)",
+            "color": "#FF9800",
+            "strokeWidth": 3
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_text",
+        "id": "graph_note1",
+        "x": 665,
+        "y": 600,
+        "text": "Green: Position x(t) = A sin(\u03c9t + \u03b4)",
+        "fontSize": 12,
+        "fill": "#4CAF50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "graph_note2",
+        "x": 665,
+        "y": 620,
+        "text": "Orange: Velocity v(t) = A\u03c9 cos(\u03c9t + \u03b4)",
+        "fontSize": 12,
+        "fill": "#FF9800",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "key_points_box",
+        "x": 50,
+        "y": 600,
+        "width": 400,
+        "height": 40,
+        "fill": "#e8f5e8",
+        "stroke": "#4CAF50",
+        "strokeWidth": 1,
+        "rx": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "key_points_title",
+        "x": 250,
+        "y": 615,
+        "text": "Key Result",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_point",
+        "x": 250,
+        "y": 635,
+        "text": "SHM produces sinusoidal motion with amplitude A and angular frequency \u03c9 = \u221a(k/m)",
+        "fontSize": 11,
+        "fill": "#333",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curriculum Graph — 3D Viewer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; overflow: hidden; }
+
+  /* Connection panel */
+  #connect-panel {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10, 10, 15, 0.95); border-bottom: 1px solid #222;
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  #connect-panel label { font-size: 12px; color: #888; }
+  #connect-panel input, #connect-panel select {
+    background: #1a1a24; border: 1px solid #333; color: #e0e0e0;
+    padding: 6px 10px; border-radius: 4px; font-size: 13px;
+  }
+  #connect-panel input:focus { border-color: #5b8def; outline: none; }
+  .btn {
+    padding: 6px 16px; border-radius: 4px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 500; transition: all 0.15s;
+  }
+  .btn-primary { background: #5b8def; color: #fff; }
+  .btn-primary:hover { background: #4a7de0; }
+  .btn-primary:disabled { background: #333; color: #666; cursor: default; }
+  .btn-secondary { background: #2a2a34; color: #ccc; border: 1px solid #444; }
+  .btn-secondary:hover { background: #333; }
+  .btn-danger { background: #d32f2f; color: #fff; }
+  .btn-danger:hover { background: #b71c1c; }
+  .status { font-size: 12px; margin-left: 8px; }
+  .status.ok { color: #4caf50; }
+  .status.err { color: #f44336; }
+  .status.loading { color: #ff9800; }
+
+  /* Graph container */
+  #graph { width: 100vw; height: 100vh; }
+
+  /* Info panel (right side) */
+  #info-panel {
+    position: fixed; top: 60px; right: 16px; width: 340px; max-height: calc(100vh - 80px);
+    background: rgba(20, 20, 30, 0.95); border: 1px solid #333; border-radius: 8px;
+    padding: 16px; overflow-y: auto; z-index: 90; display: none;
+    backdrop-filter: blur(8px);
+  }
+  #info-panel h3 { font-size: 15px; margin-bottom: 8px; color: #5b8def; }
+  #info-panel .label { font-size: 11px; color: #888; text-transform: uppercase; margin-top: 10px; }
+  #info-panel .value { font-size: 13px; margin-top: 2px; line-height: 1.4; }
+  #info-panel .close-btn {
+    position: absolute; top: 8px; right: 12px; cursor: pointer;
+    color: #666; font-size: 18px;
+  }
+  #info-panel .close-btn:hover { color: #fff; }
+
+  /* Stats bar */
+  #stats-bar {
+    position: fixed; bottom: 16px; left: 16px; z-index: 90;
+    background: rgba(20, 20, 30, 0.9); border: 1px solid #333; border-radius: 6px;
+    padding: 10px 16px; font-size: 12px; color: #888;
+    backdrop-filter: blur(8px);
+  }
+  #stats-bar span { margin-right: 16px; }
+  #stats-bar .count { color: #5b8def; font-weight: 600; }
+
+  /* Legend */
+  #legend {
+    position: fixed; bottom: 16px; right: 16px; z-index: 90;
+    background: rgba(20, 20, 30, 0.9); border: 1px solid #333; border-radius: 6px;
+    padding: 10px 16px; font-size: 12px;
+    backdrop-filter: blur(8px);
+  }
+  #legend .item { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+  #legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Schema panel */
+  #schema-panel {
+    position: fixed; top: 60px; left: 16px; width: 360px; max-height: calc(100vh - 80px);
+    background: rgba(20, 20, 30, 0.95); border: 1px solid #333; border-radius: 8px;
+    padding: 16px; overflow-y: auto; z-index: 90; display: none;
+    backdrop-filter: blur(8px);
+  }
+  #schema-panel h3 { font-size: 15px; margin-bottom: 10px; color: #5b8def; }
+  #schema-panel .schema-section { margin-bottom: 14px; }
+  #schema-panel .schema-section h4 { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+  #schema-panel .schema-item {
+    font-size: 12px; padding: 3px 8px; margin: 2px 0;
+    background: #1a1a24; border-radius: 3px; display: inline-block; margin-right: 4px;
+  }
+  #schema-panel .close-btn {
+    position: absolute; top: 8px; right: 12px; cursor: pointer;
+    color: #666; font-size: 18px;
+  }
+  #schema-panel .close-btn:hover { color: #fff; }
+
+  /* Filter bar */
+  #filter-bar {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 90;
+    background: rgba(20, 20, 30, 0.9); border: 1px solid #333; border-radius: 6px;
+    padding: 8px 14px; display: none; gap: 6px; flex-wrap: wrap; align-items: center;
+    backdrop-filter: blur(8px);
+  }
+  .filter-chip {
+    font-size: 11px; padding: 3px 10px; border-radius: 12px; cursor: pointer;
+    border: 1px solid #444; background: transparent; color: #aaa; transition: all 0.15s;
+  }
+  .filter-chip.active { border-color: #5b8def; color: #5b8def; background: rgba(91, 141, 239, 0.1); }
+  .filter-chip:hover { border-color: #5b8def; }
+</style>
+</head>
+<body>
+
+<!-- Connection bar -->
+<div id="connect-panel">
+  <label>Bolt</label>
+  <input id="neo4j-uri" value="neo4j://localhost:7687" style="width: 200px">
+  <label>User</label>
+  <input id="neo4j-user" value="neo4j" style="width: 80px">
+  <label>Pass</label>
+  <input id="neo4j-pass" type="password" value="password" style="width: 100px">
+  <button id="btn-connect" class="btn btn-primary" onclick="connectAndLoad()">Connect & Load</button>
+  <button id="btn-schema" class="btn btn-secondary" onclick="toggleSchema()" style="display:none">Schema</button>
+  <button id="btn-reload" class="btn btn-secondary" onclick="connectAndLoad()" style="display:none">Reload</button>
+  <span id="status" class="status"></span>
+</div>
+
+<!-- Graph -->
+<div id="graph"></div>
+
+<!-- Filter bar -->
+<div id="filter-bar"></div>
+
+<!-- Node info -->
+<div id="info-panel">
+  <span class="close-btn" onclick="document.getElementById('info-panel').style.display='none'">&times;</span>
+  <div id="info-content"></div>
+</div>
+
+<!-- Schema panel -->
+<div id="schema-panel">
+  <span class="close-btn" onclick="document.getElementById('schema-panel').style.display='none'">&times;</span>
+  <div id="schema-content"></div>
+</div>
+
+<!-- Stats -->
+<div id="stats-bar">
+  <span>Nodes: <span class="count" id="node-count">0</span></span>
+  <span>Edges: <span class="count" id="edge-count">0</span></span>
+  <span>Labels: <span class="count" id="label-count">0</span></span>
+</div>
+
+<!-- Legend -->
+<div id="legend"></div>
+
+<!-- Libraries: Neo4j driver + 3d-force-graph (Three.js) -->
+<script src="https://cdn.jsdelivr.net/npm/neo4j-driver@5/lib/browser/neo4j-web.min.js"></script>
+<script src="https://unpkg.com/3d-force-graph@1"></script>
+
+<script>
+// ─── Color palette per label ───
+const LABEL_COLORS = {
+  Subject:          '#e91e63',
+  Unit:             '#ff5722',
+  Chapter:          '#ff9800',
+  Concept:          '#4caf50',
+  Detail:           '#2196f3',
+  Visual:           '#9c27b0',
+  OntologyConcept:  '#00bcd4',
+};
+const DEFAULT_COLOR = '#666';
+const REL_COLORS = {
+  CONTAINS:           '#555',
+  PREREQUISITE:       '#f44336',
+  LEADS_TO:           '#4caf50',
+  EXAMPLE_OF:         '#2196f3',
+  DERIVED_FROM:       '#ff9800',
+  MISCONCEPTION_OF:   '#e91e63',
+  ANALOGY_FOR:        '#9c27b0',
+  APPLICATION_OF:     '#00bcd4',
+  HAS_VISUAL:         '#9c27b0',
+  CROSS_REFERENCES:   '#ff5722',
+  SHARED_FOUNDATION:  '#795548',
+  SUMMARIZES:         '#607d8b',
+};
+
+// ─── State ───
+let driver = null;
+let graphInstance = null;
+let graphData = { nodes: [], links: [] };
+let activeLabels = new Set();
+let allLabels = [];
+
+// ─── Connect & Load ───
+async function connectAndLoad() {
+  const uri = document.getElementById('neo4j-uri').value;
+  const user = document.getElementById('neo4j-user').value;
+  const pass = document.getElementById('neo4j-pass').value;
+  const status = document.getElementById('status');
+
+  status.className = 'status loading';
+  status.textContent = 'Connecting...';
+  document.getElementById('btn-connect').disabled = true;
+
+  try {
+    if (driver) await driver.close();
+    driver = neo4j.driver(uri, neo4j.auth.basic(user, pass));
+    await driver.verifyConnectivity();
+    status.className = 'status ok';
+    status.textContent = 'Connected. Loading graph...';
+
+    await loadGraph();
+    await loadSchema();
+
+    document.getElementById('btn-schema').style.display = '';
+    document.getElementById('btn-reload').style.display = '';
+    status.className = 'status ok';
+    status.textContent = `Loaded ${graphData.nodes.length} nodes, ${graphData.links.length} edges`;
+  } catch (e) {
+    status.className = 'status err';
+    status.textContent = 'Error: ' + e.message;
+    console.error(e);
+  } finally {
+    document.getElementById('btn-connect').disabled = false;
+  }
+}
+
+// ─── Load graph data ───
+async function loadGraph() {
+  const session = driver.session({ database: 'neo4j' });
+  try {
+    // Fetch all nodes
+    const nodeResult = await session.run(`
+      MATCH (n)
+      WHERE n.uid IS NOT NULL
+      RETURN n, labels(n) AS labels, elementId(n) AS eid
+    `);
+
+    const nodeMap = new Map();
+    const nodes = [];
+    for (const record of nodeResult.records) {
+      const node = record.get('n');
+      const labels = record.get('labels');
+      const eid = record.get('eid');
+      const props = {};
+      for (const [k, v] of Object.entries(node.properties)) {
+        props[k] = (v && typeof v === 'object' && 'low' in v) ? v.toNumber() : v;
+      }
+      const label = labels.filter(l => l !== '_Node')[0] || labels[0] || 'Unknown';
+      const n = {
+        id: props.uid || eid,
+        eid,
+        label,
+        labels,
+        ...props,
+        _color: LABEL_COLORS[label] || DEFAULT_COLOR,
+        _size: label === 'Subject' ? 12 : label === 'Unit' ? 9 : label === 'Chapter' ? 7 : label === 'Concept' ? 5 : 3,
+      };
+      // Scale by salience if available
+      if (props.salience_total != null && props.salience_total > 0) {
+        n._size = Math.max(n._size, 3 + props.salience_total * 0.8);
+      }
+      nodes.push(n);
+      nodeMap.set(eid, n.id);
+    }
+
+    // Fetch all relationships
+    const relResult = await session.run(`
+      MATCH (a)-[r]->(b)
+      WHERE a.uid IS NOT NULL AND b.uid IS NOT NULL
+      RETURN elementId(a) AS src, elementId(b) AS tgt, type(r) AS rel, properties(r) AS props
+    `);
+
+    const links = [];
+    for (const record of relResult.records) {
+      const src = nodeMap.get(record.get('src'));
+      const tgt = nodeMap.get(record.get('tgt'));
+      const rel = record.get('rel');
+      if (src && tgt) {
+        links.push({
+          source: src,
+          target: tgt,
+          rel,
+          _color: REL_COLORS[rel] || '#444',
+        });
+      }
+    }
+
+    graphData = { nodes, links };
+
+    // Labels
+    allLabels = [...new Set(nodes.map(n => n.label))].sort();
+    activeLabels = new Set(allLabels);
+
+    updateStats();
+    buildFilterBar();
+    buildLegend();
+    renderGraph();
+  } finally {
+    await session.close();
+  }
+}
+
+// ─── Load schema ───
+async function loadSchema() {
+  const session = driver.session({ database: 'neo4j' });
+  try {
+    const [labels, rels, constraints, indexes] = await Promise.all([
+      session.run('CALL db.labels() YIELD label RETURN label ORDER BY label'),
+      session.run('CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType ORDER BY relationshipType'),
+      session.run('SHOW CONSTRAINTS YIELD name, type, entityType, labelsOrTypes, properties RETURN *'),
+      session.run('SHOW INDEXES YIELD name, type, entityType, labelsOrTypes, properties RETURN *'),
+    ]);
+
+    let html = '<h3>Graph Schema</h3>';
+
+    // Labels
+    html += '<div class="schema-section"><h4>Node Labels</h4>';
+    for (const r of labels.records) {
+      const l = r.get('label');
+      const c = LABEL_COLORS[l] || '#666';
+      html += `<span class="schema-item" style="border-left: 3px solid ${c}">${l}</span>`;
+    }
+    html += '</div>';
+
+    // Relationships
+    html += '<div class="schema-section"><h4>Relationship Types</h4>';
+    for (const r of rels.records) {
+      const t = r.get('relationshipType');
+      html += `<span class="schema-item">${t}</span>`;
+    }
+    html += '</div>';
+
+    // Constraints
+    html += '<div class="schema-section"><h4>Constraints</h4>';
+    for (const r of constraints.records) {
+      const name = r.get('name');
+      const type = r.get('type');
+      const labels = r.get('labelsOrTypes');
+      const props = r.get('properties');
+      html += `<div class="schema-item" style="display:block; width:auto">
+        <strong>${name}</strong><br>
+        <span style="color:#888">${type} on :${labels?.join(',')} (${props?.join(', ')})</span>
+      </div>`;
+    }
+    html += '</div>';
+
+    // Indexes
+    html += '<div class="schema-section"><h4>Indexes</h4>';
+    for (const r of indexes.records) {
+      const name = r.get('name');
+      const type = r.get('type');
+      const labels = r.get('labelsOrTypes');
+      const props = r.get('properties');
+      html += `<div class="schema-item" style="display:block; width:auto">
+        <strong>${name}</strong> (${type})<br>
+        <span style="color:#888">:${labels?.join(',')} [${props?.join(', ')}]</span>
+      </div>`;
+    }
+    html += '</div>';
+
+    // Node property keys sample
+    const propResult = await session.run(`
+      MATCH (n:Concept) WITH n LIMIT 1
+      RETURN keys(n) AS k
+    `);
+    if (propResult.records.length > 0) {
+      const keys = propResult.records[0].get('k');
+      html += '<div class="schema-section"><h4>Concept Properties</h4>';
+      for (const k of keys.sort()) {
+        html += `<span class="schema-item">${k}</span>`;
+      }
+      html += '</div>';
+    }
+
+    document.getElementById('schema-content').innerHTML = html;
+  } finally {
+    await session.close();
+  }
+}
+
+// ─── Render 3D graph ───
+function renderGraph() {
+  const container = document.getElementById('graph');
+
+  // Filter
+  const visibleNodes = graphData.nodes.filter(n => activeLabels.has(n.label));
+  const visibleIds = new Set(visibleNodes.map(n => n.id));
+  const visibleLinks = graphData.links.filter(l => {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    return visibleIds.has(sid) && visibleIds.has(tid);
+  });
+
+  if (graphInstance) {
+    graphInstance.graphData({ nodes: visibleNodes, links: visibleLinks });
+    return;
+  }
+
+  graphInstance = ForceGraph3D()(container)
+    .graphData({ nodes: visibleNodes, links: visibleLinks })
+    .backgroundColor('#0a0a0f')
+    .nodeColor(n => n._color)
+    .nodeVal(n => n._size)
+    .nodeLabel(n => `[${n.label}] ${n.topic_name || n.title || n.name || n.uid}`)
+    .nodeOpacity(0.9)
+    .linkColor(l => l._color)
+    .linkOpacity(0.4)
+    .linkWidth(0.5)
+    .linkDirectionalArrowLength(3)
+    .linkDirectionalArrowRelPos(1)
+    .linkLabel(l => l.rel)
+    .onNodeClick(showNodeInfo)
+    .onNodeHover(node => { container.style.cursor = node ? 'pointer' : 'default'; })
+    .width(window.innerWidth)
+    .height(window.innerHeight);
+
+  // Warm up layout
+  graphInstance.d3Force('charge').strength(-120);
+  graphInstance.d3Force('link').distance(l => {
+    return l.rel === 'CONTAINS' ? 40 : 80;
+  });
+
+  window.addEventListener('resize', () => {
+    graphInstance.width(window.innerWidth).height(window.innerHeight);
+  });
+}
+
+// ─── Node click → info panel ───
+function showNodeInfo(node) {
+  if (!node) return;
+  const panel = document.getElementById('info-panel');
+  const content = document.getElementById('info-content');
+
+  const skipKeys = new Set(['_color', '_size', 'eid', 'embedding', '__indexColor', '__threeObj',
+    'index', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx', 'fy', 'fz']);
+
+  let html = `<h3 style="color:${node._color}">${node.topic_name || node.title || node.name || node.uid}</h3>`;
+  html += `<div class="label">Label</div><div class="value">${node.labels?.join(', ')}</div>`;
+
+  for (const [k, v] of Object.entries(node)) {
+    if (skipKeys.has(k) || v == null || k === 'labels' || k === 'id') continue;
+    if (Array.isArray(v) && v.length > 50) continue; // skip embedding arrays
+    const display = typeof v === 'object' ? JSON.stringify(v) : String(v);
+    if (display.length > 500) continue;
+    html += `<div class="label">${k}</div><div class="value">${escapeHtml(display)}</div>`;
+  }
+
+  // Show relationships
+  const rels = graphData.links.filter(l => {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    return sid === node.id || tid === node.id;
+  });
+  if (rels.length > 0) {
+    html += `<div class="label" style="margin-top:14px">Relationships (${rels.length})</div>`;
+    for (const r of rels.slice(0, 30)) {
+      const sid = typeof r.source === 'object' ? r.source.id : r.source;
+      const tid = typeof r.target === 'object' ? r.target.id : r.target;
+      const other = sid === node.id ? tid : sid;
+      const dir = sid === node.id ? '&rarr;' : '&larr;';
+      const otherNode = graphData.nodes.find(n => n.id === other);
+      const otherName = otherNode ? (otherNode.topic_name || otherNode.title || otherNode.uid) : other;
+      html += `<div class="value" style="font-size:11px">${dir} <strong>${r.rel}</strong> ${escapeHtml(String(otherName).substring(0, 60))}</div>`;
+    }
+  }
+
+  content.innerHTML = html;
+  panel.style.display = 'block';
+
+  // Zoom to node
+  graphInstance.cameraPosition(
+    { x: node.x + 80, y: node.y + 50, z: node.z + 80 },
+    { x: node.x, y: node.y, z: node.z },
+    1000
+  );
+}
+
+// ─── Filter bar ───
+function buildFilterBar() {
+  const bar = document.getElementById('filter-bar');
+  bar.innerHTML = '';
+  bar.style.display = 'flex';
+
+  // "All" chip
+  const allChip = document.createElement('span');
+  allChip.className = 'filter-chip active';
+  allChip.textContent = 'All';
+  allChip.onclick = () => {
+    activeLabels = new Set(allLabels);
+    buildFilterBar();
+    renderGraph();
+  };
+  bar.appendChild(allChip);
+
+  for (const label of allLabels) {
+    const chip = document.createElement('span');
+    chip.className = 'filter-chip' + (activeLabels.has(label) ? ' active' : '');
+    chip.style.borderColor = activeLabels.has(label) ? (LABEL_COLORS[label] || '#5b8def') : '#444';
+    chip.style.color = activeLabels.has(label) ? (LABEL_COLORS[label] || '#5b8def') : '#aaa';
+    chip.textContent = `${label} (${graphData.nodes.filter(n => n.label === label).length})`;
+    chip.onclick = () => {
+      if (activeLabels.has(label)) activeLabels.delete(label);
+      else activeLabels.add(label);
+      buildFilterBar();
+      renderGraph();
+    };
+    bar.appendChild(chip);
+  }
+}
+
+// ─── Legend ───
+function buildLegend() {
+  const legend = document.getElementById('legend');
+  let html = '';
+  for (const label of allLabels) {
+    const c = LABEL_COLORS[label] || DEFAULT_COLOR;
+    html += `<div class="item"><span class="dot" style="background:${c}"></span>${label}</div>`;
+  }
+  legend.innerHTML = html;
+}
+
+// ─── Stats ───
+function updateStats() {
+  document.getElementById('node-count').textContent = graphData.nodes.length;
+  document.getElementById('edge-count').textContent = graphData.links.length;
+  document.getElementById('label-count').textContent = allLabels.length;
+}
+
+// ─── Toggle schema ───
+function toggleSchema() {
+  const panel = document.getElementById('schema-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+// ─── Util ───
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

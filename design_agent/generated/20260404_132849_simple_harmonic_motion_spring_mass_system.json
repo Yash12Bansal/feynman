@@ -1,0 +1,300 @@
+{
+  "prompt": "A horizontal spring-mass system showing simple harmonic motion. Draw a horizontal spring attached to a fixed wall on the left, connected to a rectangular mass block on the right. Show the mass at three different positions: left (compressed spring), center (equilibrium), and right (extended spring). Use arrows to show the motion path. Label the equilibrium position as x=0, and show displacement positions as -A and +A. Color the spring coils blue, the mass block gray, and use green arrows for motion direction. Include a coordinate axis showing positive x direction to the right.",
+  "spec": {
+    "title": "Simple Harmonic Motion: Spring-Mass System",
+    "description": "A horizontal spring-mass system showing the mass at three positions during oscillation",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "wall",
+        "x": 50,
+        "y": 250,
+        "width": 20,
+        "height": 100,
+        "fill": "#666",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_hatching_1",
+        "x1": 70,
+        "y1": 260,
+        "x2": 85,
+        "y2": 275,
+        "stroke": "#333",
+        "strokeWidth": 1.5
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_hatching_2",
+        "x1": 70,
+        "y1": 280,
+        "x2": 85,
+        "y2": 295,
+        "stroke": "#333",
+        "strokeWidth": 1.5
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_hatching_3",
+        "x1": 70,
+        "y1": 300,
+        "x2": 85,
+        "y2": 315,
+        "stroke": "#333",
+        "strokeWidth": 1.5
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_hatching_4",
+        "x1": 70,
+        "y1": 320,
+        "x2": 85,
+        "y2": 335,
+        "stroke": "#333",
+        "strokeWidth": 1.5
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_compressed",
+        "d": "M 70 180 L 90 180 L 100 170 L 120 190 L 140 170 L 160 190 L 180 170 L 200 190 L 220 170 L 240 190 L 260 170 L 280 190 L 290 180 L 310 180",
+        "stroke": "#4682b4",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_compressed",
+        "x": 310,
+        "y": 160,
+        "width": 50,
+        "height": 40,
+        "fill": "#999",
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_label_compressed",
+        "x": 335,
+        "y": 185,
+        "text": "m",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_equilibrium",
+        "d": "M 70 300 L 90 300 L 105 290 L 125 310 L 145 290 L 165 310 L 185 290 L 205 310 L 225 290 L 245 310 L 265 290 L 285 310 L 305 290 L 325 310 L 345 290 L 365 310 L 380 300 L 400 300",
+        "stroke": "#4682b4",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_equilibrium",
+        "x": 400,
+        "y": 280,
+        "width": 50,
+        "height": 40,
+        "fill": "#999",
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_label_equilibrium",
+        "x": 425,
+        "y": 305,
+        "text": "m",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_extended",
+        "d": "M 70 420 L 90 420 L 110 410 L 130 430 L 150 410 L 170 430 L 190 410 L 210 430 L 230 410 L 250 430 L 270 410 L 290 430 L 310 410 L 330 430 L 350 410 L 370 430 L 390 410 L 410 430 L 430 410 L 450 430 L 470 410 L 490 430 L 500 420 L 520 420",
+        "stroke": "#4682b4",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_extended",
+        "x": 520,
+        "y": 400,
+        "width": 50,
+        "height": 40,
+        "fill": "#999",
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_label_extended",
+        "x": 545,
+        "y": 425,
+        "text": "m",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "motion_arrow_1",
+        "x1": 380,
+        "y1": 250,
+        "x2": 480,
+        "y2": 250,
+        "stroke": "#4CAF50",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "motion_arrow_2",
+        "x1": 480,
+        "y1": 370,
+        "x2": 380,
+        "y2": 370,
+        "stroke": "#4CAF50",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_path",
+        "id": "motion_path",
+        "d": "M 335 250 Q 425 220 515 250 Q 560 300 515 370 Q 425 400 335 370 Q 290 300 335 250",
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "x_axis",
+        "x1": 200,
+        "y1": 540,
+        "x2": 700,
+        "y2": 540,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "x_axis_arrow",
+        "x1": 680,
+        "y1": 540,
+        "x2": 700,
+        "y2": 540,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line",
+        "x1": 425,
+        "y1": 520,
+        "x2": 425,
+        "y2": 560,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "negative_a_line",
+        "x1": 335,
+        "y1": 525,
+        "x2": 335,
+        "y2": 555,
+        "stroke": "#666",
+        "strokeWidth": 1.5
+      },
+      {
+        "type": "svg_line",
+        "id": "positive_a_line",
+        "x1": 545,
+        "y1": 525,
+        "x2": 545,
+        "y2": 555,
+        "stroke": "#666",
+        "strokeWidth": 1.5
+      },
+      {
+        "type": "svg_latex",
+        "id": "x_label",
+        "expression": "x",
+        "x": 710,
+        "y": 545,
+        "fontSize": 16,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_label",
+        "expression": "x = 0",
+        "x": 425,
+        "y": 580,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "negative_a_label",
+        "expression": "-A",
+        "x": 335,
+        "y": 580,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "positive_a_label",
+        "expression": "+A",
+        "x": 545,
+        "y": 580,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_text",
+        "id": "compressed_state_label",
+        "x": 335,
+        "y": 130,
+        "text": "Compressed",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "equilibrium_state_label",
+        "x": 425,
+        "y": 250,
+        "text": "Equilibrium",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "extended_state_label",
+        "x": 545,
+        "y": 470,
+        "text": "Extended",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

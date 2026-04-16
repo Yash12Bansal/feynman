@@ -12,6 +12,7 @@ import type {
   BoardMeta,
   BoardTransition,
   CameraState,
+  PendingSlide,
 } from "../engine/whiteboard/useBoardStore";
 
 export interface VisualChannelResult {
@@ -26,6 +27,8 @@ export interface VisualChannelResult {
   activeBoardMeta: BoardMeta | null;
   pendingTransition: BoardTransition | null;
   cameraState: CameraState;
+  /** Per-board pending-slide loader state. Set by `slide_pending`, cleared on slide arrival / board switch. */
+  pendingSlide: Record<string, PendingSlide | undefined>;
   clearTransition: () => void;
   getBoardInstructions: (boardId: string) => VisualInstruction[];
   getBoardMeta: (boardId: string) => BoardMeta | null;
@@ -121,6 +124,7 @@ export function useVisualChannel(): VisualChannelResult {
     activeBoardMeta: store.activeBoardMeta,
     pendingTransition: store.pendingTransition,
     cameraState: store.cameraState,
+    pendingSlide: store.pendingSlide,
     clearTransition: store.clearTransition,
     getBoardInstructions: store.getBoardInstructions,
     getBoardMeta: store.getBoardMeta,

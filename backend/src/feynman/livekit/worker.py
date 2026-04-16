@@ -13,8 +13,10 @@ import structlog
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
-from feynman.agent.anticipation import load_concept_graph
-from feynman.agent.lesson_plan import generate_lesson_plan, lesson_plan_from_graph
+from feynman.agent.board_verifier import BoardVerifier
+from feynman.agent.concept_planner import plan_concept
+from feynman.agent.curriculum_loader import CurriculumNotFoundError, load_curriculum
+from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
 from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.agent.state_machine import TeachingStateMachine
@@ -30,16 +32,23 @@ from feynman.agent.tools import (
     highlight_diagram_part,
     highlight_walk,
     modify_design_diagram,
+    new_page,
     resolve_doubt,
     scroll_board,
     set_lesson_topic,
     show_equation,
     show_graph,
-    show_text,
+    # show_text,
     start_doubt_branch,
     step_equation,
+    strikethrough,
     switch_board,
     teach_pause,
+    write_answer,
+    write_equation,
+    write_section,
+    write_step,
+    write_text,
 )
 from feynman.common.logging import setup_logging
 from feynman.common.types import Subject
@@ -51,7 +60,7 @@ logger = structlog.get_logger()
 
 # All tools the agent can use — visual + state management
 ALL_TOOLS = [
-    show_text,
+    # show_text,
     show_equation,
     draw_design_diagram,
     modify_design_diagram,
@@ -59,6 +68,14 @@ ALL_TOOLS = [
     draw_scene,
     step_equation,
     show_graph,
+    # Notebook write-tools (split-board Phase 5 native surface)
+    write_equation,
+    write_step,
+    write_text,
+    write_section,
+    write_answer,
+    strikethrough,
+    new_page,
     annotate,
     highlight_diagram_part,
     highlight_walk,
@@ -95,79 +112,114 @@ class FeynmanAgent(Agent):
     async def on_enter(self) -> None:
         logger.info("agent.entered_room", topic=self._topic)
 
-        # Generate lesson plan if a topic was provided
+        # Load curriculum from Neo4j — no fallbacks
         if self._topic:
-            try:
-                # Try to load pre-computed ConceptGraph for richer curriculum data.
-                graph = await load_concept_graph(self._topic)
+            # Load curriculum from Neo4j. Raises CurriculumNotFoundError if not found.
+            curriculum = await load_curriculum(
+                self._topic, self._subject.value if self._subject else None
+            )
+            self._teaching_ctx.curriculum = curriculum
 
-                if graph:
-                    # Derive lesson plan from graph (richer than runtime generation).
-                    plan = lesson_plan_from_graph(
-                        graph,
-                        grade_level=self._grade_level,
-                        subject=self._subject,
-                    )
-                    self._teaching_ctx.concept_graph = graph
-                    logger.info(
-                        "agent.using_concept_graph",
-                        topic=self._topic,
-                        graph_nodes=len(graph.nodes),
-                    )
-                    self._teaching_ctx.audit.record(
-                        "curriculum",
-                        "graph_loaded",
-                        f"topic='{self._topic}', nodes={len(graph.nodes)}",
-                        source="ConceptGraph",
-                    )
-                else:
-                    # Fallback: runtime generation (current behavior).
-                    plan = await generate_lesson_plan(
-                        topic=self._topic,
-                        subject=self._subject,
-                        grade_level=self._grade_level,
-                    )
-                    self._teaching_ctx.audit.record(
-                        "curriculum",
-                        "graph_missing_fallback_runtime",
-                        f"topic='{self._topic}' — no pre-computed graph found, "
-                        f"fell back to runtime LLM generation",
-                        source="LessonPlan",
-                    )
+            plan = lesson_plan_from_curriculum(
+                curriculum,
+                grade_level=self._grade_level,
+                subject=self._subject,
+            )
 
-                self._teaching_ctx.lesson_plan = plan
-                # Label the initial board with the first concept title.
-                first_concept = plan.concept_at(0)
-                if first_concept:
-                    self._teaching_ctx.board_manager.active_board.label = (
-                        first_concept.title
-                    )
+            self._teaching_ctx.lesson_plan = plan
+            self._teaching_ctx.audit.record(
+                "curriculum",
+                "loaded_from_neo4j",
+                f"topic='{self._topic}', chapter='{curriculum.chapter_title}', "
+                f"concepts={len(curriculum.concepts)}, visuals={len(curriculum.pre_generated_visuals)}",
+                source="Neo4j",
+            )
+
+            # Label the initial board with the first concept title.
+            first_concept = plan.concept_at(0)
+            if first_concept:
+                self._teaching_ctx.board_manager.active_board.label = first_concept.title
+
+            logger.info(
+                "agent.lesson_plan_ready",
+                topic=self._topic,
+                chapter=curriculum.chapter_title,
+                num_concepts=plan.total_concepts,
+                pre_generated_visuals=len(curriculum.pre_generated_visuals),
+                source="neo4j",
+            )
+
+            # Fire anticipation pre-generation for first 3 concepts.
+            # With pre-generated visuals from Neo4j, many will be instant cache hits.
+            self._warm_task = asyncio.create_task(
+                self._teaching_ctx.anticipation.warm(
+                    plan,
+                    start=0,
+                    count=3,
+                    curriculum=curriculum,
+                )
+            )
+
+            # Plan concept 0 (current) + fire async planning for concept 1.
+            # Concept 1 receives concept 0's plan for continuity.
+            async def _plan_concepts() -> None:
+                plan0 = await plan_concept(
+                    0,
+                    curriculum,
+                    plan,
+                    audit=self._teaching_ctx.audit,
+                )
+                if plan0:
+                    self._teaching_ctx.concept_plans[0] = plan0
+                    logger.info("agent.concept_0_planned", beats=len(plan0.beats))
+
+                # Fire concept 1 planning — pass plan0 so it knows how concept 0 ends.
+                if plan.total_concepts > 1:
+
+                    async def _plan_next() -> None:
+                        plan1 = await plan_concept(
+                            1,
+                            curriculum,
+                            plan,
+                            audit=self._teaching_ctx.audit,
+                            prev_plan=self._teaching_ctx.concept_plans.get(0),
+                        )
+                        if plan1:
+                            self._teaching_ctx.concept_plans[1] = plan1
+                            logger.info("agent.concept_1_planned", beats=len(plan1.beats))
+
+                    asyncio.create_task(_plan_next())  # noqa: RUF006
+
+            self._plan_task = asyncio.create_task(_plan_concepts())
+
+            # Rebuild prompt once warm + planning complete
+            async def _update_after_warm() -> None:
+                try:
+                    await self._warm_task
+                except Exception:
+                    logger.warning("agent.warm_task_failed", exc_info=True)
+                try:
+                    await self._plan_task
+                except Exception:
+                    logger.warning("agent.plan_task_failed", exc_info=True)
+                prompt = build_teaching_prompt(
+                    self._teaching_ctx.lesson_plan,
+                    self._teaching_ctx,
+                )
+                await self.update_instructions(prompt)
                 logger.info(
-                    "agent.lesson_plan_ready",
-                    topic=self._topic,
-                    num_concepts=plan.total_concepts,
-                    source="graph" if graph else "runtime",
+                    "agent.prompt_updated_post_warm",
+                    cache_size=self._teaching_ctx.anticipation.cache_size,
+                    plans_ready=len(self._teaching_ctx.concept_plans),
                 )
 
-                # Fire anticipation pre-generation for first 3 concepts.
-                self._warm_task = asyncio.create_task(
-                    self._teaching_ctx.anticipation.warm(
-                        plan,
-                        start=0,
-                        count=3,
-                        graph=self._teaching_ctx.concept_graph,
-                    )
-                )
+            self._prompt_rebuild_task = asyncio.create_task(_update_after_warm())
 
-            except Exception:
-                logger.exception("agent.lesson_plan_failed", topic=self._topic)
-                self._teaching_ctx.audit.record(
-                    "curriculum",
-                    "plan_failed",
-                    f"topic='{self._topic}' — exception during plan generation, "
-                    f"falling back to free-form teaching",
-                )
-                # Continue without a plan — free-form teaching mode
+            # --- COMMENTED OUT: Old fallback paths. ---
+            # Previously: if graph not found → generate_lesson_plan() via LLM
+            # Previously: if exception → continue without plan (free-form teaching)
+            # Now: CurriculumNotFoundError propagates — session fails with clear error.
+            # --- END COMMENTED OUT ---
 
         # Update instructions with lesson context
         prompt = build_teaching_prompt(
@@ -234,22 +286,44 @@ async def entrypoint(ctx: JobContext) -> None:
         state_machine=state_machine,
     )
 
+    # Initialize board verifier for async visual quality checks.
+    async def _publish_capture(data: str, topic: str) -> None:
+        await ctx.room.local_participant.publish_data(
+            data.encode(),
+            reliable=True,
+            topic=topic,
+        )
+
+    teaching_ctx.board_verifier = BoardVerifier(
+        publish_fn=_publish_capture,
+        audit=teaching_ctx.audit,
+    )
+
     # Listen for bounds reports from the frontend
     @ctx.room.on("data_received")
     def _on_data_received(packet: DataPacket) -> None:
-        if packet.topic != "bounds":
-            return
-        try:
-            payload = json.loads(packet.data)
-            report = BoundsReportPayload.model_validate(payload)
-            teaching_ctx.board_manager.update_bounds(report.board_id, report)
-            logger.debug(
-                "bounds.received",
-                board_id=report.board_id,
-                element_count=len(report.elements),
-            )
-        except Exception:
-            logger.warning("bounds.parse_failed", exc_info=True)
+        if packet.topic == "bounds":
+            try:
+                payload = json.loads(packet.data)
+                report = BoundsReportPayload.model_validate(payload)
+                teaching_ctx.board_manager.update_bounds(report.board_id, report)
+                logger.debug(
+                    "bounds.received",
+                    board_id=report.board_id,
+                    element_count=len(report.elements),
+                )
+            except Exception:
+                logger.warning("bounds.parse_failed", exc_info=True)
+        elif packet.topic == "board_capture":
+            try:
+                payload = json.loads(packet.data)
+                if payload.get("type") == "capture_response" and teaching_ctx.board_verifier:
+                    teaching_ctx.board_verifier.resolve_capture(
+                        payload["request_id"],
+                        payload["image_data"],
+                    )
+            except (json.JSONDecodeError, KeyError):
+                logger.warning("board_capture.invalid_response")
 
     # Create agent with teaching context
     agent = FeynmanAgent(
@@ -267,7 +341,10 @@ async def entrypoint(ctx: JobContext) -> None:
         vad=create_vad(),
         userdata=teaching_ctx,
         use_tts_aligned_transcript=True,
-        max_tool_steps=10,
+        # Bumped from 10 → 30 so a dense teaching beat (write_section + several
+        # write_equation + draw_design_diagram + write_answer) can complete in
+        # one turn. 30 still catches runaway loops.
+        max_tool_steps=30,
     )
 
     await session.start(agent=agent, room=ctx.room)

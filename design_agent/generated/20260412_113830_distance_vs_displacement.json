@@ -1,0 +1,532 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Distance and Displacement. Context: Distance and displacement are two fundamental quantities used to describe motion, but they have distinctly different meanings and properties. This topic introduces the key differences between these concepts and their importance in kinematics. Distance is a scalar quantity that measures the total length of the path traveled by an object, regardless of direction. Displacement is a vector quantity that measures the straight-line distance from the initial position to the final position, including direction. Understanding the distinction between these two quantities is crucial for solving kinematic",
+  "spec": {
+    "title": "Distance vs Displacement",
+    "description": "Understanding the fundamental difference between distance (scalar) and displacement (vector) in kinematics",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "title",
+        "x": 450,
+        "y": 30,
+        "text": "Distance vs Displacement",
+        "fontSize": 24,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "coordinate_system",
+        "x": 50,
+        "y": 70,
+        "width": 600,
+        "height": 350,
+        "fill": "#f8f8f8",
+        "stroke": "#ddd",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "coordinate_label",
+        "x": 350,
+        "y": 90,
+        "text": "Motion Path Example",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "x_axis",
+        "x1": 80,
+        "y1": 380,
+        "x2": 620,
+        "y2": 380,
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "y_axis",
+        "x1": 80,
+        "y1": 120,
+        "x2": 80,
+        "y2": 380,
+        "stroke": "#666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "x_label",
+        "x": 620,
+        "y": 395,
+        "text": "x",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "y_label",
+        "x": 65,
+        "y": 125,
+        "text": "y",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "grid_1",
+        "x1": 180,
+        "y1": 120,
+        "x2": 180,
+        "y2": 380,
+        "stroke": "#eee",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "grid_2",
+        "x1": 280,
+        "y1": 120,
+        "x2": 280,
+        "y2": 380,
+        "stroke": "#eee",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "grid_3",
+        "x1": 380,
+        "y1": 120,
+        "x2": 380,
+        "y2": 380,
+        "stroke": "#eee",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "grid_4",
+        "x1": 480,
+        "y1": 120,
+        "x2": 480,
+        "y2": 380,
+        "stroke": "#eee",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "grid_5",
+        "x1": 580,
+        "y1": 120,
+        "x2": 580,
+        "y2": 380,
+        "stroke": "#eee",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "grid_h1",
+        "x1": 80,
+        "y1": 180,
+        "x2": 620,
+        "y2": 180,
+        "stroke": "#eee",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "grid_h2",
+        "x1": 80,
+        "y1": 240,
+        "x2": 620,
+        "y2": 240,
+        "stroke": "#eee",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "grid_h3",
+        "x1": 80,
+        "y1": 300,
+        "x2": 620,
+        "y2": 300,
+        "stroke": "#eee",
+        "strokeWidth": 1,
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_circle",
+        "id": "start_point",
+        "cx": 130,
+        "cy": 330,
+        "r": 8,
+        "fill": "#4CAF50",
+        "stroke": "#2E7D32",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "start_label",
+        "x": 130,
+        "y": 355,
+        "text": "Start",
+        "fontSize": 12,
+        "fill": "#2E7D32",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "start_position",
+        "expression": "\\vec{r}_i",
+        "x": 120,
+        "y": 310,
+        "fontSize": 14,
+        "color": "#2E7D32"
+      },
+      {
+        "type": "svg_path",
+        "id": "actual_path",
+        "d": "M 130 330 Q 200 200 280 180 Q 360 160 430 220 Q 500 280 550 250",
+        "stroke": "#FF5722",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_circle",
+        "id": "end_point",
+        "cx": 550,
+        "cy": 250,
+        "r": 8,
+        "fill": "#2196F3",
+        "stroke": "#1565C0",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "end_label",
+        "x": 550,
+        "y": 235,
+        "text": "End",
+        "fontSize": 12,
+        "fill": "#1565C0",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "end_position",
+        "expression": "\\vec{r}_f",
+        "x": 565,
+        "y": 255,
+        "fontSize": 14,
+        "color": "#1565C0"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "displacement_vector",
+        "x1": 130,
+        "y1": 330,
+        "x2": 550,
+        "y2": 250,
+        "stroke": "#9C27B0",
+        "strokeWidth": 3,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "displacement_label",
+        "expression": "\\vec{d} = \\vec{r}_f - \\vec{r}_i",
+        "x": 340,
+        "y": 270,
+        "fontSize": 14,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_text",
+        "id": "path_label",
+        "x": 350,
+        "y": 150,
+        "text": "Actual Path Traveled",
+        "fontSize": 12,
+        "fill": "#FF5722",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "path_pointer",
+        "x1": 350,
+        "y1": 160,
+        "x2": 320,
+        "y2": 180,
+        "stroke": "#FF5722",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_text",
+        "x": 400,
+        "y": 300,
+        "text": "Displacement Vector",
+        "fontSize": 12,
+        "fill": "#9C27B0",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "distance_box",
+        "x": 680,
+        "y": 70,
+        "width": 200,
+        "height": 180,
+        "fill": "#FFF3E0",
+        "stroke": "#FF9800",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_title",
+        "x": 780,
+        "y": 95,
+        "text": "DISTANCE",
+        "fontSize": 16,
+        "fill": "#F57C00",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_type",
+        "x": 780,
+        "y": 115,
+        "text": "(Scalar Quantity)",
+        "fontSize": 12,
+        "fill": "#F57C00",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_def1",
+        "x": 690,
+        "y": 140,
+        "text": "\u2022 Total length of path",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_def2",
+        "x": 690,
+        "y": 160,
+        "text": "\u2022 Always positive",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_def3",
+        "x": 690,
+        "y": 180,
+        "text": "\u2022 No direction",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "distance_def4",
+        "x": 690,
+        "y": 200,
+        "text": "\u2022 Depends on path",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "distance_formula",
+        "expression": "d = \\sum \\Delta s",
+        "x": 780,
+        "y": 230,
+        "fontSize": 14,
+        "color": "#F57C00"
+      },
+      {
+        "type": "svg_rect",
+        "id": "displacement_box",
+        "x": 680,
+        "y": 270,
+        "width": 200,
+        "height": 180,
+        "fill": "#F3E5F5",
+        "stroke": "#9C27B0",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_title",
+        "x": 780,
+        "y": 295,
+        "text": "DISPLACEMENT",
+        "fontSize": 16,
+        "fill": "#7B1FA2",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_type",
+        "x": 780,
+        "y": 315,
+        "text": "(Vector Quantity)",
+        "fontSize": 12,
+        "fill": "#7B1FA2",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_def1",
+        "x": 690,
+        "y": 340,
+        "text": "\u2022 Straight-line distance",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_def2",
+        "x": 690,
+        "y": 360,
+        "text": "\u2022 Can be positive/negative",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_def3",
+        "x": 690,
+        "y": 380,
+        "text": "\u2022 Has direction",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "displacement_def4",
+        "x": 690,
+        "y": 400,
+        "text": "\u2022 Independent of path",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "displacement_formula",
+        "expression": "\\vec{d} = \\vec{r}_f - \\vec{r}_i",
+        "x": 780,
+        "y": 430,
+        "fontSize": 14,
+        "color": "#7B1FA2"
+      },
+      {
+        "type": "svg_rect",
+        "id": "example_box",
+        "x": 50,
+        "y": 460,
+        "width": 800,
+        "height": 170,
+        "fill": "#F5F5F5",
+        "stroke": "#999",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "example_title",
+        "x": 450,
+        "y": 485,
+        "text": "Key Insights",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "insight1",
+        "x": 70,
+        "y": 515,
+        "text": "1. Distance is always greater than or equal to displacement magnitude:",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "inequality",
+        "expression": "d \\geq |\\vec{d}|",
+        "x": 550,
+        "y": 520,
+        "fontSize": 16,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_text",
+        "id": "insight2",
+        "x": 70,
+        "y": 545,
+        "text": "2. For straight-line motion in one direction: distance = displacement magnitude",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "insight3",
+        "x": 70,
+        "y": 575,
+        "text": "3. If an object returns to starting point: displacement = 0, but distance > 0",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "insight4",
+        "x": 70,
+        "y": 605,
+        "text": "4. Displacement depends only on initial and final positions, not the path taken",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

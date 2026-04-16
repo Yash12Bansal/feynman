@@ -1,0 +1,511 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Qualitative Nature of SHM. Context: Consider a mass m on a frictionless surface attached to a spring with constant k. When displaced to amplitude A and released, the motion exhibits key features: (1) Maximum speed occurs at equilibrium (x=0), (2) Zero speed at extreme positions (x=\u00b1A), (3) Acceleration maximum at extremes, zero at center, (4) Force varies linearly with displacement. Energy conservation shows that potential energy at extremes (\u00bdkA\u00b2) equals kinetic energy at center (\u00bdmv\u2080\u00b2), proving equal displacement on both sides. The particle oscillates between positions P and Q with OP = OQ = A (amplitude). This demonstrates th",
+  "spec": {
+    "title": "Qualitative Nature of Simple Harmonic Motion",
+    "description": "Mass-spring system showing position, velocity, acceleration, and force relationships during SHM oscillation",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Simple Harmonic Motion: Mass-Spring System",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "surface",
+        "x1": 100,
+        "y1": 180,
+        "x2": 800,
+        "y2": 180,
+        "stroke": "#666",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "frictionless_label",
+        "x": 450,
+        "y": 200,
+        "text": "Frictionless Surface",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "wall",
+        "x1": 120,
+        "y1": 120,
+        "x2": 120,
+        "y2": 180,
+        "stroke": "#333",
+        "strokeWidth": 6
+      },
+      {
+        "type": "svg_rect",
+        "id": "wall_base",
+        "x": 110,
+        "y": 120,
+        "width": 20,
+        "height": 60,
+        "fill": "none",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coils",
+        "d": "M 140 150 L 160 140 L 180 160 L 200 140 L 220 160 L 240 140 L 260 160 L 280 140 L 300 160 L 320 140 L 340 150",
+        "stroke": "#4682b4",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_block",
+        "x": "350 + position * 200",
+        "y": 135,
+        "width": 40,
+        "height": 30,
+        "fill": "#FF9800",
+        "stroke": "#E65100",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "mass_label",
+        "expression": "m",
+        "x": "370 + position * 200",
+        "y": 150,
+        "fontSize": 16,
+        "color": "#fff"
+      },
+      {
+        "type": "svg_line",
+        "id": "position_axis",
+        "x1": 200,
+        "y1": 250,
+        "x2": 700,
+        "y2": 250,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "axis_arrow",
+        "x1": 700,
+        "y1": 250,
+        "x2": 720,
+        "y2": 250,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_axis_label",
+        "expression": "x",
+        "x": 730,
+        "y": 255,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_mark",
+        "x1": 450,
+        "y1": 240,
+        "x2": 450,
+        "y2": 260,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_label",
+        "expression": "O",
+        "x": 450,
+        "y": 280,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "eq_position_label",
+        "expression": "x = 0",
+        "x": 450,
+        "y": 300,
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_line",
+        "id": "left_extreme_mark",
+        "x1": 250,
+        "y1": 240,
+        "x2": 250,
+        "y2": 260,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "left_extreme_label",
+        "expression": "P",
+        "x": 250,
+        "y": 280,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "left_position_label",
+        "expression": "x = -A",
+        "x": 250,
+        "y": 300,
+        "fontSize": 12,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_line",
+        "id": "right_extreme_mark",
+        "x1": 650,
+        "y1": 240,
+        "x2": 650,
+        "y2": 260,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "right_extreme_label",
+        "expression": "Q",
+        "x": 650,
+        "y": 280,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "right_position_label",
+        "expression": "x = +A",
+        "x": 650,
+        "y": 300,
+        "fontSize": 12,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_left",
+        "x1": 250,
+        "y1": 220,
+        "x2": 450,
+        "y2": 220,
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_left_label",
+        "expression": "A",
+        "x": 350,
+        "y": 215,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_right",
+        "x1": 450,
+        "y1": 220,
+        "x2": 650,
+        "y2": 220,
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_right_label",
+        "expression": "A",
+        "x": 550,
+        "y": 215,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "velocity_vector",
+        "x1": "370 + position * 200",
+        "y1": 110,
+        "x2": "370 + position * 200 + velocity * 60",
+        "y2": 110,
+        "stroke": "#2196F3",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_label",
+        "expression": "\\vec{v}",
+        "x": "370 + position * 200 + velocity * 30",
+        "y": 100,
+        "fontSize": 14,
+        "color": "#2196F3"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "acceleration_vector",
+        "x1": "370 + position * 200",
+        "y1": 90,
+        "x2": "370 + position * 200 - position * 80",
+        "y2": 90,
+        "stroke": "#9C27B0",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_label",
+        "expression": "\\vec{a}",
+        "x": "370 + position * 200 - position * 40",
+        "y": 80,
+        "fontSize": 14,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "force_vector",
+        "x1": "370 + position * 200",
+        "y1": 70,
+        "x2": "370 + position * 200 - position * 80",
+        "y2": 70,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_label",
+        "expression": "\\vec{F}",
+        "x": "370 + position * 200 - position * 40",
+        "y": 60,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_rect",
+        "id": "info_box",
+        "x": 50,
+        "y": 340,
+        "width": 380,
+        "height": 280,
+        "fill": "#f9f9f9",
+        "stroke": "#ccc",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "info_title",
+        "x": 240,
+        "y": 365,
+        "text": "Key Features of SHM",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "info1",
+        "expression": "\\text{1. Maximum speed at equilibrium: } v_{\\max} = \\omega A",
+        "x": 70,
+        "y": 395,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "info2",
+        "expression": "\\text{2. Zero speed at extremes: } v = 0 \\text{ at } x = \\pm A",
+        "x": 70,
+        "y": 420,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "info3",
+        "expression": "\\text{3. Max acceleration at extremes: } a_{\\max} = \\omega^2 A",
+        "x": 70,
+        "y": 445,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "info4",
+        "expression": "\\text{4. Force proportional to displacement: } F = -kx",
+        "x": 70,
+        "y": 470,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "info5",
+        "expression": "\\text{5. Energy conservation:}",
+        "x": 70,
+        "y": 500,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "energy_eq1",
+        "expression": "\\text{At extremes: } E = \\frac{1}{2}kA^2 \\text{ (potential)}",
+        "x": 90,
+        "y": 525,
+        "fontSize": 11,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "energy_eq2",
+        "expression": "\\text{At equilibrium: } E = \\frac{1}{2}mv_{\\max}^2 \\text{ (kinetic)}",
+        "x": 90,
+        "y": 545,
+        "fontSize": 11,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "spring_constant",
+        "expression": "\\text{Spring constant: } k",
+        "x": 70,
+        "y": 570,
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "frequency_eq",
+        "expression": "\\text{Angular frequency: } \\omega = \\sqrt{\\frac{k}{m}}",
+        "x": 70,
+        "y": 595,
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "graph",
+        "id": "position_time_graph",
+        "x": 480,
+        "y": 340,
+        "width": 360,
+        "height": 120,
+        "xDomain": [
+          0,
+          12.56
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "Time (t)",
+        "yLabel": "Position (x/A)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "cos(x)",
+            "color": "#4CAF50",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "graph",
+        "id": "velocity_time_graph",
+        "x": 480,
+        "y": 480,
+        "width": 360,
+        "height": 120,
+        "xDomain": [
+          0,
+          12.56
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "Time (t)",
+        "yLabel": "Velocity (v/vmax)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "-sin(x)",
+            "color": "#2196F3",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_line",
+        "id": "current_time_pos",
+        "x1": "480 + time * 57.3",
+        "y1": 340,
+        "x2": "480 + time * 57.3",
+        "y2": 460,
+        "stroke": "#FF5722",
+        "strokeWidth": 2,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_line",
+        "id": "current_time_vel",
+        "x1": "480 + time * 57.3",
+        "y1": 480,
+        "x2": "480 + time * 57.3",
+        "y2": 600,
+        "stroke": "#FF5722",
+        "strokeWidth": 2,
+        "strokeDasharray": "3,3"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "position",
+        "min": -1,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.1,
+        "label": "Position (x/A)"
+      },
+      {
+        "name": "velocity",
+        "min": -1,
+        "max": 1,
+        "default": -0.6,
+        "step": 0.1,
+        "label": "Velocity Direction"
+      },
+      {
+        "name": "time",
+        "min": 0,
+        "max": 6.28,
+        "default": 1,
+        "step": 0.1,
+        "label": "Time (t)"
+      }
+    ],
+    "animations": []
+  }
+}

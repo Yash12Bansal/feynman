@@ -1,0 +1,434 @@
+{
+  "prompt": "A diagram showing the classic double-slit experiment with light. Show a coherent light source (like a laser) on the left emitting parallel light rays, a barrier in the middle with two narrow parallel slits, and on the right a screen showing an interference pattern with multiple bright and dark stripes (not just two spots). Label: \"Coherent light source\", \"Double slit\", \"Interference pattern on screen\". Make the interference pattern clear with alternating light and dark bands.",
+  "spec": {
+    "title": "Double-Slit Experiment with Light",
+    "description": "Demonstration of wave interference when coherent light passes through two parallel slits, creating an interference pattern",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "laser_body",
+        "x": 50,
+        "y": 300,
+        "width": 80,
+        "height": 40,
+        "fill": "#666",
+        "stroke": "#444",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_circle",
+        "id": "laser_lens",
+        "cx": 130,
+        "cy": 320,
+        "r": 15,
+        "fill": "#888",
+        "stroke": "#444",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "laser_label",
+        "x": 90,
+        "y": 280,
+        "text": "Coherent light source",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "ray1",
+        "x1": 145,
+        "y1": 300,
+        "x2": 340,
+        "y2": 300,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ray2",
+        "x1": 145,
+        "y1": 310,
+        "x2": 340,
+        "y2": 310,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ray3",
+        "x1": 145,
+        "y1": 320,
+        "x2": 340,
+        "y2": 320,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ray4",
+        "x1": 145,
+        "y1": 330,
+        "x2": 340,
+        "y2": 330,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ray5",
+        "x1": 145,
+        "y1": 340,
+        "x2": 340,
+        "y2": 340,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier_top",
+        "x": 350,
+        "y": 100,
+        "width": 20,
+        "height": 180,
+        "fill": "#555",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier_middle",
+        "x": 350,
+        "y": 300,
+        "width": 20,
+        "height": 40,
+        "fill": "#555",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier_bottom",
+        "x": 350,
+        "y": 360,
+        "width": 20,
+        "height": 180,
+        "fill": "#555",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_label",
+        "x": 360,
+        "y": 250,
+        "text": "Double slit",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "slit1_ray1",
+        "x1": 370,
+        "y1": 290,
+        "x2": 650,
+        "y2": 250,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "slit1_ray2",
+        "x1": 370,
+        "y1": 290,
+        "x2": 650,
+        "y2": 320,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "slit1_ray3",
+        "x1": 370,
+        "y1": 290,
+        "x2": 650,
+        "y2": 390,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "slit2_ray1",
+        "x1": 370,
+        "y1": 350,
+        "x2": 650,
+        "y2": 250,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "slit2_ray2",
+        "x1": 370,
+        "y1": 350,
+        "x2": 650,
+        "y2": 320,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,2"
+      },
+      {
+        "type": "svg_line",
+        "id": "slit2_ray3",
+        "x1": 370,
+        "y1": 350,
+        "x2": 650,
+        "y2": 390,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,2"
+      },
+      {
+        "type": "svg_rect",
+        "id": "screen",
+        "x": 650,
+        "y": 150,
+        "width": 20,
+        "height": 350,
+        "fill": "#f0f0f0",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_band1",
+        "x": 670,
+        "y": 310,
+        "width": 80,
+        "height": 20,
+        "fill": "#FFD700",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_band1",
+        "x": 670,
+        "y": 290,
+        "width": 80,
+        "height": 20,
+        "fill": "#444",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_band2",
+        "x": 670,
+        "y": 270,
+        "width": 80,
+        "height": 20,
+        "fill": "#FFD700",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_band2",
+        "x": 670,
+        "y": 250,
+        "width": 80,
+        "height": 20,
+        "fill": "#444",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_band3",
+        "x": 670,
+        "y": 230,
+        "width": 80,
+        "height": 20,
+        "fill": "#FFD700",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_band3",
+        "x": 670,
+        "y": 210,
+        "width": 80,
+        "height": 20,
+        "fill": "#444",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_band4",
+        "x": 670,
+        "y": 190,
+        "width": 80,
+        "height": 20,
+        "fill": "#FFD700",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_band4",
+        "x": 670,
+        "y": 330,
+        "width": 80,
+        "height": 20,
+        "fill": "#444",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_band5",
+        "x": 670,
+        "y": 350,
+        "width": 80,
+        "height": 20,
+        "fill": "#FFD700",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_band5",
+        "x": 670,
+        "y": 370,
+        "width": 80,
+        "height": 20,
+        "fill": "#444",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_band6",
+        "x": 670,
+        "y": 390,
+        "width": 80,
+        "height": 20,
+        "fill": "#FFD700",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_band6",
+        "x": 670,
+        "y": 410,
+        "width": 80,
+        "height": 20,
+        "fill": "#444",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_band7",
+        "x": 670,
+        "y": 430,
+        "width": 80,
+        "height": 20,
+        "fill": "#FFD700",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "pattern_label",
+        "x": 710,
+        "y": 140,
+        "text": "Interference pattern",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "pattern_label2",
+        "x": 710,
+        "y": 155,
+        "text": "on screen",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "bright_label",
+        "x": 780,
+        "y": 325,
+        "text": "Bright",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "dark_label",
+        "x": 780,
+        "y": 305,
+        "text": "Dark",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_ellipse",
+        "id": "wave_front1",
+        "cx": 360,
+        "cy": 290,
+        "rx": 40,
+        "ry": 15,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "fill": "none",
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_ellipse",
+        "id": "wave_front2",
+        "cx": 360,
+        "cy": 290,
+        "rx": 60,
+        "ry": 25,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "fill": "none",
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_ellipse",
+        "id": "wave_front3",
+        "cx": 360,
+        "cy": 350,
+        "rx": 40,
+        "ry": 15,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "fill": "none",
+        "strokeDasharray": "2,2"
+      },
+      {
+        "type": "svg_ellipse",
+        "id": "wave_front4",
+        "cx": 360,
+        "cy": 350,
+        "rx": 60,
+        "ry": 25,
+        "stroke": "#4682B4",
+        "strokeWidth": 1,
+        "fill": "none",
+        "strokeDasharray": "2,2"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

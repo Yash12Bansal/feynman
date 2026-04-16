@@ -128,11 +128,14 @@ class BoardManager:
         return None
 
     def update_bounds(self, board_id: str, report: BoundsReportPayload) -> None:
-        """Route a bounds report to the correct board's scene graph."""
+        """Route a bounds report to the correct board's state.
+
+        Updates both the scene graph and spatial solver via BoardState.update_spatial.
+        """
         board = self._boards.get(board_id)
         if board is None:
             return  # Silently ignore unknown board IDs
-        board.state.scene_graph.update_bounds(report)
+        board.state.update_spatial(report)
 
     # ── Board lifecycle ───────────────────────────────────────
 

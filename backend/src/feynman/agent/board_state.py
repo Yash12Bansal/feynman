@@ -13,7 +13,9 @@ from dataclasses import dataclass, field
 from pydantic import BaseModel
 
 from feynman.agent.board_graph import BoardGraph
-from feynman.agent.scene_graph import SceneGraph
+from feynman.agent.scenario_planner import ScenarioPlan
+from feynman.agent.scene_graph import BoundsReportPayload, SceneGraph
+from feynman.agent.spatial_solver import Rect, SpatialSolver
 from feynman.visuals.schemas import BoardZone, _BaseInstruction
 
 # Instruction type → short prefix for auto-generated element IDs.
@@ -103,6 +105,8 @@ class BoardState:
     _step: int = 0
     scene_graph: SceneGraph = field(default_factory=SceneGraph)
     board_graph: BoardGraph = field(default_factory=BoardGraph)
+    spatial_solver: SpatialSolver = field(default_factory=SpatialSolver)
+    scenario_plan: ScenarioPlan | None = None
     _design_specs: dict[str, dict] = field(default_factory=dict)
 
     # Camera position on the infinite canvas (tile coordinates).
@@ -170,12 +174,25 @@ class BoardState:
         """Retrieve a stored DiagramSpec by element ID."""
         return self._design_specs.get(element_id)
 
+    def update_spatial(self, report: BoundsReportPayload) -> None:
+        """Update scene graph AND spatial solver from frontend bounds.
+
+        Called when the frontend reports actual rendered dimensions.
+        Keeps both spatial models in sync.
+        """
+        self.scene_graph.update_bounds(report)
+        rects: dict[str, Rect] = {}
+        for el in report.elements:
+            rects[el.element_id] = Rect(el.x, el.y, el.width, el.height)
+        self.spatial_solver.update_all(rects)
+
     def remove(self, element_id: str) -> None:
         """Remove a specific element from the board."""
         self._elements.pop(element_id, None)
         self._design_specs.pop(element_id, None)
         self.scene_graph.remove_element(element_id)
         self.board_graph.remove_element(element_id)
+        self.spatial_solver.remove(element_id)
 
     def clear(self) -> None:
         """Wipe the entire board state."""
@@ -183,6 +200,8 @@ class BoardState:
         self._design_specs.clear()
         self.scene_graph.clear()
         self.board_graph.clear()
+        self.spatial_solver.clear()
+        self.scenario_plan = None
 
     def zones_in_use(self) -> set[BoardZone]:
         """Return the set of zones that currently have content."""

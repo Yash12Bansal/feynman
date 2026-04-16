@@ -29,6 +29,9 @@ dependencies = [
     # Redis
     "redis[hiredis]>=5.0.0",
 
+    # Neo4j (curriculum graph)
+    "neo4j>=5.20.0",
+
     # Config & validation
     "pydantic>=2.10.0",
     "pydantic-settings>=2.7.0",

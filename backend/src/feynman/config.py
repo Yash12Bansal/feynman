@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     design_agent_provider: str = "anthropic"  # "anthropic" or "ollama"
     design_agent_model: str = ""  # model name for ollama (e.g. "qwen2.5-vl:7b")
 
+    # When True, the anticipation engine ignores `curriculum.pre_generated_visuals`
+    # from Neo4j and regenerates every diagram fresh via `generate_design_diagram`.
+    # Use this while iterating on the design_agent prompt — Neo4j pre-gens are
+    # baked under whatever prompt was active at Phase 12 ingestion time, so they
+    # don't reflect prompt edits until the curriculum pipeline re-runs.
+    bypass_pregen_visuals: bool = False
+
     # LiveKit
     livekit_url: str = "ws://localhost:7880"
     livekit_api_key: str = "devkey"
@@ -44,6 +51,12 @@ class Settings(BaseSettings):
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"
+
+    # Neo4j (curriculum graph)
+    neo4j_uri: str = "bolt://localhost:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = "password"
+    neo4j_database: str = "neo4j"
 
     @property
     def is_dev(self) -> bool:

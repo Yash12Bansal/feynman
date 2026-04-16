@@ -2,6 +2,8 @@ import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { useBoardStore } from "../useBoardStore";
 import type {
+  DrawDesignDiagramInstruction,
+  SlidePendingInstruction,
   VisualInstruction,
   SwitchBoardInstruction,
 } from "../../../types/visuals";
@@ -18,6 +20,26 @@ function switchInstr(
   overrides: Partial<SwitchBoardInstruction>,
 ): SwitchBoardInstruction {
   return { type: "switch_board", ...overrides } as SwitchBoardInstruction;
+}
+
+function pendingInstr(
+  overrides: Partial<SlidePendingInstruction> = {},
+): SlidePendingInstruction {
+  return {
+    type: "slide_pending",
+    title: "Newton's Second Law",
+    ...overrides,
+  } as SlidePendingInstruction;
+}
+
+function designDiagramInstr(
+  overrides: Partial<DrawDesignDiagramInstruction> = {},
+): DrawDesignDiagramInstruction {
+  return {
+    type: "draw_design_diagram",
+    spec: { title: "t", elements: [] },
+    ...overrides,
+  } as DrawDesignDiagramInstruction;
 }
 
 // ── Tests ─────────────────────────────────────────────────────
@@ -259,5 +281,57 @@ describe("useBoardStore", () => {
     });
     expect(result.current.activeBoardId).toBe("board-1");
     expect(result.current.pendingTransition).toBeNull();
+  });
+
+  // ── Phase 4: slide_pending loader state ───────────────────
+
+  it("slide_pending sets pendingSlide entry without adding to instructions", () => {
+    const { result } = renderHook(() => useBoardStore());
+    act(() => {
+      result.current.addInstruction(
+        pendingInstr({ board_id: "board-1", title: "Newton's 2nd Law" }),
+      );
+    });
+    expect(result.current.pendingSlide["board-1"]).toEqual({
+      title: "Newton's 2nd Law",
+    });
+    // Pending must not pollute the instruction list.
+    expect(result.current.activeInstructions).toHaveLength(0);
+    expect(result.current.getBoardInstructions("board-1")).toHaveLength(0);
+  });
+
+  it("a slide-typed instruction clears the pending entry for the same board", () => {
+    const { result } = renderHook(() => useBoardStore());
+    act(() => {
+      result.current.addInstruction(
+        pendingInstr({ board_id: "board-1", title: "Loading…" }),
+      );
+    });
+    expect(result.current.pendingSlide["board-1"]).toBeDefined();
+
+    act(() => {
+      result.current.addInstruction(
+        designDiagramInstr({ board_id: "board-1", element_id: "design-1" }),
+      );
+    });
+    expect(result.current.pendingSlide["board-1"]).toBeUndefined();
+    expect(result.current.activeInstructions).toHaveLength(1);
+  });
+
+  it("switchBoard clears pendingSlide on the source board", () => {
+    const { result } = renderHook(() => useBoardStore());
+    act(() => {
+      result.current.addInstruction(
+        pendingInstr({ board_id: "board-1", title: "Half-rendered" }),
+      );
+    });
+    expect(result.current.pendingSlide["board-1"]).toBeDefined();
+
+    act(() => {
+      result.current.switchBoard(
+        switchInstr({ board_id: "board-2", intent: "new", label: "Doubt" }),
+      );
+    });
+    expect(result.current.pendingSlide["board-1"]).toBeUndefined();
   });
 });

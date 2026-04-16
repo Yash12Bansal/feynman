@@ -4,11 +4,12 @@ from uuid import uuid4
 
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
 from feynman.agent.prompts import (
+    BOARD_RELATIONSHIPS_INSTRUCTIONS,
+    PLACEMENT_INSTRUCTIONS,
     SCENE_INSTRUCTIONS,
     STATE_TOOL_INSTRUCTIONS,
     TEACHING_SYSTEM_PROMPT,
     TOOL_ROUTING_INSTRUCTIONS,
-    ZONE_PLACEMENT_INSTRUCTIONS,
     build_teaching_prompt,
 )
 from feynman.agent.state_machine import TeachingStateMachine
@@ -163,58 +164,52 @@ class TestBuildTeachingPromptLessonComplete:
         assert "Summarize" in prompt
 
 
-class TestZonePlacementInstructions:
+class TestPlacementInstructions:
     def test_included_with_plan(self):
         plan = _make_plan()
         ctx = _make_ctx(plan=plan)
         prompt = build_teaching_prompt(plan, ctx)
-        assert ZONE_PLACEMENT_INSTRUCTIONS in prompt
+        assert PLACEMENT_INSTRUCTIONS in prompt
 
     def test_included_without_plan(self):
         ctx = _make_ctx(plan=None)
         prompt = build_teaching_prompt(None, ctx)
-        assert ZONE_PLACEMENT_INSTRUCTIONS in prompt
+        assert PLACEMENT_INSTRUCTIONS in prompt
 
-    def test_zone_names_listed(self):
-        ctx = _make_ctx(plan=None)
-        prompt = build_teaching_prompt(None, ctx)
-        assert "top-left" in prompt
-        assert "center-center" in prompt
-        assert "bottom-right" in prompt
+    def test_near_and_near_side_documented(self):
+        assert "near=" in PLACEMENT_INSTRUCTIONS
+        assert "near_side=" in PLACEMENT_INSTRUCTIONS
+
+    def test_three_placement_options(self):
+        assert "Option 1: Near an existing element" in PLACEMENT_INSTRUCTIONS
+        assert "Option 2: Zone placement" in PLACEMENT_INSTRUCTIONS
+        assert "Option 3: Auto-placement" in PLACEMENT_INSTRUCTIONS
 
     def test_pattern_concept_introduction(self):
-        assert "CONCEPT INTRODUCTION" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Concept Introduction" in PLACEMENT_INSTRUCTIONS
 
     def test_pattern_step_by_step_derivation(self):
-        assert "STEP-BY-STEP DERIVATION" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "NEVER scatter derivation steps" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Step-by-step Derivation" in PLACEMENT_INSTRUCTIONS
 
     def test_pattern_problem_solving(self):
-        assert "PROBLEM SOLVING" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "bottom-right" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Problem Solving" in PLACEMENT_INSTRUCTIONS
 
     def test_pattern_comparison(self):
-        assert "COMPARISON" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "Case A" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "Case B" in ZONE_PLACEMENT_INSTRUCTIONS
-
-    def test_pattern_single_equation_focus(self):
-        assert "SINGLE EQUATION FOCUS" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "center-center" in ZONE_PLACEMENT_INSTRUCTIONS
+        assert "Comparison" in PLACEMENT_INSTRUCTIONS
+        assert "Case A" in PLACEMENT_INSTRUCTIONS
+        assert "Case B" in PLACEMENT_INSTRUCTIONS
 
     def test_spatial_rules_present(self):
-        rules = ZONE_PLACEMENT_INSTRUCTIONS
-        assert "Adjacent" in rules
-        assert "Top-to-bottom" in rules
-        assert "visual anchor" in rules
-        assert 'annotate(action="arrow")' in rules
-        assert "Clear before reuse" in rules
-        assert ">5 elements" in rules
+        rules = PLACEMENT_INSTRUCTIONS
+        assert "Related" in rules
+        assert "Reading flow" in rules
+        assert "anchor" in rules
+        assert "snapshot" in rules
+        assert "Size matters" in rules
 
-    def test_board_planning_step_present(self):
-        assert "Before Each Concept" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "teaching moment type" in ZONE_PLACEMENT_INSTRUCTIONS
-        assert "main visual" in ZONE_PLACEMENT_INSTRUCTIONS
+    def test_size_hint_documented(self):
+        assert 'size_hint="large"' in PLACEMENT_INSTRUCTIONS
+        assert '"small"' in PLACEMENT_INSTRUCTIONS
 
 
 class TestToolRoutingInstructions:
@@ -384,10 +379,11 @@ class TestTeachingReference:
         })()
         prompt = build_teaching_prompt(plan, ctx)
         assert "Teaching reference" in prompt
-        # Summary should be truncated — not all 1000 x's
+        # Summary should be truncated — not all 1000 x's.
+        # Allow a few extra from surrounding prompt text that contains 'x'.
         ref_start = prompt.index("Teaching reference")
         ref_section = prompt[ref_start:ref_start + 1200]
-        assert ref_section.count("x") <= 800
+        assert ref_section.count("x") <= 810
 
 
 class TestPreRenderedVisuals:
@@ -631,3 +627,67 @@ class TestBoardStateCameraAndTiles:
         state.record(instr)
         # Ephemeral — should not be tracked as an element
         assert len(state._elements) == 0
+
+
+class TestAdvanceNudge:
+    """Prompt nudges agent to call advance_concept() promptly."""
+
+    def test_advance_nudge_present_for_active_concept(self):
+        plan = _make_plan(3)
+        ctx = _make_ctx(plan=plan)
+        prompt = build_teaching_prompt(plan, ctx)
+        assert "call advance_concept() promptly" in prompt
+
+    def test_advance_nudge_absent_when_lesson_complete(self):
+        plan = _make_plan(2)
+        ctx = _make_ctx(plan=plan)
+        # Complete all concepts
+        ctx.advance()
+        ctx.advance()
+        assert ctx.is_lesson_complete
+        prompt = build_teaching_prompt(plan, ctx)
+        assert "call advance_concept() promptly" not in prompt
+
+    def test_advance_nudge_absent_without_plan(self):
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert "call advance_concept() promptly" not in prompt
+
+
+class TestBoardRelationshipsInstructions:
+    """Board relationships prompt tells agent about relates_to."""
+
+    def test_relates_to_in_plan_prompt(self):
+        plan = _make_plan(2)
+        ctx = _make_ctx(plan=plan)
+        prompt = build_teaching_prompt(plan, ctx)
+        assert "relates_to" in prompt
+        assert "Board Relationships" in prompt
+
+    def test_relates_to_in_freeform_prompt(self):
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert "relates_to" in prompt
+
+    def test_relation_examples_present(self):
+        plan = _make_plan(2)
+        ctx = _make_ctx(plan=plan)
+        prompt = build_teaching_prompt(plan, ctx)
+        assert "illustrates" in prompt
+        assert "derives_from" in prompt
+
+    def test_board_relationships_constant_content(self):
+        assert "relates_to" in BOARD_RELATIONSHIPS_INSTRUCTIONS
+        assert "illustrates" in BOARD_RELATIONSHIPS_INSTRUCTIONS
+        assert "derives_from" in BOARD_RELATIONSHIPS_INSTRUCTIONS
+        assert "compares_with" in BOARD_RELATIONSHIPS_INSTRUCTIONS
+
+
+class TestHighlightTimingInstructions:
+    """Highlight timing is explained in prompt."""
+
+    def test_highlight_timing_guidance_present(self):
+        plan = _make_plan(2)
+        ctx = _make_ctx(plan=plan)
+        prompt = build_teaching_prompt(plan, ctx)
+        assert "Highlights fire INSTANTLY" in prompt

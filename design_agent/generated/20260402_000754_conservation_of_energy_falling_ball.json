@@ -1,0 +1,336 @@
+{
+  "prompt": "A simple diagram showing a ball at three positions: (1) held high in someone's hand with height h labeled, (2) the same ball falling halfway down with height h/2 labeled, and (3) the ball on the ground at height 0. Show the ball getting slightly blurred with motion lines in the falling positions. Add labels for \"Potential Energy = mgh\", \"Mixed PE and KE\", and \"Kinetic Energy = \u00bdmv\u00b2\" at each position respectively. Use a clean, educational style with clear height markers.",
+  "spec": {
+    "title": "Conservation of Energy: Falling Ball",
+    "description": "A ball falling from height h, showing the conversion of potential energy to kinetic energy",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_line",
+        "id": "ground_line",
+        "x1": 50,
+        "y1": 550,
+        "x2": 850,
+        "y2": 550,
+        "stroke": "#8B4513",
+        "strokeWidth": 4
+      },
+      {
+        "type": "svg_line",
+        "id": "height_reference_line",
+        "x1": 100,
+        "y1": 150,
+        "x2": 100,
+        "y2": 550,
+        "stroke": "#888",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "half_height_reference",
+        "x1": 380,
+        "y1": 350,
+        "x2": 380,
+        "y2": 550,
+        "stroke": "#888",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "ground_reference",
+        "x1": 680,
+        "y1": 530,
+        "x2": 680,
+        "y2": 550,
+        "stroke": "#888",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_rect",
+        "id": "hand",
+        "x": 70,
+        "y": 170,
+        "width": 60,
+        "height": 40,
+        "fill": "#FDBCB4",
+        "stroke": "#CD853F",
+        "strokeWidth": 2,
+        "rx": 20
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_position_1",
+        "cx": 100,
+        "cy": 150,
+        "r": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E63946",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_position_2_blur1",
+        "cx": 380,
+        "cy": 330,
+        "r": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E63946",
+        "strokeWidth": 2,
+        "opacity": 0.4
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_position_2_blur2",
+        "cx": 380,
+        "cy": 340,
+        "r": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E63946",
+        "strokeWidth": 2,
+        "opacity": 0.6
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_position_2_main",
+        "cx": 380,
+        "cy": 350,
+        "r": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E63946",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "motion_line_1",
+        "x1": 370,
+        "y1": 320,
+        "x2": 390,
+        "y2": 360,
+        "stroke": "#888",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "motion_line_2",
+        "x1": 365,
+        "y1": 325,
+        "x2": 385,
+        "y2": 365,
+        "stroke": "#888",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "motion_line_3",
+        "x1": 375,
+        "y1": 315,
+        "x2": 395,
+        "y2": 355,
+        "stroke": "#888",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_position_3_blur1",
+        "cx": 680,
+        "cy": 510,
+        "r": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E63946",
+        "strokeWidth": 2,
+        "opacity": 0.3
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_position_3_blur2",
+        "cx": 680,
+        "cy": 520,
+        "r": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E63946",
+        "strokeWidth": 2,
+        "opacity": 0.5
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_position_3_blur3",
+        "cx": 680,
+        "cy": 525,
+        "r": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E63946",
+        "strokeWidth": 2,
+        "opacity": 0.7
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_position_3_main",
+        "cx": 680,
+        "cy": 530,
+        "r": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E63946",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "motion_line_4",
+        "x1": 670,
+        "y1": 500,
+        "x2": 690,
+        "y2": 540,
+        "stroke": "#888",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "motion_line_5",
+        "x1": 665,
+        "y1": 505,
+        "x2": 685,
+        "y2": 545,
+        "stroke": "#888",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "motion_line_6",
+        "x1": 675,
+        "y1": 495,
+        "x2": 695,
+        "y2": 535,
+        "stroke": "#888",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "height_h_arrow",
+        "x1": 120,
+        "y1": 150,
+        "x2": 120,
+        "y2": 550,
+        "stroke": "#2E8B57",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "height_h_label",
+        "x": 140,
+        "y": 350,
+        "text": "h",
+        "fontSize": 18,
+        "fill": "#2E8B57",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "height_half_arrow",
+        "x1": 400,
+        "y1": 350,
+        "x2": 400,
+        "y2": 550,
+        "stroke": "#2E8B57",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "height_half_label",
+        "expression": "\\frac{h}{2}",
+        "x": 420,
+        "y": 450,
+        "fontSize": 16,
+        "color": "#2E8B57"
+      },
+      {
+        "type": "svg_text",
+        "id": "height_zero_label",
+        "x": 700,
+        "y": 570,
+        "text": "0",
+        "fontSize": 18,
+        "fill": "#2E8B57",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "pe_label",
+        "expression": "\\text{Potential Energy} = mgh",
+        "x": 100,
+        "y": 100,
+        "fontSize": 14,
+        "color": "#4169E1"
+      },
+      {
+        "type": "svg_latex",
+        "id": "mixed_energy_label",
+        "expression": "\\text{Mixed PE and KE}",
+        "x": 380,
+        "y": 280,
+        "fontSize": 14,
+        "color": "#8A2BE2"
+      },
+      {
+        "type": "svg_latex",
+        "id": "ke_label",
+        "expression": "\\text{Kinetic Energy} = \\frac{1}{2}mv^2",
+        "x": 680,
+        "y": 460,
+        "fontSize": 14,
+        "color": "#DC143C"
+      },
+      {
+        "type": "svg_text",
+        "id": "position_1_label",
+        "x": 100,
+        "y": 250,
+        "text": "Position 1",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "position_2_label",
+        "x": 380,
+        "y": 420,
+        "text": "Position 2",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "position_3_label",
+        "x": 680,
+        "y": 590,
+        "text": "Position 3",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "ground_label",
+        "x": 450,
+        "y": 580,
+        "text": "Ground",
+        "fontSize": 14,
+        "fill": "#8B4513",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

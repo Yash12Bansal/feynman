@@ -1,0 +1,410 @@
+{
+  "prompt": "A clean, minimal double slit experiment setup showing: 1) A coherent light source (laser) on the left emitting a beam, 2) A barrier in the middle with two parallel vertical slits labeled \"Slit A\" and \"Slit B\", 3) A detection screen on the right showing the characteristic interference pattern with alternating bright and dark fringes. The light beam should be shown traveling from left to right. Include labels for \"Coherent Light Source\", \"Double Slit Barrier\", and \"Detection Screen\". The interference pattern should show clear bright and dark bands. Keep the design clean and educational with good contrast.",
+  "spec": {
+    "title": "Double Slit Experiment",
+    "description": "Classic quantum mechanics experiment showing wave interference through two parallel slits",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "laser_body",
+        "x": 50,
+        "y": 300,
+        "width": 80,
+        "height": 40,
+        "fill": "#333333",
+        "stroke": "#000000",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_circle",
+        "id": "laser_aperture",
+        "cx": 130,
+        "cy": 320,
+        "r": 8,
+        "fill": "#ff4444",
+        "stroke": "#000000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "laser_label",
+        "x": 90,
+        "y": 280,
+        "text": "Coherent Light Source",
+        "fontSize": 14,
+        "fill": "#333333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "incident_beam",
+        "x1": 138,
+        "y1": 320,
+        "x2": 380,
+        "y2": 320,
+        "stroke": "#ff6666",
+        "strokeWidth": 4
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier",
+        "x": 380,
+        "y": 200,
+        "width": 20,
+        "height": 240,
+        "fill": "#555555",
+        "stroke": "#000000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_a",
+        "x": 380,
+        "y": 280,
+        "width": 20,
+        "height": 8,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_b",
+        "x": 380,
+        "y": 352,
+        "width": 20,
+        "height": 8,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_a_label",
+        "x": 350,
+        "y": 290,
+        "text": "Slit A",
+        "fontSize": 12,
+        "fill": "#333333",
+        "textAnchor": "middle",
+        "fontWeight": "normal"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_b_label",
+        "x": 350,
+        "y": 362,
+        "text": "Slit B",
+        "fontSize": 12,
+        "fill": "#333333",
+        "textAnchor": "middle",
+        "fontWeight": "normal"
+      },
+      {
+        "type": "svg_text",
+        "id": "barrier_label",
+        "x": 390,
+        "y": 180,
+        "text": "Double Slit Barrier",
+        "fontSize": 14,
+        "fill": "#333333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_path",
+        "id": "wave_from_a_1",
+        "d": "M 400 284 Q 450 250 500 220 Q 550 190 600 200 Q 650 210 700 250",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_path",
+        "id": "wave_from_a_2",
+        "d": "M 400 284 Q 450 300 500 320 Q 550 340 600 360 Q 650 380 700 390",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_path",
+        "id": "wave_from_a_3",
+        "d": "M 400 284 Q 500 284 600 284 Q 650 284 700 320",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_path",
+        "id": "wave_from_b_1",
+        "d": "M 400 356 Q 450 390 500 420 Q 550 450 600 440 Q 650 430 700 390",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_path",
+        "id": "wave_from_b_2",
+        "d": "M 400 356 Q 450 340 500 320 Q 550 300 600 280 Q 650 260 700 250",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_path",
+        "id": "wave_from_b_3",
+        "d": "M 400 356 Q 500 356 600 356 Q 650 356 700 320",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_rect",
+        "id": "screen",
+        "x": 700,
+        "y": 200,
+        "width": 20,
+        "height": 240,
+        "fill": "#f0f0f0",
+        "stroke": "#000000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 710,
+        "y": 180,
+        "text": "Detection Screen",
+        "fontSize": 14,
+        "fill": "#333333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_1",
+        "x": 700,
+        "y": 315,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_fringe_1",
+        "x": 700,
+        "y": 305,
+        "width": 20,
+        "height": 10,
+        "fill": "#666666",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_2",
+        "x": 700,
+        "y": 295,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_fringe_2",
+        "x": 700,
+        "y": 285,
+        "width": 20,
+        "height": 10,
+        "fill": "#666666",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_3",
+        "x": 700,
+        "y": 275,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_fringe_3",
+        "x": 700,
+        "y": 265,
+        "width": 20,
+        "height": 10,
+        "fill": "#666666",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_4",
+        "x": 700,
+        "y": 255,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_fringe_4",
+        "x": 700,
+        "y": 245,
+        "width": 20,
+        "height": 10,
+        "fill": "#666666",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_5",
+        "x": 700,
+        "y": 235,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_fringe_5",
+        "x": 700,
+        "y": 325,
+        "width": 20,
+        "height": 10,
+        "fill": "#666666",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_6",
+        "x": 700,
+        "y": 335,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_fringe_6",
+        "x": 700,
+        "y": 345,
+        "width": 20,
+        "height": 10,
+        "fill": "#666666",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_7",
+        "x": 700,
+        "y": 355,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_fringe_7",
+        "x": 700,
+        "y": 365,
+        "width": 20,
+        "height": 10,
+        "fill": "#666666",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_8",
+        "x": 700,
+        "y": 375,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark_fringe_8",
+        "x": 700,
+        "y": 385,
+        "width": 20,
+        "height": 10,
+        "fill": "#666666",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright_fringe_9",
+        "x": 700,
+        "y": 395,
+        "width": 20,
+        "height": 10,
+        "fill": "#ffff99",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "bright_label",
+        "x": 750,
+        "y": 295,
+        "text": "Bright Fringes",
+        "fontSize": 12,
+        "fill": "#333333",
+        "textAnchor": "start",
+        "fontWeight": "normal"
+      },
+      {
+        "type": "svg_text",
+        "id": "dark_label",
+        "x": 750,
+        "y": 315,
+        "text": "Dark Fringes",
+        "fontSize": 12,
+        "fill": "#333333",
+        "textAnchor": "start",
+        "fontWeight": "normal"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "beam_direction",
+        "x1": 250,
+        "y1": 300,
+        "x2": 280,
+        "y2": 300,
+        "stroke": "#666666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "direction_label",
+        "x": 265,
+        "y": 290,
+        "text": "Light",
+        "fontSize": 11,
+        "fill": "#666666",
+        "textAnchor": "middle",
+        "fontWeight": "normal"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

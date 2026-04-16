@@ -3,6 +3,7 @@ import { useSession } from "./hooks/useSession";
 import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
 import { DevHarness } from "./screens/DevHarness";
+import { SplitBoardPrototype } from "./screens/SplitBoardPrototype";
 import { WaitingScreen } from "./screens/WaitingScreen";
 
 function useHash(): string {
@@ -20,6 +21,10 @@ export function App() {
 
   if (hash === "#/dev") {
     return <DevHarness />;
+  }
+
+  if (hash === "#/dev/split-board") {
+    return <SplitBoardPrototype />;
   }
 
   return <MainApp />;
@@ -71,6 +76,6 @@ function MainApp() {
   }
 
   return (
-    <WaitingScreen onStart={startSession} isLoading={status === "connecting"} />
+    <WaitingScreen onStart={(body) => startSession(body)} isLoading={status === "connecting"} />
   );
 }

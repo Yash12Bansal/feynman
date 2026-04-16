@@ -1,0 +1,289 @@
+{
+  "prompt": "Result when path is observed: the interference pattern disappears! Show a detection screen with just two bright spots corresponding to the two slits - no interference fringes, just particle-like behavior. Label it \"Result with Path Detection: No Interference Pattern\" with arrows pointing to \"Spot from Slit A\" and \"Spot from Slit B\". Make it clear this is completely different from the interference pattern.",
+  "spec": {
+    "title": "Path Detection Results: No Interference Pattern",
+    "description": "When which-path information is available, the wave interference pattern disappears and only particle-like behavior is observed",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "barrier",
+        "x": 200,
+        "y": 150,
+        "width": 20,
+        "height": 300,
+        "fill": "#555555",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_a",
+        "x": 200,
+        "y": 220,
+        "width": 20,
+        "height": 15,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_b",
+        "x": 200,
+        "y": 365,
+        "width": 20,
+        "height": 15,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_a_label",
+        "x": 180,
+        "y": 235,
+        "text": "Slit A",
+        "fontSize": 12,
+        "fill": "#333333",
+        "textAnchor": "end"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_b_label",
+        "x": 180,
+        "y": 380,
+        "text": "Slit B",
+        "fontSize": 12,
+        "fill": "#333333",
+        "textAnchor": "end"
+      },
+      {
+        "type": "svg_rect",
+        "id": "detector_a",
+        "x": 170,
+        "y": 200,
+        "width": 10,
+        "height": 50,
+        "fill": "#FF6B6B",
+        "stroke": "#D32F2F",
+        "strokeWidth": 2,
+        "rx": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "detector_b",
+        "x": 170,
+        "y": 350,
+        "width": 10,
+        "height": 50,
+        "fill": "#FF6B6B",
+        "stroke": "#D32F2F",
+        "strokeWidth": 2,
+        "rx": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "detector_label_a",
+        "x": 140,
+        "y": 230,
+        "text": "Path Detector",
+        "fontSize": 10,
+        "fill": "#D32F2F",
+        "textAnchor": "end"
+      },
+      {
+        "type": "svg_text",
+        "id": "detector_label_b",
+        "x": 140,
+        "y": 380,
+        "text": "Path Detector",
+        "fontSize": 10,
+        "fill": "#D32F2F",
+        "textAnchor": "end"
+      },
+      {
+        "type": "svg_rect",
+        "id": "screen",
+        "x": 600,
+        "y": 150,
+        "width": 20,
+        "height": 300,
+        "fill": "#f0f0f0",
+        "stroke": "#666666",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 630,
+        "y": 140,
+        "text": "Detection Screen",
+        "fontSize": 12,
+        "fill": "#333333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_circle",
+        "id": "spot_a",
+        "cx": 610,
+        "cy": 227.5,
+        "r": 12,
+        "fill": "#FFD700",
+        "stroke": "#FF8C00",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "spot_b",
+        "cx": 610,
+        "cy": 372.5,
+        "r": 12,
+        "fill": "#FFD700",
+        "stroke": "#FF8C00",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "ray_a",
+        "x1": 220,
+        "y1": 227.5,
+        "x2": 590,
+        "y2": 227.5,
+        "stroke": "#4682B4",
+        "strokeWidth": 3,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "ray_b",
+        "x1": 220,
+        "y1": 372.5,
+        "x2": 590,
+        "y2": 372.5,
+        "stroke": "#4682B4",
+        "strokeWidth": 3,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 50,
+        "text": "Result with Path Detection: No Interference Pattern",
+        "fontSize": 18,
+        "fill": "#D32F2F",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "arrow_to_spot_a",
+        "x1": 680,
+        "y1": 200,
+        "x2": 625,
+        "y2": 220,
+        "stroke": "#D32F2F",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "spot_a_explanation",
+        "x": 720,
+        "y": 200,
+        "text": "Spot from Slit A",
+        "fontSize": 14,
+        "fill": "#D32F2F",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "arrow_to_spot_b",
+        "x1": 680,
+        "y1": 400,
+        "x2": 625,
+        "y2": 380,
+        "stroke": "#D32F2F",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "spot_b_explanation",
+        "x": 720,
+        "y": 400,
+        "text": "Spot from Slit B",
+        "fontSize": 14,
+        "fill": "#D32F2F",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "particle_behavior",
+        "x": 450,
+        "y": 550,
+        "text": "PARTICLE-LIKE BEHAVIOR",
+        "fontSize": 16,
+        "fill": "#D32F2F",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "no_interference",
+        "x": 450,
+        "y": 580,
+        "text": "\u2022 No interference fringes \u2022 Two distinct spots \u2022 Which-path information destroys wave behavior",
+        "fontSize": 12,
+        "fill": "#555555",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "highlight_box",
+        "x": 590,
+        "y": 140,
+        "width": 40,
+        "height": 320,
+        "fill": "none",
+        "stroke": "#D32F2F",
+        "strokeWidth": 3,
+        "strokeDasharray": "10,5",
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "comparison_note",
+        "x": 100,
+        "y": 550,
+        "text": "Compare to double-slit without detectors:",
+        "fontSize": 12,
+        "fill": "#666666",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "comparison_detail",
+        "x": 100,
+        "y": 570,
+        "text": "Many alternating bright and dark fringes",
+        "fontSize": 12,
+        "fill": "#666666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_line",
+        "id": "divider",
+        "x1": 50,
+        "y1": 530,
+        "x2": 850,
+        "y2": 530,
+        "stroke": "#CCCCCC",
+        "strokeWidth": 2
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

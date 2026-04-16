@@ -1,0 +1,430 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Relative Motion and Chase Problems. Context: Relative motion problems involve analyzing the motion of objects from different reference frames. In chase problems, we typically have a pursuer and a target, each with different velocities and accelerations. The key is to set up equations for the positions of both objects as functions of time and find when they meet. Common scenarios include: (1) Constant velocity pursuer chasing an accelerating target, (2) Both objects having different accelerations, (3) One object having a head start. The general approach is to write position equations: x\u2081(t) for object 1 and x\u2082(t) for object 2, then solve ",
+  "spec": {
+    "title": "Relative Motion and Chase Problems",
+    "description": "Interactive diagram showing different chase scenarios with position-time analysis and relative velocity concepts",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 25,
+        "text": "Relative Motion and Chase Problems",
+        "fontSize": 20,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "ground_line",
+        "x": 50,
+        "y": 120,
+        "width": 600,
+        "height": 3,
+        "fill": "#333",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "ground_label",
+        "x": 350,
+        "y": 140,
+        "text": "Reference Line (x-axis)",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "pursuer",
+        "x": "50 + pursuer_pos * 50",
+        "y": 100,
+        "width": 30,
+        "height": 20,
+        "fill": "#4CAF50",
+        "stroke": "#2E7D32",
+        "strokeWidth": 2,
+        "rx": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "pursuer_label",
+        "x": "65 + pursuer_pos * 50",
+        "y": 95,
+        "text": "Pursuer",
+        "fontSize": 12,
+        "fill": "#2E7D32",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "target",
+        "x": "150 + target_pos * 50",
+        "y": 100,
+        "width": 30,
+        "height": 20,
+        "fill": "#FF5722",
+        "stroke": "#D84315",
+        "strokeWidth": 2,
+        "rx": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "target_label",
+        "x": "165 + target_pos * 50",
+        "y": 95,
+        "text": "Target",
+        "fontSize": 12,
+        "fill": "#D84315",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "pursuer_velocity",
+        "x1": "80 + pursuer_pos * 50",
+        "y1": 110,
+        "x2": "80 + pursuer_pos * 50 + v1 * 30",
+        "y2": 110,
+        "stroke": "#4CAF50",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "pursuer_v_label",
+        "expression": "v_1",
+        "x": "95 + pursuer_pos * 50 + v1 * 15",
+        "y": 105,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "target_velocity",
+        "x1": "180 + target_pos * 50",
+        "y1": 110,
+        "x2": "180 + target_pos * 50 + v2 * 30",
+        "y2": 110,
+        "stroke": "#FF5722",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "target_v_label",
+        "expression": "v_2",
+        "x": "195 + target_pos * 50 + v2 * 15",
+        "y": 105,
+        "fontSize": 14,
+        "color": "#FF5722"
+      },
+      {
+        "type": "svg_line",
+        "id": "position_line_1",
+        "x1": "65 + pursuer_pos * 50",
+        "y1": 120,
+        "x2": "65 + pursuer_pos * 50",
+        "y2": 160,
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_latex",
+        "id": "x1_label",
+        "expression": "x_1(t)",
+        "x": "65 + pursuer_pos * 50",
+        "y": 175,
+        "fontSize": 12,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_line",
+        "id": "position_line_2",
+        "x1": "165 + target_pos * 50",
+        "y1": 120,
+        "x2": "165 + target_pos * 50",
+        "y2": 160,
+        "stroke": "#FF5722",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_latex",
+        "id": "x2_label",
+        "expression": "x_2(t)",
+        "x": "165 + target_pos * 50",
+        "y": 175,
+        "fontSize": 12,
+        "color": "#FF5722"
+      },
+      {
+        "type": "svg_text",
+        "id": "scenario_title",
+        "x": 100,
+        "y": 210,
+        "text": "Chase Scenario Analysis",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_eq_1",
+        "expression": "x_1(t) = x_{01} + v_1 t + \\frac{1}{2}a_1 t^2",
+        "x": 100,
+        "y": 235,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_eq_2",
+        "expression": "x_2(t) = x_{02} + v_2 t + \\frac{1}{2}a_2 t^2",
+        "x": 100,
+        "y": 260,
+        "fontSize": 14,
+        "color": "#FF5722"
+      },
+      {
+        "type": "svg_text",
+        "id": "meet_condition",
+        "x": 100,
+        "y": 285,
+        "text": "Meeting Condition:",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "meet_eq",
+        "expression": "x_1(t) = x_2(t)",
+        "x": 100,
+        "y": 305,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_text",
+        "id": "relative_motion_title",
+        "x": 100,
+        "y": 340,
+        "text": "Relative Motion Analysis",
+        "fontSize": 16,
+        "fill": "#000",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "relative_velocity",
+        "expression": "v_{rel} = v_1 - v_2",
+        "x": 100,
+        "y": 365,
+        "fontSize": 14,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_latex",
+        "id": "relative_acceleration",
+        "expression": "a_{rel} = a_1 - a_2",
+        "x": 100,
+        "y": 390,
+        "fontSize": 14,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_latex",
+        "id": "separation_eq",
+        "expression": "\\Delta x(t) = x_2(t) - x_1(t)",
+        "x": 100,
+        "y": 415,
+        "fontSize": 14,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "graph",
+        "id": "position_time_graph",
+        "x": 500,
+        "y": 200,
+        "width": 350,
+        "height": 200,
+        "xDomain": [
+          0,
+          10
+        ],
+        "yDomain": [
+          0,
+          20
+        ],
+        "xLabel": "Time (s)",
+        "yLabel": "Position (m)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "pursuer_pos + v1 * x + 0.5 * a1 * x * x",
+            "color": "#4CAF50",
+            "strokeWidth": 3
+          },
+          {
+            "expression": "target_pos + 2 + v2 * x + 0.5 * a2 * x * x",
+            "color": "#FF5722",
+            "strokeWidth": 3
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_text",
+        "id": "graph_title",
+        "x": 675,
+        "y": 190,
+        "text": "Position vs Time",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_pursuer",
+        "x": 520,
+        "y": 425,
+        "text": "Pursuer trajectory",
+        "fontSize": 12,
+        "fill": "#4CAF50",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_target",
+        "x": 520,
+        "y": 445,
+        "text": "Target trajectory",
+        "fontSize": 12,
+        "fill": "#FF5722",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "common_scenarios",
+        "x": 100,
+        "y": 460,
+        "text": "Common Scenarios:",
+        "fontSize": 14,
+        "fill": "#000",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "scenario_1",
+        "x": 120,
+        "y": 485,
+        "text": "1. Constant velocity pursuer vs accelerating target",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "scenario_2",
+        "x": 120,
+        "y": 505,
+        "text": "2. Both objects with different accelerations",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "scenario_3",
+        "x": 120,
+        "y": 525,
+        "text": "3. Target has initial head start",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_insight",
+        "x": 100,
+        "y": 560,
+        "text": "Key Insight: Set position equations equal to find meeting time",
+        "fontSize": 14,
+        "fill": "#D32F2F",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "quadratic_solution",
+        "expression": "\\frac{1}{2}(a_1 - a_2)t^2 + (v_1 - v_2)t + (x_{01} - x_{02}) = 0",
+        "x": 100,
+        "y": 590,
+        "fontSize": 13,
+        "color": "#D32F2F"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "pursuer_pos",
+        "min": 0,
+        "max": 5,
+        "default": 0,
+        "step": 0.5,
+        "label": "Pursuer Initial Position"
+      },
+      {
+        "name": "target_pos",
+        "min": 0,
+        "max": 5,
+        "default": 2,
+        "step": 0.5,
+        "label": "Target Initial Position"
+      },
+      {
+        "name": "v1",
+        "min": 0,
+        "max": 3,
+        "default": 2,
+        "step": 0.2,
+        "label": "Pursuer Velocity (v\u2081)"
+      },
+      {
+        "name": "v2",
+        "min": 0,
+        "max": 3,
+        "default": 1,
+        "step": 0.2,
+        "label": "Target Velocity (v\u2082)"
+      },
+      {
+        "name": "a1",
+        "min": -0.5,
+        "max": 1,
+        "default": 0.2,
+        "step": 0.1,
+        "label": "Pursuer Acceleration (a\u2081)"
+      },
+      {
+        "name": "a2",
+        "min": -0.5,
+        "max": 1,
+        "default": 0,
+        "step": 0.1,
+        "label": "Target Acceleration (a\u2082)"
+      }
+    ],
+    "animations": []
+  }
+}

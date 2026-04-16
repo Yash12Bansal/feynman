@@ -1,0 +1,242 @@
+{
+  "prompt": "A horizontal spring-mass system showing a block attached to a spring. The spring is attached to a wall on the left, and a rectangular block (labeled \"m\") is attached to the right end of the spring. Show the equilibrium position with a dashed vertical line through the center of the block. Add position markers: maximum left displacement (-A), equilibrium (0), and maximum right displacement (+A) below the system. Use arrows to show the direction of motion at different positions. Make the spring coiled and realistic, and use clear labels.",
+  "spec": {
+    "title": "Horizontal Spring-Mass System",
+    "description": "A block attached to a spring showing simple harmonic motion with equilibrium position and amplitude markers",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "wall",
+        "x": 50,
+        "y": 250,
+        "width": 20,
+        "height": 100,
+        "fill": "#666",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_path",
+        "id": "spring",
+        "d": "M 70 300 L 120 300 L 130 280 L 150 320 L 170 280 L 190 320 L 210 280 L 230 320 L 250 280 L 270 320 L 290 280 L 310 320 L 330 280 L 350 320 L 370 280 L 390 320 L 410 300 L 460 300",
+        "stroke": "#4682b4",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "block",
+        "x": 460,
+        "y": 260,
+        "width": 80,
+        "height": 80,
+        "fill": "#e8e8e8",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "mass_label",
+        "expression": "m",
+        "x": 500,
+        "y": 305,
+        "fontSize": 24,
+        "color": "#333"
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line",
+        "x1": 500,
+        "y1": 200,
+        "x2": 500,
+        "y2": 380,
+        "stroke": "#888",
+        "strokeWidth": 2,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_label",
+        "expression": "\\text{Equilibrium}",
+        "x": 500,
+        "y": 190,
+        "fontSize": 14,
+        "color": "#666"
+      },
+      {
+        "type": "svg_line",
+        "id": "ground_line",
+        "x1": 200,
+        "y1": 450,
+        "x2": 800,
+        "y2": 450,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "left_marker_line",
+        "x1": 300,
+        "y1": 440,
+        "x2": 300,
+        "y2": 460,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "center_marker_line",
+        "x1": 500,
+        "y1": 440,
+        "x2": 500,
+        "y2": 460,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "right_marker_line",
+        "x1": 700,
+        "y1": 440,
+        "x2": 700,
+        "y2": 460,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "left_position_label",
+        "expression": "-A",
+        "x": 300,
+        "y": 480,
+        "fontSize": 18,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "center_position_label",
+        "expression": "0",
+        "x": 500,
+        "y": 480,
+        "fontSize": 18,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "right_position_label",
+        "expression": "+A",
+        "x": 700,
+        "y": 480,
+        "fontSize": 18,
+        "color": "#333"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "left_velocity_arrow",
+        "x1": 300,
+        "y1": 400,
+        "x2": 350,
+        "y2": 400,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "left_velocity_label",
+        "expression": "v_{\\text{max}}",
+        "x": 325,
+        "y": 390,
+        "fontSize": 14,
+        "color": "#FF6B6B"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "right_velocity_arrow",
+        "x1": 700,
+        "y1": 400,
+        "x2": 650,
+        "y2": 400,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "right_velocity_label",
+        "expression": "v_{\\text{max}}",
+        "x": 675,
+        "y": 390,
+        "fontSize": 14,
+        "color": "#FF6B6B"
+      },
+      {
+        "type": "svg_circle",
+        "id": "equilibrium_velocity_dot",
+        "cx": 500,
+        "cy": 400,
+        "r": 4,
+        "fill": "#4CAF50",
+        "stroke": "#2E7D32",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_velocity_label",
+        "expression": "v = 0",
+        "x": 500,
+        "y": 385,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "left_extreme_label",
+        "expression": "v = 0",
+        "x": 300,
+        "y": 420,
+        "fontSize": 12,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "right_extreme_label",
+        "expression": "v = 0",
+        "x": 700,
+        "y": 420,
+        "fontSize": 12,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "title",
+        "expression": "\\text{Simple Harmonic Motion: Spring-Mass System}",
+        "x": 450,
+        "y": 50,
+        "fontSize": 20,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_description",
+        "expression": "A = \\text{amplitude (maximum displacement)}",
+        "x": 450,
+        "y": 550,
+        "fontSize": 16,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "motion_description",
+        "expression": "\\text{Block oscillates between } -A \\text{ and } +A",
+        "x": 450,
+        "y": 580,
+        "fontSize": 14,
+        "color": "#666"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

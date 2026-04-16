@@ -228,13 +228,16 @@ class TestBuildPromptFromGraphNode:
         assert prompt is not None
         assert "Newton's First Law" in prompt  # prereq from edge n1→n2
 
-    def test_non_visual_node_returns_none(self):
+    def test_node_with_summary_returns_prompt(self):
+        """Every node with a summary gets a prompt — the design agent can
+        always create a useful teaching diagram from rich curriculum text."""
         graph = _MockConceptGraph(
             "Math",
             [_MockGraphNode("m1", "Algebraic Simplification", "Simplify expressions by combining like terms and factoring polynomials.")],
         )
         prompt = _build_prompt_from_graph_node(graph.nodes["m1"], graph)
-        assert prompt is None
+        assert prompt is not None
+        assert "Algebraic Simplification" in prompt
 
 
 # ── AnticipationEngine tests ──────────────────────────────
@@ -319,15 +322,16 @@ class TestAnticipationEngine:
         assert result is not None
 
     def test_match_no_hit(self):
+        """No cache entry for concept 5 and Jaccard too low for ±1 adjacent."""
         engine = AnticipationEngine()
         engine._cache[(0, 0)] = {"title": "X", "elements": []}
         engine._prompts[(0, 0)] = "Draw a circuit diagram with resistors"
 
         result = engine.match(
             "Draw a free body diagram of gravitational forces",
-            concept_index=0,
+            concept_index=5,  # far from concept 0 — no direct hit, no adjacent
         )
-        assert result is None  # completely different content
+        assert result is None
 
     @pytest.mark.asyncio
     async def test_skips_already_cached(self):
@@ -541,3 +545,56 @@ class TestLoweredThreshold:
             concept_index=1,
         )
         assert result is None
+
+
+class TestConceptIndexDirectMatch:
+    """Direct concept-index matching bypasses Jaccard for same-concept hits."""
+
+    def test_direct_hit_ignores_prompt_wording(self):
+        """Cache hit purely by concept index, even with zero token overlap."""
+        engine = AnticipationEngine()
+        spec = {"title": "SHM", "elements": [{"id": "e1"}]}
+        engine._cache[(2, 0)] = spec
+        engine._prompts[(2, 0)] = "Draw a detailed educational diagram for: SHM"
+
+        # Completely different wording — Jaccard would score ~0
+        result = engine.match(
+            "A pendulum swinging back and forth between two extremes",
+            concept_index=2,
+        )
+        assert result is not None
+        assert result["title"] == "SHM"
+
+    def test_direct_hit_prefers_suggestion_zero(self):
+        """When multiple suggestions cached for a concept, returns index 0."""
+        engine = AnticipationEngine()
+        engine._cache[(1, 0)] = {"title": "First", "elements": []}
+        engine._cache[(1, 1)] = {"title": "Second", "elements": []}
+        engine._prompts[(1, 0)] = "prompt zero"
+        engine._prompts[(1, 1)] = "prompt one"
+
+        result = engine.match("anything", concept_index=1)
+        assert result is not None
+        assert result["title"] == "First"
+
+    def test_no_direct_hit_for_wrong_concept(self):
+        """Concept index mismatch falls through to Jaccard loop."""
+        engine = AnticipationEngine()
+        engine._cache[(2, 0)] = {"title": "Wrong", "elements": []}
+        engine._prompts[(2, 0)] = "completely unrelated words about circuits"
+
+        result = engine.match(
+            "even more unrelated words about biology",
+            concept_index=5,
+        )
+        assert result is None  # no direct hit, Jaccard also misses
+
+    def test_direct_hit_audit_event(self):
+        """Concept-index hit records audit event."""
+        audit = SessionAudit()
+        engine = AnticipationEngine(audit=audit)
+        engine._cache[(0, 0)] = {"title": "Test", "elements": []}
+        engine._prompts[(0, 0)] = "cached prompt"
+
+        engine.match("any prompt", concept_index=0)
+        assert audit.count("anticipation", "concept_index_hit") == 1

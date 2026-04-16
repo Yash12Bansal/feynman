@@ -1,0 +1,538 @@
+{
+  "prompt": "A proper double-slit experiment showing wave interference: A coherent light source on the left emitting circular wave fronts, a barrier in the middle with two parallel slits labeled \"Slit A\" and \"Slit B\", and semicircular waves emerging from each slit that overlap and interfere. Show the wave fronts as concentric circles from the source, then as semicircular waves emanating from each slit. On the detection screen, show the resulting interference pattern with bright and dark fringes. Include constructive interference (bright fringes) where waves add up, and destructive interference (dark fringes) where waves cancel. Make the wave nature clear with proper wave front visualization.",
+  "spec": {
+    "title": "Double-Slit Interference",
+    "description": "Coherent light waves passing through two slits create an interference pattern on the detection screen",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "title",
+        "x": 450,
+        "y": 30,
+        "text": "Double-Slit Wave Interference",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "source",
+        "cx": 80,
+        "cy": 325,
+        "r": 8,
+        "fill": "#ff6b6b",
+        "stroke": "#d63031",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "source_label",
+        "x": 80,
+        "y": 350,
+        "text": "Coherent Source",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "wave1",
+        "cx": 80,
+        "cy": 325,
+        "r": 60,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "strokeDasharray": ""
+      },
+      {
+        "type": "svg_circle",
+        "id": "wave2",
+        "cx": 80,
+        "cy": 325,
+        "r": 100,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "strokeDasharray": ""
+      },
+      {
+        "type": "svg_circle",
+        "id": "wave3",
+        "cx": 80,
+        "cy": 325,
+        "r": 140,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "strokeDasharray": ""
+      },
+      {
+        "type": "svg_circle",
+        "id": "wave4",
+        "cx": 80,
+        "cy": 325,
+        "r": 180,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "strokeDasharray": ""
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier",
+        "x": 300,
+        "y": 200,
+        "width": 20,
+        "height": 250,
+        "fill": "#555",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_a",
+        "x": 300,
+        "y": 280,
+        "width": 20,
+        "height": 15,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_b",
+        "x": 300,
+        "y": 355,
+        "width": 20,
+        "height": 15,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_a_label",
+        "x": 250,
+        "y": 290,
+        "text": "Slit A",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_b_label",
+        "x": 250,
+        "y": 365,
+        "text": "Slit B",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arc",
+        "id": "slit_a_wave1",
+        "cx": 320,
+        "cy": 287.5,
+        "r": 40,
+        "startAngle": -90,
+        "endAngle": 90,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "slit_a_wave2",
+        "cx": 320,
+        "cy": 287.5,
+        "r": 80,
+        "startAngle": -90,
+        "endAngle": 90,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "slit_a_wave3",
+        "cx": 320,
+        "cy": 287.5,
+        "r": 120,
+        "startAngle": -90,
+        "endAngle": 90,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "slit_a_wave4",
+        "cx": 320,
+        "cy": 287.5,
+        "r": 160,
+        "startAngle": -90,
+        "endAngle": 90,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "slit_b_wave1",
+        "cx": 320,
+        "cy": 362.5,
+        "r": 40,
+        "startAngle": -90,
+        "endAngle": 90,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "slit_b_wave2",
+        "cx": 320,
+        "cy": 362.5,
+        "r": 80,
+        "startAngle": -90,
+        "endAngle": 90,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "slit_b_wave3",
+        "cx": 320,
+        "cy": 362.5,
+        "r": 120,
+        "startAngle": -90,
+        "endAngle": 90,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arc",
+        "id": "slit_b_wave4",
+        "cx": 320,
+        "cy": 362.5,
+        "r": 160,
+        "startAngle": -90,
+        "endAngle": 90,
+        "fill": "none",
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "screen",
+        "x": 700,
+        "y": 150,
+        "width": 15,
+        "height": 350,
+        "fill": "#f8f9fa",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 750,
+        "y": 140,
+        "text": "Detection Screen",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright1",
+        "x": 700,
+        "y": 320,
+        "width": 15,
+        "height": 10,
+        "fill": "#ffeb3b",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright2",
+        "x": 700,
+        "y": 280,
+        "width": 15,
+        "height": 8,
+        "fill": "#ffeb3b",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright3",
+        "x": 700,
+        "y": 360,
+        "width": 15,
+        "height": 8,
+        "fill": "#ffeb3b",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright4",
+        "x": 700,
+        "y": 240,
+        "width": 15,
+        "height": 6,
+        "fill": "#ffeb3b",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright5",
+        "x": 700,
+        "y": 400,
+        "width": 15,
+        "height": 6,
+        "fill": "#ffeb3b",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright6",
+        "x": 700,
+        "y": 200,
+        "width": 15,
+        "height": 4,
+        "fill": "#ffeb3b",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "bright7",
+        "x": 700,
+        "y": 440,
+        "width": 15,
+        "height": 4,
+        "fill": "#ffeb3b",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark1",
+        "x": 700,
+        "y": 300,
+        "width": 15,
+        "height": 5,
+        "fill": "#424242",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark2",
+        "x": 700,
+        "y": 340,
+        "width": 15,
+        "height": 5,
+        "fill": "#424242",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark3",
+        "x": 700,
+        "y": 260,
+        "width": 15,
+        "height": 5,
+        "fill": "#424242",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark4",
+        "x": 700,
+        "y": 380,
+        "width": 15,
+        "height": 5,
+        "fill": "#424242",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark5",
+        "x": 700,
+        "y": 220,
+        "width": 15,
+        "height": 4,
+        "fill": "#424242",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "dark6",
+        "x": 700,
+        "y": 420,
+        "width": 15,
+        "height": 4,
+        "fill": "#424242",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_line",
+        "id": "constructive_line1",
+        "x1": 320,
+        "y1": 287.5,
+        "x2": 700,
+        "y2": 325,
+        "stroke": "#4caf50",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "constructive_line2",
+        "x1": 320,
+        "y1": 362.5,
+        "x2": 700,
+        "y2": 325,
+        "stroke": "#4caf50",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "destructive_line1",
+        "x1": 320,
+        "y1": 287.5,
+        "x2": 700,
+        "y2": 300,
+        "stroke": "#f44336",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "destructive_line2",
+        "x1": 320,
+        "y1": 362.5,
+        "x2": 700,
+        "y2": 300,
+        "stroke": "#f44336",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "constructive_label",
+        "x": 500,
+        "y": 315,
+        "text": "Equal path lengths",
+        "fontSize": 10,
+        "fill": "#4caf50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "constructive_label2",
+        "x": 500,
+        "y": 328,
+        "text": "Constructive interference",
+        "fontSize": 10,
+        "fill": "#4caf50",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "destructive_label",
+        "x": 500,
+        "y": 280,
+        "text": "Path difference = \u03bb/2",
+        "fontSize": 10,
+        "fill": "#f44336",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "destructive_label2",
+        "x": 500,
+        "y": 293,
+        "text": "Destructive interference",
+        "fontSize": 10,
+        "fill": "#f44336",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "bright_arrow",
+        "x1": 740,
+        "y1": 325,
+        "x2": 780,
+        "y2": 325,
+        "stroke": "#ffeb3b",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "bright_text",
+        "x": 790,
+        "y": 330,
+        "text": "Bright fringes",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "dark_arrow",
+        "x1": 740,
+        "y1": 302,
+        "x2": 780,
+        "y2": 302,
+        "stroke": "#424242",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "dark_text",
+        "x": 790,
+        "y": 307,
+        "text": "Dark fringes",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "theory1",
+        "x": 450,
+        "y": 550,
+        "expression": "\\text{Constructive: } \\delta = n\\lambda \\text{ where } n = 0, \\pm1, \\pm2, ...",
+        "fontSize": 14,
+        "color": "#4caf50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "theory2",
+        "x": 450,
+        "y": 580,
+        "expression": "\\text{Destructive: } \\delta = (n + \\frac{1}{2})\\lambda \\text{ where } n = 0, \\pm1, \\pm2, ...",
+        "fontSize": 14,
+        "color": "#f44336"
+      },
+      {
+        "type": "svg_latex",
+        "id": "theory3",
+        "x": 450,
+        "y": 610,
+        "expression": "\\text{Path difference: } \\delta = |r_A - r_B|",
+        "fontSize": 14,
+        "color": "#333"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

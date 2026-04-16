@@ -1,0 +1,283 @@
+{
+  "prompt": "A vertical diagram showing a ball at three different positions during free fall: 1) At the top (height h) with the ball at rest, labeled \"Position A\", 2) At middle height (h/2) with the ball moving downward, labeled \"Position B\", 3) At ground level (height 0) with the ball moving fastest, labeled \"Position C\". Include a vertical height scale on the left showing h, h/2, and 0. Draw velocity arrows showing v=0 at top, medium velocity at middle, and maximum velocity at bottom. Add ground level as a reference line. Use clear labels for each position and include gravitational acceleration 'g' pointing downward.",
+  "spec": {
+    "title": "Free Fall Motion Diagram",
+    "description": "A ball falling under gravity showing three positions with corresponding velocities",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_line",
+        "id": "height_scale",
+        "x1": 100,
+        "y1": 150,
+        "x2": 100,
+        "y2": 550,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "ground_line",
+        "x1": 50,
+        "y1": 550,
+        "x2": 850,
+        "y2": 550,
+        "stroke": "#8B4513",
+        "strokeWidth": 4
+      },
+      {
+        "type": "svg_text",
+        "id": "ground_label",
+        "x": 780,
+        "y": 540,
+        "text": "Ground Level",
+        "fontSize": 14,
+        "fill": "#8B4513",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "h_tick",
+        "x1": 95,
+        "y1": 150,
+        "x2": 105,
+        "y2": 150,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "h2_tick",
+        "x1": 95,
+        "y1": 350,
+        "x2": 105,
+        "y2": 350,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "zero_tick",
+        "x1": 95,
+        "y1": 550,
+        "x2": 105,
+        "y2": 550,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "h_label",
+        "expression": "h",
+        "x": 80,
+        "y": 155,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "h2_label",
+        "expression": "\\frac{h}{2}",
+        "x": 80,
+        "y": 355,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "zero_label",
+        "expression": "0",
+        "x": 80,
+        "y": 555,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_a",
+        "cx": 300,
+        "cy": 150,
+        "r": 20,
+        "stroke": "#333",
+        "fill": "#FF6B6B",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "position_a_label",
+        "x": 300,
+        "y": 120,
+        "text": "Position A",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_a_label",
+        "expression": "v = 0",
+        "x": 380,
+        "y": 155,
+        "fontSize": 14,
+        "color": "#666"
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_b",
+        "cx": 500,
+        "cy": 350,
+        "r": 20,
+        "stroke": "#333",
+        "fill": "#4ECDC4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "position_b_label",
+        "x": 500,
+        "y": 320,
+        "text": "Position B",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "velocity_b_arrow",
+        "x1": 500,
+        "y1": 380,
+        "x2": 500,
+        "y2": 430,
+        "stroke": "#4682B4",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_b_label",
+        "expression": "v = \\sqrt{gh}",
+        "x": 580,
+        "y": 410,
+        "fontSize": 14,
+        "color": "#4682B4"
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball_c",
+        "cx": 700,
+        "cy": 550,
+        "r": 20,
+        "stroke": "#333",
+        "fill": "#45B7D1",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "position_c_label",
+        "x": 700,
+        "y": 520,
+        "text": "Position C",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "velocity_c_arrow",
+        "x1": 700,
+        "y1": 580,
+        "x2": 700,
+        "y2": 650,
+        "stroke": "#1E88E5",
+        "strokeWidth": 4
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_c_label",
+        "expression": "v = \\sqrt{2gh}",
+        "x": 780,
+        "y": 615,
+        "fontSize": 14,
+        "color": "#1E88E5"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "gravity_arrow_1",
+        "x1": 200,
+        "y1": 200,
+        "x2": 200,
+        "y2": 250,
+        "stroke": "#4CAF50",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "gravity_arrow_2",
+        "x1": 200,
+        "y1": 300,
+        "x2": 200,
+        "y2": 350,
+        "stroke": "#4CAF50",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "gravity_arrow_3",
+        "x1": 200,
+        "y1": 400,
+        "x2": 200,
+        "y2": 450,
+        "stroke": "#4CAF50",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "gravity_label",
+        "expression": "g",
+        "x": 220,
+        "y": 320,
+        "fontSize": 16,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_text",
+        "id": "height_scale_title",
+        "x": 60,
+        "y": 90,
+        "text": "Height",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "trajectory_line",
+        "x1": 300,
+        "y1": 150,
+        "x2": 700,
+        "y2": 550,
+        "stroke": "#999",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "trajectory_label",
+        "x": 450,
+        "y": 280,
+        "text": "Path of ball",
+        "fontSize": 12,
+        "fill": "#999",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

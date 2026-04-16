@@ -1,0 +1,286 @@
+{
+  "prompt": "A diagram showing the equilibrium position concept in SHM. Draw a horizontal line representing the equilibrium position (label it \"Equilibrium Position\" and \"Net Force = 0\"). Above and below this line, show a particle at different positions with arrows representing forces. At equilibrium, show the particle with no force arrows. Above equilibrium, show the particle with a downward restoring force arrow (red). Below equilibrium, show the particle with an upward restoring force arrow (red). Include a coordinate system with the equilibrium position at x=0. Add text explaining \"All forces balanced\" at equilibrium and \"Restoring force always points toward equilibrium\" for the other positions.",
+  "spec": {
+    "title": "Equilibrium Position in Simple Harmonic Motion",
+    "description": "Shows how restoring forces act on a particle in SHM relative to the equilibrium position",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line",
+        "x1": 150,
+        "y1": 325,
+        "x2": 750,
+        "y2": 325,
+        "stroke": "#2E7D32",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "x_axis",
+        "x1": 120,
+        "y1": 325,
+        "x2": 780,
+        "y2": 325,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "y_axis",
+        "x1": 450,
+        "y1": 150,
+        "x2": 450,
+        "y2": 500,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "x_axis_arrow",
+        "x1": 750,
+        "y1": 325,
+        "x2": 780,
+        "y2": 325,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "y_axis_arrow",
+        "x1": 450,
+        "y1": 180,
+        "x2": 450,
+        "y2": 150,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "x_label",
+        "expression": "x",
+        "x": 790,
+        "y": 335,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "origin_label",
+        "expression": "x = 0",
+        "x": 430,
+        "y": 345,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_circle",
+        "id": "particle_above",
+        "cx": 450,
+        "cy": 225,
+        "r": 12,
+        "fill": "#1976D2",
+        "stroke": "#0D47A1",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "particle_equilibrium",
+        "cx": 450,
+        "cy": 325,
+        "r": 12,
+        "fill": "#2E7D32",
+        "stroke": "#1B5E20",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "particle_below",
+        "cx": 450,
+        "cy": 425,
+        "r": 12,
+        "fill": "#1976D2",
+        "stroke": "#0D47A1",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "force_down",
+        "x1": 450,
+        "y1": 240,
+        "x2": 450,
+        "y2": 300,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_arrow",
+        "id": "force_up",
+        "x1": 450,
+        "y1": 410,
+        "x2": 450,
+        "y2": 350,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_down_label",
+        "expression": "\\vec{F}_{\\text{restoring}}",
+        "x": 490,
+        "y": 270,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_up_label",
+        "expression": "\\vec{F}_{\\text{restoring}}",
+        "x": 490,
+        "y": 380,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_text",
+        "id": "equilibrium_label",
+        "x": 600,
+        "y": 315,
+        "text": "Equilibrium Position",
+        "fontSize": 16,
+        "fill": "#2E7D32",
+        "fontWeight": "bold",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "net_force_zero",
+        "expression": "\\text{Net Force} = 0",
+        "x": 600,
+        "y": 340,
+        "fontSize": 14,
+        "color": "#2E7D32"
+      },
+      {
+        "type": "svg_text",
+        "id": "forces_balanced",
+        "x": 520,
+        "y": 325,
+        "text": "All forces balanced",
+        "fontSize": 12,
+        "fill": "#2E7D32",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_above_label",
+        "expression": "x > 0",
+        "x": 480,
+        "y": 225,
+        "fontSize": 12,
+        "color": "#1976D2"
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_below_label",
+        "expression": "x < 0",
+        "x": 480,
+        "y": 425,
+        "fontSize": 12,
+        "color": "#1976D2"
+      },
+      {
+        "type": "svg_rect",
+        "id": "explanation_box",
+        "x": 50,
+        "y": 520,
+        "width": 800,
+        "height": 100,
+        "fill": "#f8f9fa",
+        "stroke": "#dee2e6",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_title",
+        "x": 450,
+        "y": 545,
+        "text": "Key Concept:",
+        "fontSize": 16,
+        "fill": "#333",
+        "fontWeight": "bold",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_text",
+        "x": 450,
+        "y": 570,
+        "text": "Restoring force always points toward equilibrium",
+        "fontSize": 14,
+        "fill": "#D32F2F",
+        "fontWeight": "bold",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_detail",
+        "x": 450,
+        "y": 590,
+        "text": "This creates the oscillatory motion characteristic of SHM",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "dashed_line_above",
+        "x1": 150,
+        "y1": 225,
+        "x2": 750,
+        "y2": 225,
+        "stroke": "#999",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "dashed_line_below",
+        "x1": 150,
+        "y1": 425,
+        "x2": 750,
+        "y2": 425,
+        "stroke": "#999",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "vertical_reference_above",
+        "x1": 450,
+        "y1": 225,
+        "x2": 450,
+        "y2": 325,
+        "stroke": "#ccc",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_line",
+        "id": "vertical_reference_below",
+        "x1": 450,
+        "y1": 325,
+        "x2": 450,
+        "y2": 425,
+        "stroke": "#ccc",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

@@ -1,0 +1,452 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Key Parameters of SHM. Context: SHM is characterized by several fundamental parameters: (1) Amplitude (A): Maximum displacement from equilibrium, determines the range of motion (-A to +A). (2) Time Period (T): Time for one complete oscillation, T = 2\u03c0/\u03c9 = 2\u03c0\u221a(m/k). (3) Frequency (f): Number of oscillations per unit time, f = 1/T = \u03c9/2\u03c0 = (1/2\u03c0)\u221a(k/m), measured in Hz. (4) Angular Frequency (\u03c9): \u03c9 = 2\u03c0f = \u221a(k/m), determines how rapidly the phase changes. (5) Phase (\u03c9t + \u03b4): Determines the instantaneous state of the oscillator. (6) Phase Constant (\u03b4): Depends on initial conditions, can be chosen based on when t=0 is defined. Ex",
+  "spec": {
+    "title": "Key Parameters of Simple Harmonic Motion (SHM)",
+    "description": "Complete visualization of SHM parameters: amplitude, period, frequency, angular frequency, phase, and phase constant with interactive controls",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 25,
+        "text": "Key Parameters of Simple Harmonic Motion",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "spring_mass_system",
+        "x": 50,
+        "y": 60,
+        "width": 300,
+        "height": 180,
+        "fill": "#f8f9fa",
+        "stroke": "#dee2e6",
+        "strokeWidth": 2,
+        "rx": 8
+      },
+      {
+        "type": "svg_text",
+        "id": "system_label",
+        "x": 200,
+        "y": 80,
+        "text": "Spring-Mass System",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "spring_fixed_end",
+        "x1": 80,
+        "y1": 100,
+        "x2": 80,
+        "y2": 200,
+        "stroke": "#666",
+        "strokeWidth": 4
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coils",
+        "d": "M 80 140 L 90 135 L 110 145 L 130 135 L 150 145 L 170 135 L 190 145 L 210 135 L 220 140",
+        "stroke": "#4682b4",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass_block",
+        "x": "210 + 30*sin(angular_freq*time + phase_const)",
+        "y": 125,
+        "width": 30,
+        "height": 30,
+        "fill": "#ff6b6b",
+        "stroke": "#e03131",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_label",
+        "x": "225 + 30*sin(angular_freq*time + phase_const)",
+        "y": 175,
+        "text": "m",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line",
+        "x1": 225,
+        "y1": 90,
+        "x2": 225,
+        "y2": 210,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "equilibrium_label",
+        "x": 235,
+        "y": 95,
+        "text": "Equilibrium",
+        "fontSize": 10,
+        "fill": "#666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "amplitude_arrow_right",
+        "x1": 225,
+        "y2": 220,
+        "x2": "225 + 30*amplitude",
+        "y1": 220,
+        "stroke": "#e03131",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "amplitude_arrow_left",
+        "x1": 225,
+        "y1": 220,
+        "x2": "225 - 30*amplitude",
+        "y2": 220,
+        "stroke": "#e03131",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_label",
+        "x": 280,
+        "y": 225,
+        "expression": "A",
+        "fontSize": 14,
+        "color": "#e03131"
+      },
+      {
+        "type": "graph",
+        "id": "position_vs_time",
+        "x": 380,
+        "y": 60,
+        "width": 480,
+        "height": 180,
+        "xDomain": [
+          0,
+          12
+        ],
+        "yDomain": [
+          -2,
+          2
+        ],
+        "xLabel": "Time (s)",
+        "yLabel": "Position",
+        "backgroundColor": "#f8f9fa",
+        "borderColor": "#dee2e6",
+        "showGrid": true,
+        "curves": [
+          {
+            "expression": "amplitude * sin(angular_freq * x + phase_const)",
+            "color": "#4682b4",
+            "strokeWidth": 3
+          }
+        ]
+      },
+      {
+        "type": "svg_text",
+        "id": "position_graph_title",
+        "x": 620,
+        "y": 50,
+        "text": "Position vs Time",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "parameters_box",
+        "x": 50,
+        "y": 270,
+        "width": 810,
+        "height": 320,
+        "fill": "#f8f9fa",
+        "stroke": "#dee2e6",
+        "strokeWidth": 2,
+        "rx": 8
+      },
+      {
+        "type": "svg_text",
+        "id": "parameters_title",
+        "x": 455,
+        "y": 295,
+        "text": "SHM Parameters & Formulas",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_formula",
+        "x": 80,
+        "y": 330,
+        "expression": "\\text{1. Amplitude (A):}",
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_description",
+        "x": 100,
+        "y": 355,
+        "expression": "\\text{Maximum displacement from equilibrium}",
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_range",
+        "x": 100,
+        "y": 375,
+        "expression": "\\text{Range of motion: } -A \\leq x \\leq +A",
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "period_formula",
+        "x": 450,
+        "y": 330,
+        "expression": "\\text{2. Time Period (T):}",
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "period_description",
+        "x": 470,
+        "y": 355,
+        "expression": "\\text{Time for one complete oscillation}",
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "period_equation",
+        "x": 470,
+        "y": 375,
+        "expression": "T = \\frac{2\\pi}{\\omega} = 2\\pi\\sqrt{\\frac{m}{k}}",
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "frequency_formula",
+        "x": 80,
+        "y": 410,
+        "expression": "\\text{3. Frequency (f):}",
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "frequency_description",
+        "x": 100,
+        "y": 435,
+        "expression": "\\text{Number of oscillations per unit time}",
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "frequency_equation",
+        "x": 100,
+        "y": 455,
+        "expression": "f = \\frac{1}{T} = \\frac{\\omega}{2\\pi} = \\frac{1}{2\\pi}\\sqrt{\\frac{k}{m}} \\text{ (Hz)}",
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "angular_freq_formula",
+        "x": 450,
+        "y": 410,
+        "expression": "\\text{4. Angular Frequency (}\\omega\\text{):}",
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "angular_freq_description",
+        "x": 470,
+        "y": 435,
+        "expression": "\\text{Rate of change of phase}",
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "angular_freq_equation",
+        "x": 470,
+        "y": 455,
+        "expression": "\\omega = 2\\pi f = \\sqrt{\\frac{k}{m}} \\text{ (rad/s)}",
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_formula",
+        "x": 80,
+        "y": 490,
+        "expression": "\\text{5. Phase (}\\phi\\text{):}",
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_description",
+        "x": 100,
+        "y": 515,
+        "expression": "\\text{Instantaneous state of oscillator}",
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_equation",
+        "x": 100,
+        "y": 535,
+        "expression": "\\phi = \\omega t + \\delta",
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_const_formula",
+        "x": 450,
+        "y": 490,
+        "expression": "\\text{6. Phase Constant (}\\delta\\text{):}",
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_const_description",
+        "x": 470,
+        "y": 515,
+        "expression": "\\text{Depends on initial conditions}",
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "phase_const_equation",
+        "x": 470,
+        "y": 535,
+        "expression": "\\text{Determined by } x(0) \\text{ and } v(0)",
+        "fontSize": 12,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "general_solution",
+        "x": 80,
+        "y": 570,
+        "expression": "\\text{General Solution: } x(t) = A\\sin(\\omega t + \\delta)",
+        "fontSize": 14,
+        "color": "#e03131"
+      },
+      {
+        "type": "svg_line",
+        "id": "period_indicator1",
+        "x": 410,
+        "y": 260,
+        "x2": 410,
+        "y2": 250,
+        "x1": 410,
+        "stroke": "#ff6b6b",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "period_indicator2",
+        "x": "410 + 60*period",
+        "y": 260,
+        "x2": "410 + 60*period",
+        "y2": 250,
+        "x1": "410 + 60*period",
+        "stroke": "#ff6b6b",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "period_arrow",
+        "x1": 410,
+        "y1": 255,
+        "x2": "410 + 60*period",
+        "y2": 255,
+        "stroke": "#ff6b6b",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "period_label_graph",
+        "x": "410 + 30*period",
+        "y": 250,
+        "expression": "T",
+        "fontSize": 12,
+        "color": "#ff6b6b"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "amplitude",
+        "min": 0.5,
+        "max": 2.0,
+        "default": 1.0,
+        "step": 0.1,
+        "label": "Amplitude (A)"
+      },
+      {
+        "name": "angular_freq",
+        "min": 0.5,
+        "max": 3.0,
+        "default": 1.0,
+        "step": 0.1,
+        "label": "Angular Frequency (\u03c9)"
+      },
+      {
+        "name": "phase_const",
+        "min": 0,
+        "max": 6.28,
+        "default": 0,
+        "step": 0.1,
+        "label": "Phase Constant (\u03b4)"
+      },
+      {
+        "name": "time",
+        "min": 0,
+        "max": 12,
+        "default": 0,
+        "step": 0.1,
+        "label": "Time (t)"
+      },
+      {
+        "name": "period",
+        "min": 1,
+        "max": 4,
+        "default": 2,
+        "step": 0.1,
+        "label": "Period Display Scale"
+      }
+    ],
+    "animations": []
+  }
+}

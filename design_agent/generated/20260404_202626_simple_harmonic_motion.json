@@ -1,0 +1,362 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Simple Harmonic Motion. Context: Simple harmonic motion (SHM) is a special type of oscillatory motion where a particle oscillates on a straight line with acceleration always directed towards a fixed point (center of oscillation) and proportional to displacement from that point. The defining equation is a = -\u03c9\u00b2x, where \u03c9\u00b2 is a positive constant. This can also be expressed as F = -kx (Hooke's law), where k = m\u03c9\u00b2 is the spring constant. The negative sign indicates the restoring nature of the force. SHM represents the most fundamental type of oscillatory motion in physics, appearing in systems from atomic vibrations to planetary ",
+  "spec": {
+    "title": "Simple Harmonic Motion",
+    "description": "A comprehensive diagram showing the defining characteristics of SHM: restoring force, position-time graph, and key equations",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Simple Harmonic Motion (SHM)",
+        "fontSize": 24,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line",
+        "x1": 50,
+        "y1": 180,
+        "x2": 450,
+        "y2": 180,
+        "stroke": "#666",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "equilibrium_label",
+        "x": 40,
+        "y": 185,
+        "text": "Equilibrium Position",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "end"
+      },
+      {
+        "type": "svg_rect",
+        "id": "mass",
+        "x": "200 + 80 * sin(phase)",
+        "y": 160,
+        "width": 40,
+        "height": 40,
+        "fill": "#4682b4",
+        "stroke": "#2c5282",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "mass_label",
+        "x": "220 + 80 * sin(phase)",
+        "y": 185,
+        "text": "m",
+        "fontSize": 16,
+        "fill": "white",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "spring_left",
+        "x1": 50,
+        "y1": 180,
+        "x2": "200 + 80 * sin(phase)",
+        "y2": 180,
+        "stroke": "#FF9800",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_coils",
+        "d": "M 50 180 Q 70 170 90 180 Q 110 190 130 180 Q 150 170 170 180 Q 190 190 200 180",
+        "stroke": "#FF9800",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "displacement_arrow",
+        "x1": 240,
+        "y1": 180,
+        "x2": "240 + 80 * sin(phase)",
+        "y2": 180,
+        "stroke": "#9C27B0",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "displacement_label",
+        "expression": "x",
+        "x": "260 + 40 * sin(phase)",
+        "y": 165,
+        "fontSize": 16,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "restoring_force",
+        "x1": "220 + 80 * sin(phase)",
+        "y1": 140,
+        "x2": "220 + 80 * sin(phase) - 60 * sin(phase)",
+        "y2": 140,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_label",
+        "expression": "F = -kx",
+        "x": "220 + 80 * sin(phase) - 30 * sin(phase)",
+        "y": 125,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_text",
+        "id": "spring_label",
+        "x": 125,
+        "y": 205,
+        "text": "Spring",
+        "fontSize": 12,
+        "fill": "#FF9800",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "wall",
+        "x1": 40,
+        "y1": 160,
+        "x2": 40,
+        "y2": 200,
+        "stroke": "#333",
+        "strokeWidth": 6
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_ground",
+        "x1": 35,
+        "y1": 200,
+        "x2": 45,
+        "y2": 200,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "graph",
+        "id": "position_graph",
+        "x": 480,
+        "y": 60,
+        "width": 380,
+        "height": 180,
+        "xDomain": [
+          0,
+          12.57
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "t (time)",
+        "yLabel": "x (position)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "sin(x)",
+            "color": "#9C27B0",
+            "strokeWidth": 3
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_circle",
+        "id": "phase_indicator",
+        "cx": "480 + 30 * (phase / (2 * PI)) * 380/12.57 * 2 * PI",
+        "cy": "150 - 90 * sin(phase)",
+        "r": 6,
+        "fill": "#9C27B0",
+        "stroke": "#7B1FA2",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "equation_1",
+        "expression": "F = -kx",
+        "x": 100,
+        "y": 280,
+        "fontSize": 18,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equation_2",
+        "expression": "a = -\\omega^2 x",
+        "x": 100,
+        "y": 320,
+        "fontSize": 18,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equation_3",
+        "expression": "x(t) = A\\cos(\\omega t + \\phi)",
+        "x": 100,
+        "y": 360,
+        "fontSize": 18,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equation_4",
+        "expression": "\\omega = \\sqrt{\\frac{k}{m}}",
+        "x": 100,
+        "y": 400,
+        "fontSize": 18,
+        "color": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_equations",
+        "x": 100,
+        "y": 250,
+        "text": "Key Equations:",
+        "fontSize": 16,
+        "fill": "#333",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "characteristics_title",
+        "x": 480,
+        "y": 280,
+        "text": "Characteristics of SHM:",
+        "fontSize": 16,
+        "fill": "#333",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "char_1",
+        "x": 500,
+        "y": 310,
+        "text": "\u2022 Restoring force proportional to displacement",
+        "fontSize": 14,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "char_2",
+        "x": 500,
+        "y": 335,
+        "text": "\u2022 Force always directed toward equilibrium",
+        "fontSize": 14,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "char_3",
+        "x": 500,
+        "y": 360,
+        "text": "\u2022 Sinusoidal motion in time",
+        "fontSize": 14,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "char_4",
+        "x": 500,
+        "y": 385,
+        "text": "\u2022 Period independent of amplitude",
+        "fontSize": 14,
+        "fill": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "period_formula",
+        "expression": "T = 2\\pi\\sqrt{\\frac{m}{k}}",
+        "x": 500,
+        "y": 420,
+        "fontSize": 16,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_text",
+        "id": "period_label",
+        "x": 500,
+        "y": 440,
+        "text": "Period of oscillation",
+        "fontSize": 12,
+        "fill": "#4682b4"
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_line_pos",
+        "x1": 320,
+        "y1": 160,
+        "x2": 320,
+        "y2": 200,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_line",
+        "id": "amplitude_line_neg",
+        "x1": 160,
+        "y1": 160,
+        "x2": 160,
+        "y2": 200,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_pos",
+        "expression": "+A",
+        "x": 325,
+        "y": 175,
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "amplitude_neg",
+        "expression": "-A",
+        "x": 150,
+        "y": 175,
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_text",
+        "id": "phase_control_label",
+        "x": 100,
+        "y": 480,
+        "text": "Animation Control:",
+        "fontSize": 14,
+        "fill": "#333",
+        "fontWeight": "bold"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "phase",
+        "min": 0,
+        "max": 6.28,
+        "default": 0,
+        "step": 0.1,
+        "label": "Phase (\u03c9t)"
+      }
+    ],
+    "animations": []
+  }
+}

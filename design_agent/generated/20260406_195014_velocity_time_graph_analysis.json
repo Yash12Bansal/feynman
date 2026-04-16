@@ -1,0 +1,473 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Velocity-Time Graph Analysis. Context: Velocity-time graphs are fundamental tools for analyzing motion, providing visual representation of how an object's velocity changes over time. The graph plots velocity (v) on the y-axis against time (t) on the x-axis. Key features include: (1) The slope of the v-t graph at any point gives the instantaneous acceleration at that time - positive slope indicates increasing velocity, negative slope indicates decreasing velocity, zero slope indicates constant velocity. (2) The area under the v-t curve between two time points gives the displacement during that time interval - areas above the time ax",
+  "spec": {
+    "title": "Velocity-Time Graph Analysis",
+    "description": "Comprehensive analysis of velocity-time graphs showing slope-acceleration and area-displacement relationships",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "graph",
+        "id": "main_vt_graph",
+        "x": 50,
+        "y": 50,
+        "width": 400,
+        "height": 300,
+        "xDomain": [
+          0,
+          10
+        ],
+        "yDomain": [
+          -5,
+          15
+        ],
+        "xLabel": "Time (s)",
+        "yLabel": "Velocity (m/s)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#333",
+        "showGrid": true,
+        "curves": [
+          {
+            "expression": "t < 2 ? 5 : t < 4 ? 5 + 3*(t-2) : t < 6 ? 11 : t < 8 ? 11 - 4*(t-6) : 3",
+            "color": "#2563eb",
+            "strokeWidth": 3
+          }
+        ]
+      },
+      {
+        "type": "svg_text",
+        "id": "graph_title",
+        "x": 250,
+        "y": 30,
+        "text": "Sample Velocity-Time Graph",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "phase1_highlight",
+        "x": 65,
+        "y": 200,
+        "width": 65,
+        "height": 35,
+        "fill": "#22c55e",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "rx": 3
+      },
+      {
+        "type": "svg_rect",
+        "id": "phase2_highlight",
+        "x": 130,
+        "y": 125,
+        "width": 65,
+        "height": 110,
+        "fill": "#f59e0b",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "rx": 3
+      },
+      {
+        "type": "svg_rect",
+        "id": "phase3_highlight",
+        "x": 195,
+        "y": 95,
+        "width": 65,
+        "height": 30,
+        "fill": "#8b5cf6",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "rx": 3
+      },
+      {
+        "type": "svg_rect",
+        "id": "phase4_highlight",
+        "x": 260,
+        "y": 95,
+        "width": 65,
+        "height": 140,
+        "fill": "#ef4444",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "rx": 3
+      },
+      {
+        "type": "svg_line",
+        "id": "slope_line1",
+        "x1": 130,
+        "y1": 165,
+        "x2": 195,
+        "y2": 95,
+        "stroke": "#dc2626",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "slope_arrow1",
+        "x1": 160,
+        "y1": 130,
+        "x2": 180,
+        "y2": 110,
+        "stroke": "#dc2626",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "slope_label1",
+        "x": 200,
+        "y": 120,
+        "text": "Positive slope",
+        "fontSize": 12,
+        "fill": "#dc2626",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_line",
+        "id": "slope_line2",
+        "x1": 260,
+        "y1": 95,
+        "x2": 325,
+        "y2": 235,
+        "stroke": "#dc2626",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "slope_arrow2",
+        "x1": 290,
+        "y1": 160,
+        "x2": 310,
+        "y2": 180,
+        "stroke": "#dc2626",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "slope_label2",
+        "x": 340,
+        "y": 170,
+        "text": "Negative slope",
+        "fontSize": 12,
+        "fill": "#dc2626",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "phase_labels_title",
+        "x": 500,
+        "y": 30,
+        "text": "Motion Phases",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "legend_phase1",
+        "x": 500,
+        "y": 50,
+        "width": 20,
+        "height": 15,
+        "fill": "#22c55e",
+        "stroke": "none",
+        "rx": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_text1",
+        "x": 530,
+        "y": 62,
+        "text": "Constant velocity (a = 0)",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "legend_phase2",
+        "x": 500,
+        "y": 80,
+        "width": 20,
+        "height": 15,
+        "fill": "#f59e0b",
+        "stroke": "none",
+        "rx": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_text2",
+        "x": 530,
+        "y": 92,
+        "text": "Positive acceleration",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "legend_phase3",
+        "x": 500,
+        "y": 110,
+        "width": 20,
+        "height": 15,
+        "fill": "#8b5cf6",
+        "stroke": "none",
+        "rx": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_text3",
+        "x": 530,
+        "y": 122,
+        "text": "Constant velocity (a = 0)",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "legend_phase4",
+        "x": 500,
+        "y": 140,
+        "width": 20,
+        "height": 15,
+        "fill": "#ef4444",
+        "stroke": "none",
+        "rx": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_text4",
+        "x": 530,
+        "y": 152,
+        "text": "Negative acceleration",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_concepts_title",
+        "x": 500,
+        "y": 190,
+        "text": "Key Concepts",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "slope_formula",
+        "expression": "\\text{Slope} = \\frac{\\Delta v}{\\Delta t} = a",
+        "x": 500,
+        "y": 220,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "area_formula",
+        "expression": "\\text{Area under curve} = \\Delta x",
+        "x": 500,
+        "y": 250,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "graph",
+        "id": "area_demo_graph",
+        "x": 50,
+        "y": 380,
+        "width": 400,
+        "height": 250,
+        "xDomain": [
+          0,
+          8
+        ],
+        "yDomain": [
+          -2,
+          12
+        ],
+        "xLabel": "Time (s)",
+        "yLabel": "Velocity (m/s)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#333",
+        "showGrid": true,
+        "curves": [
+          {
+            "expression": "t < 3 ? 8 : t < 6 ? 8 - 3*(t-3) : -1",
+            "color": "#2563eb",
+            "strokeWidth": 3
+          }
+        ]
+      },
+      {
+        "type": "svg_text",
+        "id": "area_title",
+        "x": 250,
+        "y": 365,
+        "text": "Area = Displacement",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "positive_area",
+        "x": 65,
+        "y": 455,
+        "width": 98,
+        "height": 80,
+        "fill": "#22c55e",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "rx": 3
+      },
+      {
+        "type": "svg_path",
+        "id": "negative_area",
+        "d": "M 260 535 L 358 535 L 325 605 Z",
+        "fill": "#ef4444",
+        "stroke": "none",
+        "strokeWidth": 0
+      },
+      {
+        "type": "svg_text",
+        "id": "positive_area_label",
+        "x": 115,
+        "y": 490,
+        "text": "Positive",
+        "fontSize": 12,
+        "fill": "#ffffff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "positive_area_label2",
+        "x": 115,
+        "y": 505,
+        "text": "displacement",
+        "fontSize": 12,
+        "fill": "#ffffff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "negative_area_label",
+        "x": 315,
+        "y": 570,
+        "text": "Negative",
+        "fontSize": 12,
+        "fill": "#ffffff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "negative_area_label2",
+        "x": 315,
+        "y": 585,
+        "text": "displacement",
+        "fontSize": 12,
+        "fill": "#ffffff",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "calculation_title",
+        "x": 500,
+        "y": 390,
+        "text": "Sample Calculations",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "calc1_title",
+        "expression": "\\text{Phase 2 acceleration:}",
+        "x": 500,
+        "y": 420,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "calc1",
+        "expression": "a = \\frac{\\Delta v}{\\Delta t} = \\frac{11-5}{4-2} = 3\\,\\text{m/s}^2",
+        "x": 500,
+        "y": 445,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "calc2_title",
+        "expression": "\\text{Phase 4 acceleration:}",
+        "x": 500,
+        "y": 480,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "calc2",
+        "expression": "a = \\frac{\\Delta v}{\\Delta t} = \\frac{3-11}{8-6} = -4\\,\\text{m/s}^2",
+        "x": 500,
+        "y": 505,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "calc3_title",
+        "expression": "\\text{Total displacement (0-3s):}",
+        "x": 500,
+        "y": 540,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "calc3",
+        "expression": "\\Delta x = \\text{Area} = 8 \\times 3 = 24\\,\\text{m}",
+        "x": 500,
+        "y": 565,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "calc4_title",
+        "expression": "\\text{Net displacement (3-6s):}",
+        "x": 500,
+        "y": 600,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "calc4",
+        "expression": "\\Delta x = \\frac{1}{2}(8-1) \\times 3 = 10.5\\,\\text{m}",
+        "x": 500,
+        "y": 625,
+        "fontSize": 12,
+        "color": "#333"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

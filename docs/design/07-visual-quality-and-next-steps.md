@@ -1,226 +1,228 @@
-# 07 — Visual Quality & Next Steps
+# 07 — What's Actually Broken & What to Fix
 
-> What's standing between the current product and something that makes people say "holy shit."
+> Ran a live SHM teaching session on Apr 4. The infrastructure works. The output is broken.
 
 ---
 
 ## The Brutal Truth
 
-The board intelligence infrastructure is solid (9 phases done, 489 tests). The anticipation engine works. The modify tool works. The teaching state machine works.
+All 9 phases of board intelligence are built and tested (489 backend tests pass). But at runtime, **almost none of it is functioning as designed**. The anticipation cache never hits. The lesson plan isn't followed. Diagrams are cluttered. Highlighting is out of sync with voice. The board relationship graph is empty.
 
-**But none of that matters if what appears on screen looks like garbage.**
-
-Right now, diagrams come out with overlapping text, cramped labels, and zero visual hierarchy. A student looking at the board can't parse what they're seeing. The underlying systems are strong — the output layer is failing.
-
-Three things to fix, in order.
+We built the engine. The engine isn't connected to the wheels.
 
 ---
 
-## Problem 1: Diagram Cluttering (CRITICAL)
+## Problem 0: Runtime Systems Are Disconnected (BLOCKING EVERYTHING)
 
-### What's happening
+### 0A. Anticipation Cache Never Hits
 
-Claude generates DiagramSpec JSON with absolute pixel coordinates for every text element. It frequently places labels on top of other labels, equations on top of diagram geometry, and parameter lists on top of everything.
+**Evidence from logs:**
+```
+18:34:13  set_lesson_topic → anticipation.batch_start count=3
+18:34:53  Agent calls draw_design_diagram → anticipation.no_match best_score=0
+18:34:56  First cached spec finishes (43s elapsed)
+18:35:04  All 3 specs cached (batch_done)
+```
 
-Screenshots show: SHM diagrams where "Key Features of SHM" text collides with "Energy Conservation" text, equation parameters overlapping each other, formula blocks unreadable.
+The agent needed the cache at `18:34:53`. The cache finished at `18:34:56`. **3 seconds too late.** Design agent takes 43-51 seconds to generate a spec. The teaching agent starts drawing within 40 seconds.
 
-### Why it's happening
+But even if the cache was ready, **Jaccard matching would still fail**:
+- Cached prompt: `"Draw a detailed educational diagram for: Simple Harmonic Motion. Context: An oscillation is a repetitive motion. The restoring force proportional to displacement..."`
+- Agent's actual call: `"A simple pendulum showing simple harmonic motion. Draw a pendulum with a string attached to a fixed point..."`
+- Token overlap: ~1-2 words out of 20+. Jaccard ≈ 0.05. Threshold is 0.15.
 
-**The design agent prompt (`design_agent/backend/prompts.py`) has exactly one layout instruction:**
+**Root cause**: The cached prompts (built from graph node summaries) and the agent's prompts (specific diagram descriptions) use completely different vocabulary. The matching algorithm can't bridge this gap.
 
+**Fix options:**
+1. **Show the agent its pre-cached prompts** — the prompt building code at `prompts.py:776-789` tries to include `pre_gen` visual prompts, but warm() hasn't finished when the prompt is built. Either await warm() completion before building the first prompt, or update the prompt after warm completes.
+2. **Switch from Jaccard to semantic matching** — embed both prompts and use cosine similarity. Heavyweight but actually works.
+3. **Simpler: match on concept index only** — if the agent is on concept 0 and we have a cached spec for concept 0, just use it. Don't try to match prompt text at all. The curriculum graph already knows what diagram to show for each concept.
+
+Option 3 is the fastest and most reliable. The anticipation engine already knows which concept the agent is on. Just use that.
+
+**Files:** `backend/src/feynman/agent/anticipation.py` (match method), `backend/src/feynman/livekit/worker.py` (warm timing), `backend/src/feynman/agent/prompts.py` (pre_gen inclusion)
+
+### 0B. Agent Doesn't Follow the Lesson Plan
+
+**Evidence**: Agent receives `set_lesson_topic` with 13-concept SHM graph. Never calls `advance_concept()`. Teaches freestyle from the rich curriculum content in the prompt.
+
+The prompt DOES tell the agent:
+```
+**CRITICAL — One concept at a time**:
+- Teach ONLY the current concept (marked [>> CURRENT] in the sequence below).
+- After covering all its key points and showing at least one visual, call advance_concept().
+```
+
+But the agent also sees rich teaching content from the graph and starts improvising. It never advances because it never feels "done" with concept 0.
+
+**Fix:** Make the lesson plan enforcement stronger. The current instruction is buried deep in the prompt. Move it to the top-level system prompt. Add: "You MUST call advance_concept() after spending ~2-3 minutes on the current concept. Do not stay on one concept indefinitely."
+
+**File:** `backend/src/feynman/agent/prompts.py` (STATE_TOOL_INSTRUCTIONS, build_teaching_prompt)
+
+### 0C. Highlighting Out of Sync with Voice
+
+**Evidence**: `"flush audio emitter due to slow audio generation"` appears 8+ times.
+
+**Root cause**: `highlight_diagram_part` has no `timing` parameter. It publishes immediately. But TTS (gpt-4o-mini-tts) is generating audio too slowly — the highlight appears before the teacher says the corresponding words.
+
+The teaching prompt says: "call highlight BEFORE speaking about each part." But the highlights fire, then TTS takes 5-15s to generate the speech. Student sees highlight flash, then 10 seconds later hears the explanation.
+
+**Fix:** Add `timing` parameter to highlight tools (same as diagram tools). Default to `"visual_first"` but with a `wait_for_playout()` fallback. Or: investigate why TTS is so slow — gpt-4o-mini-tts should be faster than this.
+
+**Files:** `backend/src/feynman/agent/tools.py` (highlight_diagram_part, highlight_walk)
+
+### 0D. Board Relationship Graph Always Empty
+
+**Evidence**: Every element logged as `orphan_element — created without relates_to`.
+
+**Root cause**: The teaching prompt never mentions `relates_to`. The agent has the parameter available but no instruction to use it. Phase 6 built the graph infrastructure; nothing tells the agent to populate it.
+
+**Fix:** Add examples to the teaching prompt showing `relates_to` usage:
+```
+When you draw a diagram that illustrates an equation already on the board,
+pass relates_to="eq-1" to connect them semantically.
+```
+
+**File:** `backend/src/feynman/agent/prompts.py` (tool usage examples)
+
+---
+
+## Problem 1: Diagram Cluttering
+
+### Hard Data from Generated Specs
+
+Analyzed the actual JSON specs Claude generates. The numbers are damning:
+
+| Diagram | Total Elements | Text/Latex | Close Pairs (< 25px apart) |
+|---------|---------------|------------|---------------------------|
+| SHM Overview | 48 | 27 | **12** |
+| Pendulum | 30 | 14 | 5 |
+| Key Parameters | 39 | 27 | **7** |
+| Spring-Mass | 47 | 23 | **14** |
+
+**27 text elements on a 900x650 canvas** with only 20px vertical gaps between them. KaTeX at fontSize 14 renders ~20-25px tall. The text literally touches or overlaps the element below.
+
+Example from SHM spec:
+```
+(640, 125) "Restoring Force:"     fontSize=14
+(640, 145) "F = -kx = -mω²x"     fontSize=14   ← 20px gap, KaTeX renders ~22px tall = OVERLAP
+(640, 175) "Acceleration:"        fontSize=14
+(640, 195) "a = -ω²x"            fontSize=14   ← 20px gap again
+(475, 200) "Velocity vs Time"     fontSize=14   ← SAME Y-BAND, different column = visual collision
+```
+
+### Why It's Happening
+
+The design agent prompt (`design_agent/backend/prompts.py`) Rule #3:
 > "Clean layouts: use the full canvas. Spread elements out."
 
-That's it. No minimum spacing. No collision rules. No density limits. Claude is guessing at coordinates and getting it wrong ~40% of the time.
-
-**Compounding factors:**
-- Canvas is 900x650 but may render at 290px wide in a side zone — text designed for 900px becomes microscopic
-- Frontend renders every element at the exact coordinates Claude specified, no validation
-- KaTeX overlays are positioned with CSS `left`/`top` percentages — no overlap check
-- No feedback: the agent never knows a diagram came out bad
+That's the ONLY layout instruction. No minimum spacing. No density limits. No font size floors.
 
 ### The Fix
 
-**A. Rewrite design agent prompt with hard spatial rules**
-
-File: `design_agent/backend/prompts.py`, Rule #3
-
-Replace the vague "spread elements out" with:
+**A. Rewrite design agent prompt Rule #3:**
 
 ```
-3. **Layout rules (non-negotiable)**:
-   - Minimum 40px vertical gap between any two text/latex elements
-   - Minimum 30px clearance between labels and diagram geometry (lines, shapes, arrows)
-   - Maximum 5 text elements per 250x250px region
-   - Font size floor: 13px for labels, 15px for equations, 11px for fine annotations
-   - Canvas zones: title area (y: 0-80), diagram area (y: 80-500), formula/parameter area (y: 500-650)
-   - NEVER place parameter lists or formula summaries inside the diagram area — always below it
-   - For step-by-step derivations: 50px vertical gap between steps
-   - If you have >8 text elements: mentally grid the canvas into quadrants and distribute evenly
-   - When parameters/sliders exist: keep all explanatory text in the bottom 25% of canvas
+3. **Layout rules (NON-NEGOTIABLE — violations make diagrams unreadable)**:
+   - Minimum 40px vertical gap between ANY two svg_text or svg_latex elements
+   - Minimum 30px clearance between text labels and diagram geometry
+   - Maximum 5 text/latex elements per 250×250px region
+   - Font size minimums: svg_text ≥ 13px, svg_latex ≥ 15px
+   - Canvas structure:
+     - Title zone: y = 0–80
+     - Diagram zone: y = 80–480 (physical setup, shapes, arrows)
+     - Info zone: y = 480–650 (equations, parameters, formulas — NEVER in diagram zone)
+   - Step-by-step derivations: 50px vertical gap between steps
+   - With >8 text elements: mentally grid into quadrants, distribute evenly
+   - With interactive parameters: ALL explanatory text in bottom 25%
+   - NEVER pack "Key Features" or "Summary" text blocks into the diagram area
 ```
 
-**B. Pass actual display dimensions to the design agent**
+**B. Cap element count in the design agent prompt:**
 
-File: `backend/src/feynman/agent/tools.py` (in `draw_design_diagram`)
+Add: "Maximum 15 text/latex elements per diagram. If you need more, split into logical groups and reduce to the most essential labels. A clean diagram with 8 labels is better than a cluttered one with 25."
 
-When the teaching agent requests a diagram, include the zone it will render in:
+**C. Pass zone dimensions from teaching agent:**
 
-```python
-# Before calling design agent, compute actual display size
-zone = instruction.zone or "center-center"
-display_width, display_height = get_zone_dimensions(zone)  # e.g., 290x475 for side zones
+When draw_design_diagram targets center-left (290px wide on screen), tell the design agent: "This diagram renders at 290×475px. Use maximum 3 labels, fontSize ≥ 16, simple layout."
 
-# Add to the design agent request
-prompt = f"{user_description}\n\n[Display context: this diagram renders at {display_width}x{display_height}px. Design accordingly — use fewer labels and larger font if narrow.]"
-```
+**D. Frontend collision detection (safety net):**
 
-If the zone is 290px wide: max 3 labels, font size 16px minimum, no parameter sections (show those separately via `show_equation` tool instead).
+After rendering, check `getBoundingClientRect()` on all KaTeX overlays. Nudge overlapping elements down. Log collision count for monitoring.
 
-**C. Frontend post-render collision detection**
-
-File: `frontend/src/engine/whiteboard/content/DesignDiagramContent.tsx`
-
-After rendering KaTeX overlays, check for overlap:
-
-```typescript
-useEffect(() => {
-  const overlays = containerRef.current?.querySelectorAll('.katex-overlay');
-  if (!overlays) return;
-  const rects = Array.from(overlays).map(el => el.getBoundingClientRect());
-  for (let i = 0; i < rects.length; i++) {
-    for (let j = i + 1; j < rects.length; j++) {
-      if (rectsOverlap(rects[i], rects[j])) {
-        // Nudge the later element down by the overlap amount + 8px padding
-        const overlap = rects[i].bottom - rects[j].top + 8;
-        (overlays[j] as HTMLElement).style.transform = `translateY(${overlap}px)`;
-      }
-    }
-  }
-}, [spec]);
-```
-
-This is a safety net, not the primary fix. The prompt rewrite (A) should prevent most collisions. This catches the rest.
-
-**Estimated effort:** 1 session for prompt rewrite + testing, 1 session for zone-aware sizing, 1 session for frontend collision detection.
+**Files:**
+- `design_agent/backend/prompts.py` — prompt rewrite
+- `backend/src/feynman/agent/tools.py` — zone-aware sizing
+- `frontend/src/engine/whiteboard/content/DesignDiagramContent.tsx` — collision detection
 
 ---
 
 ## Problem 2: Board Has No Visual Narrative
 
-### What's happening
-
-Content appears wherever the zone system places it. There's no flow, no story, no visual logic. A student sees scattered equations and diagrams with no sense of "this leads to that."
-
-The existing zone placement patterns (5 teaching scenarios in prompts.py) exist but are too loose — the agent treats them as suggestions, not rules.
-
-### Why it's happening
-
-- Zone patterns describe WHERE to put things but not HOW to compose them into a narrative
-- No "clear before new concept" discipline — the board accumulates clutter across concepts
-- Board summary tells the LLM what's on the board but not how crowded it is
-- The agent doesn't think about the board as a whole composition — it thinks one tool call at a time
+Content appears wherever the zone system places it. No flow, no story. The agent creates elements one at a time without thinking about the board as a composition.
 
 ### The Fix
 
-**A. Enforce board discipline in the teaching prompt**
-
-File: `backend/src/feynman/agent/prompts.py`
-
-Add a "Board Hygiene" section:
-
+**A. Board hygiene in teaching prompt:**
 ```
-## Board Hygiene
-
-- Before starting a new concept: check the board summary. If >4 elements exist, clear the board
-  or scroll to a fresh tile. Don't keep piling onto a full board.
-- One concept = one board composition. When you move to the next concept, start fresh.
-- Every board composition should be readable as a standalone snapshot — a student glancing at the
-  board should understand the current concept without needing prior context.
+Before starting a new concept: if the board has >4 elements, clear it or scroll to a fresh tile.
+One concept = one board composition. Start fresh for each concept.
 ```
 
-**B. Add density to board summary**
-
-File: `backend/src/feynman/agent/board_state.py`
-
-Include zone density in the summary the LLM sees:
-
+**B. Density in board summary:**
 ```
 Board: 6 elements (CROWDED)
-  center-center: 3 elements [diagram, equation, text] — FULL
-  center-right: 2 elements [equation, equation]
-  top-left: 1 element [text]
+  center-center: 3 elements — FULL
+  center-right: 2 elements
   top-right, bottom-*: empty
 ```
 
-When the LLM sees "CROWDED" and "FULL" it should naturally decide to clear or scroll.
+**C. Enforce zone patterns as rules, not suggestions.**
 
-**C. Visual grouping via spatial proximity**
-
-When placing related content (an equation that describes a diagram, a label that annotates a shape), use consistent spatial patterns. The agent should place the equation *next to* the diagram it describes, not in a random empty zone.
-
-This is partially handled by the board relationship graph (phase 6) but needs tighter integration into the zone selection logic.
-
-**Estimated effort:** 1-2 sessions.
+**Files:** `backend/src/feynman/agent/prompts.py`, `backend/src/feynman/agent/board_state.py`
 
 ---
 
-## Problem 3: Animations Should Showcase, Not Just Exist
+## Problem 3: Animation Polish (After 0-2 Are Fixed)
 
-### What's happening
+The slider/parameter system works. Once diagrams are clean, animations become powerful:
 
-The slider/parameter system works — you can animate phase diagrams, change amplitude, adjust frequency. But the diagrams being animated are cluttered (problem 1), so the animations look bad even though the mechanism is good.
-
-### The Fix (After Problem 1)
-
-**A. Clean up the showcase diagrams**
-
-Once the prompt rewrite lands, re-test with SHM (Simple Harmonic Motion) and other physics animations. The spring-mass system, pendulum, wave interference — these should be the "wow" demos. Each one needs to be hand-verified for visual quality.
-
-**B. Progressive element reveal**
-
-Instead of all elements appearing at once, reveal them in groups that match the teacher's voice:
-
-1. First: the physical setup (spring, mass, surface)
-2. Then: the motion indicators (arrows, trajectory)
-3. Then: the equations
-4. Then: the parameter sliders become active
-
-This uses the existing `timing` parameter system but needs the design agent to output elements in a meaningful order (grouped by reveal stage).
-
-Add to design agent prompt:
-```
-Order elements by visual importance: physical objects first, then annotations,
-then labels, then equations. The frontend reveals elements progressively —
-earlier elements in the array appear first.
-```
-
-**C. Smooth transitions on diagram modification**
-
-When the modify tool updates a diagram (e.g., changing a force vector's magnitude), animate the change. Current behavior: hard replacement with a fade. Better: GSAP morph from old element positions to new ones.
-
-File: `frontend/src/engine/whiteboard/content/DesignDiagramContent.tsx` — track previous spec, diff against new spec, animate changed elements.
-
-**Estimated effort:** 1 session for cleanup, 2 sessions for progressive reveal, 2 sessions for morph transitions.
+- **Progressive reveal**: Elements appear in groups matching the teacher's voice
+- **Smooth transitions**: Diagram modifications morph instead of hard-cut
+- **Showcase demos**: SHM spring-mass, pendulum, wave interference — hand-verified quality
 
 ---
 
 ## Priority Sequence
 
 ```
-NOW        Fix diagram cluttering (prompt rewrite + zone-aware sizing)
+FIRST      Fix the runtime disconnects (Problem 0)
+           ├── 0A: Anticipation cache hit rate (concept-index matching)
+           ├── 0B: Lesson plan following (advance_concept enforcement)
+           ├── 0C: Audio-visual sync (timing on highlights)
+           └── 0D: Board graph population (relates_to in prompt)
            |
-           |  This alone will make the biggest visible difference.
+           |  Without these, the 9 phases of infrastructure we built are dead.
+           |  This is unblocking work, not new features.
+           v
+SECOND     Fix diagram quality (Problem 1)
+           ├── Prompt rewrite with hard spacing rules
+           ├── Element count caps
+           ├── Zone-aware sizing
+           └── Frontend collision detection
+           |
            |  Every diagram gets better immediately.
            v
-NEXT       Board narrative discipline (clear-before-draw + density awareness)
+THIRD      Board narrative (Problem 2)
+           ├── Clear-before-draw discipline
+           ├── Density metrics in board summary
+           └── Stricter zone enforcement
            |
-           |  Board starts feeling composed, not chaotic.
            v
-THEN       Animation polish (progressive reveal + smooth transitions)
-           |
-           |  This is where "wow" happens. But only if diagrams are clean first.
-           v
-AFTER      Production hardening (monitoring, error recovery, load testing)
+FOURTH     Animation polish (Problem 3)
+           ├── Progressive element reveal
+           ├── Smooth morph transitions
+           └── Showcase-quality demos
 ```
 
 ---
@@ -229,29 +231,37 @@ AFTER      Production hardening (monitoring, error recovery, load testing)
 
 | Priority | File | What to change |
 |----------|------|---------------|
-| 1 | `design_agent/backend/prompts.py` | Hard spatial rules, spacing minimums, canvas zoning |
-| 2 | `backend/src/feynman/agent/tools.py` | Pass zone dimensions to design agent |
-| 3 | `frontend/src/engine/whiteboard/content/DesignDiagramContent.tsx` | Post-render collision detection |
-| 4 | `backend/src/feynman/agent/prompts.py` | Board hygiene rules, stricter zone patterns |
-| 5 | `backend/src/feynman/agent/board_state.py` | Density metrics in board summary |
-| 6 | `design_agent/backend/prompts.py` | Element ordering for progressive reveal |
-| 7 | `frontend/src/engine/whiteboard/content/DesignDiagramContent.tsx` | GSAP morph transitions |
+| **0A** | `anticipation.py` | Match on concept index, not Jaccard. Or await warm before first prompt. |
+| **0B** | `prompts.py` | Stronger advance_concept enforcement, move to top of prompt |
+| **0C** | `tools.py` | Add `timing` param to highlight tools |
+| **0D** | `prompts.py` | Add `relates_to` examples to tool usage section |
+| **1A** | `design_agent/backend/prompts.py` | Hard spacing rules, element caps, canvas zoning |
+| **1B** | `tools.py` | Pass zone dimensions to design agent |
+| **1C** | `DesignDiagramContent.tsx` | Post-render collision detection |
+| **2** | `prompts.py`, `board_state.py` | Board hygiene, density metrics |
 
 ---
 
 ## Success Criteria
 
-**Diagram quality (problem 1 solved):**
-- [ ] Generate 10 SHM diagrams — zero overlapping text in all 10
-- [ ] Generate 10 optics diagrams — all labels readable at actual rendered size
-- [ ] Side-zone diagrams (290px wide) are clean and legible, not just scaled-down versions of full-width diagrams
+**Runtime systems connected (Problem 0):**
+- [ ] Anticipation cache hit rate > 80% for on-plan teaching
+- [ ] Agent calls advance_concept() and progresses through lesson plan
+- [ ] Highlights appear within 1s of corresponding speech
+- [ ] Board graph has edges (no orphan elements)
 
-**Board narrative (problem 2 solved):**
-- [ ] Record a 5-minute teaching session — every board snapshot is independently readable
-- [ ] No board has >6 visible elements at any point
-- [ ] Related content (equation + its diagram) always appears in adjacent zones
+**Diagram quality (Problem 1):**
+- [ ] Generate 10 SHM diagrams — zero overlapping text
+- [ ] Max 15 text elements per diagram
+- [ ] Minimum 40px gap between all text elements in generated specs
+- [ ] Side-zone diagrams (290px) are legible
 
-**Animations (problem 3 solved):**
-- [ ] SHM spring-mass demo: clean, animated, parameters visible and non-overlapping
-- [ ] Progressive reveal works for at least 3 diagram types
-- [ ] Diagram modifications animate smoothly (no hard cuts)
+**Board narrative (Problem 2):**
+- [ ] 5-minute session — every board snapshot independently readable
+- [ ] No board exceeds 6 elements
+- [ ] Related content in adjacent zones
+
+**Animations (Problem 3):**
+- [ ] SHM demo: clean, animated, non-overlapping
+- [ ] Progressive reveal for 3+ diagram types
+- [ ] Smooth diagram modifications

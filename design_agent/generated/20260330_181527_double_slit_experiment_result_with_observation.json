@@ -1,0 +1,319 @@
+{
+  "prompt": "Show the result when we observe which slit photons go through: the screen now shows just TWO bright spots (bands) instead of the interference pattern. One bright band behind slit A and one behind slit B, exactly like we originally expected! Label it \"Result with Observation: Two Spots!\" with arrows pointing to the two bright bands. Make it clear this is completely different from the interference pattern.",
+  "spec": {
+    "title": "Double-Slit Experiment: Result with Observation",
+    "description": "When we observe which slit each photon goes through, the interference pattern disappears and we get exactly what we'd expect: two bright bands, one behind each slit.",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Double-Slit Experiment: With Observation",
+        "fontSize": 20,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "photon_source",
+        "x": 50,
+        "y": 300,
+        "width": 30,
+        "height": 20,
+        "fill": "#FFD700",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "source_label",
+        "x": 65,
+        "y": 290,
+        "text": "Photon\nSource",
+        "fontSize": 12,
+        "fill": "#000",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier",
+        "x": 250,
+        "y": 150,
+        "width": 20,
+        "height": 350,
+        "fill": "#555",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_a",
+        "x": 250,
+        "y": 250,
+        "width": 20,
+        "height": 30,
+        "fill": "#ffffff",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_b",
+        "x": 250,
+        "y": 340,
+        "width": 20,
+        "height": 30,
+        "fill": "#ffffff",
+        "stroke": "#000",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_a_label",
+        "x": 230,
+        "y": 270,
+        "text": "Slit A",
+        "fontSize": 12,
+        "fill": "#000",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_b_label",
+        "x": 230,
+        "y": 360,
+        "text": "Slit B",
+        "fontSize": 12,
+        "fill": "#000",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "detector_a",
+        "x": 290,
+        "y": 255,
+        "width": 15,
+        "height": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#000",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_rect",
+        "id": "detector_b",
+        "x": 290,
+        "y": 345,
+        "width": 15,
+        "height": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#000",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_text",
+        "id": "detector_label",
+        "x": 297,
+        "y": 240,
+        "text": "Detectors\n(Observe)",
+        "fontSize": 10,
+        "fill": "#FF6B6B",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "screen",
+        "x1": 550,
+        "y1": 100,
+        "x2": 550,
+        "y2": 550,
+        "stroke": "#000",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 570,
+        "y": 110,
+        "text": "Detection\nScreen",
+        "fontSize": 12,
+        "fill": "#000",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "photon_path",
+        "x1": 80,
+        "y1": 310,
+        "x2": 240,
+        "y2": 310,
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "path_a",
+        "x1": 270,
+        "y1": 265,
+        "x2": 540,
+        "y2": 250,
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "path_b",
+        "x1": 270,
+        "y1": 355,
+        "x2": 540,
+        "y2": 380,
+        "stroke": "#4682b4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_ellipse",
+        "id": "bright_spot_a",
+        "cx": 550,
+        "cy": 250,
+        "rx": 8,
+        "ry": 40,
+        "fill": "#FFD700",
+        "stroke": "#FF8C00",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_ellipse",
+        "id": "bright_spot_b",
+        "cx": 550,
+        "cy": 380,
+        "rx": 8,
+        "ry": 40,
+        "fill": "#FFD700",
+        "stroke": "#FF8C00",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "result_title",
+        "x": 750,
+        "y": 200,
+        "text": "Result with Observation:",
+        "fontSize": 18,
+        "fill": "#D32F2F",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "result_subtitle",
+        "x": 750,
+        "y": 225,
+        "text": "Two Spots!",
+        "fontSize": 16,
+        "fill": "#D32F2F",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "arrow_to_spot_a",
+        "x1": 650,
+        "y1": 240,
+        "x2": 570,
+        "y2": 250,
+        "stroke": "#D32F2F",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "arrow_to_spot_b",
+        "x1": 650,
+        "y1": 280,
+        "x2": 570,
+        "y2": 380,
+        "stroke": "#D32F2F",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "spot_a_label",
+        "x": 620,
+        "y": 235,
+        "text": "Bright band\nbehind Slit A",
+        "fontSize": 12,
+        "fill": "#D32F2F",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "spot_b_label",
+        "x": 620,
+        "y": 390,
+        "text": "Bright band\nbehind Slit B",
+        "fontSize": 12,
+        "fill": "#D32F2F",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "explanation_box",
+        "x": 650,
+        "y": 420,
+        "width": 220,
+        "height": 180,
+        "fill": "#f8f8f8",
+        "stroke": "#ccc",
+        "strokeWidth": 2,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_title",
+        "x": 760,
+        "y": 445,
+        "text": "Key Insight:",
+        "fontSize": 14,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_text",
+        "x": 760,
+        "y": 470,
+        "text": "When we observe which slit\neach photon goes through,\nwe get exactly what we'd\nexpect classically:\n\n\u2022 Photons through Slit A\n  make a band behind Slit A\n\n\u2022 Photons through Slit B\n  make a band behind Slit B\n\nNo interference pattern!",
+        "fontSize": 11,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "comparison_note",
+        "x": 450,
+        "y": 600,
+        "text": "This is completely different from the interference pattern we see without observation!",
+        "fontSize": 14,
+        "fill": "#D32F2F",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "photon_labels",
+        "x": 160,
+        "y": 300,
+        "text": "Individual\nPhotons",
+        "fontSize": 10,
+        "fill": "#4682b4",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

@@ -1,0 +1,364 @@
+{
+  "prompt": "Modified double-slit experiment with a detector placed near one of the slits to observe which path the photons take. Show the same setup as before but add a small detector device (like a photodetector or electron gun) positioned to monitor one slit. Label it \"Path Detector\" and show it observing slit A.",
+  "spec": {
+    "title": "Double-Slit Experiment with Path Detector",
+    "description": "When a detector monitors which slit a photon passes through, the wave interference pattern disappears and particle-like behavior emerges.",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "title",
+        "x": 450,
+        "y": 30,
+        "text": "Double-Slit Experiment with Path Detection",
+        "fontSize": 20,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "source_line",
+        "x1": 80,
+        "y1": 325,
+        "x2": 150,
+        "y2": 325,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "photon_source_label",
+        "x": 50,
+        "y": 330,
+        "text": "Photon Source",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "barrier",
+        "x": 250,
+        "y": 150,
+        "width": 15,
+        "height": 350,
+        "fill": "#555",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_a",
+        "x": 250,
+        "y": 270,
+        "width": 15,
+        "height": 25,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit_b",
+        "x": 250,
+        "y": 355,
+        "width": 15,
+        "height": 25,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_a_label",
+        "x": 230,
+        "y": 285,
+        "text": "Slit A",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit_b_label",
+        "x": 230,
+        "y": 370,
+        "text": "Slit B",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "detector_device",
+        "x": 280,
+        "y": 240,
+        "width": 40,
+        "height": 25,
+        "fill": "#FF6B6B",
+        "stroke": "#D32F2F",
+        "strokeWidth": 2,
+        "rx": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "detector_lens",
+        "cx": 300,
+        "cy": 252,
+        "r": 6,
+        "fill": "#87CEEB",
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "detector_label",
+        "x": 300,
+        "y": 230,
+        "text": "Path Detector",
+        "fontSize": 12,
+        "fill": "#D32F2F",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "detector_sight_line",
+        "x1": 294,
+        "y1": 252,
+        "x2": 257,
+        "y2": 282,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "incident_photon",
+        "x1": 150,
+        "y1": 325,
+        "x2": 230,
+        "y2": 325,
+        "stroke": "#4682B4",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "photon_label",
+        "x": 190,
+        "y": 315,
+        "text": "Photon",
+        "fontSize": 12,
+        "fill": "#4682B4",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "path_a_photon",
+        "x1": 265,
+        "y1": 282,
+        "x2": 420,
+        "y2": 240,
+        "stroke": "#FF6B6B",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "path_b_photon",
+        "x1": 265,
+        "y1": 367,
+        "x2": 420,
+        "y2": 410,
+        "stroke": "#999",
+        "strokeWidth": 2,
+        "strokeDasharray": "8,4"
+      },
+      {
+        "type": "svg_text",
+        "id": "detected_path_label",
+        "x": 350,
+        "y": 255,
+        "text": "Detected path",
+        "fontSize": 11,
+        "fill": "#FF6B6B",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "undetected_path_label",
+        "x": 350,
+        "y": 395,
+        "text": "Unmonitored path",
+        "fontSize": 11,
+        "fill": "#999",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "screen",
+        "x": 700,
+        "y": 150,
+        "width": 15,
+        "height": 350,
+        "fill": "#f0f0f0",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 740,
+        "y": 170,
+        "text": "Detection Screen",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_circle",
+        "id": "hit_point_a",
+        "cx": 707,
+        "cy": 240,
+        "r": 4,
+        "fill": "#FF6B6B",
+        "stroke": "#D32F2F",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "hit_point_b",
+        "cx": 707,
+        "cy": 410,
+        "r": 4,
+        "fill": "#999",
+        "stroke": "#666",
+        "strokeWidth": 1
+      },
+      {
+        "type": "graph",
+        "id": "particle_pattern",
+        "x": 750,
+        "y": 180,
+        "width": 120,
+        "height": 280,
+        "xDomain": [
+          0,
+          5
+        ],
+        "yDomain": [
+          -150,
+          150
+        ],
+        "xLabel": "Intensity",
+        "yLabel": "Position",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "2.5*exp(-pow((x-120)/40, 2)) + 2.5*exp(-pow((x-230)/40, 2))",
+            "color": "#FF6B6B",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_text",
+        "id": "pattern_label",
+        "x": 810,
+        "y": 170,
+        "text": "Two-Band Pattern",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "band_a_label",
+        "x": 810,
+        "y": 240,
+        "text": "Band A",
+        "fontSize": 10,
+        "fill": "#FF6B6B",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "band_b_label",
+        "x": 810,
+        "y": 410,
+        "text": "Band B",
+        "fontSize": 10,
+        "fill": "#999",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "explanation_box",
+        "x": 50,
+        "y": 520,
+        "width": 800,
+        "height": 110,
+        "fill": "#f8f9fa",
+        "stroke": "#ddd",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_title",
+        "x": 70,
+        "y": 545,
+        "text": "Wave-Particle Complementarity:",
+        "fontSize": 14,
+        "fill": "#333",
+        "fontWeight": "bold",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_1",
+        "x": 70,
+        "y": 565,
+        "text": "\u2022 When we detect which slit the photon passes through, we gain 'which-path' information",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_2",
+        "x": 70,
+        "y": 580,
+        "text": "\u2022 The act of measurement destroys the wave interference pattern on the screen",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_3",
+        "x": 70,
+        "y": 595,
+        "text": "\u2022 Instead of interference fringes, we see two separate bands corresponding to each slit",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation_4",
+        "x": 70,
+        "y": 610,
+        "text": "\u2022 This demonstrates that photons behave as particles when we measure their path",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

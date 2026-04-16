@@ -100,6 +100,27 @@ class BoardZone(StrEnum):
     BOTTOM_RIGHT = "bottom-right"
 
 
+class Panel(StrEnum):
+    """Split-board panel assignment for an instruction.
+
+    Stamped deterministically in `_publish_visual` based on instruction type;
+    the LLM never sets this. Consumed by the SplitBoard frontend renderer.
+    """
+
+    SLIDE = "slide"
+    NOTEBOOK = "notebook"
+    REFERENCE = "reference"
+
+
+class SizeHint(StrEnum):
+    """Size category for placement intent."""
+
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE = "large"
+    FULL = "full"
+
+
 class SceneTemplateId(StrEnum):
     """Known scene templates — backend validates against this enum."""
 
@@ -110,6 +131,20 @@ class SceneTemplateId(StrEnum):
 # ──────────────────────────────────────────────
 # Sub-models (used inside instruction payloads)
 # ──────────────────────────────────────────────
+
+
+class PlacementIntent(BaseModel):
+    """Semantic placement intent from the LLM.
+
+    The LLM outputs one of:
+    1. near + relation: place relative to an existing element
+    2. zone: backward-compatible zone placement
+    3. Neither: solver picks best position automatically
+    """
+
+    near: str | None = None
+    relation: str | None = None
+    size_hint: SizeHint = SizeHint.MEDIUM
 
 
 class DiagramNode(BaseModel):
@@ -218,6 +253,14 @@ class _BaseInstruction(BaseModel):
     term_hints: list[TermSyncHint] | None = None
     zone: BoardZone | None = None
     board_id: str | None = None
+    # Board Cortex: exact position from solver (sent to frontend).
+    position_x: float | None = None
+    position_y: float | None = None
+    # Split-board: stamped in `_publish_visual` based on instruction type.
+    # The LLM never sets this directly.
+    panel: Panel | None = None
+    # Board Cortex: LLM intent (backend-only, never sent to frontend).
+    placement: PlacementIntent | None = Field(None, exclude=True)
 
 
 # ──────────────────────────────────────────────
@@ -459,3 +502,94 @@ class DrawDesignDiagramInstruction(_BaseInstruction):
     title: str = ""
     description: str = ""
     spec: dict = Field(default_factory=dict)
+
+
+class SlidePendingInstruction(_BaseInstruction):
+    """Generation in progress — frontend shows the DraftingLoader.
+
+    Emitted before a slow slide-producing tool call (cache-miss path of
+    `draw_design_diagram`) so the split-board can display the drafting
+    loader with a title caption while the spec is being generated.
+    Cleared on the client when a matching `draw_*` instruction arrives
+    for the same board, or on `switch_board`.
+    """
+
+    type: Literal["slide_pending"] = "slide_pending"
+    title: str = ""
+
+
+# ──────────────────────────────────────────────
+# Notebook write-tools (split-board Phase 5)
+# ──────────────────────────────────────────────
+
+
+class WriteEquationInstruction(_BaseInstruction):
+    """Write an equation into the notebook's working column.
+
+    Equations in the same ``align_group`` render aligned at ``=``.
+    """
+
+    type: Literal["write_equation"] = "write_equation"
+    latex: str
+    label: str = ""
+    align_group: str | None = None
+    indent: int = Field(0, ge=0, le=3)
+
+
+class WriteStepInstruction(_BaseInstruction):
+    """Write a numbered or unnumbered working step in the notebook."""
+
+    type: Literal["write_step"] = "write_step"
+    text: str
+    number: int | None = None
+    indent: int = Field(0, ge=0, le=3)
+
+
+class WriteTextInstruction(_BaseInstruction):
+    """Write a plain text line or a key-point box in the notebook."""
+
+    type: Literal["write_text"] = "write_text"
+    text: str
+    style: Literal["default", "key_point"] = "default"
+    indent: int = Field(0, ge=0, le=3)
+
+
+class WriteSectionInstruction(_BaseInstruction):
+    """Write a section header in the notebook."""
+
+    type: Literal["write_section"] = "write_section"
+    title: str
+
+
+class WriteAnswerInstruction(_BaseInstruction):
+    """Write the boxed final answer in the notebook — LaTeX or text."""
+
+    type: Literal["write_answer"] = "write_answer"
+    latex: str | None = None
+    text: str | None = None
+
+    @model_validator(mode="after")
+    def _require_one(self) -> Self:
+        if not self.latex and not self.text:
+            msg = "write_answer requires latex or text"
+            raise ValueError(msg)
+        return self
+
+
+class StrikethroughInstruction(_BaseInstruction):
+    """Cross out an existing notebook entry identified by element_id."""
+
+    type: Literal["strikethrough"] = "strikethrough"
+    target_id: str
+
+
+class NewPageInstruction(_BaseInstruction):
+    """Turn to a fresh blank page in the notebook.
+
+    ``carry_forward_ids`` lets a premise from the previous page show at the
+    top of the new page as a muted, inert reminder — useful when a starting
+    equation or key fact still applies after the page turn.
+    """
+
+    type: Literal["new_page"] = "new_page"
+    carry_forward_ids: list[str] = Field(default_factory=list)

@@ -1,0 +1,396 @@
+{
+  "prompt": "MODIFY: Show the block displaced to the right (positive x position) with a red force arrow pointing left toward equilibrium, labeled \"F = -kx\". Also add a second scenario showing the block displaced to the left (negative x position) with a red force arrow pointing right toward equilibrium.",
+  "spec": {
+    "title": "Horizontal Mass-Spring System: Restoring Force",
+    "description": "A block attached to a spring showing restoring force in both directions - displaced right and left from equilibrium",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "wall",
+        "x": 50,
+        "y": 150,
+        "width": 20,
+        "height": 100,
+        "fill": "#666",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern1",
+        "x1": 30,
+        "y1": 150,
+        "x2": 70,
+        "y2": 165,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern2",
+        "x1": 30,
+        "y1": 165,
+        "x2": 70,
+        "y2": 180,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern3",
+        "x1": 30,
+        "y1": 180,
+        "x2": 70,
+        "y2": 195,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern4",
+        "x1": 30,
+        "y1": 195,
+        "x2": 70,
+        "y2": 210,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern5",
+        "x1": 30,
+        "y1": 210,
+        "x2": 70,
+        "y2": 225,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern6",
+        "x1": 30,
+        "y1": 225,
+        "x2": 70,
+        "y2": 240,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern7",
+        "x1": 30,
+        "y1": 240,
+        "x2": 70,
+        "y2": 250,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_right",
+        "d": "M 70 200 L 90 200 L 100 190 L 115 210 L 130 190 L 145 210 L 160 190 L 175 210 L 190 190 L 205 210 L 220 190 L 235 210 L 250 190 L 265 210 L 280 190 L 295 210 L 310 190 L 325 210 L 340 190 L 355 210 L 370 190 L 385 210 L 400 190 L 415 210 L 430 190 L 445 210 L 460 190 L 475 210 L 490 190 L 505 210 L 520 200 L 540 200",
+        "stroke": "#4682b4",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "block_right",
+        "x": 540,
+        "y": 175,
+        "width": 80,
+        "height": 80,
+        "fill": "#f0f0f0",
+        "stroke": "#333",
+        "strokeWidth": 3,
+        "rx": 5
+      },
+      {
+        "type": "svg_latex",
+        "id": "mass_label_right",
+        "expression": "m",
+        "x": 580,
+        "y": 220,
+        "fontSize": 18,
+        "color": "#000"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "force_arrow_right",
+        "x1": 520,
+        "y1": 215,
+        "x2": 460,
+        "y2": 215,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_label_right",
+        "expression": "\\vec{F} = -kx",
+        "x": 490,
+        "y": 195,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_line",
+        "id": "surface_top",
+        "x1": 30,
+        "y1": 270,
+        "x2": 750,
+        "y2": 270,
+        "stroke": "#999",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "wall_bottom",
+        "x": 50,
+        "y": 350,
+        "width": 20,
+        "height": 100,
+        "fill": "#666",
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern1_bottom",
+        "x1": 30,
+        "y1": 350,
+        "x2": 70,
+        "y2": 365,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern2_bottom",
+        "x1": 30,
+        "y1": 365,
+        "x2": 70,
+        "y2": 380,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern3_bottom",
+        "x1": 30,
+        "y1": 380,
+        "x2": 70,
+        "y2": 395,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern4_bottom",
+        "x1": 30,
+        "y1": 395,
+        "x2": 70,
+        "y2": 410,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern5_bottom",
+        "x1": 30,
+        "y1": 410,
+        "x2": 70,
+        "y2": 425,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern6_bottom",
+        "x1": 30,
+        "y1": 425,
+        "x2": 70,
+        "y2": 440,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "wall_pattern7_bottom",
+        "x1": 30,
+        "y1": 440,
+        "x2": 70,
+        "y2": 450,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_path",
+        "id": "spring_left",
+        "d": "M 70 400 L 100 400 L 110 390 L 125 410 L 140 390 L 155 410 L 170 390 L 185 410 L 200 390 L 215 410 L 230 390 L 245 410 L 260 390 L 270 400 L 290 400",
+        "stroke": "#4682b4",
+        "strokeWidth": 3,
+        "fill": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "block_left",
+        "x": 290,
+        "y": 375,
+        "width": 80,
+        "height": 80,
+        "fill": "#f0f0f0",
+        "stroke": "#333",
+        "strokeWidth": 3,
+        "rx": 5
+      },
+      {
+        "type": "svg_latex",
+        "id": "mass_label_left",
+        "expression": "m",
+        "x": 330,
+        "y": 420,
+        "fontSize": 18,
+        "color": "#000"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "force_arrow_left",
+        "x1": 380,
+        "y1": 415,
+        "x2": 440,
+        "y2": 415,
+        "stroke": "#D32F2F",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_label_left",
+        "expression": "\\vec{F} = -kx",
+        "x": 410,
+        "y": 395,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_line",
+        "id": "surface_bottom",
+        "x1": 30,
+        "y1": 470,
+        "x2": 750,
+        "y2": 470,
+        "stroke": "#999",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line_top",
+        "x1": 450,
+        "y1": 130,
+        "x2": 450,
+        "y2": 270,
+        "stroke": "#999",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line_bottom",
+        "x1": 450,
+        "y1": 290,
+        "x2": 450,
+        "y2": 470,
+        "stroke": "#999",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_label_top",
+        "expression": "x = 0",
+        "x": 470,
+        "y": 140,
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_label_bottom",
+        "expression": "x = 0",
+        "x": 470,
+        "y": 340,
+        "fontSize": 12,
+        "color": "#666"
+      },
+      {
+        "type": "svg_latex",
+        "id": "scenario_1_label",
+        "expression": "\\text{Block displaced right: } x > 0",
+        "x": 400,
+        "y": 120,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "scenario_2_label",
+        "expression": "\\text{Block displaced left: } x < 0",
+        "x": 400,
+        "y": 320,
+        "fontSize": 14,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "spring_constant_label_top",
+        "expression": "k",
+        "x": 305,
+        "y": 185,
+        "fontSize": 16,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_latex",
+        "id": "spring_constant_label_bottom",
+        "expression": "k",
+        "x": 180,
+        "y": 385,
+        "fontSize": 16,
+        "color": "#4682b4"
+      },
+      {
+        "type": "svg_text",
+        "id": "frictionless_label",
+        "text": "Frictionless Surface",
+        "x": 450,
+        "y": 500,
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_latex",
+        "id": "explanation_title",
+        "expression": "\\text{Hooke's Law: Restoring Force}",
+        "x": 100,
+        "y": 550,
+        "fontSize": 16,
+        "color": "#000"
+      },
+      {
+        "type": "svg_latex",
+        "id": "explanation_text",
+        "expression": "\\text{The spring force always points toward equilibrium, opposing displacement}",
+        "x": 100,
+        "y": 580,
+        "fontSize": 12,
+        "color": "#333"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

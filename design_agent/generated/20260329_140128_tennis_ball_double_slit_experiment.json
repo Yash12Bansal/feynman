@@ -1,0 +1,275 @@
+{
+  "prompt": "A simple diagram showing tennis balls being thrown from the left toward a barrier wall with two rectangular openings (slits). Some balls pass through the slits and hit a detection screen on the right. Show the tennis balls as small circles, the barrier as a vertical wall with two gaps, and arrows indicating the ball trajectories. Label the parts: \"Tennis balls\", \"Barrier with 2 slits\", \"Detection screen\". Use a clean, educational style with clear labels.",
+  "spec": {
+    "title": "Tennis Ball Double Slit Experiment",
+    "description": "Classical particles (tennis balls) passing through two slits, demonstrating particle behavior",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_rect",
+        "id": "barrier",
+        "x": 350,
+        "y": 100,
+        "width": 20,
+        "height": 450,
+        "fill": "#555555",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit1",
+        "x": 350,
+        "y": 200,
+        "width": 20,
+        "height": 60,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "slit2",
+        "x": 350,
+        "y": 390,
+        "width": 20,
+        "height": 60,
+        "fill": "#ffffff",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_line",
+        "id": "screen",
+        "x1": 700,
+        "y1": 100,
+        "x2": 700,
+        "y2": 550,
+        "stroke": "#333333",
+        "strokeWidth": 8
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball1",
+        "cx": 100,
+        "cy": 180,
+        "r": 12,
+        "fill": "#FFD700",
+        "stroke": "#DAA520",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball2",
+        "cx": 150,
+        "cy": 220,
+        "r": 12,
+        "fill": "#FFD700",
+        "stroke": "#DAA520",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball3",
+        "cx": 80,
+        "cy": 320,
+        "r": 12,
+        "fill": "#FFD700",
+        "stroke": "#DAA520",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball4",
+        "cx": 120,
+        "cy": 380,
+        "r": 12,
+        "fill": "#FFD700",
+        "stroke": "#DAA520",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball5",
+        "cx": 170,
+        "cy": 420,
+        "r": 12,
+        "fill": "#FFD700",
+        "stroke": "#DAA520",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "trajectory1",
+        "x1": 200,
+        "y1": 230,
+        "x2": 340,
+        "y2": 230,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "trajectory2",
+        "x1": 380,
+        "y1": 230,
+        "x2": 520,
+        "y2": 230,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "trajectory3",
+        "x1": 380,
+        "y1": 230,
+        "x2": 550,
+        "y2": 280,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "trajectory4",
+        "x1": 200,
+        "y1": 420,
+        "x2": 340,
+        "y2": 420,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "trajectory5",
+        "x1": 380,
+        "y1": 420,
+        "x2": 520,
+        "y2": 420,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "trajectory6",
+        "x1": 380,
+        "y1": 420,
+        "x2": 550,
+        "y2": 370,
+        "stroke": "#4682B4",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "blocked1",
+        "x1": 200,
+        "y1": 300,
+        "x2": 340,
+        "y2": 300,
+        "stroke": "#CC0000",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "blocked2",
+        "x1": 200,
+        "y1": 350,
+        "x2": 340,
+        "y2": 350,
+        "stroke": "#CC0000",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_circle",
+        "id": "hit1",
+        "cx": 700,
+        "cy": 230,
+        "r": 6,
+        "fill": "#FF6B35",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_circle",
+        "id": "hit2",
+        "cx": 700,
+        "cy": 280,
+        "r": 6,
+        "fill": "#FF6B35",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_circle",
+        "id": "hit3",
+        "cx": 700,
+        "cy": 370,
+        "r": 6,
+        "fill": "#FF6B35",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_circle",
+        "id": "hit4",
+        "cx": 700,
+        "cy": 420,
+        "r": 6,
+        "fill": "#FF6B35",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_text",
+        "id": "label_balls",
+        "x": 120,
+        "y": 80,
+        "text": "Tennis balls",
+        "fontSize": 16,
+        "fill": "#333333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "label_barrier",
+        "x": 360,
+        "y": 80,
+        "text": "Barrier with 2 slits",
+        "fontSize": 16,
+        "fill": "#333333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "label_screen",
+        "x": 720,
+        "y": 80,
+        "text": "Detection screen",
+        "fontSize": 16,
+        "fill": "#333333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit1_label",
+        "x": 300,
+        "y": 235,
+        "text": "Slit 1",
+        "fontSize": 12,
+        "fill": "#666666",
+        "textAnchor": "end"
+      },
+      {
+        "type": "svg_text",
+        "id": "slit2_label",
+        "x": 300,
+        "y": 425,
+        "text": "Slit 2",
+        "fontSize": 12,
+        "fill": "#666666",
+        "textAnchor": "end"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

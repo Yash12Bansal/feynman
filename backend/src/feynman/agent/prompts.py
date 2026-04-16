@@ -8,6 +8,11 @@ if TYPE_CHECKING:
     from feynman.agent.lesson_plan import LessonPlan
     from feynman.agent.teaching_context import TeachingContext
 
+from feynman.agent.board_snapshot import generate_board_context
+from feynman.agent.concept_planner import format_plan_for_prompt
+from feynman.agent.notebook import reconstruct as reconstruct_notebook
+from feynman.agent.notebook import render_prompt_section as render_notebook_section
+
 TEACHING_SYSTEM_PROMPT = """\
 You are Feynman, an AI teacher inspired by Richard Feynman — "The Great Explainer."
 
@@ -76,6 +81,10 @@ highlight_diagram_part(target_id="design-1", sub_element_ids="mitochondria", col
 YOU: "And these blue ones are mitochondria — they power the cell."
 ```
 
+**Timing**: Highlights fire INSTANTLY — no TTS delay. Call highlight_diagram_part FIRST \
+in your tool calls for a turn, then write your speech about that highlighted part. \
+The student sees the glow → hears your explanation. Never put speech before the highlight.
+
 ### Beat 4: "Annotate for emphasis" (marker on the board)
 
 Use annotate(action="circle"/"underline"/"arrow") sparingly for KEY moments only. \
@@ -104,6 +113,17 @@ Don't batch multiple tools.
 3. **Pause after complex visuals**: teach_pause(2) lets students absorb.
 4. **Clean between topics**: clear_board between major concept transitions.
 5. **Annotate sparingly**: Circle/underline at KEY moments, not every mention.
+
+### Notebook working (split-board)
+
+For the notebook's working column — step-by-step solving, boxed answers, \
+sectioned derivations, page turns, correcting a wrong step — prefer the \
+notebook-native write tools (``write_equation``, ``write_step``, ``write_text``, \
+``write_section``, ``write_answer``, ``strikethrough``, ``new_page``) over the \
+slide-era ``show_*`` equivalents. Equations sharing an ``align_group`` line up \
+at the ``=``; use ``strikethrough`` on a previously written entry to visibly \
+correct a wrong line before writing the right one; call ``new_page`` before the \
+page gets too full.
 """
 
 HIGHLIGHT_WALK_INSTRUCTIONS = """\
@@ -425,113 +445,76 @@ board and you want to change it, modify it. Don't regenerate from scratch.
 is better than cramming equations into the diagram as svg_text labels.
 """
 
-ZONE_PLACEMENT_INSTRUCTIONS = """\
+PLACEMENT_INSTRUCTIONS = """\
 
-## Board Layout — Teaching Scenario Patterns
+## Board Placement — Think Like a Teacher
 
-Every visual tool accepts a `zone` parameter. The 9 zones form a 3x3 grid:
+You control WHERE things appear on the board. Look at the Board State snapshot \
+above before every visual tool call.
 
-  top-left      top-center      top-right
-  center-left   center-center   center-right
-  bottom-left   bottom-center   bottom-right
+### How to Place Elements
 
-Before placing ANY visual, identify which teaching scenario you're in and follow \
-its layout pattern. Consistent layout helps students know where to look.
+**Option 1: Near an existing element (PREFERRED)**
+When the new element relates to something already on the board:
+```
+show_equation(latex="F=ma", near="design-1", near_side="right_of")
+```
+Available sides: right_of, below, above, left_of.
 
-### Pattern: CONCEPT INTRODUCTION
-Use when: introducing a new concept with a visual and its equation/formula.
-  ┌───────────┬────────────┬───────────┐
-  │           │Title / Key │           │
-  │           │   Text     │           │
-  ├───────────┼────────────┼───────────┤
-  │  Diagram  │            │   Key     │
-  │ (center-  │            │ Equation  │
-  │   left)   │            │(center-rt)│
-  ├───────────┼────────────┼───────────┤
-  │           │ [reserved] │           │
-  └───────────┴────────────┴───────────┘
-- Diagram in center-left (LARGE — visual anchor)
-- Key equation in center-right (adjacent to diagram)
-- Title or definition in top-center
-- Bottom row reserved for follow-up
+**Option 2: Zone placement (for new clusters)**
+When starting fresh content with no relation to existing elements:
+```
+draw_design_diagram(prompt="...", zone="center-left")
+```
 
-### Pattern: STEP-BY-STEP DERIVATION
-Use when: deriving a formula, proving a theorem, solving step by step.
-  ┌───────────┬────────────┬───────────┐
-  │  Diagram  │  Starting  │           │
-  │   (ref)   │  Equation  │           │
-  ├───────────┼────────────┼───────────┤
-  │           │  Steps     │ Annota-   │
-  │           │  (flowing  │  tions    │
-  │           │   down)    │           │
-  ├───────────┼────────────┼───────────┤
-  │           │  Result    │           │
-  │           │ (highlight)│           │
-  └───────────┴────────────┴───────────┘
-- Reference diagram in top-left (from concept intro)
-- Starting equation in top-center
-- Use step_equation — flows vertically in center column
-- Annotations in center-right
-- Final result highlighted in bottom-center
-- NEVER scatter derivation steps across multiple zones
+**Option 3: Auto-placement (when unsure)**
+Omit both — the system picks the best available position:
+```
+show_text(text="Remember: F=ma means...")
+```
 
-### Pattern: PROBLEM SOLVING
-Use when: working through a practice problem.
-  ┌───────────┬────────────┬───────────┐
-  │           │            │ Given /   │
-  │           │            │   Find    │
-  ├───────────┼────────────┼───────────┤
-  │  Diagram  │            │ Solution  │
-  │ (center-  │            │  Steps    │
-  │   left)   │            │(center-rt)│
-  ├───────────┼────────────┼───────────┤
-  │           │            │  Answer   │
-  │           │            │(bottom-rt)│
-  └───────────┴────────────┴───────────┘
-- Given/Find in top-right
-- Diagram in center-left (draw the situation)
-- Solution steps in center-right
-- Final answer in bottom-right (highlighted, boxed)
+### Spatial Rules
 
-### Pattern: COMPARISON
-Use when: contrasting two cases, scenarios, or before/after.
-  ┌───────────┬────────────┬───────────┐
-  │  Case A   │            │  Case B   │
-  │   title   │            │   title   │
-  ├───────────┼────────────┼───────────┤
-  │  Case A   │            │  Case B   │
-  │  diagram  │            │  diagram  │
-  ├───────────┼────────────┼───────────┤
-  │  Case A   │   Shared   │  Case B   │
-  │    eq     │   insight  │    eq     │
-  └───────────┴────────────┴───────────┘
-- Left column for Case A, right column for Case B
-- Use annotate(action="arrow") between related parts
-- Shared insight in bottom-center
+1. **Related → adjacent**: Equation for a diagram → place near that diagram.
+2. **Reading flow**: New content below or right of previous content.
+3. **One anchor per cluster**: One main diagram, supporting content around it.
+4. **Check the snapshot**: The Board State shows exactly what's where and what's free.
+5. **Trust the suggestions**: The "Suggested next placements" are computed from \
+actual available space — they always fit.
+6. **Size matters**: Use size_hint="large" for diagrams, "small" for equations. \
+The system checks if it fits before placing.
 
-### Pattern: SINGLE EQUATION FOCUS
-Use when: showing one important equation and explaining its terms.
-- Equation in center-center (LARGE, term_by_term animation)
-- Nothing else competing for attention
-- Use highlight after to spotlight individual terms
+### Teaching Scenario Patterns
 
-### Spatial Rules (always apply)
+Match your scenario and follow the placement flow:
 
-1. **Adjacent**: Related elements go in neighboring zones — equation next to its diagram.
-2. **Top-to-bottom flow**: First things at top, later things below.
-3. **One visual anchor**: One main diagram per board — don't compete for center attention.
-4. **Connect with arrows**: Use annotate(action="arrow") to link related elements across zones.
-5. **Clear before reuse**: Clear old content before reusing a zone — never overlap.
-6. **Declutter**: If >5 elements on board, clear non-essential ones before adding more.
+**Concept Introduction**: Main diagram (zone="center-left") → equation near diagram \
+(near="design-1", near_side="right_of") → title above (near="design-1", near_side="above")
 
-### Before Each Concept
+**Step-by-step Derivation**: Starting equation at top → each step below the previous \
+(near="step-N", near_side="below") → result highlighted at bottom
 
-When starting a new concept, plan the board FIRST:
-1. Identify the teaching moment type (concept intro, derivation, problem, comparison, equation focus)
-2. List the visual elements you'll need (diagram, equation, steps, graph, text)
-3. Match to the pattern above
-4. Assign each element to a zone
-5. Draw the main visual anchor first, then supporting elements
+**Problem Solving**: Given/find text (zone="top-right") → diagram (zone="center-left") \
+→ solution steps near diagram (near="design-1", near_side="right_of")
+
+**Comparison**: Case A left (zone="center-left") → Case B right (zone="center-right") \
+→ shared insight below (zone="bottom-center")
+"""
+
+BOARD_RELATIONSHIPS_INSTRUCTIONS = """\
+
+## Board Relationships (relates_to)
+
+When you create a visual that relates to an element already on the board, \
+use the `relates_to` parameter to declare the connection:
+
+- Equation for a diagram: `show_equation(..., relates_to="design-1", relation="illustrates")`
+- Step from a previous equation: `step_equation(..., relates_to="eq-1", relation="derives_from")`
+- Supporting text: `show_text(..., relates_to="design-1", relation="supports")`
+
+Available relations: "illustrates", "derives_from", "compares_with", "supports", "annotates".
+
+Check the Board State section above for current element IDs before using relates_to.
 """
 
 STATE_TOOL_INSTRUCTIONS = """\
@@ -591,56 +574,51 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
     Helps the agent reference prerequisite visuals on earlier boards,
     keep current visuals for upcoming concepts, and draw connections.
     """
-    if not teaching_ctx.concept_graph:
+    if not teaching_ctx.curriculum:
         teaching_ctx.audit.record(
-            "concept_context", "missing",
-            f"concept={teaching_ctx.current_concept_index} — no ConceptGraph available",
+            "concept_context",
+            "missing",
+            f"concept={teaching_ctx.current_concept_index} — no curriculum data available",
         )
         return ""
 
-    current_node = teaching_ctx.current_graph_node
+    current_node = teaching_ctx.current_curriculum_concept
     if not current_node:
         concept = teaching_ctx.current_concept
         teaching_ctx.audit.record(
-            "concept_context", "no_graph_node_match",
+            "concept_context",
+            "no_curriculum_concept",
             f"concept={teaching_ctx.current_concept_index} "
-            f"'{concept.title if concept else '?'}' — no matching graph node found",
+            f"'{concept.title if concept else '?'}' — no matching curriculum concept found",
         )
         return ""
 
-    try:
-        edges = teaching_ctx.concept_graph.get_related_edges(current_node.node_id)
-    except (AttributeError, TypeError):
-        return ""
+    # Get relationships for the current concept from CurriculumData
+    edges = [
+        e
+        for e in teaching_ctx.curriculum.relationships
+        if e.from_uid == current_node.uid or e.to_uid == current_node.uid
+    ]
 
     hints: list[str] = []
     for edge in edges:
-        rel_value = getattr(edge.relation, "value", str(edge.relation))
+        rel_value = edge.rel_type.lower()
 
-        # Resolve the other node's name for display.
-        other_id = (
-            edge.target_id
-            if edge.source_id == current_node.node_id
-            else edge.source_id
-        )
-        try:
-            other_node = teaching_ctx.concept_graph.nodes.get(other_id)
-            name = edge.label or (other_node.topic_name if other_node else other_id)
-        except (AttributeError, TypeError):
-            name = edge.label or other_id
+        other_uid = edge.to_uid if edge.from_uid == current_node.uid else edge.from_uid
+        other = teaching_ctx.curriculum.concept_by_uid(other_uid)
+        name = edge.label or (other.topic_name if other else other_uid)
 
         if rel_value == "prerequisite":
             hints.append(f"- Prerequisite: {name} (check earlier boards)")
         elif rel_value == "leads_to":
-            hints.append(
-                f"- This leads to: {name} (keep visuals for reference)"
-            )
+            hints.append(f"- This leads to: {name} (keep visuals for reference)")
         elif rel_value == "example_of":
             hints.append(f"- Example opportunity: {name}")
 
     if hints:
         teaching_ctx.audit.record(
-            "concept_context", "graph_hint_shown",
+            "concept_context",
+            "graph_hint_shown",
             f"concept={teaching_ctx.current_concept_index} "
             f"node='{current_node.topic_name}' hints={len(hints)}",
             hint_count=len(hints),
@@ -648,11 +626,53 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
         return "\n## Cross-concept connections\n" + "\n".join(hints) + "\n"
 
     teaching_ctx.audit.record(
-        "concept_context", "graph_node_no_edges",
+        "concept_context",
+        "graph_node_no_edges",
         f"concept={teaching_ctx.current_concept_index} "
         f"node='{current_node.topic_name}' — graph node matched but has no relevant edges",
     )
     return ""
+
+
+def _get_current_concept_index(teaching_ctx: TeachingContext) -> int | None:
+    """Extract current concept index from teaching context."""
+    concept = getattr(teaching_ctx, "current_concept", None)
+    if concept is None:
+        return None
+    plan = getattr(teaching_ctx, "lesson_plan", None)
+    if plan is None or not hasattr(plan, "concepts"):
+        return None
+    for i, c in enumerate(plan.concepts):
+        if c is concept:
+            return i
+    return None
+
+
+def _get_upcoming_concepts(
+    teaching_ctx: TeachingContext,
+) -> list[tuple[str, str | None]] | None:
+    """Get next 1-2 concepts from lesson plan for space reservation."""
+    plan = getattr(teaching_ctx, "lesson_plan", None)
+    if plan is None or not hasattr(plan, "concepts"):
+        return None
+    concept = getattr(teaching_ctx, "current_concept", None)
+    if concept is None:
+        return None
+    concepts = plan.concepts
+    idx = None
+    for i, c in enumerate(concepts):
+        if c is concept:
+            idx = i
+            break
+    if idx is None:
+        return None
+    upcoming: list[tuple[str, str | None]] = []
+    for c in concepts[idx + 1 : idx + 3]:
+        title = getattr(c, "title", getattr(c, "description", ""))
+        hint = getattr(c, "visual_suggestions", None)
+        hint_str = hint[0] if hint else None
+        upcoming.append((title, hint_str))
+    return upcoming or None
 
 
 def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
@@ -660,11 +680,26 @@ def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
     bm = teaching_ctx.board_manager
     board_state = bm.active_board.state
 
+    # ASCII snapshot when spatial solver has bounds data (post-frontend report).
+    solver = board_state.spatial_solver
+    has_spatial = bool(solver.occupied)
+    if has_spatial:
+        board_summary = generate_board_context(
+            solver,
+            board_state._elements,
+            board_graph=board_state.board_graph,
+            current_concept_index=_get_current_concept_index(teaching_ctx),
+            upcoming_concepts=_get_upcoming_concepts(teaching_ctx),
+        )
+    else:
+        # Fallback: existing text summary (before frontend sends bounds).
+        board_summary = bm.summary()
+
     # Viewport-aware free zones (current tile only).
     visible_free = board_state.visible_free_zones()
     visible_used = board_state.visible_zones_in_use()
     free_str = ""
-    if visible_free:
+    if visible_free and not has_spatial:
         free_str = f"\nFree zones: {', '.join(sorted(z.value for z in visible_free))}\n"
 
     # Viewport position info.
@@ -677,23 +712,37 @@ def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
     offscreen = board_state.offscreen_summary()
     offscreen_str = f"\n**Off-screen**: {offscreen}\n" if offscreen else ""
 
-    # Fullness hint — prompt agent to scroll when getting crowded.
+    # Fullness hint — replaced by flow-based scroll advice in board context.
+    # Kept as fallback only when spatial data is unavailable.
     fullness_hint = ""
-    if len(visible_used) >= 6:
+    if not has_spatial and len(visible_used) >= 6:
         fullness_hint = (
             "\n**Board is filling up** — consider calling "
             'scroll_board(direction="right") for fresh space.\n'
         )
 
+    # Scenario plan status — show the active layout plan.
+    scenario_str = ""
+    plan = board_state.scenario_plan
+    if plan and plan.slots:
+        status_lines = plan.status_lines()
+        scenario_str = (
+            f"\n**Scenario**: {plan.scenario.value.upper().replace('_', ' ')}\n"
+            + "\n".join(status_lines)
+            + "\n"
+        )
+
     if bm.board_count == 1:
         return (
-            f"\n## Board State\n\n{bm.summary()}\n"
-            f"{viewport_str}{free_str}{offscreen_str}{fullness_hint}"
+            f"\n## Board State\n\n{board_summary}\n"
+            f"{scenario_str}{viewport_str}{free_str}{offscreen_str}{fullness_hint}"
         )
 
     # Multi-board: show active board details + all-boards overview.
     parts = [f"\n## Board State — {bm.active_board.label} ({bm.active_id})\n"]
-    parts.append(f"\n{bm.summary()}\n{viewport_str}{free_str}{offscreen_str}{fullness_hint}")
+    parts.append(
+        f"\n{board_summary}\n{scenario_str}{viewport_str}{free_str}{offscreen_str}{fullness_hint}"
+    )
     parts.append(f"\n### All Boards ({bm.board_count})\n\n")
     parts.append(bm.boards_summary())
     parts.append("\n\nUse `switch_board(board_id, intent)` to flip to a different board.\n")
@@ -717,7 +766,8 @@ def build_teaching_prompt(
         DESIGN_DIAGRAM_INSTRUCTIONS,
         MODIFY_DIAGRAM_INSTRUCTIONS,
         SCENE_INSTRUCTIONS,
-        ZONE_PLACEMENT_INSTRUCTIONS,
+        PLACEMENT_INSTRUCTIONS,
+        BOARD_RELATIONSHIPS_INSTRUCTIONS,
     ]
 
     parts = [
@@ -727,6 +777,14 @@ def build_teaching_prompt(
 
     # Board state section — always included (applies in both modes).
     parts.append(_build_board_state_section(teaching_ctx))
+
+    # Notebook state section (Phase 5b) — reconstructed live from audit so the
+    # agent sees what it has already written and can reason across turns.
+    # Appears after the 2D board state; under the split-board frontend flag
+    # the notebook is the primary writing surface and this section is the
+    # LLM's source of truth about it.
+    notebook_state = reconstruct_notebook(teaching_ctx.audit)
+    parts.append(render_notebook_section(notebook_state, history_pages=1))
 
     if lesson_plan is None:
         parts.append(
@@ -767,53 +825,86 @@ def build_teaching_prompt(
     if current and not teaching_ctx.is_lesson_complete:
         ci = teaching_ctx.current_concept_index + 1
         total = lesson_plan.total_concepts
-        parts.append(f"\n### Now Teaching [{ci} of {total}]: {current.title}\n")
-        parts.append(f"{current.description}\n")
-        parts.append("\n**Key points to cover:**\n")
-        for point in current.key_points:
-            parts.append(f"- {point}\n")
-        # Pre-generated visual prompts (instant rendering) take priority
-        pre_gen = teaching_ctx.anticipation.get_prompts_for_concept(
-            teaching_ctx.current_concept_index
-        )
-        if pre_gen:
-            parts.append(
-                "\n**Pre-rendered visuals** "
-                "(use these exact prompts with draw_design_diagram for instant rendering):\n"
+
+        # Check if the planning agent produced a plan for this concept
+        current_plan = teaching_ctx.current_plan
+
+        if current_plan:
+            # ── PLANNED MODE: use the structured teaching plan ──
+            parts.append(f"\n### Now Teaching [{ci} of {total}]: {current.title}\n")
+            parts.append(format_plan_for_prompt(current_plan))
+
+            # Still surface pre-rendered visual prompts (cache hits = instant).
+            pre_gen = teaching_ctx.anticipation.get_prompts_for_concept(
+                teaching_ctx.current_concept_index
             )
-            for pi, p in enumerate(pre_gen, 1):
-                parts.append(f'{pi}. prompt="{p}"\n')
-            parts.append(
-                "\nYou may write a custom prompt instead, "
-                "but it will take 5-15 seconds to generate.\n"
+            if pre_gen:
+                parts.append(
+                    "\n**Pre-rendered visuals available** "
+                    "(use these exact prompts with draw_design_diagram for instant rendering):\n"
+                )
+                for pi, p in enumerate(pre_gen, 1):
+                    parts.append(f'{pi}. prompt="{p}"\n')
+
+            # Cross-concept connections from curriculum
+            graph_ctx = _build_graph_context(teaching_ctx)
+            if graph_ctx:
+                parts.append(graph_ctx)
+
+        else:
+            # ── UNPLANNED MODE: fallback to raw key_points (legacy behaviour) ──
+            parts.append(f"\n### Now Teaching [{ci} of {total}]: {current.title}\n")
+            parts.append(f"{current.description}\n")
+            parts.append("\n**Key points to cover:**\n")
+            for point in current.key_points:
+                parts.append(f"- {point}\n")
+            # Pre-generated visual prompts (instant rendering) take priority
+            pre_gen = teaching_ctx.anticipation.get_prompts_for_concept(
+                teaching_ctx.current_concept_index
             )
+            if pre_gen:
+                parts.append(
+                    "\n**Pre-rendered visuals** "
+                    "(use these exact prompts with draw_design_diagram for instant rendering):\n"
+                )
+                for pi, p in enumerate(pre_gen, 1):
+                    parts.append(f'{pi}. prompt="{p}"\n')
+                parts.append(
+                    "\nYou may write a custom prompt instead, "
+                    "but it will take 5-15 seconds to generate.\n"
+                )
 
-        # Always show visual_suggestions as additional ideas
-        if current.visual_suggestions:
-            label = "Additional visual ideas:" if pre_gen else "Visual suggestions:"
-            parts.append(f"\n**{label}**\n")
-            for suggestion in current.visual_suggestions:
-                parts.append(f"- {suggestion}\n")
+            # Always show visual_suggestions as additional ideas
+            if current.visual_suggestions:
+                label = "Additional visual ideas:" if pre_gen else "Visual suggestions:"
+                parts.append(f"\n**{label}**\n")
+                for suggestion in current.visual_suggestions:
+                    parts.append(f"- {suggestion}\n")
 
-        # Inject full ConceptGraph teaching content when available
-        graph_node = teaching_ctx.current_graph_node
-        if graph_node and getattr(graph_node, "summary", None):
-            summary = graph_node.summary[:800]
+            # Inject full curriculum teaching content from Neo4j
+            curr_concept = teaching_ctx.current_curriculum_concept
+            if curr_concept and getattr(curr_concept, "summary", None):
+                summary = curr_concept.summary[:800]
+                parts.append(
+                    f"\n**Teaching reference** (use this content to teach from):\n{summary}\n"
+                )
+
+            # Cross-concept connections from curriculum
+            graph_ctx = _build_graph_context(teaching_ctx)
+            if graph_ctx:
+                parts.append(graph_ctx)
+
             parts.append(
-                f"\n**Teaching reference** (use this content to teach from):\n{summary}\n"
+                "\n**Completion checklist** — call advance_concept() when all done:\n"
+                "- [ ] Covered each key point above\n"
+                "- [ ] Showed at least one visual aid\n"
+                "- [ ] Paused for student questions\n"
             )
-
-        # Cross-concept connections from ConceptGraph
-        graph_ctx = _build_graph_context(teaching_ctx)
-        if graph_ctx:
-            parts.append(graph_ctx)
-
-        parts.append(
-            "\n**Completion checklist** — call advance_concept() when all done:\n"
-            "- [ ] Covered each key point above\n"
-            "- [ ] Showed at least one visual aid\n"
-            "- [ ] Paused for student questions\n"
-        )
+            parts.append(
+                "\nAfter covering the key points and showing a visual, "
+                "call advance_concept() promptly. Do not re-explain content "
+                "the class already understands. Keep momentum.\n"
+            )
 
     # Branch context
     depth = teaching_ctx.state_machine.depth

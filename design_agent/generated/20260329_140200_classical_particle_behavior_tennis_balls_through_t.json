@@ -1,0 +1,315 @@
+{
+  "prompt": "A simple diagram showing tennis balls being thrown at a wall with two openings (slits). Show several tennis balls as small circles approaching from the left, a wall in the middle with two rectangular openings, and two distinct spots/piles of balls on a screen on the right side - one spot behind each opening. Label the parts: \"Tennis balls\", \"Wall with two slits\", and \"Screen showing two spots\"",
+  "spec": {
+    "title": "Classical Particle Behavior: Tennis Balls Through Two Slits",
+    "description": "Tennis balls thrown at a wall with two openings create two distinct spots on the screen behind - each ball goes through one slit or the other",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "title_label",
+        "x": 450,
+        "y": 30,
+        "text": "Classical Particle Behavior",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "wall",
+        "x": 350,
+        "y": 150,
+        "width": 20,
+        "height": 350,
+        "fill": "#555",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_rect",
+        "id": "upper_slit",
+        "x": 350,
+        "y": 220,
+        "width": 20,
+        "height": 40,
+        "fill": "#ffffff",
+        "stroke": "#555",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "lower_slit",
+        "x": 350,
+        "y": 340,
+        "width": 20,
+        "height": 40,
+        "fill": "#ffffff",
+        "stroke": "#555",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "screen",
+        "x1": 650,
+        "y1": 150,
+        "x2": 650,
+        "y2": 500,
+        "stroke": "#333",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball1",
+        "cx": 80,
+        "cy": 240,
+        "r": 8,
+        "fill": "#FFD700",
+        "stroke": "#333",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball2",
+        "cx": 120,
+        "cy": 250,
+        "r": 8,
+        "fill": "#FFD700",
+        "stroke": "#333",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball3",
+        "cx": 160,
+        "cy": 245,
+        "r": 8,
+        "fill": "#FFD700",
+        "stroke": "#333",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball4",
+        "cx": 200,
+        "cy": 355,
+        "r": 8,
+        "fill": "#FFD700",
+        "stroke": "#333",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball5",
+        "cx": 240,
+        "cy": 365,
+        "r": 8,
+        "fill": "#FFD700",
+        "stroke": "#333",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_circle",
+        "id": "ball6",
+        "cx": 280,
+        "cy": 360,
+        "r": 8,
+        "fill": "#FFD700",
+        "stroke": "#333",
+        "strokeWidth": 1
+      },
+      {
+        "type": "svg_arrow",
+        "id": "trajectory1",
+        "x1": 88,
+        "y1": 240,
+        "x2": 128,
+        "y2": 250,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "trajectory2",
+        "x1": 208,
+        "y1": 355,
+        "x2": 248,
+        "y2": 365,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "3,3"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "path_upper",
+        "x1": 370,
+        "y1": 240,
+        "x2": 640,
+        "y2": 240,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "path_lower",
+        "x1": 370,
+        "y1": 360,
+        "x2": 640,
+        "y2": 360,
+        "stroke": "#666",
+        "strokeWidth": 1,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_group",
+        "id": "upper_spot",
+        "transform": "translate(650, 240)",
+        "elements": [
+          {
+            "type": "svg_circle",
+            "id": "spot_ball1",
+            "cx": 15,
+            "cy": -5,
+            "r": 6,
+            "fill": "#FFD700",
+            "stroke": "#333",
+            "strokeWidth": 1
+          },
+          {
+            "type": "svg_circle",
+            "id": "spot_ball2",
+            "cx": 25,
+            "cy": 5,
+            "r": 6,
+            "fill": "#FFD700",
+            "stroke": "#333",
+            "strokeWidth": 1
+          },
+          {
+            "type": "svg_circle",
+            "id": "spot_ball3",
+            "cx": 35,
+            "cy": 0,
+            "r": 6,
+            "fill": "#FFD700",
+            "stroke": "#333",
+            "strokeWidth": 1
+          },
+          {
+            "type": "svg_circle",
+            "id": "spot_ball4",
+            "cx": 20,
+            "cy": 15,
+            "r": 6,
+            "fill": "#FFD700",
+            "stroke": "#333",
+            "strokeWidth": 1
+          }
+        ]
+      },
+      {
+        "type": "svg_group",
+        "id": "lower_spot",
+        "transform": "translate(650, 360)",
+        "elements": [
+          {
+            "type": "svg_circle",
+            "id": "spot_ball5",
+            "cx": 15,
+            "cy": -8,
+            "r": 6,
+            "fill": "#FFD700",
+            "stroke": "#333",
+            "strokeWidth": 1
+          },
+          {
+            "type": "svg_circle",
+            "id": "spot_ball6",
+            "cx": 28,
+            "cy": 2,
+            "r": 6,
+            "fill": "#FFD700",
+            "stroke": "#333",
+            "strokeWidth": 1
+          },
+          {
+            "type": "svg_circle",
+            "id": "spot_ball7",
+            "cx": 18,
+            "cy": 12,
+            "r": 6,
+            "fill": "#FFD700",
+            "stroke": "#333",
+            "strokeWidth": 1
+          },
+          {
+            "type": "svg_circle",
+            "id": "spot_ball8",
+            "cx": 32,
+            "cy": -3,
+            "r": 6,
+            "fill": "#FFD700",
+            "stroke": "#333",
+            "strokeWidth": 1
+          }
+        ]
+      },
+      {
+        "type": "svg_text",
+        "id": "balls_label",
+        "x": 150,
+        "y": 130,
+        "text": "Tennis balls",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "wall_label",
+        "x": 360,
+        "y": 130,
+        "text": "Wall with two slits",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label",
+        "x": 700,
+        "y": 130,
+        "text": "Screen showing",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "screen_label2",
+        "x": 700,
+        "y": 145,
+        "text": "two spots",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "explanation",
+        "x": 450,
+        "y": 580,
+        "text": "Each tennis ball passes through one slit or the other, creating two distinct piles",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "middle"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

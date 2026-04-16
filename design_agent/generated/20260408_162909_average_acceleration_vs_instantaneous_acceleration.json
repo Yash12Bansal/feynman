@@ -1,0 +1,461 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Average Acceleration and Instantaneous Acceleration. Context: Acceleration is the rate of change of velocity. When a particle's velocity remains constant over time, it moves with uniform velocity. If the velocity changes with time, the particle is said to be accelerated. Since velocity is a vector quantity, acceleration occurs when there is a change in the magnitude, direction, or both components of velocity. Average acceleration is defined over a time interval and depends only on the initial and final velocities, not on how the velocity changed during the interval. Instantaneous acceleration is defined at a specific instant and represents the rate of ch",
+  "spec": {
+    "title": "Average Acceleration vs Instantaneous Acceleration",
+    "description": "Comparison of average acceleration (calculated over a time interval) and instantaneous acceleration (calculated at a specific instant) using velocity-time graphs and vector representations",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Average Acceleration vs Instantaneous Acceleration",
+        "fontSize": 18,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "graph",
+        "id": "velocity_graph",
+        "x": 50,
+        "y": 70,
+        "width": 400,
+        "height": 250,
+        "xDomain": [
+          0,
+          10
+        ],
+        "yDomain": [
+          0,
+          20
+        ],
+        "xLabel": "Time (s)",
+        "yLabel": "Velocity (m/s)",
+        "backgroundColor": "#f9f9f9",
+        "borderColor": "#666",
+        "curves": [
+          {
+            "expression": "2 + 1.5*x - 0.08*x^2",
+            "color": "#4682b4",
+            "strokeWidth": 3
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_text",
+        "id": "graph_title",
+        "x": 250,
+        "y": 350,
+        "text": "Velocity vs Time Graph",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "point_t1",
+        "cx": 120,
+        "cy": 280,
+        "r": 4,
+        "fill": "#D32F2F",
+        "stroke": "#D32F2F",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_circle",
+        "id": "point_t2",
+        "cx": 360,
+        "cy": 140,
+        "r": 4,
+        "fill": "#D32F2F",
+        "stroke": "#D32F2F",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "secant_line",
+        "x1": 120,
+        "y1": 280,
+        "x2": 360,
+        "y2": 140,
+        "stroke": "#FF5722",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_latex",
+        "id": "t1_label",
+        "expression": "t_1",
+        "x": 120,
+        "y": 300,
+        "fontSize": 12,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "t2_label",
+        "expression": "t_2",
+        "x": 360,
+        "y": 160,
+        "fontSize": 12,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "v1_label",
+        "expression": "v_1",
+        "x": 95,
+        "y": 285,
+        "fontSize": 12,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "v2_label",
+        "expression": "v_2",
+        "x": 385,
+        "y": 145,
+        "fontSize": 12,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_acc_label",
+        "x": 240,
+        "y": 200,
+        "text": "Slope = Average Acceleration",
+        "fontSize": 12,
+        "fill": "#FF5722",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "instant_point",
+        "cx": 280,
+        "cy": 190,
+        "r": 4,
+        "fill": "#4CAF50",
+        "stroke": "#4CAF50",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_line",
+        "id": "tangent_line",
+        "x1": 240,
+        "y1": 220,
+        "x2": 320,
+        "y2": 160,
+        "stroke": "#4CAF50",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "instant_t_label",
+        "expression": "t",
+        "x": 280,
+        "y": 210,
+        "fontSize": 12,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_text",
+        "id": "instant_acc_label",
+        "x": 330,
+        "y": 175,
+        "text": "Slope = Instantaneous Acceleration",
+        "fontSize": 12,
+        "fill": "#4CAF50",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "definition_box1",
+        "x": 500,
+        "y": 70,
+        "width": 350,
+        "height": 150,
+        "fill": "#f0f8ff",
+        "stroke": "#4682b4",
+        "strokeWidth": 2,
+        "rx": 8
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_acc_title",
+        "x": 675,
+        "y": 90,
+        "text": "Average Acceleration",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "avg_acc_formula",
+        "expression": "\\vec{a}_{\\text{avg}} = \\frac{\\vec{v}_2 - \\vec{v}_1}{t_2 - t_1} = \\frac{\\Delta \\vec{v}}{\\Delta t}",
+        "x": 675,
+        "y": 120,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_acc_desc1",
+        "x": 510,
+        "y": 145,
+        "text": "\u2022 Calculated over a time interval \u0394t",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_acc_desc2",
+        "x": 510,
+        "y": 165,
+        "text": "\u2022 Depends only on initial and final velocities",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_acc_desc3",
+        "x": 510,
+        "y": 185,
+        "text": "\u2022 Represents slope of secant line on v-t graph",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "avg_acc_desc4",
+        "x": 510,
+        "y": 205,
+        "text": "\u2022 May not represent motion at any specific instant",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "definition_box2",
+        "x": 500,
+        "y": 240,
+        "width": 350,
+        "height": 150,
+        "fill": "#f0fff0",
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "rx": 8
+      },
+      {
+        "type": "svg_text",
+        "id": "instant_acc_title",
+        "x": 675,
+        "y": 260,
+        "text": "Instantaneous Acceleration",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "instant_acc_formula",
+        "expression": "\\vec{a} = \\lim_{\\Delta t \\to 0} \\frac{\\Delta \\vec{v}}{\\Delta t} = \\frac{d\\vec{v}}{dt}",
+        "x": 675,
+        "y": 290,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "instant_acc_desc1",
+        "x": 510,
+        "y": 315,
+        "text": "\u2022 Calculated at a specific instant in time",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "instant_acc_desc2",
+        "x": 510,
+        "y": 335,
+        "text": "\u2022 Derivative of velocity with respect to time",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "instant_acc_desc3",
+        "x": 510,
+        "y": 355,
+        "text": "\u2022 Represents slope of tangent line on v-t graph",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "instant_acc_desc4",
+        "x": 510,
+        "y": 375,
+        "text": "\u2022 Shows true acceleration at that moment",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "example_box",
+        "x": 50,
+        "y": 420,
+        "width": 800,
+        "height": 200,
+        "fill": "#fafafa",
+        "stroke": "#999",
+        "strokeWidth": 1,
+        "rx": 8
+      },
+      {
+        "type": "svg_text",
+        "id": "example_title",
+        "x": 450,
+        "y": 445,
+        "text": "Key Differences and Example",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_scenario",
+        "x": 70,
+        "y": 470,
+        "text": "Consider a car that speeds up, then slows down during a 10-second interval:",
+        "fontSize": 13,
+        "fill": "#333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_avg",
+        "x": 70,
+        "y": 495,
+        "text": "Average Acceleration:",
+        "fontSize": 12,
+        "fill": "#FF5722",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_avg_desc",
+        "x": 90,
+        "y": 515,
+        "text": "\u2022 If initial velocity = 5 m/s and final velocity = 15 m/s over 10 s",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "example_avg_calc",
+        "expression": "a_{\\text{avg}} = \\frac{15 - 5}{10 - 0} = 1.0\\text{ m/s}^2",
+        "x": 90,
+        "y": 535,
+        "fontSize": 12,
+        "color": "#555"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_avg_note",
+        "x": 90,
+        "y": 555,
+        "text": "\u2022 This doesn't tell us how acceleration varied during the 10 seconds",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_instant",
+        "x": 450,
+        "y": 495,
+        "text": "Instantaneous Acceleration:",
+        "fontSize": 12,
+        "fill": "#4CAF50",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_instant_desc",
+        "x": 470,
+        "y": 515,
+        "text": "\u2022 At t = 3s, the car might be accelerating at 2.5 m/s\u00b2",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_instant_desc2",
+        "x": 470,
+        "y": 535,
+        "text": "\u2022 At t = 7s, the car might be decelerating at -1.2 m/s\u00b2",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "example_instant_note",
+        "x": 470,
+        "y": 555,
+        "text": "\u2022 Each instant has its own specific acceleration value",
+        "fontSize": 12,
+        "fill": "#555",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_insight",
+        "x": 70,
+        "y": 585,
+        "text": "Key Insight: Average acceleration smooths out variations, while instantaneous acceleration reveals the true",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "key_insight2",
+        "x": 70,
+        "y": 605,
+        "text": "motion behavior at each moment. For uniform acceleration, both values are identical.",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      }
+    ],
+    "parameters": [],
+    "animations": []
+  }
+}

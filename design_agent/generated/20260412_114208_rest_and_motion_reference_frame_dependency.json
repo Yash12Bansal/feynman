@@ -1,0 +1,352 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Rest and Motion. Context: Rest and motion are fundamental concepts in kinematics that describe the state of an object. An object is said to be at rest when it does not change its position as time passes. An object is said to be in motion when it changes its position with time. However, these concepts are not absolute - they are relative to the observer or frame of reference. For example, a book on a table appears at rest when viewed from the room, but appears to be moving when viewed from the moon (since the Earth rotates and orbits). Motion is a combined property of the object under study and the observer. There is no",
+  "spec": {
+    "title": "Rest and Motion: Reference Frame Dependency",
+    "description": "Interactive diagram showing how rest and motion are relative concepts that depend on the observer's reference frame",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Rest and Motion are Relative to the Observer",
+        "fontSize": 20,
+        "fill": "#000",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "earth_surface",
+        "x": "50 + earth_x",
+        "y": 100,
+        "width": 300,
+        "height": 200,
+        "fill": "#E8F5E8",
+        "stroke": "#4CAF50",
+        "strokeWidth": 2,
+        "rx": 10
+      },
+      {
+        "type": "svg_text",
+        "id": "earth_label",
+        "x": "200 + earth_x",
+        "y": 90,
+        "text": "Earth Reference Frame",
+        "fontSize": 14,
+        "fill": "#4CAF50",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "table",
+        "x": "120 + earth_x",
+        "y": 220,
+        "width": 160,
+        "height": 20,
+        "fill": "#8B4513",
+        "stroke": "#654321",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_rect",
+        "id": "book",
+        "x": "170 + earth_x",
+        "y": 200,
+        "width": 60,
+        "height": 20,
+        "fill": "#FF6B6B",
+        "stroke": "#E55555",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "table_label",
+        "x": "200 + earth_x",
+        "y": 260,
+        "text": "Table",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "book_label",
+        "x": "200 + earth_x",
+        "y": 190,
+        "text": "Book",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer_earth",
+        "cx": "80 + earth_x",
+        "cy": 180,
+        "r": 15,
+        "fill": "#4682B4",
+        "stroke": "#2E5B9C",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_earth_label",
+        "x": "80 + earth_x",
+        "y": 210,
+        "text": "Observer",
+        "fontSize": 10,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_latex",
+        "id": "earth_observation",
+        "expression": "\\text{Book appears at REST}",
+        "x": "200 + earth_x",
+        "y": 280,
+        "fontSize": 14,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_rect",
+        "id": "space_frame",
+        "x": 500,
+        "y": 100,
+        "width": 350,
+        "height": 200,
+        "fill": "#F0F8FF",
+        "stroke": "#1E90FF",
+        "strokeWidth": 2,
+        "rx": 10
+      },
+      {
+        "type": "svg_text",
+        "id": "space_label",
+        "x": 675,
+        "y": 90,
+        "text": "Space Reference Frame (Moon's perspective)",
+        "fontSize": 14,
+        "fill": "#1E90FF",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_circle",
+        "id": "earth_planet",
+        "cx": "600 + earth_orbit",
+        "cy": 180,
+        "r": 40,
+        "fill": "#4CAF50",
+        "stroke": "#388E3C",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "earth_planet_label",
+        "x": "600 + earth_orbit",
+        "y": 185,
+        "text": "Earth",
+        "fontSize": 10,
+        "fill": "white",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "book_on_earth",
+        "x": "595 + earth_orbit",
+        "y": 165,
+        "width": 10,
+        "height": 4,
+        "fill": "#FF6B6B",
+        "stroke": "none"
+      },
+      {
+        "type": "svg_circle",
+        "id": "observer_space",
+        "cx": 780,
+        "cy": 140,
+        "r": 15,
+        "fill": "#4682B4",
+        "stroke": "#2E5B9C",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "observer_space_label",
+        "x": 780,
+        "y": 165,
+        "text": "Observer",
+        "fontSize": 10,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_text",
+        "id": "moon_label",
+        "x": 780,
+        "y": 180,
+        "text": "(on Moon)",
+        "fontSize": 8,
+        "fill": "#666",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "earth_motion_arrow",
+        "x1": "640 + earth_orbit",
+        "y1": 200,
+        "x2": "680 + earth_orbit",
+        "y2": 200,
+        "stroke": "#FF9800",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "earth_motion_label",
+        "expression": "v_{Earth}",
+        "x": "660 + earth_orbit",
+        "y": 220,
+        "fontSize": 12,
+        "color": "#FF9800"
+      },
+      {
+        "type": "svg_latex",
+        "id": "space_observation",
+        "expression": "\\text{Book appears in MOTION}",
+        "x": 675,
+        "y": 280,
+        "fontSize": 14,
+        "color": "#1E90FF"
+      },
+      {
+        "type": "svg_path",
+        "id": "orbit_path",
+        "d": "M 520 180 Q 600 120, 680 180 Q 760 240, 840 180",
+        "stroke": "#DDD",
+        "strokeWidth": 2,
+        "fill": "none",
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "orbit_label",
+        "x": 680,
+        "y": 250,
+        "text": "Earth's orbital path",
+        "fontSize": 10,
+        "fill": "#999",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_rect",
+        "id": "key_concepts_box",
+        "x": 50,
+        "y": 350,
+        "width": 800,
+        "height": 250,
+        "fill": "#FAFAFA",
+        "stroke": "#CCC",
+        "strokeWidth": 2,
+        "rx": 10
+      },
+      {
+        "type": "svg_text",
+        "id": "concepts_title",
+        "x": 450,
+        "y": 375,
+        "text": "Key Concepts",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "rest_definition",
+        "expression": "\\textbf{Rest:} \\text{ An object is at rest when it doesn't change position relative to the observer}",
+        "x": 70,
+        "y": 410,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "motion_definition",
+        "expression": "\\textbf{Motion:} \\text{ An object is in motion when it changes position relative to the observer}",
+        "x": 70,
+        "y": 440,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "relativity_concept",
+        "expression": "\\textbf{Relativity:} \\text{ Rest and motion depend on the reference frame (observer's viewpoint)}",
+        "x": 70,
+        "y": 470,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "example_explanation",
+        "expression": "\\textbf{Example:} \\text{ The book is at rest relative to Earth, but moving relative to the Moon}",
+        "x": 70,
+        "y": 500,
+        "fontSize": 14,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "no_absolute",
+        "expression": "\\textbf{Important:} \\text{ There is no absolute rest or motion - everything is relative!}",
+        "x": 70,
+        "y": 530,
+        "fontSize": 14,
+        "color": "#D32F2F"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_earth",
+        "expression": "\\vec{v}_{book,Earth} = 0",
+        "x": 70,
+        "y": 560,
+        "fontSize": 12,
+        "color": "#4CAF50"
+      },
+      {
+        "type": "svg_latex",
+        "id": "velocity_space",
+        "expression": "\\vec{v}_{book,Moon} \\neq 0",
+        "x": 250,
+        "y": 560,
+        "fontSize": 12,
+        "color": "#1E90FF"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "earth_x",
+        "min": -30,
+        "max": 30,
+        "default": 0,
+        "step": 5,
+        "label": "Earth Frame Motion"
+      },
+      {
+        "name": "earth_orbit",
+        "min": -50,
+        "max": 50,
+        "default": 0,
+        "step": 10,
+        "label": "Earth's Orbital Position"
+      }
+    ],
+    "animations": []
+  }
+}

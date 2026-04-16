@@ -1,0 +1,490 @@
+{
+  "prompt": "Draw a detailed educational diagram for: Definition and Basic Concepts. Context: Simple harmonic motion is defined by the acceleration equation a = -\u03c9\u00b2x, where acceleration is proportional to displacement but opposite in direction. This leads to the force equation F = -kx, where k = m\u03c9\u00b2 is the force/spring constant. The motion occurs about an equilibrium position (center of oscillation) where the net force is zero. Key characteristics include: (1) Motion is periodic with regular time intervals, (2) Particle oscillates along a straight line, (3) Acceleration always points toward equilibrium, (4) Force is a linear restoring force. The restoring force brings the particle back",
+  "spec": {
+    "title": "Simple Harmonic Motion: Definition and Basic Concepts",
+    "description": "Fundamental principles of SHM showing the relationship between position, acceleration, and restoring force",
+    "width": 900,
+    "height": 650,
+    "backgroundColor": "#ffffff",
+    "elements": [
+      {
+        "type": "svg_text",
+        "id": "main_title",
+        "x": 450,
+        "y": 30,
+        "text": "Simple Harmonic Motion - Basic Concepts",
+        "fontSize": 20,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "oscillation_axis",
+        "x1": 50,
+        "y1": 120,
+        "x2": 850,
+        "y2": 120,
+        "stroke": "#333",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "position_axis_label",
+        "x": 870,
+        "y": 125,
+        "text": "x",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle"
+      },
+      {
+        "type": "svg_line",
+        "id": "equilibrium_line",
+        "x1": 450,
+        "y1": 60,
+        "x2": 450,
+        "y2": 180,
+        "stroke": "#666",
+        "strokeWidth": 2,
+        "strokeDasharray": "5,5"
+      },
+      {
+        "type": "svg_text",
+        "id": "equilibrium_label",
+        "x": 430,
+        "y": 55,
+        "text": "Equilibrium",
+        "fontSize": 14,
+        "fill": "#666",
+        "textAnchor": "end"
+      },
+      {
+        "type": "svg_latex",
+        "id": "equilibrium_position",
+        "expression": "x = 0",
+        "x": 430,
+        "y": 135,
+        "fontSize": 14,
+        "color": "#666"
+      },
+      {
+        "type": "svg_circle",
+        "id": "oscillating_particle",
+        "cx": "450 + 150 * sin(time * 2)",
+        "cy": 120,
+        "r": 12,
+        "fill": "#4CAF50",
+        "stroke": "#2E7D32",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_arrow",
+        "id": "position_vector",
+        "x1": 450,
+        "y1": 140,
+        "x2": "450 + 150 * sin(time * 2)",
+        "y2": 140,
+        "stroke": "#FF5722",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_latex",
+        "id": "position_label",
+        "expression": "x",
+        "x": "450 + 75 * sin(time * 2)",
+        "y": 160,
+        "fontSize": 14,
+        "color": "#FF5722"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "acceleration_vector",
+        "x1": "450 + 150 * sin(time * 2)",
+        "y1": 120,
+        "x2": "450 + 150 * sin(time * 2) - 60 * sin(time * 2)",
+        "y2": 120,
+        "stroke": "#2196F3",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_label",
+        "expression": "\\vec{a}",
+        "x": "450 + 150 * sin(time * 2) - 40 * sin(time * 2)",
+        "y": 105,
+        "fontSize": 14,
+        "color": "#2196F3"
+      },
+      {
+        "type": "svg_arrow",
+        "id": "force_vector",
+        "x1": "450 + 150 * sin(time * 2)",
+        "y1": 95,
+        "x2": "450 + 150 * sin(time * 2) - 80 * sin(time * 2)",
+        "y2": 95,
+        "stroke": "#9C27B0",
+        "strokeWidth": 3
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_label",
+        "expression": "\\vec{F}",
+        "x": "450 + 150 * sin(time * 2) - 50 * sin(time * 2)",
+        "y": 80,
+        "fontSize": 14,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_rect",
+        "id": "equations_box",
+        "x": 50,
+        "y": 220,
+        "width": 400,
+        "height": 200,
+        "fill": "#f8f9fa",
+        "stroke": "#dee2e6",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "equations_title",
+        "x": 250,
+        "y": 245,
+        "text": "Fundamental Equations",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "acceleration_equation",
+        "expression": "a = -\\omega^2 x",
+        "x": 70,
+        "y": 275,
+        "fontSize": 16,
+        "color": "#2196F3"
+      },
+      {
+        "type": "svg_text",
+        "id": "acceleration_desc",
+        "x": 70,
+        "y": 295,
+        "text": "Acceleration \u221d displacement, opposite direction",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "force_equation",
+        "expression": "F = -kx",
+        "x": 70,
+        "y": 325,
+        "fontSize": 16,
+        "color": "#9C27B0"
+      },
+      {
+        "type": "svg_text",
+        "id": "force_desc",
+        "x": 70,
+        "y": 345,
+        "text": "Linear restoring force",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_latex",
+        "id": "spring_constant",
+        "expression": "k = m\\omega^2",
+        "x": 70,
+        "y": 375,
+        "fontSize": 16,
+        "color": "#333"
+      },
+      {
+        "type": "svg_text",
+        "id": "spring_desc",
+        "x": 70,
+        "y": 395,
+        "text": "Force/spring constant relationship",
+        "fontSize": 12,
+        "fill": "#666",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_rect",
+        "id": "characteristics_box",
+        "x": 480,
+        "y": 220,
+        "width": 370,
+        "height": 200,
+        "fill": "#f0f8ff",
+        "stroke": "#87ceeb",
+        "strokeWidth": 1,
+        "rx": 5
+      },
+      {
+        "type": "svg_text",
+        "id": "characteristics_title",
+        "x": 665,
+        "y": 245,
+        "text": "Key Characteristics",
+        "fontSize": 16,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_text",
+        "id": "char1",
+        "x": 500,
+        "y": 270,
+        "text": "1. Motion is periodic with regular time intervals",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "char2",
+        "x": 500,
+        "y": 290,
+        "text": "2. Particle oscillates along a straight line",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "char3",
+        "x": 500,
+        "y": 310,
+        "text": "3. Acceleration always points toward equilibrium",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "char4",
+        "x": 500,
+        "y": 330,
+        "text": "4. Force is a linear restoring force",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "char5",
+        "x": 500,
+        "y": 350,
+        "text": "5. Net force = 0 at equilibrium position",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "char6",
+        "x": 500,
+        "y": 370,
+        "text": "6. Restoring force brings particle back to center",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "graph",
+        "id": "shm_graph",
+        "x": 50,
+        "y": 450,
+        "width": 350,
+        "height": 180,
+        "xDomain": [
+          0,
+          4
+        ],
+        "yDomain": [
+          -1.2,
+          1.2
+        ],
+        "xLabel": "Time (periods)",
+        "yLabel": "Normalized values",
+        "backgroundColor": "#fafafa",
+        "borderColor": "#ccc",
+        "curves": [
+          {
+            "expression": "sin(2*PI*x)",
+            "color": "#FF5722",
+            "strokeWidth": 2
+          },
+          {
+            "expression": "-sin(2*PI*x)",
+            "color": "#2196F3",
+            "strokeWidth": 2
+          },
+          {
+            "expression": "-sin(2*PI*x)",
+            "color": "#9C27B0",
+            "strokeWidth": 2
+          }
+        ],
+        "showGrid": true
+      },
+      {
+        "type": "svg_text",
+        "id": "graph_title",
+        "x": 225,
+        "y": 440,
+        "text": "Position, Acceleration & Force vs Time",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_rect",
+        "id": "legend_box",
+        "x": 450,
+        "y": 450,
+        "width": 180,
+        "height": 100,
+        "fill": "#f8f9fa",
+        "stroke": "#dee2e6",
+        "strokeWidth": 1,
+        "rx": 3
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_title",
+        "x": 540,
+        "y": 470,
+        "text": "Legend",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "middle",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_line",
+        "id": "legend_position",
+        "x1": 460,
+        "y1": 485,
+        "x2": 490,
+        "y2": 485,
+        "stroke": "#FF5722",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_pos_text",
+        "x": 500,
+        "y": 490,
+        "text": "Position (x)",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_line",
+        "id": "legend_acceleration",
+        "x1": 460,
+        "y1": 505,
+        "x2": 490,
+        "y2": 505,
+        "stroke": "#2196F3",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_acc_text",
+        "x": 500,
+        "y": 510,
+        "text": "Acceleration (a)",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_line",
+        "id": "legend_force",
+        "x1": 460,
+        "y1": 525,
+        "x2": 490,
+        "y2": 525,
+        "stroke": "#9C27B0",
+        "strokeWidth": 2
+      },
+      {
+        "type": "svg_text",
+        "id": "legend_force_text",
+        "x": 500,
+        "y": 530,
+        "text": "Force (F)",
+        "fontSize": 12,
+        "fill": "#333",
+        "textAnchor": "start"
+      },
+      {
+        "type": "svg_text",
+        "id": "vector_note",
+        "x": 720,
+        "y": 480,
+        "text": "Vector Relationships:",
+        "fontSize": 14,
+        "fill": "#333",
+        "textAnchor": "start",
+        "fontWeight": "bold"
+      },
+      {
+        "type": "svg_latex",
+        "id": "vector_phase1",
+        "expression": "\\vec{a} \\text{ and } \\vec{F} \\text{ opposite to } x",
+        "x": 720,
+        "y": 505,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "vector_phase2",
+        "expression": "\\text{Always directed toward equilibrium}",
+        "x": 720,
+        "y": 525,
+        "fontSize": 12,
+        "color": "#333"
+      },
+      {
+        "type": "svg_latex",
+        "id": "omega_note",
+        "expression": "\\omega = \\text{angular frequency}",
+        "x": 50,
+        "y": 190,
+        "fontSize": 12,
+        "color": "#666"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "time",
+        "min": 0,
+        "max": 10,
+        "default": 0,
+        "step": 0.1,
+        "label": "Time"
+      }
+    ],
+    "animations": [
+      {
+        "type": "continuous",
+        "parameter": "time",
+        "duration": 4000
+      }
+    ]
+  }
+}

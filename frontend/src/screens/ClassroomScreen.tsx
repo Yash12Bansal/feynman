@@ -6,6 +6,9 @@ import {
 } from "../engine/useSyncManager";
 import { useVisualChannel } from "../livekit/useVisualChannel";
 import { useAgentTranscription } from "../livekit/useAgentTranscription";
+import { SplitBoard } from "../engine/whiteboard/split/SplitBoard";
+import { useSplitBoardState } from "../engine/whiteboard/split/useSplitBoardState";
+import { config } from "../lib/config";
 
 export function ClassroomScreen() {
   const {
@@ -15,6 +18,7 @@ export function ClassroomScreen() {
     activeBoardMeta,
     pendingTransition,
     cameraState,
+    pendingSlide,
     clearTransition,
     getBoardInstructions,
   } = useVisualChannel();
@@ -25,18 +29,27 @@ export function ClassroomScreen() {
   );
   useAgentTranscription(handleWord);
 
+  const { slide, notebook } = useSplitBoardState(
+    activeInstructions,
+    pendingSlide[activeBoardId],
+  );
+
   return (
     <SyncManagerContext.Provider value={syncManager}>
-      <WhiteboardScene
-        instructions={activeInstructions}
-        walks={activeWalks}
-        activeBoardId={activeBoardId}
-        activeBoardMeta={activeBoardMeta}
-        pendingTransition={pendingTransition}
-        cameraState={cameraState}
-        onTransitionComplete={clearTransition}
-        getBoardInstructions={getBoardInstructions}
-      />
+      {config.splitBoardEnabled ? (
+        <SplitBoard slide={slide} notebook={notebook} mode="split" />
+      ) : (
+        <WhiteboardScene
+          instructions={activeInstructions}
+          walks={activeWalks}
+          activeBoardId={activeBoardId}
+          activeBoardMeta={activeBoardMeta}
+          pendingTransition={pendingTransition}
+          cameraState={cameraState}
+          onTransitionComplete={clearTransition}
+          getBoardInstructions={getBoardInstructions}
+        />
+      )}
     </SyncManagerContext.Provider>
   );
 }
