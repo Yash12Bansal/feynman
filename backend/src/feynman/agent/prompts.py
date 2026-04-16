@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from feynman.agent.teaching_context import TeachingContext
 
 from feynman.agent.board_snapshot import generate_board_context
+from feynman.agent.concept_planner import format_plan_for_prompt
 from feynman.agent.notebook import reconstruct as reconstruct_notebook
 from feynman.agent.notebook import render_prompt_section as render_notebook_section
 
@@ -575,7 +576,8 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
     """
     if not teaching_ctx.curriculum:
         teaching_ctx.audit.record(
-            "concept_context", "missing",
+            "concept_context",
+            "missing",
             f"concept={teaching_ctx.current_concept_index} — no curriculum data available",
         )
         return ""
@@ -584,7 +586,8 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
     if not current_node:
         concept = teaching_ctx.current_concept
         teaching_ctx.audit.record(
-            "concept_context", "no_curriculum_concept",
+            "concept_context",
+            "no_curriculum_concept",
             f"concept={teaching_ctx.current_concept_index} "
             f"'{concept.title if concept else '?'}' — no matching curriculum concept found",
         )
@@ -592,7 +595,8 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
 
     # Get relationships for the current concept from CurriculumData
     edges = [
-        e for e in teaching_ctx.curriculum.relationships
+        e
+        for e in teaching_ctx.curriculum.relationships
         if e.from_uid == current_node.uid or e.to_uid == current_node.uid
     ]
 
@@ -607,15 +611,14 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
         if rel_value == "prerequisite":
             hints.append(f"- Prerequisite: {name} (check earlier boards)")
         elif rel_value == "leads_to":
-            hints.append(
-                f"- This leads to: {name} (keep visuals for reference)"
-            )
+            hints.append(f"- This leads to: {name} (keep visuals for reference)")
         elif rel_value == "example_of":
             hints.append(f"- Example opportunity: {name}")
 
     if hints:
         teaching_ctx.audit.record(
-            "concept_context", "graph_hint_shown",
+            "concept_context",
+            "graph_hint_shown",
             f"concept={teaching_ctx.current_concept_index} "
             f"node='{current_node.topic_name}' hints={len(hints)}",
             hint_count=len(hints),
@@ -623,7 +626,8 @@ def _build_graph_context(teaching_ctx: TeachingContext) -> str:
         return "\n## Cross-concept connections\n" + "\n".join(hints) + "\n"
 
     teaching_ctx.audit.record(
-        "concept_context", "graph_node_no_edges",
+        "concept_context",
+        "graph_node_no_edges",
         f"concept={teaching_ctx.current_concept_index} "
         f"node='{current_node.topic_name}' — graph node matched but has no relevant edges",
     )
@@ -681,7 +685,8 @@ def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
     has_spatial = bool(solver.occupied)
     if has_spatial:
         board_summary = generate_board_context(
-            solver, board_state._elements,
+            solver,
+            board_state._elements,
             board_graph=board_state.board_graph,
             current_concept_index=_get_current_concept_index(teaching_ctx),
             upcoming_concepts=_get_upcoming_concepts(teaching_ctx),
@@ -735,7 +740,9 @@ def _build_board_state_section(teaching_ctx: TeachingContext) -> str:
 
     # Multi-board: show active board details + all-boards overview.
     parts = [f"\n## Board State — {bm.active_board.label} ({bm.active_id})\n"]
-    parts.append(f"\n{board_summary}\n{scenario_str}{viewport_str}{free_str}{offscreen_str}{fullness_hint}")
+    parts.append(
+        f"\n{board_summary}\n{scenario_str}{viewport_str}{free_str}{offscreen_str}{fullness_hint}"
+    )
     parts.append(f"\n### All Boards ({bm.board_count})\n\n")
     parts.append(bm.boards_summary())
     parts.append("\n\nUse `switch_board(board_id, intent)` to flip to a different board.\n")
@@ -818,58 +825,86 @@ def build_teaching_prompt(
     if current and not teaching_ctx.is_lesson_complete:
         ci = teaching_ctx.current_concept_index + 1
         total = lesson_plan.total_concepts
-        parts.append(f"\n### Now Teaching [{ci} of {total}]: {current.title}\n")
-        parts.append(f"{current.description}\n")
-        parts.append("\n**Key points to cover:**\n")
-        for point in current.key_points:
-            parts.append(f"- {point}\n")
-        # Pre-generated visual prompts (instant rendering) take priority
-        pre_gen = teaching_ctx.anticipation.get_prompts_for_concept(
-            teaching_ctx.current_concept_index
-        )
-        if pre_gen:
-            parts.append(
-                "\n**Pre-rendered visuals** "
-                "(use these exact prompts with draw_design_diagram for instant rendering):\n"
+
+        # Check if the planning agent produced a plan for this concept
+        current_plan = teaching_ctx.current_plan
+
+        if current_plan:
+            # ── PLANNED MODE: use the structured teaching plan ──
+            parts.append(f"\n### Now Teaching [{ci} of {total}]: {current.title}\n")
+            parts.append(format_plan_for_prompt(current_plan))
+
+            # Still surface pre-rendered visual prompts (cache hits = instant).
+            pre_gen = teaching_ctx.anticipation.get_prompts_for_concept(
+                teaching_ctx.current_concept_index
             )
-            for pi, p in enumerate(pre_gen, 1):
-                parts.append(f'{pi}. prompt="{p}"\n')
-            parts.append(
-                "\nYou may write a custom prompt instead, "
-                "but it will take 5-15 seconds to generate.\n"
+            if pre_gen:
+                parts.append(
+                    "\n**Pre-rendered visuals available** "
+                    "(use these exact prompts with draw_design_diagram for instant rendering):\n"
+                )
+                for pi, p in enumerate(pre_gen, 1):
+                    parts.append(f'{pi}. prompt="{p}"\n')
+
+            # Cross-concept connections from curriculum
+            graph_ctx = _build_graph_context(teaching_ctx)
+            if graph_ctx:
+                parts.append(graph_ctx)
+
+        else:
+            # ── UNPLANNED MODE: fallback to raw key_points (legacy behaviour) ──
+            parts.append(f"\n### Now Teaching [{ci} of {total}]: {current.title}\n")
+            parts.append(f"{current.description}\n")
+            parts.append("\n**Key points to cover:**\n")
+            for point in current.key_points:
+                parts.append(f"- {point}\n")
+            # Pre-generated visual prompts (instant rendering) take priority
+            pre_gen = teaching_ctx.anticipation.get_prompts_for_concept(
+                teaching_ctx.current_concept_index
             )
+            if pre_gen:
+                parts.append(
+                    "\n**Pre-rendered visuals** "
+                    "(use these exact prompts with draw_design_diagram for instant rendering):\n"
+                )
+                for pi, p in enumerate(pre_gen, 1):
+                    parts.append(f'{pi}. prompt="{p}"\n')
+                parts.append(
+                    "\nYou may write a custom prompt instead, "
+                    "but it will take 5-15 seconds to generate.\n"
+                )
 
-        # Always show visual_suggestions as additional ideas
-        if current.visual_suggestions:
-            label = "Additional visual ideas:" if pre_gen else "Visual suggestions:"
-            parts.append(f"\n**{label}**\n")
-            for suggestion in current.visual_suggestions:
-                parts.append(f"- {suggestion}\n")
+            # Always show visual_suggestions as additional ideas
+            if current.visual_suggestions:
+                label = "Additional visual ideas:" if pre_gen else "Visual suggestions:"
+                parts.append(f"\n**{label}**\n")
+                for suggestion in current.visual_suggestions:
+                    parts.append(f"- {suggestion}\n")
 
-        # Inject full curriculum teaching content from Neo4j
-        curr_concept = teaching_ctx.current_curriculum_concept
-        if curr_concept and getattr(curr_concept, "summary", None):
-            summary = curr_concept.summary[:800]
+            # Inject full curriculum teaching content from Neo4j
+            curr_concept = teaching_ctx.current_curriculum_concept
+            if curr_concept and getattr(curr_concept, "summary", None):
+                summary = curr_concept.summary[:800]
+                parts.append(
+                    f"\n**Teaching reference** (use this content to teach from):\n{summary}\n"
+                )
+
+            # Cross-concept connections from curriculum
+            graph_ctx = _build_graph_context(teaching_ctx)
+            if graph_ctx:
+                parts.append(graph_ctx)
+
             parts.append(
-                f"\n**Teaching reference** (use this content to teach from):\n{summary}\n"
+                "\n**Completion checklist** — call advance_concept() when all done:\n"
+                "- [ ] Covered each key point above\n"
+                "- [ ] Showed at least one visual aid\n"
+                "- [ ] Paused for student questions\n"
             )
-
-        # Cross-concept connections from curriculum
-        graph_ctx = _build_graph_context(teaching_ctx)
-        if graph_ctx:
-            parts.append(graph_ctx)
-
-        parts.append(
-            "\n**Completion checklist** — call advance_concept() when all done:\n"
-            "- [ ] Covered each key point above\n"
-            "- [ ] Showed at least one visual aid\n"
-            "- [ ] Paused for student questions\n"
-        )
-        parts.append(
-            "\nAfter covering the key points and showing a visual, "
-            "call advance_concept() promptly. Do not re-explain content "
-            "the class already understands. Keep momentum.\n"
-        )
+            parts.append(
+                "\nAfter covering the key points and showing a visual, "
+                "call advance_concept() promptly. Do not re-explain content "
+                "the class already understands. Keep momentum.\n"
+            )
 
     # Branch context
     depth = teaching_ctx.state_machine.depth

@@ -246,9 +246,7 @@ async def _publish_visual(
         "concept_index": tc.current_concept_index if tc.lesson_plan else -1,
     }
     if INSTRUCTION_TYPE_TO_PANEL.get(instruction.type) == Panel.NOTEBOOK:
-        audit_meta["content"] = instruction.model_dump(
-            exclude_none=True, mode="json"
-        )
+        audit_meta["content"] = instruction.model_dump(exclude_none=True, mode="json")
     tc.audit.record(
         "routing",
         "tool_call",
@@ -1091,9 +1089,9 @@ Helps the system check fit before placing.
             )
         else:
             concept = tc.current_concept
-            caption_title = (concept.title if concept else "") or prompt.strip().split(
-                "\n", 1
-            )[0][:80]
+            caption_title = (concept.title if concept else "") or prompt.strip().split("\n", 1)[0][
+                :80
+            ]
             await _publish_visual(
                 ctx,
                 SlidePendingInstruction(title=caption_title),
@@ -1572,6 +1570,32 @@ async def advance_concept(ctx: RunContext) -> str:
             )
         )
 
+        # Ensure the current concept has a plan, and pre-plan the next one.
+        # Usually new_index is already planned (fired during the previous concept)
+        # but if the teacher advanced fast or planning failed, handle it here.
+        # Each plan receives the previous plan for narrative continuity.
+        if tc.curriculum and tc.lesson_plan:
+            from feynman.agent.concept_planner import plan_concept
+
+            async def _ensure_plans() -> None:
+                for idx in (new_index, new_index + 1):
+                    if idx < tc.lesson_plan.total_concepts and idx not in tc.concept_plans:
+                        result = await plan_concept(
+                            idx,
+                            tc.curriculum,
+                            tc.lesson_plan,
+                            board_summary=tc.board_manager.summary(),
+                            audit=tc.audit,
+                            prev_plan=tc.concept_plans.get(idx - 1),
+                        )
+                        if result:
+                            tc.concept_plans[idx] = result
+                # If the current concept's plan just arrived, rebuild the prompt.
+                if new_index in tc.concept_plans:
+                    await _update_agent_prompt(ctx)
+
+            asyncio.create_task(_ensure_plans())  # noqa: RUF006
+
     # Log audit checkpoint at each concept advance.
     logger.info(
         "session_audit.checkpoint",
@@ -1626,13 +1650,32 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
 
     # Fire background visual generation for the doubt.
     parent = tc.current_concept
+    board_summary = tc.board_manager.active_board.state.summary()
     _doubt_warm = asyncio.create_task(  # noqa: RUF006
         tc.anticipation.warm_doubt(
             related_concept,
-            board_summary=tc.board_manager.active_board.state.summary(),
+            board_summary=board_summary,
             parent_concept=parent.title if parent else "",
         )
     )
+
+    # Fire background doubt planning.
+    if tc.curriculum:
+        from feynman.agent.concept_planner import plan_doubt
+
+        async def _plan_doubt() -> None:
+            result = await plan_doubt(
+                related_concept,
+                parent_concept=parent.title if parent else "",
+                board_summary=board_summary,
+                curriculum=tc.curriculum,
+                audit=tc.audit,
+            )
+            if result:
+                tc.doubt_plan = result
+                await _update_agent_prompt(ctx)
+
+        asyncio.create_task(_plan_doubt())  # noqa: RUF006
 
     await _update_agent_prompt(ctx)
 
@@ -1668,6 +1711,7 @@ async def resolve_doubt(ctx: RunContext) -> str:
 
     popped = await tc.state_machine.pop_branch()
     tc.anticipation.clear_doubt_cache()
+    tc.doubt_plan = None
     await _update_agent_prompt(ctx)
 
     current = tc.current_concept

@@ -8,6 +8,7 @@ from uuid import UUID
 
 from feynman.agent.anticipation import AnticipationEngine
 from feynman.agent.board import BoardManager
+from feynman.agent.concept_planner import ConceptTeachingPlan
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
 from feynman.agent.session_audit import SessionAudit
 from feynman.agent.state_machine import TeachingStateMachine
@@ -32,6 +33,9 @@ class TeachingContext:
     curriculum: Any | None = None  # CurriculumData from curriculum_loader (Neo4j)
     board_verifier: Any | None = None  # BoardVerifier (set by worker.py at session start)
     _verified_this_concept: bool = field(default=False, init=False, repr=False)
+    # Planning agent: pre-computed teaching plans per concept index.
+    concept_plans: dict[int, ConceptTeachingPlan] = field(default_factory=dict)
+    doubt_plan: ConceptTeachingPlan | None = None
     # --- COMMENTED OUT: Old ConceptGraph field. Replaced by curriculum. ---
     # concept_graph: Any | None = None  # ConceptGraph from data_pre_compute (optional)
     # _graph_node_map: dict[int, str] | None = field(default=None, init=False, repr=False)
@@ -39,6 +43,13 @@ class TeachingContext:
 
     def __post_init__(self) -> None:
         self.anticipation = AnticipationEngine(audit=self.audit)
+
+    @property
+    def current_plan(self) -> ConceptTeachingPlan | None:
+        """Teaching plan for the current concept (or the active doubt)."""
+        if self.state_machine.depth > 1:
+            return self.doubt_plan
+        return self.concept_plans.get(self.current_concept_index)
 
     @property
     def current_concept(self) -> ConceptNode | None:
@@ -94,6 +105,8 @@ class TeachingContext:
         self.current_concept_index = 0
         self.completed_indices = []
         self.curriculum = None
+        self.concept_plans = {}
+        self.doubt_plan = None
 
     @property
     def current_curriculum_concept(self) -> Any | None:
