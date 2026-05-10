@@ -35,6 +35,10 @@ const TYPE_LABELS: Record<VisualType, string> = {
   write_answer: "Write Answer",
   strikethrough: "Strikethrough",
   new_page: "New Page",
+  pin_label: "Pin Label",
+  draw_callout: "Callout",
+  bracket: "Bracket",
+  highlight_pulse: "Highlight Pulse",
 };
 
 const TYPE_COLORS: Record<VisualType, string> = {
@@ -59,6 +63,10 @@ const TYPE_COLORS: Record<VisualType, string> = {
   write_answer: "#86efac",
   strikethrough: "#f87171",
   new_page: "#d1d5db",
+  pin_label: "#7fd4ff",
+  draw_callout: "#a3e635",
+  bracket: "#facc15",
+  highlight_pulse: "#7fd4ff",
 };
 
 export function DevHarness() {

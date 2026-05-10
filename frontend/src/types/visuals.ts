@@ -64,6 +64,29 @@ export type BoardZone =
  */
 export type Panel = "slide" | "notebook" | "reference";
 
+/**
+ * Functional position of a diagram element in its layout. Mirrors the
+ * `ElementPosition` Literal in `design_agent/backend/schema.py`.
+ */
+export type ElementPosition =
+  | "top"
+  | "bottom"
+  | "left"
+  | "right"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+  | "center"
+  | "diagonal";
+
+/**
+ * Bounding box `[x, y, width, height]` in SVG viewBox coordinates. Annotations
+ * compute their position from this; the overlay layer shares the diagram's
+ * viewBox so coords map directly without DOM measurement.
+ */
+export type ElementBounds = readonly [number, number, number, number];
+
 // ── Sub-models ────────────────────────────────────────────────
 
 export interface TermSyncHint {
@@ -454,6 +477,20 @@ export type DesignDiagramElement =
   | DesignDiagramSvgFrame
   | DesignDiagramGraph;
 
+/**
+ * Semantic metadata for a single SVG element in a `DesignDiagramSpec`.
+ * Populated by the design_agent so the teaching agent can refer to elements
+ * by *role* ("hypotenuse") rather than raw IDs ("side_AB"), and so the
+ * annotation overlay can position itself from `bounds` without DOM lookup.
+ */
+export interface ElementMeta {
+  role: string;
+  semantic: string;
+  position: ElementPosition;
+  spatial_relations?: readonly string[];
+  bounds?: ElementBounds;
+}
+
 /** Full diagram specification from the design agent. */
 export interface DesignDiagramSpec {
   title?: string;
@@ -463,6 +500,12 @@ export interface DesignDiagramSpec {
   backgroundColor?: string;
   elements?: DesignDiagramElement[];
   parameters?: DesignDiagramSliderParam[];
+  /**
+   * Semantic dictionary keyed by element_id. Populated by the design_agent
+   * at generation time. Empty/missing means a legacy spec — the annotation
+   * overlay falls through to a no-op for that target.
+   */
+  dictionary?: Record<string, ElementMeta>;
 }
 
 export interface DrawDesignDiagramInstruction extends BaseInstruction {
@@ -529,6 +572,57 @@ export interface NewPageInstruction extends BaseInstruction {
   carry_forward_ids?: readonly string[];
 }
 
+// ── Slide annotation overlays (diagram awareness) ─────────────
+
+export type PinLabelPosition = "above" | "below" | "left" | "right";
+
+export type CalloutDirection =
+  | "up"
+  | "down"
+  | "up-left"
+  | "up-right"
+  | "down-left"
+  | "down-right";
+
+export type BracketSide = "above" | "below" | "left" | "right";
+
+export interface PinLabelInstruction extends BaseInstruction {
+  type: "pin_label";
+  target_element_id: string;
+  text: string;
+  position?: PinLabelPosition;
+}
+
+export interface DrawCalloutInstruction extends BaseInstruction {
+  type: "draw_callout";
+  target_element_id: string;
+  text: string;
+  direction?: CalloutDirection;
+}
+
+export interface BracketInstruction extends BaseInstruction {
+  type: "bracket";
+  element_a_id: string;
+  element_b_id: string;
+  label: string;
+  side?: BracketSide;
+}
+
+export interface HighlightPulseInstruction extends BaseInstruction {
+  type: "highlight_pulse";
+  target_element_id: string;
+  /** Pulse duration in ms; backend default 1200, range 400–3000. */
+  duration_ms?: number;
+  /** CSS variable token for the glow color, e.g. `--sb-neon`. */
+  color_token?: string;
+}
+
+export type AnnotationInstruction =
+  | PinLabelInstruction
+  | DrawCalloutInstruction
+  | BracketInstruction
+  | HighlightPulseInstruction;
+
 // ── Discriminated union ───────────────────────────────────────
 
 export type VisualInstruction =
@@ -552,7 +646,11 @@ export type VisualInstruction =
   | WriteSectionInstruction
   | WriteAnswerInstruction
   | StrikethroughInstruction
-  | NewPageInstruction;
+  | NewPageInstruction
+  | PinLabelInstruction
+  | DrawCalloutInstruction
+  | BracketInstruction
+  | HighlightPulseInstruction;
 
 export type VisualType = VisualInstruction["type"];
 

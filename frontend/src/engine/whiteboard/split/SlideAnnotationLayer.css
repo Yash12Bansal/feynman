@@ -1,0 +1,175 @@
+/* SlideAnnotationLayer — overlay sits inside .sb-slide-stage, above the
+ * diagram. Shares the diagram's viewBox so coords match exactly. */
+
+.sb-slide-annotations {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+  overflow: visible;
+}
+
+/* ── Pin label ─────────────────────────────────────────────── */
+
+.sb-annot-pin-connector {
+  stroke: var(--sb-ink-muted, #6b7280);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0;
+  animation: sb-annot-fade 0.3s ease forwards;
+}
+
+.sb-annot-pin-text {
+  fill: var(--sb-ink, #1a1a1a);
+  font-family: "Crimson Pro", Georgia, serif;
+  font-weight: 500;
+  opacity: 0;
+  animation: sb-annot-fade 0.3s ease forwards;
+  animation-delay: 0.06s;
+}
+
+/* ── Callout ───────────────────────────────────────────────── */
+
+.sb-annot-callout-bubble {
+  fill: rgba(255, 255, 255, 0.96);
+  stroke: var(--sb-ink, #1a1a1a);
+  stroke-width: 1.4;
+  opacity: 0;
+  transform-origin: center;
+  animation: sb-annot-bubble-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.18s;
+}
+
+.sb-annot-callout-tail {
+  fill: var(--sb-ink, #1a1a1a);
+  stroke: var(--sb-ink, #1a1a1a);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  opacity: 0;
+  animation: sb-annot-fade 0.2s ease forwards;
+}
+
+.sb-annot-callout-text {
+  fill: var(--sb-ink, #1a1a1a);
+  font-family: "Crimson Pro", Georgia, serif;
+  font-weight: 500;
+  opacity: 0;
+  animation: sb-annot-fade 0.2s ease forwards;
+  animation-delay: 0.4s;
+}
+
+/* ── Bracket ───────────────────────────────────────────────── */
+
+.sb-annot-bracket-path {
+  stroke: var(--sb-ink, #1a1a1a);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: sb-annot-bracket-draw 0.4s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+.sb-annot-bracket-label {
+  fill: var(--sb-ink, #1a1a1a);
+  font-family: "Crimson Pro", Georgia, serif;
+  font-weight: 500;
+  opacity: 0;
+  animation: sb-annot-fade 0.2s ease forwards;
+  animation-delay: 0.4s;
+}
+
+/* ── Highlight pulse ───────────────────────────────────────── */
+
+.sb-annot-pulse {
+  fill: none;
+  stroke: var(--sb-pulse-color, var(--sb-neon, #7fd4ff));
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 6px var(--sb-pulse-color, var(--sb-neon, #7fd4ff)));
+  animation: sb-annot-pulse-cycle var(--sb-pulse-duration, 1200ms)
+    cubic-bezier(0.45, 0, 0.2, 1) 1 forwards;
+}
+
+/* ── Keyframes ─────────────────────────────────────────────── */
+
+@keyframes sb-annot-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sb-annot-bubble-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sb-annot-bracket-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes sb-annot-pulse-cycle {
+  0%,
+  100% {
+    opacity: 0;
+    stroke-width: 2.2;
+  }
+  50% {
+    opacity: 0.95;
+    stroke-width: 3.2;
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────
+ * Both the OS-level preference and the layer's data attribute disable the
+ * entry animations. Pulse becomes a static accent — no flashing — for the
+ * configured duration. CSS-only reduced-motion would only catch the OS
+ * preference; the data-attribute fallback lets tests assert behaviour
+ * without relying on JSDOM's matchMedia plumbing. */
+
+.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-pin-connector,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-pin-text,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-callout-bubble,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-callout-tail,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-callout-text,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-bracket-path,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-bracket-label {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  stroke-dashoffset: 0 !important;
+}
+
+.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-pulse {
+  animation: none !important;
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-annot-pin-connector,
+  .sb-annot-pin-text,
+  .sb-annot-callout-bubble,
+  .sb-annot-callout-tail,
+  .sb-annot-callout-text,
+  .sb-annot-bracket-path,
+  .sb-annot-bracket-label {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .sb-annot-pulse {
+    animation: none !important;
+    opacity: 0.7;
+  }
+}

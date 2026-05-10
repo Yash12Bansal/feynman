@@ -10,12 +10,16 @@ import type { VisualInstruction } from "../../../types/visuals";
 import type { SlideState, SlideSketch } from "./types";
 import { DraftingLoader } from "./DraftingLoader";
 import { InstructionSwitch } from "../InstructionSwitch";
+import { SlideAnnotationLayer } from "./SlideAnnotationLayer";
 
 interface SlidePanelProps {
   readonly state: SlideState;
 }
 
-function liveTitleFor(instr: VisualInstruction): { title: string; subtitle: string } {
+function liveTitleFor(instr: VisualInstruction): {
+  title: string;
+  subtitle: string;
+} {
   switch (instr.type) {
     case "draw_design_diagram":
       return { title: instr.title ?? "", subtitle: "diagram" };
@@ -29,11 +33,19 @@ function liveTitleFor(instr: VisualInstruction): { title: string; subtitle: stri
 }
 
 export function SlidePanel({ state }: SlidePanelProps) {
-  const { status, active, pendingTitle, liveInstruction } = state;
+  const { status, active, pendingTitle, liveInstruction, annotations } = state;
+
+  // Only design diagrams carry the semantic dictionary; the overlay layer is
+  // a no-op for legacy diagram types since it has nothing to anchor against.
+  const designDiagram =
+    status === "ready" && liveInstruction?.type === "draw_design_diagram"
+      ? liveInstruction
+      : null;
+  const showAnnotations =
+    designDiagram !== null && (annotations?.length ?? 0) > 0;
 
   const liveHeader = liveInstruction ? liveTitleFor(liveInstruction) : null;
-  const headerTitle =
-    liveHeader?.title || active?.title || pendingTitle || "";
+  const headerTitle = liveHeader?.title || active?.title || pendingTitle || "";
   const headerSubtitle =
     liveHeader?.subtitle ||
     active?.subtitle ||
@@ -42,12 +54,8 @@ export function SlidePanel({ state }: SlidePanelProps) {
   return (
     <section className="sb-slide" aria-label="Slide panel">
       <div className="sb-slide-header">
-        <h2 className="sb-slide-title">
-          {headerTitle || "\u00A0"}
-        </h2>
-        <span className="sb-slide-subtitle">
-          {headerSubtitle || "\u00A0"}
-        </span>
+        <h2 className="sb-slide-title">{headerTitle || "\u00A0"}</h2>
+        <span className="sb-slide-subtitle">{headerSubtitle || "\u00A0"}</span>
       </div>
 
       <div className="sb-slide-stage">
@@ -65,6 +73,13 @@ export function SlidePanel({ state }: SlidePanelProps) {
           >
             <InstructionSwitch instruction={liveInstruction} />
           </div>
+        )}
+        {showAnnotations && designDiagram && (
+          <SlideAnnotationLayer
+            viewBox={`0 0 ${designDiagram.spec?.width ?? 900} ${designDiagram.spec?.height ?? 650}`}
+            dictionary={designDiagram.spec?.dictionary}
+            annotations={annotations ?? []}
+          />
         )}
         {status === "ready" && !liveInstruction && active && (
           <SlideSketchView key={active.id} sketch={active.sketch} />

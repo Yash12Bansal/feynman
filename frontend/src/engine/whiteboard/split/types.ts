@@ -1,4 +1,8 @@
-import type { ShowGraphInstruction, VisualInstruction } from "../../../types/visuals";
+import type {
+  AnnotationInstruction,
+  ShowGraphInstruction,
+  VisualInstruction,
+} from "../../../types/visuals";
 
 export type PanelMode = "split" | "slide_full" | "notebook_full";
 
@@ -35,6 +39,14 @@ export interface SlideState {
    * prototype path keeps using `active`.
    */
   readonly liveInstruction?: VisualInstruction;
+  /**
+   * Slide annotation overlays (pin_label, draw_callout, bracket,
+   * highlight_pulse) that landed *after* the latest diagram instruction.
+   * Reset whenever a fresh diagram lands so stale annotations never
+   * outlive their target. Optional for backwards-compat with prototypes
+   * that hand-build a SlideState; treat missing as `[]`.
+   */
+  readonly annotations?: readonly AnnotationInstruction[];
 }
 
 export type NotebookEntryKind =

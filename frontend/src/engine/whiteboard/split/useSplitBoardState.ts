@@ -14,6 +14,7 @@
 
 import { useMemo } from "react";
 import type {
+  AnnotationInstruction,
   Panel,
   ShowEquationInstruction,
   ShowGraphInstruction,
@@ -35,12 +36,30 @@ import type {
   SlideState,
 } from "./types";
 
-const SLIDE_TYPES = new Set([
+const DIAGRAM_TYPES = new Set<string>([
   "draw_diagram",
   "draw_design_diagram",
   "draw_scene",
+]);
+
+const ANNOTATION_TYPES = new Set<string>([
+  "pin_label",
+  "draw_callout",
+  "bracket",
+  "highlight_pulse",
+]);
+
+const SLIDE_TYPES = new Set<string>([
+  ...DIAGRAM_TYPES,
+  ...ANNOTATION_TYPES,
   "slide_pending",
 ]);
+
+function isAnnotation(
+  instr: VisualInstruction,
+): instr is AnnotationInstruction {
+  return ANNOTATION_TYPES.has(instr.type);
+}
 const NOTEBOOK_TYPES = new Set([
   "show_text",
   "show_equation",
@@ -74,7 +93,9 @@ function clampIndent(raw: number | undefined): 0 | 1 | 2 | 3 {
   return (raw === 1 ? 1 : 2) as 1 | 2;
 }
 
-function instructionToNotebookEntries(instr: VisualInstruction): NotebookEntry[] {
+function instructionToNotebookEntries(
+  instr: VisualInstruction,
+): NotebookEntry[] {
   switch (instr.type) {
     case "show_text": {
       const t = instr as ShowTextInstruction;
@@ -244,18 +265,38 @@ function buildSlideState(
   slideInstrs: VisualInstruction[],
   pending: PendingSlide | undefined,
 ): SlideState {
-  // Filter out `slide_pending` — it's a loader signal, not a renderable slide.
-  const renderable = slideInstrs.filter((i) => i.type !== "slide_pending");
-  if (renderable.length === 0) {
-    if (pending) {
-      return { status: "loading", pendingTitle: pending.title };
+  // Locate the latest diagram. Annotations land *after* it in the stream and
+  // are anchored to it; a fresh diagram resets the annotation list so stale
+  // overlays never outlive their target. `slide_pending` is a loader signal —
+  // it neither qualifies as a diagram nor anchors annotations.
+  let latestDiagramIdx = -1;
+  for (let i = slideInstrs.length - 1; i >= 0; i--) {
+    if (DIAGRAM_TYPES.has(slideInstrs[i].type)) {
+      latestDiagramIdx = i;
+      break;
     }
-    return { status: "empty" };
   }
-  const latest = renderable[renderable.length - 1];
+
+  if (latestDiagramIdx === -1) {
+    if (pending) {
+      return {
+        status: "loading",
+        pendingTitle: pending.title,
+        annotations: [],
+      };
+    }
+    return { status: "empty", annotations: [] };
+  }
+
+  const latestDiagram = slideInstrs[latestDiagramIdx];
+  const annotations = slideInstrs
+    .slice(latestDiagramIdx + 1)
+    .filter(isAnnotation);
+
   return {
     status: "ready",
-    liveInstruction: latest,
+    liveInstruction: latestDiagram,
+    annotations,
   };
 }
 
@@ -265,23 +306,21 @@ interface PageBucket {
   carryFromIds: readonly string[];
 }
 
-function buildNotebookState(notebookInstrs: VisualInstruction[]): NotebookState {
+function buildNotebookState(
+  notebookInstrs: VisualInstruction[],
+): NotebookState {
   // Walk instructions in order, segmenting into pages. `new_page` pushes a
   // fresh bucket (optionally carrying ids forward from the previous page);
   // `strikethrough` accumulates into a global set applied across all pages
   // before carry synthesis, so carried reminders mirror the original's
   // live struck state. Only the latest page renders; previous pages are
   // retained in memory so carries can look back.
-  const pages: PageBucket[] = [
-    { pageNum: 1, entries: [], carryFromIds: [] },
-  ];
+  const pages: PageBucket[] = [{ pageNum: 1, entries: [], carryFromIds: [] }];
   const struckIds = new Set<string>();
 
   for (const instr of notebookInstrs) {
     if (instr.type === "new_page") {
-      const ids = instr.carry_forward_ids
-        ? [...instr.carry_forward_ids]
-        : [];
+      const ids = instr.carry_forward_ids ? [...instr.carry_forward_ids] : [];
       pages.push({
         pageNum: pages.length + 1,
         entries: [],
