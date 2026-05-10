@@ -34,6 +34,7 @@ from feynman.agent.tools import (
     highlight_diagram_part,
     highlight_pulse,
     highlight_walk,
+    mark_doubt_step_complete,
     modify_design_diagram,
     new_page,
     pin_label_near,
@@ -94,6 +95,7 @@ ALL_TOOLS = [
     advance_concept,
     start_doubt_branch,
     resolve_doubt,
+    mark_doubt_step_complete,
     switch_board,
     scroll_board,
     set_lesson_topic,
@@ -355,6 +357,10 @@ async def entrypoint(ctx: JobContext) -> None:
         # one turn. 30 still catches runaway loops.
         max_tool_steps=30,
     )
+    # TODO(phase 2B): wire `tc.doubt_orchestrator.on_voice_emitted(transcript,
+    # branch_id)` to a session text-committed callback so voice-keyword
+    # checklist auto-tick fires. Phase 2A relies on tool-call auto-tick +
+    # mark_doubt_step_complete; the orchestrator hook exists as a stub.
 
     await session.start(agent=agent, room=ctx.room)
     logger.info(

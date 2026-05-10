@@ -98,18 +98,14 @@ class TestDoubtCacheMatching:
         )
 
         # Agent's draw prompt overlaps enough with doubt prompt tokens.
-        result = engine.match(
-            "Draw diagram explaining negative times negative", concept_index=0
-        )
+        result = engine.match("Draw diagram explaining negative times negative", concept_index=0)
         assert result is DOUBT_SPEC
 
     def test_match_doubt_one_shot(self) -> None:
         """After returning doubt spec once, second match returns None."""
         engine = AnticipationEngine()
         engine._doubt_spec = DOUBT_SPEC
-        engine._doubt_prompt = (
-            "A student has a doubt about: negative multiplication"
-        )
+        engine._doubt_prompt = "A student has a doubt about: negative multiplication"
 
         first = engine.match("negative multiplication diagram", concept_index=0)
         assert first is DOUBT_SPEC
@@ -203,7 +199,21 @@ def _make_mock_ctx(board_manager: BoardManager | None = None) -> MagicMock:
     userdata.anticipation = AnticipationEngine(audit=userdata.audit)
     userdata.state_machine = MagicMock()
     userdata.state_machine.depth = 1
+    userdata.state_machine.current = MagicMock(id=uuid4())
     userdata.session_id = uuid4()
+    userdata.active_highlights = []
+    userdata.active_annotations = []
+    userdata.last_beat_index = 0
+    userdata.current_diagram_dictionary = {}
+    # Phase 2A: orchestrator hooks must be awaitable / callable. Default to
+    # no-op mocks so tests that don't care about doubt_orchestrator behaviour
+    # don't have to stub it themselves.
+    userdata.doubt_orchestrator = MagicMock()
+    userdata.doubt_orchestrator.on_push = AsyncMock()
+    userdata.doubt_orchestrator.on_pop = AsyncMock()
+    userdata.doubt_orchestrator.on_tool_invoked = MagicMock()
+    userdata.doubt_orchestrator.is_resolution_allowed = MagicMock(return_value=(True, ""))
+    userdata.doubt_orchestrator.get_state = MagicMock(return_value=None)
     ctx.userdata = userdata
     return ctx
 
@@ -217,13 +227,9 @@ class TestStartDoubtBranchWarming:
         ctx = _make_mock_ctx()
         tc = ctx.userdata
         # Make push_branch return a branch-like object.
-        tc.state_machine.push_branch = AsyncMock(
-            return_value=MagicMock(id=uuid4())
-        )
+        tc.state_machine.push_branch = AsyncMock(return_value=MagicMock(id=uuid4()))
 
-        with patch.object(
-            tc.anticipation, "warm_doubt", new_callable=AsyncMock
-        ) as mock_warm:
+        with patch.object(tc.anticipation, "warm_doubt", new_callable=AsyncMock) as mock_warm:
             await start_doubt_branch(ctx, related_concept="why F=ma")
             # warm_doubt should have been called (via create_task).
             # Give the task a chance to fire.
@@ -241,9 +247,7 @@ class TestStartDoubtBranchWarming:
         ctx = _make_mock_ctx()
         tc = ctx.userdata
         tc.state_machine.depth = 2  # In a doubt branch.
-        tc.state_machine.pop_branch = AsyncMock(
-            return_value=MagicMock(concept="gravity")
-        )
+        tc.state_machine.pop_branch = AsyncMock(return_value=MagicMock(concept="gravity"))
         tc.anticipation._doubt_spec = DOUBT_SPEC
         tc.anticipation._doubt_prompt = "some prompt"
 

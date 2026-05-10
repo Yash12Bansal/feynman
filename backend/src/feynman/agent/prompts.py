@@ -558,6 +558,41 @@ as an escape hatch when no role fits.
 """
 
 
+def _render_doubt_checklist_section(teaching_ctx: TeachingContext) -> str:
+    """Render the active doubt branch's resolution checklist for the LLM.
+
+    Returns the empty string when not in a doubt branch or when the active
+    branch has no checklist (e.g., the planning agent hasn't produced one
+    yet, or `plan_doubt` was never called).
+    """
+    from feynman.agent.states import TeachingState
+
+    branch = teaching_ctx.state_machine.current
+    if branch.state != TeachingState.HANDLING_DOUBT:
+        return ""
+    items = list(branch.checklist or [])
+    if not items:
+        return ""
+
+    lines: list[str] = ["\n## Resolution Checklist\n"]
+    lines.append(
+        "Before calling `resolve_doubt`, every item below must be `done`. "
+        "Items auto-tick when you call the listed tools; if you addressed an "
+        "item without using those tools, call "
+        "`mark_doubt_step_complete(step_index)`.\n\n"
+    )
+    for i, item in enumerate(items):
+        marker = "[x]" if item.status == "done" else "[ ]"
+        triggers = (
+            f" (auto-ticks on: {', '.join(item.auto_satisfied_by)})"
+            if item.auto_satisfied_by
+            else ""
+        )
+        lines.append(f"{i}. {marker} {item.description}{triggers}\n")
+    lines.append("\nThe orchestrator will block `resolve_doubt` until every item is `[x]`.\n")
+    return "".join(lines)
+
+
 def _render_diagram_dictionary_section(teaching_ctx: TeachingContext) -> str:
     """Render the active slide's diagram dictionary as a prompt section.
 
@@ -885,6 +920,10 @@ def build_teaching_prompt(
     # Diagram dictionary section — appears only when a diagram is on the slide.
     # Tells the agent what's there and what roles are available for annotation.
     parts.append(_render_diagram_dictionary_section(teaching_ctx))
+
+    # Doubt-branch resolution checklist — appears only inside an active doubt
+    # branch. The orchestrator blocks `resolve_doubt` until every item ticks.
+    parts.append(_render_doubt_checklist_section(teaching_ctx))
 
     # Notebook state section (Phase 5b) — reconstructed live from audit so the
     # agent sees what it has already written and can reason across turns.

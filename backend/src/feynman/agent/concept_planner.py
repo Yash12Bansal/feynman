@@ -17,6 +17,7 @@ import anthropic
 import structlog
 from pydantic import BaseModel, Field
 
+from feynman.agent.doubt_orchestrator import ChecklistItem
 from feynman.config import settings
 
 if TYPE_CHECKING:
@@ -159,6 +160,19 @@ class ConceptTeachingPlan(BaseModel):
     transition_to_next: str = Field(
         default="",
         description="How to naturally bridge to the next concept — 1-2 sentences",
+    )
+
+    # Doubt-branch resolution checklist — populated only when this plan is a
+    # doubt plan (`plan_doubt`). Empty for normal concept plans. The doubt
+    # orchestrator gates `resolve_doubt` on every item being `done`.
+    resolution_checklist: list[ChecklistItem] = Field(
+        default_factory=list,
+        description=(
+            "Doubt-branch only. 2-4 items the agent must touch before "
+            "resolve_doubt is allowed. Each item has a description and a "
+            "list of `auto_satisfied_by` tool names that auto-tick the item "
+            "when invoked. Leave empty for non-doubt plans."
+        ),
     )
 
 
@@ -575,6 +589,32 @@ async def plan_doubt(
         "\nDo NOT over-explain. One good analogy beats three mediocre explanations."
         "\nRemember the split board: the doubt usually wants a fresh slide scene + "
         "a couple notebook lines, not a full new derivation."
+        "\n"
+        "\n## Resolution Checklist (REQUIRED for doubt plans)"
+        "\nPopulate `resolution_checklist` with 2-4 items the agent MUST touch before "
+        "calling resolve_doubt. Each item gates resolution — the orchestrator will "
+        "block resolve_doubt until every item is ticked."
+        "\n"
+        "\nEach item has:"
+        '\n- `description`: short imperative (e.g., "show diagram explaining ratio constancy", "tie back to ladder").'
+        '\n- `status`: always "pending" at plan time — the orchestrator flips items to "done" as work happens.'
+        "\n- `auto_satisfied_by`: list of tool names that auto-tick the item when invoked. "
+        "Choose ONLY from this controlled vocabulary:"
+        '\n  ["draw_design_diagram", "draw_diagram", "draw_scene", "pin_label_near", '
+        '"draw_callout", "bracket", "highlight_pulse", "write_section", '
+        '"write_equation", "write_step", "write_text", "show_equation"]'
+        "\n"
+        '\nExample: a doubt about "why sin = opp/hyp?" might produce:'
+        '\n  1. {description: "show diagram explaining ratio constancy", '
+        'auto_satisfied_by: ["draw_design_diagram", "draw_scene"]}'
+        '\n  2. {description: "explain why ratios are angle-dependent", '
+        'auto_satisfied_by: ["write_step", "write_text"]}'
+        '\n  3. {description: "tie back to the original ladder problem", '
+        'auto_satisfied_by: ["pin_label_near", "highlight_pulse"]}'
+        "\n"
+        "\nKeep items concrete and tied to a specific tool action. Vague items "
+        '("explain it well") cannot auto-tick and force the agent to use '
+        "mark_doubt_step_complete manually."
     )
 
     user_message = "\n".join(parts)

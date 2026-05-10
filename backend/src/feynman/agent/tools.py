@@ -281,6 +281,13 @@ async def _publish_visual(
         concept_index=tc.current_concept_index if tc.lesson_plan else None,
     )
 
+    # Auto-tick doubt-branch checklist items whose `auto_satisfied_by` lists
+    # this tool. No-op outside doubt branches or when the branch isn't tracked.
+    tc.doubt_orchestrator.on_tool_invoked(
+        instruction.type,
+        tc.state_machine.current.id,
+    )
+
 
 async def _publish_switch_board(
     ctx: RunContext,
@@ -877,6 +884,9 @@ Options: "above" (default), "below", "left", "right".
         sync_mode=SyncMode.IMMEDIATE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
+    tc: TeachingContext = ctx.userdata
+    if instruction.element_id:
+        tc.active_annotations.append(instruction.element_id)
     return f'Pinned "{text}" {position} of {target_id}'
 
 
@@ -912,6 +922,9 @@ Options: "up-right" (default), "up-left", "down-right", "down-left", "up", "down
         sync_mode=SyncMode.IMMEDIATE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
+    tc: TeachingContext = ctx.userdata
+    if instruction.element_id:
+        tc.active_annotations.append(instruction.element_id)
     return f"Callout '{text[:40]}' on {target_id}"
 
 
@@ -949,6 +962,9 @@ Options: "above" (default), "below", "left", "right".
         sync_mode=SyncMode.IMMEDIATE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
+    tc: TeachingContext = ctx.userdata
+    if instruction.element_id:
+        tc.active_annotations.append(instruction.element_id)
     return f"Bracketed {a_id}↔{b_id} ({label})"
 
 
@@ -979,6 +995,9 @@ Roles are preferred.
         sync_mode=SyncMode.IMMEDIATE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
+    tc: TeachingContext = ctx.userdata
+    if target_id and target_id not in tc.active_highlights:
+        tc.active_highlights.append(target_id)
     return f"Pulsed {target_id} ({duration_ms}ms)"
 
 
@@ -1816,11 +1835,29 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     """
     tc: TeachingContext = ctx.userdata
 
+    # Capture the parent branch id BEFORE the push — orchestrator's snapshot
+    # needs it, and `tc.state_machine.current` becomes the new doubt branch
+    # the moment `push_branch` returns.
+    parent_branch_id = tc.state_machine.current.id
+
     branch = await tc.state_machine.push_branch(concept=related_concept)
 
     # Push a new board for the doubt — current board goes on stack.
     new_board = tc.board_manager.push_board(f"Doubt: {related_concept}", branch.id)
     await _publish_switch_board(ctx, new_board.id, new_board.label, BoardIntent.NEW)
+
+    # Snapshot parent state and register the doubt branch with the orchestrator.
+    # Checklist starts empty here; the async `_plan_doubt` below populates it
+    # once the planning agent has produced a checklist.
+    await tc.doubt_orchestrator.on_push(
+        branch,
+        related_concept,
+        parent_branch_id=parent_branch_id,
+    )
+    # Doubt board starts visually blank — the parent's overlays were captured
+    # in the snapshot and will be replayed on resume.
+    tc.active_highlights.clear()
+    tc.active_annotations.clear()
 
     # Fire background visual generation for the doubt.
     parent = tc.current_concept
@@ -1833,7 +1870,8 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
         )
     )
 
-    # Fire background doubt planning.
+    # Fire background doubt planning. Once the plan lands, push its checklist
+    # into the orchestrator so resolution gating reflects the real plan.
     if tc.curriculum:
         from feynman.agent.concept_planner import plan_doubt
 
@@ -1847,6 +1885,15 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
             )
             if result:
                 tc.doubt_plan = result
+                state = tc.doubt_orchestrator.get_state(branch.id)
+                if state is not None and result.resolution_checklist:
+                    state.checklist = list(result.resolution_checklist)
+                    branch.checklist = state.checklist
+                    logger.info(
+                        "doubt.checklist_loaded",
+                        branch_id=str(branch.id),
+                        items=len(state.checklist),
+                    )
                 await _update_agent_prompt(ctx)
 
         asyncio.create_task(_plan_doubt())  # noqa: RUF006
@@ -1873,10 +1920,20 @@ async def resolve_doubt(ctx: RunContext) -> str:
     Call this after you've fully answered the student's question and
     are ready to continue where you left off.
     """
+    from feynman.common.exceptions import ToolConstraintError
+
     tc: TeachingContext = ctx.userdata
 
     if tc.state_machine.depth <= 1:
         return "Not in a doubt branch — already on the main lesson flow."
+
+    # Gate on the resolution checklist BEFORE we touch any state. The orchestrator
+    # returns a clear message listing pending items so the LLM can either address
+    # them or invoke mark_doubt_step_complete to override.
+    current_branch = tc.state_machine.current
+    allowed, reason = tc.doubt_orchestrator.is_resolution_allowed(current_branch.id)
+    if not allowed:
+        raise ToolConstraintError(reason)
 
     # Pop board stack before popping branch — return to parent board.
     tc.board_manager.pop_board()
@@ -1889,6 +1946,37 @@ async def resolve_doubt(ctx: RunContext) -> str:
     # Diagram awareness: parent board's diagram (if any) needs its own
     # dictionary; the doubt-branch dictionary no longer applies.
     tc.current_diagram_dictionary = {}
+
+    # Auto-restore parent state via the orchestrator: re-fire highlight pulses
+    # for every captured target and surface the verbatim return cue. No LLM
+    # call required — both side effects run through callbacks supplied here.
+    async def _replay_pulse(instr: _BaseInstruction) -> None:
+        await _publish_visual(ctx, instr, wait_for_speech=False)
+
+    async def _say_return_cue(text: str) -> None:
+        say_fn = getattr(ctx.session, "say", None)
+        if say_fn is not None:
+            try:
+                result = say_fn(text, allow_interruptions=False)
+                if asyncio.iscoroutine(result):
+                    await result
+                return
+            except TypeError:
+                # Older signature without `allow_interruptions`; retry plain.
+                result = say_fn(text)
+                if asyncio.iscoroutine(result):
+                    await result
+                return
+        # Fallback: instruct the LLM to emit it verbatim.
+        ctx.session.generate_reply(instructions=f'Say exactly this and nothing else: "{text}"')
+
+    await tc.doubt_orchestrator.on_pop(
+        popped,
+        publish_visual=_replay_pulse,
+        say=_say_return_cue,
+        forced=False,
+    )
+
     await _update_agent_prompt(ctx)
 
     current = tc.current_concept
@@ -1905,6 +1993,30 @@ async def resolve_doubt(ctx: RunContext) -> str:
         report=tc.audit.summary_text(),
     )
     return f"Doubt about '{popped.concept}' resolved. {continue_msg}"
+
+
+@function_tool()
+async def mark_doubt_step_complete(ctx: RunContext, step_index: int) -> str:
+    """Manually tick a resolution-checklist item that auto-tick missed.
+
+    Use this only when you've actually addressed a checklist item but no
+    auto-tick fired (e.g., the answer was purely verbal with no matching
+    tool call). Calling this on items the agent hasn't actually addressed
+    defeats the purpose of the gate — be honest with yourself.
+
+    Args:
+        step_index: 0-based index into the active doubt's resolution checklist.
+    """
+    from feynman.common.exceptions import ToolConstraintError
+
+    tc: TeachingContext = ctx.userdata
+    if tc.state_machine.depth <= 1:
+        raise ToolConstraintError("Not in a doubt branch — no checklist to tick.")
+    branch_id = tc.state_machine.current.id
+    tc.doubt_orchestrator.mark_step_complete(branch_id, step_index)
+    state = tc.doubt_orchestrator.get_state(branch_id)
+    item = state.checklist[step_index] if state else None
+    return f"Marked checklist item {step_index} done" + (f": {item.description}" if item else ".")
 
 
 @function_tool()

@@ -9,6 +9,7 @@ from uuid import UUID
 from feynman.agent.anticipation import AnticipationEngine
 from feynman.agent.board import BoardManager
 from feynman.agent.concept_planner import ConceptTeachingPlan
+from feynman.agent.doubt_orchestrator import DoubtOrchestrator
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
 from feynman.agent.session_audit import SessionAudit
 from feynman.agent.state_machine import TeachingStateMachine
@@ -30,6 +31,7 @@ class TeachingContext:
     board_manager: BoardManager = field(default_factory=BoardManager)
     audit: SessionAudit = field(default_factory=SessionAudit)
     anticipation: AnticipationEngine = field(init=False)
+    doubt_orchestrator: DoubtOrchestrator = field(init=False)
     curriculum: Any | None = None  # CurriculumData from curriculum_loader (Neo4j)
     board_verifier: Any | None = None  # BoardVerifier (set by worker.py at session start)
     _verified_this_concept: bool = field(default=False, init=False, repr=False)
@@ -40,6 +42,14 @@ class TeachingContext:
     # populated from the ``DiagramSpec.dictionary`` field at draw-time and
     # cleared on ``pop_board``. Empty dict means no diagram is active.
     current_diagram_dictionary: dict[str, Any] = field(default_factory=dict)
+    # Live overlay tracking — populated as the 4 annotation tools fire on the
+    # active slide; consumed by the doubt orchestrator at push time so the
+    # snapshot can replay them on resume. Cleared on board swap.
+    active_highlights: list[str] = field(default_factory=list)
+    active_annotations: list[str] = field(default_factory=list)
+    # Reserved for prompt-side context restoration on auto-resume. The doubt
+    # orchestrator snapshots this; populating deterministically lands in 2B.
+    last_beat_index: int = 0
     # --- COMMENTED OUT: Old ConceptGraph field. Replaced by curriculum. ---
     # concept_graph: Any | None = None  # ConceptGraph from data_pre_compute (optional)
     # _graph_node_map: dict[int, str] | None = field(default=None, init=False, repr=False)
@@ -47,6 +57,7 @@ class TeachingContext:
 
     def __post_init__(self) -> None:
         self.anticipation = AnticipationEngine(audit=self.audit)
+        self.doubt_orchestrator = DoubtOrchestrator(self)
 
     @property
     def current_plan(self) -> ConceptTeachingPlan | None:

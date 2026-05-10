@@ -13,24 +13,36 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import Any
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 import structlog
 
 from feynman.agent.states import TeachingState
 
+if TYPE_CHECKING:
+    from feynman.agent.doubt_orchestrator import ChecklistItem, ReturnAnchor
+
 logger = structlog.get_logger()
 
 
 @dataclass
 class BranchContext:
-    """Context for a single branch in the teaching tree."""
+    """Context for a single branch in the teaching tree.
+
+    The doubt-orchestrator fields (`return_anchor`, `checklist`, `started_at`)
+    are populated only on doubt branches by `DoubtOrchestrator.on_push`. The
+    root branch and any future non-doubt branches leave them as defaults.
+    """
 
     id: UUID = field(default_factory=uuid4)
     state: TeachingState = TeachingState.TEACHING
     concept: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
+    return_anchor: ReturnAnchor | None = None
+    checklist: list[ChecklistItem] = field(default_factory=list)
+    started_at: datetime | None = None
 
 
 class TeachingStateMachine:
