@@ -1321,8 +1321,13 @@ Helps the system check fit before placing.
         tc.board_manager.store_design_spec(instruction.element_id, spec)
 
     # Diagram awareness: expose the spec's dictionary so the teaching agent
-    # (and DictionaryResolver) can refer to elements by role.
+    # (and DictionaryResolver) can refer to elements by role. Rebuild the
+    # system prompt now so the "## Diagram on Slide" section lists the new
+    # roles for the LLM's NEXT turn — without this, the LLM keeps the stale
+    # (empty) dictionary and the annotation tools resolve nothing.
     tc.current_diagram_dictionary = dict(spec.get("dictionary") or {})
+    if tc.current_diagram_dictionary:
+        await _update_agent_prompt(ctx)
 
     # Declare semantic relationship.
     if relates_to and instruction.element_id:
@@ -1369,6 +1374,15 @@ Helps the system check fit before placing.
         result += (
             f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
             f'\nUse highlight_walk(target_id="{eid}", ...) with these IDs as sub_element_id.'
+        )
+    if tc.current_diagram_dictionary:
+        # Echo the roles so the LLM can reference them by name in the SAME
+        # turn (annotation tools called immediately after, before the prompt
+        # rebuild reaches the next turn).
+        roles = sorted(tc.current_diagram_dictionary.keys())
+        result += (
+            f"\nDiagram roles available for pin_label_near / draw_callout / "
+            f"bracket / highlight_pulse: {', '.join(roles)}"
         )
     return result
 
@@ -1455,8 +1469,12 @@ to keep it in place.
     # Update the stored spec with the modified version.
     tc.board_manager.store_design_spec(target_id, modified_spec)
 
-    # Diagram awareness: refresh dictionary to match the new spec.
+    # Diagram awareness: refresh dictionary to match the new spec + rebuild
+    # the system prompt so the "## Diagram on Slide" section reflects any
+    # added/removed roles for subsequent annotation tool calls.
     tc.current_diagram_dictionary = dict(modified_spec.get("dictionary") or {})
+    if tc.current_diagram_dictionary:
+        await _update_agent_prompt(ctx)
 
     logger.info(
         "modify_design_diagram.complete",
@@ -1491,6 +1509,12 @@ to keep it in place.
         result += (
             f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
             f'\nUse highlight_walk(target_id="{target_id}", ...) with these IDs.'
+        )
+    if tc.current_diagram_dictionary:
+        roles = sorted(tc.current_diagram_dictionary.keys())
+        result += (
+            f"\nDiagram roles available for pin_label_near / draw_callout / "
+            f"bracket / highlight_pulse: {', '.join(roles)}"
         )
     return result
 
