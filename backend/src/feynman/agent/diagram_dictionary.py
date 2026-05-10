@@ -46,22 +46,28 @@ class DictionaryResolver:
         """Active diagram's dictionary, or empty dict if no diagram is on the slide."""
         return getattr(self._tc, "current_diagram_dictionary", None) or {}
 
-    def resolve(self, element_or_role: str) -> str:
-        """Return the resolved element_id, or the input verbatim if no match.
+    def resolve(self, element_or_role: str) -> str | None:
+        """Return the resolved element_id, or None on no match.
 
         Lookup order:
           1. Exact id match against the active dictionary.
           2. Case-insensitive role match (with common-typo normalization).
              If multiple elements share the role, the first id wins.
-          3. No match → return ``element_or_role`` unchanged so the frontend
-             can decide; logs a warning so we can spot dictionary gaps.
+          3. No match → return ``None``. Callers (the annotation tools)
+             must check and surface a clear error to the LLM rather than
+             publishing an instruction with a bogus target id that the
+             frontend will silently drop.
+
+        Returns None when the input is empty, when no diagram is on the
+        slide (empty dictionary), or when neither an exact id nor a role
+        matches.
         """
         if not element_or_role:
-            return element_or_role
+            return None
 
         directory = self.dictionary
         if not directory:
-            return element_or_role
+            return None
 
         # 1. Exact id match.
         if element_or_role in directory:
@@ -87,10 +93,10 @@ class DictionaryResolver:
                 )
             return matches[0]
 
-        # 3. No match — let frontend handle the raw input.
+        # 3. No match — fail loud. Caller is responsible for telling the LLM.
         logger.warning(
             "diagram_dictionary.no_match",
             element_or_role=element_or_role,
             dictionary_keys=list(directory.keys()),
         )
-        return element_or_role
+        return None

@@ -846,12 +846,70 @@ All semantically connected elements will also be cleared.
 # ──────────────────────────────────────────────
 
 
-def _resolve_diagram_target(ctx: RunContext, element_or_role: str) -> str:
-    """Resolve ``element_or_role`` against the active diagram's dictionary."""
+def _resolve_diagram_target(ctx: RunContext, element_or_role: str) -> str | None:
+    """Resolve ``element_or_role`` against the active diagram's dictionary.
+
+    Returns the resolved ``element_id`` or ``None`` when nothing matched.
+    Callers must check for ``None`` and surface a useful error to the LLM —
+    otherwise the published instruction will reference a bogus id and the
+    frontend will silently drop it.
+    """
     from feynman.agent.diagram_dictionary import DictionaryResolver
 
     tc: TeachingContext = ctx.userdata
     return DictionaryResolver(tc).resolve(element_or_role)
+
+
+def _diagram_target_error(ctx: RunContext, element_or_role: str) -> str:
+    """Build a tool-result error string that helps the LLM correct itself.
+
+    Lists the active diagram's available roles + element ids so the LLM can
+    retry with a valid handle on the next call. Returns a short empty-state
+    message when no diagram is on the slide.
+    """
+    tc: TeachingContext = ctx.userdata
+    directory = tc.current_diagram_dictionary or {}
+    if not directory:
+        return "No diagram on the slide yet — draw one with draw_design_diagram first."
+
+    ids = list(directory.keys())
+    roles: list[str] = []
+    for meta in directory.values():
+        role = getattr(meta, "role", None)
+        if role is None and isinstance(meta, dict):
+            role = meta.get("role")
+        if isinstance(role, str) and role:
+            roles.append(role)
+    # Dedupe while preserving order.
+    seen: set[str] = set()
+    roles_unique = [r for r in roles if not (r in seen or seen.add(r))]
+
+    lines = [f"No element matched '{element_or_role}'."]
+    if roles_unique:
+        lines.append(f"Available roles: {', '.join(roles_unique)}")
+    if ids:
+        lines.append(f"Available element_ids: {', '.join(ids)}")
+    lines.append(
+        "Tip: call this tool again with one of the roles above (preferred) or an exact element_id."
+    )
+    return "\n".join(lines)
+
+
+def _has_bounds(ctx: RunContext, element_id: str) -> bool:
+    """True iff the dictionary entry for ``element_id`` carries non-null bounds.
+
+    The frontend's annotation overlay positions itself from
+    ``dictionary[element_id].bounds``; an entry without bounds renders
+    nothing. Catch it at the backend so the LLM gets a clean error.
+    """
+    tc: TeachingContext = ctx.userdata
+    meta = (tc.current_diagram_dictionary or {}).get(element_id)
+    if meta is None:
+        return False
+    bounds = getattr(meta, "bounds", None)
+    if bounds is None and isinstance(meta, dict):
+        bounds = meta.get("bounds")
+    return bounds is not None
 
 
 @function_tool()
@@ -876,6 +934,13 @@ async def pin_label_near(
 Options: "above" (default), "below", "left", "right".
     """
     target_id = _resolve_diagram_target(ctx, element_or_role)
+    if target_id is None:
+        return _diagram_target_error(ctx, element_or_role)
+    if not _has_bounds(ctx, target_id):
+        return (
+            f"Element '{target_id}' has no bounds in the diagram dictionary "
+            "— pick a different role/element so the annotation can be placed."
+        )
     pos: Literal["above", "below", "left", "right"] = (
         position if position in ("above", "below", "left", "right") else "above"  # type: ignore[assignment]
     )
@@ -913,6 +978,13 @@ points at. Roles are preferred.
 Options: "up-right" (default), "up-left", "down-right", "down-left", "up", "down".
     """
     target_id = _resolve_diagram_target(ctx, from_element)
+    if target_id is None:
+        return _diagram_target_error(ctx, from_element)
+    if not _has_bounds(ctx, target_id):
+        return (
+            f"Element '{target_id}' has no bounds in the diagram dictionary "
+            "— pick a different role/element so the callout can be placed."
+        )
     valid_dirs = {"up", "down", "up-left", "up-right", "down-left", "down-right"}
     direction_value: Literal["up", "down", "up-left", "up-right", "down-left", "down-right"] = (
         direction if direction in valid_dirs else "up-right"
@@ -952,7 +1024,18 @@ async def bracket(
 Options: "above" (default), "below", "left", "right".
     """
     a_id = _resolve_diagram_target(ctx, element_a)
+    if a_id is None:
+        return _diagram_target_error(ctx, element_a)
     b_id = _resolve_diagram_target(ctx, element_b)
+    if b_id is None:
+        return _diagram_target_error(ctx, element_b)
+    for resolved_id, requested in ((a_id, element_a), (b_id, element_b)):
+        if not _has_bounds(ctx, resolved_id):
+            return (
+                f"Element '{resolved_id}' (from '{requested}') has no bounds "
+                "in the diagram dictionary — pick a different role/element "
+                "so the bracket can span it."
+            )
     side_value: Literal["above", "below", "left", "right"] = (
         side if side in ("above", "below", "left", "right") else "above"  # type: ignore[assignment]
     )
@@ -990,6 +1073,13 @@ Roles are preferred.
         color_token: CSS variable for the glow color. Default "--sb-neon".
     """
     target_id = _resolve_diagram_target(ctx, element_or_role)
+    if target_id is None:
+        return _diagram_target_error(ctx, element_or_role)
+    if not _has_bounds(ctx, target_id):
+        return (
+            f"Element '{target_id}' has no bounds in the diagram dictionary "
+            "— pick a different role/element so the pulse can be placed."
+        )
     instruction = HighlightPulseInstruction(
         target_element_id=target_id,
         duration_ms=duration_ms,
@@ -998,7 +1088,7 @@ Roles are preferred.
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
     tc: TeachingContext = ctx.userdata
-    if target_id and target_id not in tc.active_highlights:
+    if target_id not in tc.active_highlights:
         tc.active_highlights.append(target_id)
     return f"Pulsed {target_id} ({duration_ms}ms)"
 

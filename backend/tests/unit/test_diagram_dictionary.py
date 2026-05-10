@@ -59,16 +59,25 @@ def test_dictionary_resolver_multi_match_returns_first() -> None:
     assert DictionaryResolver(tc).resolve("leg") == "leg_a"
 
 
-def test_dictionary_resolver_no_match_falls_back_to_input() -> None:
+def test_dictionary_resolver_returns_none_on_no_match() -> None:
+    """Unknown role and unknown id → None so callers can surface a clear
+    error to the LLM instead of publishing an instruction with a bogus id."""
     tc = _StubTC(current_diagram_dictionary=_ladder_dictionary())
     resolver = DictionaryResolver(tc)
-    # Unknown role and not an id either → return as-is.
-    assert resolver.resolve("does_not_exist") == "does_not_exist"
+    assert resolver.resolve("does_not_exist") is None
+    assert resolver.resolve("the line in red") is None
 
 
-def test_dictionary_resolver_empty_dictionary_is_passthrough() -> None:
+def test_dictionary_resolver_returns_none_on_empty_dictionary() -> None:
+    """No diagram on the slide → None (annotation tools should tell the LLM
+    to draw a diagram first instead of publishing into the void)."""
     tc = _StubTC(current_diagram_dictionary={})
-    assert DictionaryResolver(tc).resolve("hypotenuse") == "hypotenuse"
+    assert DictionaryResolver(tc).resolve("hypotenuse") is None
+
+
+def test_dictionary_resolver_returns_none_on_empty_input() -> None:
+    tc = _StubTC(current_diagram_dictionary=_ladder_dictionary())
+    assert DictionaryResolver(tc).resolve("") is None
 
 
 def test_dictionary_resolver_handles_pydantic_like_meta() -> None:

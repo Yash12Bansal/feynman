@@ -26,10 +26,25 @@ def _make_mock_ctx() -> MagicMock:
     userdata.lesson_plan = None
     userdata.current_concept_index = 0
     # Diagram dictionary for the ladder problem (role → element_id resolver).
+    # `bounds` is required for frontend positioning; the annotation tools
+    # reject entries without bounds so a bogus instruction never reaches the
+    # silent-drop path in SlideAnnotationLayer.
     userdata.current_diagram_dictionary = {
-        "side_AB": {"role": "hypotenuse", "semantic": "the ladder, 10 m"},
-        "side_BC": {"role": "opposite", "semantic": "the wall"},
-        "side_AC": {"role": "adjacent", "semantic": "the ground"},
+        "side_AB": {
+            "role": "hypotenuse",
+            "semantic": "the ladder, 10 m",
+            "bounds": [120, 100, 280, 360],
+        },
+        "side_BC": {
+            "role": "opposite",
+            "semantic": "the wall",
+            "bounds": [380, 80, 4, 400],
+        },
+        "side_AC": {
+            "role": "adjacent",
+            "semantic": "the ground",
+            "bounds": [120, 470, 280, 4],
+        },
     }
     ctx.userdata = userdata
     return ctx
@@ -59,12 +74,62 @@ async def test_pin_label_near_resolves_role() -> None:
 
 
 @pytest.mark.asyncio
-async def test_pin_label_near_falls_back_to_raw_id_when_no_match() -> None:
+async def test_pin_label_near_errors_on_unknown_role() -> None:
+    """Unknown role → tool returns an error message that lists available
+    roles/ids; nothing is published to the frontend (no silent failure)."""
     ctx = _make_mock_ctx()
-    await pin_label_near(ctx, element_or_role="vertex_A", text="60°")
-    payload = _published_payload(ctx)
-    # vertex_A isn't in the ladder dict above → frontend gets the raw input.
-    assert payload["target_element_id"] == "vertex_A"
+    result = await pin_label_near(ctx, element_or_role="the line in red", text="60°")
+    assert "No element matched 'the line in red'" in result
+    assert "hypotenuse" in result  # available role surfaced for LLM retry
+    assert "side_AB" in result  # available element_id surfaced too
+    # No instruction was published — the only call to publish_data was nothing.
+    ctx.session.room_io.room.local_participant.publish_data.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_highlight_pulse_errors_with_no_diagram() -> None:
+    """Empty dictionary (no diagram drawn yet) → empty-state error string."""
+    ctx = _make_mock_ctx()
+    ctx.userdata.current_diagram_dictionary = {}
+    result = await highlight_pulse(ctx, element_or_role="hypotenuse")
+    assert "No diagram on the slide" in result
+    assert "draw_design_diagram" in result
+    ctx.session.room_io.room.local_participant.publish_data.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_bracket_errors_when_either_element_unknown() -> None:
+    """Bracket needs both ends — if either resolves to None, error + no publish."""
+    ctx = _make_mock_ctx()
+    result = await bracket(
+        ctx,
+        element_a="hypotenuse",  # valid
+        element_b="floating_unicorn",  # invalid
+        label="right triangle",
+    )
+    assert "No element matched 'floating_unicorn'" in result
+    ctx.session.room_io.room.local_participant.publish_data.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_annotation_tool_errors_when_bounds_missing() -> None:
+    """Resolved id but its dictionary entry has no bounds → tool errors,
+    nothing published. Catches the rare case where design_agent skips bounds
+    for an irregular shape."""
+    ctx = _make_mock_ctx()
+    # Add an entry without bounds.
+    ctx.userdata.current_diagram_dictionary["theta-marker"] = {
+        "role": "right_angle_marker",
+        "semantic": "the right angle marker",
+        # no bounds key
+    }
+    result = await pin_label_near(
+        ctx,
+        element_or_role="right_angle_marker",
+        text="90°",
+    )
+    assert "no bounds" in result.lower()
+    ctx.session.room_io.room.local_participant.publish_data.assert_not_called()
 
 
 @pytest.mark.asyncio
