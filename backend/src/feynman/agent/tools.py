@@ -2209,6 +2209,7 @@ async def set_lesson_topic(
     from feynman.agent.curriculum_loader import load_curriculum
     from feynman.agent.lesson_plan import lesson_plan_from_curriculum
     from feynman.common.types import Subject
+    from feynman.config import settings
 
     tc: TeachingContext = ctx.userdata
 
@@ -2227,6 +2228,17 @@ async def set_lesson_topic(
         f"topic='{topic}', subject={subject or 'auto'}, grade={grade_level or 'auto'}",
         source="spoken_request",
     )
+
+    # Free-form mode: skip Neo4j entirely, no plan, no pre-gens. The agent
+    # teaches conversationally using the topic name only.
+    if not settings.use_neo4j_curriculum:
+        logger.info("set_lesson_topic.free_form_mode", topic=topic)
+        await _update_agent_prompt(ctx)
+        return (
+            f"Activated free-form teaching for: {topic}. "
+            f"No curriculum graph loaded (USE_NEO4J_CURRICULUM=false) — "
+            f"teach interactively from your own knowledge."
+        )
 
     # Load curriculum from Neo4j — no fallbacks.
     # Raises CurriculumNotFoundError if topic not in Neo4j.

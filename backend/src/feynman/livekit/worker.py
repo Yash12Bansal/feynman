@@ -122,10 +122,16 @@ class FeynmanAgent(Agent):
         )
 
     async def on_enter(self) -> None:
-        logger.info("agent.entered_room", topic=self._topic)
+        logger.info(
+            "agent.entered_room",
+            topic=self._topic,
+            use_neo4j_curriculum=settings.use_neo4j_curriculum,
+        )
 
-        # Load curriculum from Neo4j — no fallbacks
-        if self._topic:
+        # Curriculum is loaded only when the Neo4j-backed lesson graph is
+        # enabled. With `USE_NEO4J_CURRICULUM=false` we skip the load entirely
+        # and run in free-form mode (no plan, no pre-gens, no checklist).
+        if self._topic and settings.use_neo4j_curriculum:
             # Load curriculum from Neo4j. Raises CurriculumNotFoundError if not found.
             curriculum = await load_curriculum(
                 self._topic, self._subject.value if self._subject else None
@@ -248,6 +254,14 @@ class FeynmanAgent(Agent):
                 f"Tell them today's topic is '{plan.topic}' and briefly share the objective: "
                 f"'{plan.objective}'. Keep it enthusiastic — two or three sentences max. "
                 f"Use the show_text tool to display a welcome message with today's topic."
+            )
+        elif self._topic:
+            # Free-form mode but the user passed a topic — let the agent know it
+            # and teach without a Neo4j-backed plan.
+            greeting_instructions = (
+                f"Greet the class warmly. Introduce yourself as Feynman, their AI teacher. "
+                f"Tell them today's topic is '{self._topic}' and that you'll guide them "
+                f"through it interactively. Keep it enthusiastic — two or three sentences max."
             )
         else:
             greeting_instructions = (

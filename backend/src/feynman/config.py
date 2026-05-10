@@ -58,6 +58,17 @@ class Settings(BaseSettings):
     neo4j_password: str = "password"
     neo4j_database: str = "neo4j"
 
+    # When True (default), the agent loads curriculum from Neo4j at session
+    # start (and on `set_lesson_topic`) — every topic must exist in the graph
+    # or `CurriculumNotFoundError` aborts the session. When False, Neo4j is
+    # skipped entirely: the agent runs in free-form mode, has no lesson plan,
+    # no pre-generated visuals, and no doubt-resolution checklist (the doubt
+    # orchestrator still snapshots/restores correctly; the checklist is just
+    # empty). Use False for local exercise of the doubt orchestrator without
+    # seeding Neo4j, and for any deployment where you don't have curriculum
+    # ingested yet.
+    use_neo4j_curriculum: bool = True
+
     @property
     def is_dev(self) -> bool:
         return self.environment == "development"
