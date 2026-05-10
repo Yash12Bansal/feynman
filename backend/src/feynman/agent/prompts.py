@@ -574,22 +574,34 @@ def _render_doubt_checklist_section(teaching_ctx: TeachingContext) -> str:
     if not items:
         return ""
 
+    state = teaching_ctx.doubt_orchestrator.get_state(branch.id)
+    soft_nudge = bool(state and state.soft_nudge_fired)
+
     lines: list[str] = ["\n## Resolution Checklist\n"]
     lines.append(
         "Before calling `resolve_doubt`, every item below must be `done`. "
-        "Items auto-tick when you call the listed tools; if you addressed an "
-        "item without using those tools, call "
-        "`mark_doubt_step_complete(step_index)`.\n\n"
+        "Items auto-tick when you call the listed tools or use the listed "
+        "keywords in your speech; if you addressed an item without either, "
+        "call `mark_doubt_step_complete(step_index)`.\n\n"
     )
     for i, item in enumerate(items):
         marker = "[x]" if item.status == "done" else "[ ]"
-        triggers = (
-            f" (auto-ticks on: {', '.join(item.auto_satisfied_by)})"
-            if item.auto_satisfied_by
-            else ""
-        )
+        triggers_parts: list[str] = []
+        if item.auto_satisfied_by:
+            triggers_parts.append(f"tools: {', '.join(item.auto_satisfied_by)}")
+        if item.keywords:
+            triggers_parts.append(f"keywords: {', '.join(item.keywords)}")
+        triggers = f" (auto-ticks on — {' | '.join(triggers_parts)})" if triggers_parts else ""
         lines.append(f"{i}. {marker} {item.description}{triggers}\n")
     lines.append("\nThe orchestrator will block `resolve_doubt` until every item is `[x]`.\n")
+
+    if soft_nudge:
+        lines.append(
+            "\n**System nudge**: This doubt has been running over 60 seconds. "
+            "Wrap up and call `resolve_doubt` soon — the orchestrator will "
+            "force a return if you don't.\n"
+        )
+
     return "".join(lines)
 
 

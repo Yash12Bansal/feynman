@@ -603,16 +603,21 @@ async def plan_doubt(
         '\n  ["draw_design_diagram", "draw_diagram", "draw_scene", "pin_label_near", '
         '"draw_callout", "bracket", "highlight_pulse", "write_section", '
         '"write_equation", "write_step", "write_text", "show_equation"]'
+        "\n- `keywords` (optional): 1-3 short tokens that the agent's voice would "
+        "naturally include when satisfying this step (case-insensitive substring "
+        "match). Use only for steps where the verbal answer is the work — "
+        'e.g. ["ladder"] for "tie back to the original ladder problem". Leave '
+        "empty when a tool call (above) already covers it."
         "\n"
         '\nExample: a doubt about "why sin = opp/hyp?" might produce:'
         '\n  1. {description: "show diagram explaining ratio constancy", '
-        'auto_satisfied_by: ["draw_design_diagram", "draw_scene"]}'
+        'auto_satisfied_by: ["draw_design_diagram", "draw_scene"], keywords: []}'
         '\n  2. {description: "explain why ratios are angle-dependent", '
-        'auto_satisfied_by: ["write_step", "write_text"]}'
+        'auto_satisfied_by: ["write_step", "write_text"], keywords: ["angle", "ratio"]}'
         '\n  3. {description: "tie back to the original ladder problem", '
-        'auto_satisfied_by: ["pin_label_near", "highlight_pulse"]}'
+        'auto_satisfied_by: ["pin_label_near", "highlight_pulse"], keywords: ["ladder"]}'
         "\n"
-        "\nKeep items concrete and tied to a specific tool action. Vague items "
+        "\nKeep items concrete and tied to a specific tool action or keyword. Vague items "
         '("explain it well") cannot auto-tick and force the agent to use '
         "mark_doubt_step_complete manually."
     )

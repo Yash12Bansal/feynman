@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 from feynman.agent.board_graph import BoardRelation
 from feynman.agent.placement_executor import resolve_placement
 from feynman.agent.scenario_planner import detect_scenario, plan_scenario
+from feynman.agent.states import TeachingState
+from feynman.agent.tool_constraints import state_constrained
 from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
@@ -1713,6 +1715,12 @@ async def _update_agent_prompt(ctx: RunContext) -> None:
 
 
 @function_tool()
+@state_constrained(
+    forbidden_states={TeachingState.HANDLING_DOUBT},
+    error_template=(
+        "Cannot advance the lesson while inside a doubt branch — call resolve_doubt first."
+    ),
+)
 async def advance_concept(ctx: RunContext) -> str:
     """Signal that you've finished teaching the current concept and are ready to move on.
 
@@ -1827,6 +1835,12 @@ async def advance_concept(ctx: RunContext) -> str:
 
 
 @function_tool()
+@state_constrained(
+    forbidden_states={TeachingState.HANDLING_DOUBT},
+    error_template=(
+        "Cannot start a nested doubt — resolve the current one first (no nested doubts in v0)."
+    ),
+)
 async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     """A student has a doubt — branch off to address it without losing your place.
 
@@ -1849,10 +1863,22 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     # Snapshot parent state and register the doubt branch with the orchestrator.
     # Checklist starts empty here; the async `_plan_doubt` below populates it
     # once the planning agent has produced a checklist.
+    #
+    # Callbacks fire from the watchdog: soft-nudge rebuilds the prompt so the
+    # new flag surfaces inside the checklist section; force-resolve performs
+    # the same pop/restore as `resolve_doubt` but bypasses the checklist gate.
+    async def _on_soft_nudge(_branch) -> None:
+        await _update_agent_prompt(ctx)
+
+    async def _on_force_resolve(branch_to_resolve) -> None:
+        await _force_resolve_doubt(ctx, branch_to_resolve)
+
     await tc.doubt_orchestrator.on_push(
         branch,
         related_concept,
         parent_branch_id=parent_branch_id,
+        on_soft_nudge=_on_soft_nudge,
+        force_resolve=_on_force_resolve,
     )
     # Doubt board starts visually blank — the parent's overlays were captured
     # in the snapshot and will be replayed on resume.
@@ -1913,27 +1939,18 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     )
 
 
-@function_tool()
-async def resolve_doubt(ctx: RunContext) -> str:
-    """The doubt has been addressed — return to the main lesson flow.
+async def _perform_doubt_resolve(ctx: RunContext, *, forced: bool) -> str | None:
+    """Pop the current doubt branch + run the orchestrator's auto-restore.
 
-    Call this after you've fully answered the student's question and
-    are ready to continue where you left off.
+    Shared between the LLM-driven `resolve_doubt` (forced=False, gated by
+    the checklist) and the watchdog-driven `_force_resolve_doubt`
+    (forced=True, bypasses the gate). Returns the user-facing summary
+    string, or None if no doubt branch is active.
     """
-    from feynman.common.exceptions import ToolConstraintError
-
     tc: TeachingContext = ctx.userdata
 
     if tc.state_machine.depth <= 1:
-        return "Not in a doubt branch — already on the main lesson flow."
-
-    # Gate on the resolution checklist BEFORE we touch any state. The orchestrator
-    # returns a clear message listing pending items so the LLM can either address
-    # them or invoke mark_doubt_step_complete to override.
-    current_branch = tc.state_machine.current
-    allowed, reason = tc.doubt_orchestrator.is_resolution_allowed(current_branch.id)
-    if not allowed:
-        raise ToolConstraintError(reason)
+        return None
 
     # Pop board stack before popping branch — return to parent board.
     tc.board_manager.pop_board()
@@ -1948,8 +1965,8 @@ async def resolve_doubt(ctx: RunContext) -> str:
     tc.current_diagram_dictionary = {}
 
     # Auto-restore parent state via the orchestrator: re-fire highlight pulses
-    # for every captured target and surface the verbatim return cue. No LLM
-    # call required — both side effects run through callbacks supplied here.
+    # for every captured target and surface the verbatim (or forced fallback)
+    # return cue. No LLM call required — both side effects run through callbacks.
     async def _replay_pulse(instr: _BaseInstruction) -> None:
         await _publish_visual(ctx, instr, wait_for_speech=False)
 
@@ -1974,7 +1991,7 @@ async def resolve_doubt(ctx: RunContext) -> str:
         popped,
         publish_visual=_replay_pulse,
         say=_say_return_cue,
-        forced=False,
+        forced=forced,
     )
 
     await _update_agent_prompt(ctx)
@@ -1987,12 +2004,55 @@ async def resolve_doubt(ctx: RunContext) -> str:
         session_id=str(tc.session_id),
         resolved_concept=popped.concept,
         depth=tc.state_machine.depth,
+        forced=forced,
     )
     logger.info(
         "session_audit.doubt_resolved",
         report=tc.audit.summary_text(),
     )
     return f"Doubt about '{popped.concept}' resolved. {continue_msg}"
+
+
+async def _force_resolve_doubt(ctx: RunContext, branch) -> None:
+    """Watchdog-driven force-resolve. Skips the checklist gate, fires the
+    forced fallback voice cue, and runs the same pop/restore as `resolve_doubt`.
+
+    `branch` is the BranchContext the orchestrator captured at push time.
+    Defensive: if the doubt has already been resolved (e.g. LLM beat us to it
+    by a hair), `_perform_doubt_resolve` no-ops.
+    """
+    logger.warning(
+        "doubt.force_resolve_executing",
+        branch_id=str(branch.id),
+        concept=branch.concept,
+    )
+    await _perform_doubt_resolve(ctx, forced=True)
+
+
+@function_tool()
+async def resolve_doubt(ctx: RunContext) -> str:
+    """The doubt has been addressed — return to the main lesson flow.
+
+    Call this after you've fully answered the student's question and
+    are ready to continue where you left off.
+    """
+    from feynman.common.exceptions import ToolConstraintError
+
+    tc: TeachingContext = ctx.userdata
+
+    if tc.state_machine.depth <= 1:
+        return "Not in a doubt branch — already on the main lesson flow."
+
+    # Gate on the resolution checklist BEFORE we touch any state. The orchestrator
+    # returns a clear message listing pending items so the LLM can either address
+    # them or invoke mark_doubt_step_complete to override.
+    current_branch = tc.state_machine.current
+    allowed, reason = tc.doubt_orchestrator.is_resolution_allowed(current_branch.id)
+    if not allowed:
+        raise ToolConstraintError(reason)
+
+    result = await _perform_doubt_resolve(ctx, forced=False)
+    return result or "Not in a doubt branch — already on the main lesson flow."
 
 
 @function_tool()
@@ -2020,6 +2080,12 @@ async def mark_doubt_step_complete(ctx: RunContext, step_index: int) -> str:
 
 
 @function_tool()
+@state_constrained(
+    forbidden_states={TeachingState.HANDLING_DOUBT},
+    error_template=(
+        "Cannot switch boards while inside a doubt branch — resolve the current doubt first."
+    ),
+)
 async def switch_board(ctx: RunContext, board_id: str, intent: str = "reference") -> str:
     """Switch to a different board to show previously drawn content.
 

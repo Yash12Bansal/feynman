@@ -20,6 +20,7 @@ from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
 from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.agent.state_machine import TeachingStateMachine
+from feynman.agent.states import TeachingState
 from feynman.agent.teaching_context import TeachingContext
 from feynman.agent.tools import (
     advance_concept,
@@ -357,10 +358,27 @@ async def entrypoint(ctx: JobContext) -> None:
         # one turn. 30 still catches runaway loops.
         max_tool_steps=30,
     )
-    # TODO(phase 2B): wire `tc.doubt_orchestrator.on_voice_emitted(transcript,
-    # branch_id)` to a session text-committed callback so voice-keyword
-    # checklist auto-tick fires. Phase 2A relies on tool-call auto-tick +
-    # mark_doubt_step_complete; the orchestrator hook exists as a stub.
+
+    # Voice-keyword auto-tick: every committed assistant message inside a
+    # doubt branch is forwarded to the orchestrator, which substring-matches
+    # the transcript against each pending checklist item's `keywords`.
+    @session.on("conversation_item_added")
+    def _on_conversation_item(event) -> None:
+        item = getattr(event, "item", None)
+        if item is None:
+            return
+        role = getattr(item, "role", None)
+        if role != "assistant":
+            return
+        text = getattr(item, "text_content", None)
+        if callable(text):
+            text = text()
+        if not isinstance(text, str) or not text:
+            return
+        branch = teaching_ctx.state_machine.current
+        if branch is None or branch.state != TeachingState.HANDLING_DOUBT:
+            return
+        teaching_ctx.doubt_orchestrator.on_voice_emitted(text, branch.id)
 
     await session.start(agent=agent, room=ctx.room)
     logger.info(
