@@ -25,11 +25,13 @@ from feynman.visuals.schemas import (
     AxisConfig,
     BoardIntent,
     BoardZone,
+    BracketInstruction,
     ClearInstruction,
     DataSeries,
     DiagramEdge,
     DiagramNode,
     DiagramType,
+    DrawCalloutInstruction,
     DrawDesignDiagramInstruction,
     DrawDiagramInstruction,
     DrawSceneInstruction,
@@ -38,11 +40,13 @@ from feynman.visuals.schemas import (
     FunctionDef,
     GraphType,
     HighlightInstruction,
+    HighlightPulseInstruction,
     HighlightStyle,
     HighlightWalkInstruction,
     HighlightWalkStep,
     NewPageInstruction,
     Panel,
+    PinLabelInstruction,
     PlacementIntent,
     SceneTemplateId,
     SceneTemplateRef,
@@ -50,7 +54,6 @@ from feynman.visuals.schemas import (
     SemanticSceneElement,
     ShowEquationInstruction,
     ShowGraphInstruction,
-    ShowTextInstruction,
     SizeHint,
     SlidePendingInstruction,
     StepEquationInstruction,
@@ -94,6 +97,11 @@ INSTRUCTION_TYPE_TO_PANEL: dict[str, Panel] = {
     "draw_design_diagram": Panel.SLIDE,
     "draw_scene": Panel.SLIDE,
     "slide_pending": Panel.SLIDE,
+    # Slide annotation overlays (diagram awareness)
+    "pin_label": Panel.SLIDE,
+    "draw_callout": Panel.SLIDE,
+    "bracket": Panel.SLIDE,
+    "highlight_pulse": Panel.SLIDE,
     # Reference (targets an existing element or is a meta-operation)
     "highlight": Panel.REFERENCE,
     "highlight_walk": Panel.REFERENCE,
@@ -791,6 +799,9 @@ Leave empty to clear the entire board.
     await _publish_visual(ctx, instruction, wait_for_speech=False)
     if target_id:
         return f"Removed element: {target_id}"
+    # Full clear → no diagram is on the slide anymore.
+    tc: TeachingContext = ctx.userdata
+    tc.current_diagram_dictionary = {}
     return "Board cleared"
 
 
@@ -813,6 +824,162 @@ All semantically connected elements will also be cleared.
         instruction = ClearInstruction(target_id=eid, sync_mode=SyncMode.IMMEDIATE)
         await _publish_visual(ctx, instruction, wait_for_speech=False)
     return f"Cleared cluster ({len(cluster)} elements): {', '.join(sorted(cluster))}"
+
+
+# ──────────────────────────────────────────────
+# Slide annotation tools (diagram awareness)
+#
+# Write *around* the diagram on the slide — pinned labels, callouts, brackets,
+# pulse highlights. Use these the way a real teacher uses a marker on the
+# board: mark the part being talked about. Each tool resolves
+# ``element_or_role`` against the active ``DiagramSpec.dictionary`` so the LLM
+# can refer to elements by role (``"hypotenuse"``) instead of opaque IDs.
+# ──────────────────────────────────────────────
+
+
+def _resolve_diagram_target(ctx: RunContext, element_or_role: str) -> str:
+    """Resolve ``element_or_role`` against the active diagram's dictionary."""
+    from feynman.agent.diagram_dictionary import DictionaryResolver
+
+    tc: TeachingContext = ctx.userdata
+    return DictionaryResolver(tc).resolve(element_or_role)
+
+
+@function_tool()
+async def pin_label_near(
+    ctx: RunContext,
+    element_or_role: str,
+    text: str,
+    position: str = "above",
+) -> str:
+    """Place a small text label near a diagram element with a thin connector line.
+
+    Use this for marginalia and quick identifications — a "← hypotenuse" tag
+    next to a side, or "8 m" next to a measured length. The label fades in
+    over ~300ms and stays until the diagram is replaced.
+
+    Args:
+        element_or_role: Either an exact element_id from the diagram \
+(e.g. "side_AB") or a semantic role from the diagram's dictionary \
+(e.g. "hypotenuse"). Roles are preferred — they survive diagram regeneration.
+        text: Short label text. Keep it under ~30 chars; max 120.
+        position: Where to place the label relative to the element. \
+Options: "above" (default), "below", "left", "right".
+    """
+    target_id = _resolve_diagram_target(ctx, element_or_role)
+    pos: Literal["above", "below", "left", "right"] = (
+        position if position in ("above", "below", "left", "right") else "above"  # type: ignore[assignment]
+    )
+    instruction = PinLabelInstruction(
+        target_element_id=target_id,
+        text=text,
+        position=pos,
+        sync_mode=SyncMode.IMMEDIATE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return f'Pinned "{text}" {position} of {target_id}'
+
+
+@function_tool()
+async def draw_callout(
+    ctx: RunContext,
+    from_element: str,
+    text: str,
+    direction: str = "up-right",
+) -> str:
+    """Draw a speech-bubble callout from a diagram element.
+
+    Use sparingly for emphasis or short pedagogical notes — "← key insight!" or
+    "this is what we're solving for". The bubble's tail draws first (~200ms),
+    then the bubble inflates (~300ms), then the text fades in.
+
+    Args:
+        from_element: Element ID or semantic role of the element the callout \
+points at. Roles are preferred.
+        text: Callout content. Keep it under ~80 chars; max 200.
+        direction: Which way the callout extends from the element. \
+Options: "up-right" (default), "up-left", "down-right", "down-left", "up", "down".
+    """
+    target_id = _resolve_diagram_target(ctx, from_element)
+    valid_dirs = {"up", "down", "up-left", "up-right", "down-left", "down-right"}
+    direction_value: Literal["up", "down", "up-left", "up-right", "down-left", "down-right"] = (
+        direction if direction in valid_dirs else "up-right"
+    )  # type: ignore[assignment]
+    instruction = DrawCalloutInstruction(
+        target_element_id=target_id,
+        text=text,
+        direction=direction_value,
+        sync_mode=SyncMode.IMMEDIATE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return f"Callout '{text[:40]}' on {target_id}"
+
+
+@function_tool()
+async def bracket(
+    ctx: RunContext,
+    element_a: str,
+    element_b: str,
+    label: str,
+    side: str = "above",
+) -> str:
+    """Draw a curly bracket spanning two diagram elements with a centered label.
+
+    Use this to show a relationship between two parts — "right triangle"
+    spanning hypotenuse and adjacent, or "this is what we're measuring" across
+    two sides. The bracket draws (~400ms), then the label fades in.
+
+    Args:
+        element_a: Element ID or role of the first element.
+        element_b: Element ID or role of the second element.
+        label: Text centered on the bracket. Max 80 chars.
+        side: Which side of the elements the bracket goes on. \
+Options: "above" (default), "below", "left", "right".
+    """
+    a_id = _resolve_diagram_target(ctx, element_a)
+    b_id = _resolve_diagram_target(ctx, element_b)
+    side_value: Literal["above", "below", "left", "right"] = (
+        side if side in ("above", "below", "left", "right") else "above"  # type: ignore[assignment]
+    )
+    instruction = BracketInstruction(
+        element_a_id=a_id,
+        element_b_id=b_id,
+        label=label,
+        side=side_value,
+        sync_mode=SyncMode.IMMEDIATE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return f"Bracketed {a_id}↔{b_id} ({label})"
+
+
+@function_tool()
+async def highlight_pulse(
+    ctx: RunContext,
+    element_or_role: str,
+    duration_ms: int = 1200,
+    color_token: str = "--sb-neon",
+) -> str:
+    """Pulse a single diagram element with one short glow cycle.
+
+    Simpler than ``highlight_walk`` when you only need to spotlight one element
+    while saying its name. Fires instantly — call it BEFORE speaking about
+    the element, like a teacher tapping the board.
+
+    Args:
+        element_or_role: Element ID or semantic role of the element to pulse. \
+Roles are preferred.
+        duration_ms: Total pulse duration in ms. Default 1200; clamped 400-3000.
+        color_token: CSS variable for the glow color. Default "--sb-neon".
+    """
+    target_id = _resolve_diagram_target(ctx, element_or_role)
+    instruction = HighlightPulseInstruction(
+        target_element_id=target_id,
+        duration_ms=duration_ms,
+        color_token=color_token,
+        sync_mode=SyncMode.IMMEDIATE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    return f"Pulsed {target_id} ({duration_ms}ms)"
 
 
 # ──────────────────────────────────────────────
@@ -1132,6 +1299,10 @@ Helps the system check fit before placing.
     if instruction.element_id:
         tc.board_manager.store_design_spec(instruction.element_id, spec)
 
+    # Diagram awareness: expose the spec's dictionary so the teaching agent
+    # (and DictionaryResolver) can refer to elements by role.
+    tc.current_diagram_dictionary = dict(spec.get("dictionary") or {})
+
     # Declare semantic relationship.
     if relates_to and instruction.element_id:
         _declare_relation(
@@ -1262,6 +1433,9 @@ to keep it in place.
 
     # Update the stored spec with the modified version.
     tc.board_manager.store_design_spec(target_id, modified_spec)
+
+    # Diagram awareness: refresh dictionary to match the new spec.
+    tc.current_diagram_dictionary = dict(modified_spec.get("dictionary") or {})
 
     logger.info(
         "modify_design_diagram.complete",
@@ -1712,6 +1886,9 @@ async def resolve_doubt(ctx: RunContext) -> str:
     popped = await tc.state_machine.pop_branch()
     tc.anticipation.clear_doubt_cache()
     tc.doubt_plan = None
+    # Diagram awareness: parent board's diagram (if any) needs its own
+    # dictionary; the doubt-branch dictionary no longer applies.
+    tc.current_diagram_dictionary = {}
     await _update_agent_prompt(ctx)
 
     current = tc.current_concept
@@ -1927,7 +2104,7 @@ async def set_lesson_topic(
         "set_lesson_topic.ready",
         topic=plan.topic,
         num_concepts=plan.total_concepts,
-        source="graph" if graph else "runtime",
+        source="curriculum",
     )
 
     # Return summary for the agent to narrate.

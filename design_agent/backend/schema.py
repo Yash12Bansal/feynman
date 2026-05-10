@@ -212,6 +212,66 @@ class AnimationSpec(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Semantic dictionary — maps element IDs to teacher-readable metadata
+# ---------------------------------------------------------------------------
+
+
+ElementPosition = Literal[
+    "top",
+    "bottom",
+    "left",
+    "right",
+    "top-left",
+    "top-right",
+    "bottom-left",
+    "bottom-right",
+    "center",
+    "diagonal",
+]
+
+
+class ElementMeta(BaseModel):
+    """Semantic metadata for a single SVG element in a DiagramSpec.
+
+    Populated by the design_agent at generation time. Consumed by the
+    teaching agent so it can refer to elements by *role* (`"hypotenuse"`)
+    instead of raw IDs (`"side_AB"`), and so it can reason about what's
+    on the slide.
+    """
+
+    role: str = Field(
+        description=(
+            "Functional role of this element. Common values: "
+            "hypotenuse, opposite, adjacent, leg, vertex, angle, right_angle_marker, "
+            "label, dimension, axis, curve, callout. Open vocabulary; design_agent "
+            "picks descriptive role names. Teaching agent matches by role."
+        )
+    )
+    semantic: str = Field(
+        description=(
+            "Plain-English description: 'the ladder, 10m', "
+            "'the angle of elevation, 60°'. Used in the teaching agent's "
+            "prompt to reason about what the element means."
+        )
+    )
+    position: ElementPosition
+    spatial_relations: list[str] = Field(
+        default_factory=list,
+        description=(
+            "List of relations to other elements, encoded as 'relation:target_id'. "
+            "Examples: ['adjacent_to:vertex_A', 'above:side_BC', 'opposite_to:vertex_C']."
+        ),
+    )
+    bounds: Optional[tuple[float, float, float, float]] = Field(
+        default=None,
+        description=(
+            "Bounding box (x, y, width, height) in SVG coordinates. "
+            "Used for annotation positioning."
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Top-level diagram specification
 # ---------------------------------------------------------------------------
 
@@ -227,3 +287,11 @@ class DiagramSpec(BaseModel):
     elements: list[DiagramElement] = Field(default_factory=list)
     parameters: list[SliderParameter] = Field(default_factory=list)
     animations: list[AnimationSpec] = Field(default_factory=list)
+    dictionary: dict[str, ElementMeta] = Field(
+        default_factory=dict,
+        description=(
+            "Maps element_id → ElementMeta. Populated by design_agent at "
+            "generation time. Empty dict means legacy/unenriched spec — "
+            "teaching agent falls back to ID-only references."
+        ),
+    )

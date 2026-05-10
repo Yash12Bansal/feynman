@@ -36,6 +36,10 @@ class TeachingContext:
     # Planning agent: pre-computed teaching plans per concept index.
     concept_plans: dict[int, ConceptTeachingPlan] = field(default_factory=dict)
     doubt_plan: ConceptTeachingPlan | None = None
+    # Diagram awareness: dictionary of the diagram currently on the slide,
+    # populated from the ``DiagramSpec.dictionary`` field at draw-time and
+    # cleared on ``pop_board``. Empty dict means no diagram is active.
+    current_diagram_dictionary: dict[str, Any] = field(default_factory=dict)
     # --- COMMENTED OUT: Old ConceptGraph field. Replaced by curriculum. ---
     # concept_graph: Any | None = None  # ConceptGraph from data_pre_compute (optional)
     # _graph_node_map: dict[int, str] | None = field(default=None, init=False, repr=False)

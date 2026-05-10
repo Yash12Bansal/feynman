@@ -15,7 +15,7 @@ from livekit.rtc import DataPacket
 
 from feynman.agent.board_verifier import BoardVerifier
 from feynman.agent.concept_planner import plan_concept
-from feynman.agent.curriculum_loader import CurriculumNotFoundError, load_curriculum
+from feynman.agent.curriculum_loader import load_curriculum
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
 from feynman.agent.scene_graph import BoundsReportPayload
@@ -24,15 +24,19 @@ from feynman.agent.teaching_context import TeachingContext
 from feynman.agent.tools import (
     advance_concept,
     annotate,
+    bracket,
     clear_board,
     clear_cluster,
+    draw_callout,
     draw_design_diagram,
     draw_diagram,
     draw_scene,
     highlight_diagram_part,
+    highlight_pulse,
     highlight_walk,
     modify_design_diagram,
     new_page,
+    pin_label_near,
     resolve_doubt,
     scroll_board,
     set_lesson_topic,
@@ -79,6 +83,11 @@ ALL_TOOLS = [
     annotate,
     highlight_diagram_part,
     highlight_walk,
+    # Slide annotation overlays (diagram awareness)
+    pin_label_near,
+    draw_callout,
+    bracket,
+    highlight_pulse,
     clear_board,
     clear_cluster,
     teach_pause,

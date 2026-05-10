@@ -3,6 +3,160 @@
   "$id": "https://feynman.dev/schemas/visuals",
   "title": "Feynman Visual Instructions",
   "$defs": {
+    "AnnotateInstruction": {
+      "description": "Draw a freehand annotation \u2014 circle, underline, or arrow.\n\nAnnotations are ephemeral teaching gestures: they draw in with organic\nanimation and fade out after a duration. Used to direct student attention\nto elements already on the board.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "annotate",
+          "default": "annotate",
+          "title": "Type",
+          "type": "string"
+        },
+        "action": {
+          "$ref": "#/$defs/AnnotationAction"
+        },
+        "target_id": {
+          "default": "",
+          "title": "Target Id",
+          "type": "string"
+        },
+        "from_id": {
+          "default": "",
+          "title": "From Id",
+          "type": "string"
+        },
+        "to_id": {
+          "default": "",
+          "title": "To Id",
+          "type": "string"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": ["action"],
+      "title": "AnnotateInstruction",
+      "type": "object"
+    },
+    "AnnotationAction": {
+      "enum": ["circle", "underline", "arrow"],
+      "title": "AnnotationAction",
+      "type": "string"
+    },
     "AxisConfig": {
       "properties": {
         "label": {
@@ -57,6 +211,151 @@
       ],
       "title": "BoardZone",
       "type": "string"
+    },
+    "BracketInstruction": {
+      "description": "Curly-brace bracket spanning two diagram elements with a centered label.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "bracket",
+          "default": "bracket",
+          "title": "Type",
+          "type": "string"
+        },
+        "element_a_id": {
+          "title": "Element A Id",
+          "type": "string"
+        },
+        "element_b_id": {
+          "title": "Element B Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 80,
+          "title": "Label",
+          "type": "string"
+        },
+        "side": {
+          "default": "above",
+          "enum": ["above", "below", "left", "right"],
+          "title": "Side",
+          "type": "string"
+        }
+      },
+      "required": ["element_a_id", "element_b_id", "label"],
+      "title": "BracketInstruction",
+      "type": "object"
     },
     "ClearInstruction": {
       "description": "Clear the board \u2014 all elements or a specific target.",
@@ -150,6 +449,28 @@
           ],
           "default": null,
           "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "clear",
@@ -283,6 +604,294 @@
       "title": "DiagramType",
       "type": "string"
     },
+    "DrawCalloutInstruction": {
+      "description": "Speech-bubble callout from a specific diagram element.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "draw_callout",
+          "default": "draw_callout",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_element_id": {
+          "title": "Target Element Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 200,
+          "title": "Text",
+          "type": "string"
+        },
+        "direction": {
+          "default": "up-right",
+          "enum": [
+            "up",
+            "down",
+            "up-left",
+            "up-right",
+            "down-left",
+            "down-right"
+          ],
+          "title": "Direction",
+          "type": "string"
+        }
+      },
+      "required": ["target_element_id", "text"],
+      "title": "DrawCalloutInstruction",
+      "type": "object"
+    },
+    "DrawDesignDiagramInstruction": {
+      "description": "Draw a detailed SVG diagram generated by the design agent.\n\nThe ``spec`` field carries the full DiagramSpec \u2014 a JSON object with\nSVG elements, optional interactive parameters, and graph insets.\nThe frontend renders this as a pure SVG with KaTeX overlays.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "draw_design_diagram",
+          "default": "draw_design_diagram",
+          "title": "Type",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "spec": {
+          "additionalProperties": true,
+          "title": "Spec",
+          "type": "object"
+        }
+      },
+      "title": "DrawDesignDiagramInstruction",
+      "type": "object"
+    },
     "DrawDiagramInstruction": {
       "description": "Draw a structured diagram with nodes and edges.\n\nEither `description` (text fallback for unstructured diagrams) or `nodes`\n(structured data for real rendering) must be provided. When both are present,\n`nodes` takes precedence and `description` is used as accessible alt-text.",
       "properties": {
@@ -376,6 +985,28 @@
           "default": null,
           "title": "Position Y"
         },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "draw_diagram",
           "default": "draw_diagram",
@@ -421,94 +1052,8 @@
       "title": "DrawDiagramInstruction",
       "type": "object"
     },
-    "EdgeStyle": {
-      "enum": ["solid", "dashed", "dotted"],
-      "title": "EdgeStyle",
-      "type": "string"
-    },
-    "EquationAnimation": {
-      "enum": ["none", "fade_in", "term_by_term", "write_on"],
-      "title": "EquationAnimation",
-      "type": "string"
-    },
-    "EquationStep": {
-      "description": "A single step in a multi-step equation solve.",
-      "properties": {
-        "latex": {
-          "title": "Latex",
-          "type": "string"
-        },
-        "annotation": {
-          "default": "",
-          "title": "Annotation",
-          "type": "string"
-        },
-        "highlight_terms": {
-          "default": [],
-          "items": {
-            "type": "string"
-          },
-          "title": "Highlight Terms",
-          "type": "array"
-        }
-      },
-      "required": ["latex"],
-      "title": "EquationStep",
-      "type": "object"
-    },
-    "FunctionDef": {
-      "description": "A mathematical function to plot, e.g. f(x) = x^2 + 2x - 3.",
-      "properties": {
-        "expression": {
-          "title": "Expression",
-          "type": "string"
-        },
-        "label": {
-          "default": "",
-          "title": "Label",
-          "type": "string"
-        },
-        "color": {
-          "default": "",
-          "title": "Color",
-          "type": "string"
-        },
-        "domain_min": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Domain Min"
-        },
-        "domain_max": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Domain Max"
-        }
-      },
-      "required": ["expression"],
-      "title": "FunctionDef",
-      "type": "object"
-    },
-    "GraphType": {
-      "enum": ["line", "bar", "scatter", "function"],
-      "title": "GraphType",
-      "type": "string"
-    },
-    "HighlightInstruction": {
-      "description": "Highlight an existing element on the board.",
+    "DrawSceneInstruction": {
+      "description": "Draw a scientific diagram from a scene template or semantic spec.\n\nThree content paths (at least one required):\n1. ``template`` \u2014 hand-tuned scene template (legacy, simple)\n2. ``scene_type`` + ``elements`` \u2014 composable semantic spec (flexible)\n3. ``description`` \u2014 text-only fallback",
       "properties": {
         "element_id": {
           "anyOf": [
@@ -600,6 +1145,285 @@
           "default": null,
           "title": "Position Y"
         },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "draw_scene",
+          "default": "draw_scene",
+          "title": "Type",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "template": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SceneTemplateRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scene_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene Type"
+        },
+        "elements": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SemanticSceneElement"
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "progressive": {
+          "default": true,
+          "title": "Progressive",
+          "type": "boolean"
+        }
+      },
+      "title": "DrawSceneInstruction",
+      "type": "object"
+    },
+    "EdgeStyle": {
+      "enum": ["solid", "dashed", "dotted"],
+      "title": "EdgeStyle",
+      "type": "string"
+    },
+    "EquationAnimation": {
+      "enum": ["none", "fade_in", "term_by_term", "write_on"],
+      "title": "EquationAnimation",
+      "type": "string"
+    },
+    "EquationStep": {
+      "description": "A single step in a multi-step equation solve.",
+      "properties": {
+        "latex": {
+          "title": "Latex",
+          "type": "string"
+        },
+        "annotation": {
+          "default": "",
+          "title": "Annotation",
+          "type": "string"
+        },
+        "highlight_terms": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Highlight Terms",
+          "type": "array"
+        }
+      },
+      "required": ["latex"],
+      "title": "EquationStep",
+      "type": "object"
+    },
+    "FunctionDef": {
+      "description": "A mathematical function to plot, e.g. f(x) = x^2 + 2x - 3.",
+      "properties": {
+        "expression": {
+          "title": "Expression",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        },
+        "domain_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain Min"
+        },
+        "domain_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain Max"
+        }
+      },
+      "required": ["expression"],
+      "title": "FunctionDef",
+      "type": "object"
+    },
+    "GraphType": {
+      "enum": ["line", "bar", "scatter", "function"],
+      "title": "GraphType",
+      "type": "string"
+    },
+    "HighlightInstruction": {
+      "description": "Highlight an existing element on the board.\n\nWhen ``sub_element_ids`` is non-empty, highlights specific SVG sub-elements\nwithin the target card (matched via ``data-design-element`` attributes)\ninstead of the card itself.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "highlight",
           "default": "highlight",
@@ -621,14 +1445,145 @@
         },
         "sub_element_ids": {
           "default": [],
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "title": "Sub Element Ids",
-          "type": "array",
-          "description": "SVG sub-element IDs within the target card to highlight."
+          "type": "array"
         }
       },
       "required": ["target_id"],
       "title": "HighlightInstruction",
+      "type": "object"
+    },
+    "HighlightPulseInstruction": {
+      "description": "Single-element pulse highlight \u2014 one short glow cycle.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "default": 1200,
+          "maximum": 3000,
+          "minimum": 400,
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "highlight_pulse",
+          "default": "highlight_pulse",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_element_id": {
+          "title": "Target Element Id",
+          "type": "string"
+        },
+        "color_token": {
+          "default": "--sb-neon",
+          "title": "Color Token",
+          "type": "string"
+        }
+      },
+      "required": ["target_element_id"],
+      "title": "HighlightPulseInstruction",
       "type": "object"
     },
     "HighlightStyle": {
@@ -636,10 +1591,790 @@
       "title": "HighlightStyle",
       "type": "string"
     },
+    "HighlightWalkInstruction": {
+      "description": "Speech-synced highlight walk through sub-elements of a diagram or scene.\n\nEach step spotlights a sub-element as the agent speaks its trigger words.\nOnly one step is highlighted at a time (spotlight semantics).\nAuto-cleans up when all steps complete or on timeout.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "highlight_walk",
+          "default": "highlight_walk",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/HighlightWalkStep"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": ["target_id", "steps"],
+      "title": "HighlightWalkInstruction",
+      "type": "object"
+    },
+    "HighlightWalkStep": {
+      "description": "A single step in a highlight walk \u2014 maps a sub-element to trigger words.\n\n``sub_element_id`` is matched against diagram node IDs (``data-node``,\n``data-rough-node``) or scene component IDs (``data-scene-path`` prefix).",
+      "properties": {
+        "sub_element_id": {
+          "title": "Sub Element Id",
+          "type": "string"
+        },
+        "trigger_words": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trigger Words",
+          "type": "array"
+        },
+        "style": {
+          "$ref": "#/$defs/HighlightStyle",
+          "default": "glow"
+        },
+        "color": {
+          "default": "",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": ["sub_element_id", "trigger_words"],
+      "title": "HighlightWalkStep",
+      "type": "object"
+    },
+    "NewPageInstruction": {
+      "description": "Turn to a fresh blank page in the notebook.\n\n``carry_forward_ids`` lets a premise from the previous page show at the\ntop of the new page as a muted, inert reminder \u2014 useful when a starting\nequation or key fact still applies after the page turn.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "new_page",
+          "default": "new_page",
+          "title": "Type",
+          "type": "string"
+        },
+        "carry_forward_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Carry Forward Ids",
+          "type": "array"
+        }
+      },
+      "title": "NewPageInstruction",
+      "type": "object"
+    },
     "NodeShape": {
       "enum": ["rectangle", "rounded", "circle", "diamond", "ellipse"],
       "title": "NodeShape",
       "type": "string"
+    },
+    "Panel": {
+      "description": "Split-board panel assignment for an instruction.\n\nStamped deterministically in `_publish_visual` based on instruction type;\nthe LLM never sets this. Consumed by the SplitBoard frontend renderer.",
+      "enum": ["slide", "notebook", "reference"],
+      "title": "Panel",
+      "type": "string"
+    },
+    "PinLabelInstruction": {
+      "description": "Place a small text label near a diagram element with a thin connector.\n\n``panel`` is stamped to ``Panel.SLIDE`` by ``_stamp_panel`` at publish time\nvia ``INSTRUCTION_TYPE_TO_PANEL`` \u2014 the model leaves it ``None`` so that\nthe same stamping contract holds for every instruction type.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "pin_label",
+          "default": "pin_label",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_element_id": {
+          "title": "Target Element Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 120,
+          "title": "Text",
+          "type": "string"
+        },
+        "position": {
+          "default": "above",
+          "enum": ["above", "below", "left", "right"],
+          "title": "Position",
+          "type": "string"
+        }
+      },
+      "required": ["target_element_id", "text"],
+      "title": "PinLabelInstruction",
+      "type": "object"
+    },
+    "PlacementIntent": {
+      "description": "Semantic placement intent from the LLM.\n\nThe LLM outputs one of:\n1. near + relation: place relative to an existing element\n2. zone: backward-compatible zone placement\n3. Neither: solver picks best position automatically",
+      "properties": {
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Near"
+        },
+        "relation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relation"
+        },
+        "size_hint": {
+          "$ref": "#/$defs/SizeHint",
+          "default": "medium"
+        }
+      },
+      "title": "PlacementIntent",
+      "type": "object"
+    },
+    "SceneTemplateId": {
+      "description": "Known scene templates \u2014 backend validates against this enum.",
+      "enum": ["free_body", "double_slit"],
+      "title": "SceneTemplateId",
+      "type": "string"
+    },
+    "SceneTemplateRef": {
+      "description": "Reference to a hand-tuned scene template.",
+      "properties": {
+        "template_id": {
+          "$ref": "#/$defs/SceneTemplateId"
+        },
+        "params": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "default": {},
+          "title": "Params",
+          "type": "object"
+        }
+      },
+      "required": ["template_id"],
+      "title": "SceneTemplateRef",
+      "type": "object"
+    },
+    "ScrollViewInstruction": {
+      "description": "Scroll the viewport camera to a tile position on the infinite canvas.\n\nEphemeral control instruction \u2014 not tracked as a board element.\nThe frontend animates a smooth pan to the target tile.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "scroll_view",
+          "default": "scroll_view",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_x": {
+          "default": 0,
+          "title": "Target X",
+          "type": "integer"
+        },
+        "target_y": {
+          "default": 0,
+          "title": "Target Y",
+          "type": "integer"
+        }
+      },
+      "title": "ScrollViewInstruction",
+      "type": "object"
+    },
+    "SemanticSceneElement": {
+      "description": "A semantic element in a composable scene diagram.\n\nMaps directly to the frontend's SemanticSceneElement interface.\nThe ``from`` field is a Python reserved word, so it's stored as\n``from_ref`` with a Pydantic alias \u2014 serialized as ``\"from\"`` on the wire.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From"
+        },
+        "to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "To"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Direction"
+        },
+        "angle": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Angle"
+        },
+        "magnitude": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Magnitude"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color"
+        },
+        "extras": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extras"
+        }
+      },
+      "required": ["id", "kind"],
+      "title": "SemanticSceneElement",
+      "type": "object"
     },
     "ShowEquationInstruction": {
       "description": "Display a LaTeX equation with optional animation metadata.\n\nThe `latex` field may contain \\htmlId{id}{content} tags for per-term\nanimation targeting (used by GSAP in the frontend renderer).",
@@ -733,6 +2468,28 @@
           ],
           "default": null,
           "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "show_equation",
@@ -850,6 +2607,28 @@
           ],
           "default": null,
           "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "show_graph",
@@ -1000,6 +2779,28 @@
           "default": null,
           "title": "Position Y"
         },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "show_text",
           "default": "show_text",
@@ -1022,6 +2823,142 @@
       },
       "required": ["text"],
       "title": "ShowTextInstruction",
+      "type": "object"
+    },
+    "SizeHint": {
+      "description": "Size category for placement intent.",
+      "enum": ["small", "medium", "large", "full"],
+      "title": "SizeHint",
+      "type": "string"
+    },
+    "SlidePendingInstruction": {
+      "description": "Generation in progress \u2014 frontend shows the DraftingLoader.\n\nEmitted before a slow slide-producing tool call (cache-miss path of\n`draw_design_diagram`) so the split-board can display the drafting\nloader with a title caption while the spec is being generated.\nCleared on the client when a matching `draw_*` instruction arrives\nfor the same board, or on `switch_board`.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "slide_pending",
+          "default": "slide_pending",
+          "title": "Type",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "title": "SlidePendingInstruction",
       "type": "object"
     },
     "StepEquationInstruction": {
@@ -1117,6 +3054,28 @@
           "default": null,
           "title": "Position Y"
         },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "const": "step_equation",
           "default": "step_equation",
@@ -1138,6 +3097,270 @@
       },
       "required": ["steps"],
       "title": "StepEquationInstruction",
+      "type": "object"
+    },
+    "StrikethroughInstruction": {
+      "description": "Cross out an existing notebook entry identified by element_id.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "strikethrough",
+          "default": "strikethrough",
+          "title": "Type",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": ["target_id"],
+      "title": "StrikethroughInstruction",
+      "type": "object"
+    },
+    "SwitchBoardInstruction": {
+      "description": "Switch the active board \u2014 sent to frontend for board transitions.\n\nThis is a control instruction: it tells the frontend which board to display.\nNot tracked as a board element (ephemeral).",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "switch_board",
+          "default": "switch_board",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "intent": {
+          "$ref": "#/$defs/BoardIntent",
+          "default": "new"
+        }
+      },
+      "title": "SwitchBoardInstruction",
       "type": "object"
     },
     "SyncMode": {
@@ -1169,41 +3392,8 @@
       "title": "TextStyle",
       "type": "string"
     },
-    "AnnotationAction": {
-      "enum": ["circle", "underline", "arrow"],
-      "title": "AnnotationAction",
-      "type": "string"
-    },
-    "HighlightWalkStep": {
-      "description": "A single step in a highlight walk — maps a sub-element to trigger words.",
-      "properties": {
-        "sub_element_id": {
-          "title": "Sub Element Id",
-          "type": "string"
-        },
-        "trigger_words": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Trigger Words",
-          "type": "array"
-        },
-        "style": {
-          "$ref": "#/$defs/HighlightStyle",
-          "default": "glow"
-        },
-        "color": {
-          "default": "",
-          "title": "Color",
-          "type": "string"
-        }
-      },
-      "required": ["sub_element_id", "trigger_words"],
-      "title": "HighlightWalkStep",
-      "type": "object"
-    },
-    "HighlightWalkInstruction": {
-      "description": "Speech-synced highlight walk through sub-elements of a diagram or scene.",
+    "WriteAnswerInstruction": {
+      "description": "Write the boxed final answer in the notebook \u2014 LaTeX or text.",
       "properties": {
         "element_id": {
           "anyOf": [
@@ -1294,715 +3484,183 @@
           ],
           "default": null,
           "title": "Position Y"
-        },
-        "type": {
-          "const": "highlight_walk",
-          "default": "highlight_walk",
-          "title": "Type",
-          "type": "string"
-        },
-        "target_id": {
-          "title": "Target Id",
-          "type": "string"
-        },
-        "steps": {
-          "items": {
-            "$ref": "#/$defs/HighlightWalkStep"
-          },
-          "title": "Steps",
-          "type": "array"
-        }
-      },
-      "required": ["target_id", "steps"],
-      "title": "HighlightWalkInstruction",
-      "type": "object"
-    },
-    "AnnotateInstruction": {
-      "description": "Draw a freehand annotation — circle, underline, or arrow.",
-      "properties": {
-        "element_id": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Element Id"
-        },
-        "duration_ms": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Duration Ms"
-        },
-        "sync_mode": {
-          "$ref": "#/$defs/SyncMode",
-          "default": "on_playout"
-        },
-        "term_hints": {
-          "anyOf": [
-            {
-              "items": {
-                "$ref": "#/$defs/TermSyncHint"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Term Hints"
-        },
-        "zone": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/BoardZone"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "board_id": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Board Id"
-        },
-        "position_x": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Position X"
-        },
-        "position_y": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Position Y"
-        },
-        "type": {
-          "const": "annotate",
-          "default": "annotate",
-          "title": "Type",
-          "type": "string"
-        },
-        "action": {
-          "$ref": "#/$defs/AnnotationAction"
-        },
-        "target_id": {
-          "default": "",
-          "title": "Target Id",
-          "type": "string"
-        },
-        "from_id": {
-          "default": "",
-          "title": "From Id",
-          "type": "string"
-        },
-        "to_id": {
-          "default": "",
-          "title": "To Id",
-          "type": "string"
-        },
-        "color": {
-          "default": "",
-          "title": "Color",
-          "type": "string"
-        }
-      },
-      "required": ["action"],
-      "title": "AnnotateInstruction",
-      "type": "object"
-    },
-    "SwitchBoardInstruction": {
-      "description": "Switch the active board — sent to frontend for board transitions.",
-      "properties": {
-        "element_id": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Element Id"
-        },
-        "duration_ms": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Duration Ms"
-        },
-        "sync_mode": {
-          "$ref": "#/$defs/SyncMode",
-          "default": "on_playout"
-        },
-        "term_hints": {
-          "anyOf": [
-            {
-              "items": {
-                "$ref": "#/$defs/TermSyncHint"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Term Hints"
-        },
-        "zone": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/BoardZone"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "board_id": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Board Id"
-        },
-        "position_x": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Position X"
-        },
-        "position_y": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Position Y"
-        },
-        "type": {
-          "const": "switch_board",
-          "default": "switch_board",
-          "title": "Type",
-          "type": "string"
-        },
-        "label": {
-          "default": "",
-          "title": "Label",
-          "type": "string"
-        },
-        "intent": {
-          "$ref": "#/$defs/BoardIntent",
-          "default": "new"
-        }
-      },
-      "title": "SwitchBoardInstruction",
-      "type": "object"
-    },
-    "SceneTemplateId": {
-      "enum": ["free_body", "double_slit"],
-      "title": "SceneTemplateId",
-      "type": "string"
-    },
-    "SceneTemplateRef": {
-      "description": "Reference to a hand-tuned scene template.",
-      "properties": {
-        "template_id": {
-          "$ref": "#/$defs/SceneTemplateId"
-        },
-        "params": {
-          "default": {},
-          "title": "Params",
-          "type": "object",
-          "additionalProperties": {
-            "anyOf": [
-              { "type": "string" },
-              { "type": "integer" },
-              { "type": "number" },
-              { "type": "boolean" }
-            ]
-          }
-        }
-      },
-      "required": ["template_id"],
-      "title": "SceneTemplateRef",
-      "type": "object"
-    },
-    "SemanticSceneElement": {
-      "description": "A semantic element in a composable scene diagram.",
-      "properties": {
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "kind": {
-          "title": "Kind",
-          "type": "string"
-        },
-        "label": {
-          "anyOf": [{ "type": "string" }, { "type": "null" }],
-          "default": null,
-          "title": "Label"
-        },
-        "from": {
-          "anyOf": [{ "type": "string" }, { "type": "null" }],
-          "default": null,
-          "title": "From"
-        },
-        "to": {
-          "anyOf": [{ "type": "string" }, { "type": "null" }],
-          "default": null,
-          "title": "To"
-        },
-        "direction": {
-          "anyOf": [{ "type": "string" }, { "type": "null" }],
-          "default": null,
-          "title": "Direction"
-        },
-        "angle": {
-          "anyOf": [{ "type": "number" }, { "type": "null" }],
-          "default": null,
-          "title": "Angle"
-        },
-        "magnitude": {
-          "anyOf": [{ "type": "number" }, { "type": "null" }],
-          "default": null,
-          "title": "Magnitude"
-        },
-        "color": {
-          "anyOf": [{ "type": "string" }, { "type": "null" }],
-          "default": null,
-          "title": "Color"
-        },
-        "extras": {
-          "anyOf": [
-            {
-              "type": "object",
-              "additionalProperties": {
-                "anyOf": [
-                  { "type": "string" },
-                  { "type": "integer" },
-                  { "type": "number" },
-                  { "type": "boolean" }
-                ]
-              }
-            },
-            { "type": "null" }
-          ],
-          "default": null,
-          "title": "Extras"
-        }
-      },
-      "required": ["id", "kind"],
-      "title": "SemanticSceneElement",
-      "type": "object"
-    },
-    "DrawSceneInstruction": {
-      "description": "Draw a scientific diagram from a scene template or semantic spec.",
-      "properties": {
-        "element_id": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Element Id"
-        },
-        "duration_ms": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Duration Ms"
-        },
-        "sync_mode": {
-          "$ref": "#/$defs/SyncMode",
-          "default": "on_playout"
-        },
-        "term_hints": {
-          "anyOf": [
-            {
-              "items": {
-                "$ref": "#/$defs/TermSyncHint"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Term Hints"
-        },
-        "zone": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/BoardZone"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "board_id": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Board Id"
-        },
-        "position_x": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Position X"
-        },
-        "position_y": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Position Y"
-        },
-        "type": {
-          "const": "draw_scene",
-          "default": "draw_scene",
-          "title": "Type",
-          "type": "string"
-        },
-        "title": {
-          "default": "",
-          "title": "Title",
-          "type": "string"
-        },
-        "description": {
-          "default": "",
-          "title": "Description",
-          "type": "string"
-        },
-        "template": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/SceneTemplateRef"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "scene_type": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Scene Type"
-        },
-        "elements": {
-          "default": [],
-          "items": {
-            "$ref": "#/$defs/SemanticSceneElement"
-          },
-          "title": "Elements",
-          "type": "array"
-        },
-        "progressive": {
-          "default": true,
-          "title": "Progressive",
-          "type": "boolean"
-        }
-      },
-      "title": "DrawSceneInstruction",
-      "type": "object"
-    },
-    "ScrollViewInstruction": {
-      "description": "Scroll the board viewport to a target tile (ephemeral, not stored).",
-      "properties": {
-        "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Element Id"
-        },
-        "duration_ms": {
-          "anyOf": [{"type": "integer"}, {"type": "null"}],
-          "default": null,
-          "title": "Duration Ms"
-        },
-        "sync_mode": {
-          "default": "immediate",
-          "title": "Sync Mode",
-          "type": "string"
-        },
-        "term_hints": {
-          "anyOf": [
-            {"items": {"$ref": "#/$defs/TermSyncHint"}, "type": "array"},
-            {"type": "null"}
-          ],
-          "default": null,
-          "title": "Term Hints"
-        },
-        "zone": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Zone"
-        },
-        "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Board Id"
-        },
-        "position_x": {
-          "anyOf": [{"type": "number"}, {"type": "null"}],
-          "default": null,
-          "title": "Position X"
-        },
-        "position_y": {
-          "anyOf": [{"type": "number"}, {"type": "null"}],
-          "default": null,
-          "title": "Position Y"
-        },
-        "type": {
-          "const": "scroll_view",
-          "default": "scroll_view",
-          "title": "Type"
-        },
-        "target_x": {
-          "default": 0,
-          "title": "Target X",
-          "type": "integer"
-        },
-        "target_y": {
-          "default": 0,
-          "title": "Target Y",
-          "type": "integer"
-        }
-      },
-      "title": "ScrollViewInstruction",
-      "type": "object"
-    },
-    "DrawDesignDiagramInstruction": {
-      "description": "Draw a detailed SVG diagram generated by the design agent.",
-      "properties": {
-        "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Element Id"
-        },
-        "duration_ms": {
-          "anyOf": [{"type": "integer"}, {"type": "null"}],
-          "default": null,
-          "title": "Duration Ms"
-        },
-        "sync_mode": {
-          "default": "on_playout",
-          "title": "Sync Mode",
-          "type": "string"
-        },
-        "term_hints": {
-          "anyOf": [
-            {"items": {"$ref": "#/$defs/TermSyncHint"}, "type": "array"},
-            {"type": "null"}
-          ],
-          "default": null,
-          "title": "Term Hints"
-        },
-        "zone": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Zone"
-        },
-        "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Board Id"
-        },
-        "position_x": {
-          "anyOf": [{"type": "number"}, {"type": "null"}],
-          "default": null,
-          "title": "Position X"
-        },
-        "position_y": {
-          "anyOf": [{"type": "number"}, {"type": "null"}],
-          "default": null,
-          "title": "Position Y"
-        },
-        "type": {
-          "const": "draw_design_diagram",
-          "default": "draw_design_diagram",
-          "title": "Type"
-        },
-        "title": {
-          "default": "",
-          "title": "Title",
-          "type": "string"
-        },
-        "description": {
-          "default": "",
-          "title": "Description",
-          "type": "string"
-        },
-        "spec": {
-          "default": {},
-          "title": "Spec",
-          "type": "object",
-          "description": "Full DiagramSpec — SVG elements, parameters, etc."
-        }
-      },
-      "title": "DrawDesignDiagramInstruction",
-      "type": "object"
-    },
-    "SlidePendingInstruction": {
-      "description": "Generation in progress — frontend shows the DraftingLoader while a slow slide-producing tool call (cache-miss draw_design_diagram) completes.",
-      "properties": {
-        "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Element Id"
-        },
-        "duration_ms": {
-          "anyOf": [{"type": "integer"}, {"type": "null"}],
-          "default": null,
-          "title": "Duration Ms"
-        },
-        "sync_mode": {
-          "default": "on_playout",
-          "title": "Sync Mode",
-          "type": "string"
-        },
-        "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Board Id"
         },
         "panel": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Panel"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
-          "const": "slide_pending",
-          "default": "slide_pending",
-          "title": "Type"
-        },
-        "title": {
-          "default": "",
-          "title": "Title",
+          "const": "write_answer",
+          "default": "write_answer",
+          "title": "Type",
           "type": "string"
+        },
+        "latex": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latex"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
         }
       },
-      "title": "SlidePendingInstruction",
+      "title": "WriteAnswerInstruction",
       "type": "object"
     },
     "WriteEquationInstruction": {
-      "description": "Write an equation into the notebook's working column. Equations sharing align_group align at =.",
+      "description": "Write an equation into the notebook's working column.\n\nEquations in the same ``align_group`` render aligned at ``=``.",
       "properties": {
         "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
           "title": "Element Id"
         },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
           "title": "Board Id"
         },
-        "panel": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
-          "title": "Panel"
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "write_equation",
           "default": "write_equation",
-          "title": "Type"
+          "title": "Type",
+          "type": "string"
         },
         "latex": {
           "title": "Latex",
@@ -2014,7 +3672,14 @@
           "type": "string"
         },
         "align_group": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
           "title": "Align Group"
         },
@@ -2030,35 +3695,270 @@
       "title": "WriteEquationInstruction",
       "type": "object"
     },
-    "WriteStepInstruction": {
-      "description": "Write a working step — narrative line in the notebook.",
+    "WriteSectionInstruction": {
+      "description": "Write a section header in the notebook.",
       "properties": {
         "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
           "title": "Element Id"
         },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
           "title": "Board Id"
         },
-        "panel": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
-          "title": "Panel"
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "write_section",
+          "default": "write_section",
+          "title": "Type",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": ["title"],
+      "title": "WriteSectionInstruction",
+      "type": "object"
+    },
+    "WriteStepInstruction": {
+      "description": "Write a numbered or unnumbered working step in the notebook.",
+      "properties": {
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Id"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "board_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Board Id"
+        },
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "write_step",
           "default": "write_step",
-          "title": "Type"
+          "title": "Type",
+          "type": "string"
         },
         "text": {
           "title": "Text",
           "type": "string"
         },
         "number": {
-          "anyOf": [{"type": "integer"}, {"type": "null"}],
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
           "title": "Number"
         },
@@ -2075,27 +3975,125 @@
       "type": "object"
     },
     "WriteTextInstruction": {
-      "description": "Write a plain text line or key-point box in the notebook.",
+      "description": "Write a plain text line or a key-point box in the notebook.",
       "properties": {
         "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
           "title": "Element Id"
         },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "sync_mode": {
+          "$ref": "#/$defs/SyncMode",
+          "default": "on_playout"
+        },
+        "term_hints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TermSyncHint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Term Hints"
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardZone"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
           "title": "Board Id"
         },
-        "panel": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
+        "position_x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
-          "title": "Panel"
+          "title": "Position X"
+        },
+        "position_y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Y"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Panel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "placement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementIntent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "const": "write_text",
           "default": "write_text",
-          "title": "Type"
+          "title": "Type",
+          "type": "string"
         },
         "text": {
           "title": "Text",
@@ -2118,300 +4116,113 @@
       "required": ["text"],
       "title": "WriteTextInstruction",
       "type": "object"
-    },
-    "WriteSectionInstruction": {
-      "description": "Write a section header in the notebook.",
-      "properties": {
-        "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Element Id"
-        },
-        "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Board Id"
-        },
-        "panel": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Panel"
-        },
-        "type": {
-          "const": "write_section",
-          "default": "write_section",
-          "title": "Type"
-        },
-        "title": {
-          "title": "Title",
-          "type": "string"
-        }
-      },
-      "required": ["title"],
-      "title": "WriteSectionInstruction",
-      "type": "object"
-    },
-    "WriteAnswerInstruction": {
-      "description": "Write the boxed final answer in the notebook (LaTeX or text).",
-      "properties": {
-        "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Element Id"
-        },
-        "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Board Id"
-        },
-        "panel": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Panel"
-        },
-        "type": {
-          "const": "write_answer",
-          "default": "write_answer",
-          "title": "Type"
-        },
-        "latex": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Latex"
-        },
-        "text": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Text"
-        }
-      },
-      "title": "WriteAnswerInstruction",
-      "type": "object"
-    },
-    "StrikethroughInstruction": {
-      "description": "Cross out an existing notebook entry by element_id.",
-      "properties": {
-        "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Element Id"
-        },
-        "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Board Id"
-        },
-        "panel": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Panel"
-        },
-        "type": {
-          "const": "strikethrough",
-          "default": "strikethrough",
-          "title": "Type"
-        },
-        "target_id": {
-          "title": "Target Id",
-          "type": "string"
-        }
-      },
-      "required": ["target_id"],
-      "title": "StrikethroughInstruction",
-      "type": "object"
-    },
-    "NewPageInstruction": {
-      "description": "Turn to a fresh blank page in the notebook. `carry_forward_ids` optionally carries matching entries forward as muted reminders.",
-      "properties": {
-        "element_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Element Id"
-        },
-        "board_id": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Board Id"
-        },
-        "panel": {
-          "anyOf": [{"type": "string"}, {"type": "null"}],
-          "default": null,
-          "title": "Panel"
-        },
-        "type": {
-          "const": "new_page",
-          "default": "new_page",
-          "title": "Type"
-        },
-        "carry_forward_ids": {
-          "type": "array",
-          "items": {"type": "string"},
-          "default": [],
-          "title": "Carry Forward Ids"
-        }
-      },
-      "title": "NewPageInstruction",
-      "type": "object"
     }
   },
-  "definitions": {
-    "VisualInstruction": {
-      "discriminator": {
-        "mapping": {
-          "annotate": "#/$defs/AnnotateInstruction",
-          "clear": "#/$defs/ClearInstruction",
-          "draw_diagram": "#/$defs/DrawDiagramInstruction",
-          "draw_design_diagram": "#/$defs/DrawDesignDiagramInstruction",
-          "draw_scene": "#/$defs/DrawSceneInstruction",
-          "highlight": "#/$defs/HighlightInstruction",
-          "highlight_walk": "#/$defs/HighlightWalkInstruction",
-          "new_page": "#/$defs/NewPageInstruction",
-          "show_equation": "#/$defs/ShowEquationInstruction",
-          "step_equation": "#/$defs/StepEquationInstruction",
-          "show_graph": "#/$defs/ShowGraphInstruction",
-          "show_text": "#/$defs/ShowTextInstruction",
-          "scroll_view": "#/$defs/ScrollViewInstruction",
-          "slide_pending": "#/$defs/SlidePendingInstruction",
-          "strikethrough": "#/$defs/StrikethroughInstruction",
-          "switch_board": "#/$defs/SwitchBoardInstruction",
-          "write_answer": "#/$defs/WriteAnswerInstruction",
-          "write_equation": "#/$defs/WriteEquationInstruction",
-          "write_section": "#/$defs/WriteSectionInstruction",
-          "write_step": "#/$defs/WriteStepInstruction",
-          "write_text": "#/$defs/WriteTextInstruction"
-        },
-        "propertyName": "type"
-      },
-      "oneOf": [
-        {
-          "$ref": "#/$defs/ClearInstruction"
-        },
-        {
-          "$ref": "#/$defs/ShowTextInstruction"
-        },
-        {
-          "$ref": "#/$defs/ShowEquationInstruction"
-        },
-        {
-          "$ref": "#/$defs/StepEquationInstruction"
-        },
-        {
-          "$ref": "#/$defs/DrawDiagramInstruction"
-        },
-        {
-          "$ref": "#/$defs/DrawDesignDiagramInstruction"
-        },
-        {
-          "$ref": "#/$defs/DrawSceneInstruction"
-        },
-        {
-          "$ref": "#/$defs/ShowGraphInstruction"
-        },
-        {
-          "$ref": "#/$defs/HighlightInstruction"
-        },
-        {
-          "$ref": "#/$defs/AnnotateInstruction"
-        },
-        {
-          "$ref": "#/$defs/HighlightWalkInstruction"
-        },
-        {
-          "$ref": "#/$defs/ScrollViewInstruction"
-        },
-        {
-          "$ref": "#/$defs/SlidePendingInstruction"
-        },
-        {
-          "$ref": "#/$defs/SwitchBoardInstruction"
-        },
-        {
-          "$ref": "#/$defs/WriteEquationInstruction"
-        },
-        {
-          "$ref": "#/$defs/WriteStepInstruction"
-        },
-        {
-          "$ref": "#/$defs/WriteTextInstruction"
-        },
-        {
-          "$ref": "#/$defs/WriteSectionInstruction"
-        },
-        {
-          "$ref": "#/$defs/WriteAnswerInstruction"
-        },
-        {
-          "$ref": "#/$defs/StrikethroughInstruction"
-        },
-        {
-          "$ref": "#/$defs/NewPageInstruction"
-        }
-      ]
+  "discriminator": {
+    "mapping": {
+      "annotate": "#/$defs/AnnotateInstruction",
+      "bracket": "#/$defs/BracketInstruction",
+      "clear": "#/$defs/ClearInstruction",
+      "draw_callout": "#/$defs/DrawCalloutInstruction",
+      "draw_design_diagram": "#/$defs/DrawDesignDiagramInstruction",
+      "draw_diagram": "#/$defs/DrawDiagramInstruction",
+      "draw_scene": "#/$defs/DrawSceneInstruction",
+      "highlight": "#/$defs/HighlightInstruction",
+      "highlight_pulse": "#/$defs/HighlightPulseInstruction",
+      "highlight_walk": "#/$defs/HighlightWalkInstruction",
+      "new_page": "#/$defs/NewPageInstruction",
+      "pin_label": "#/$defs/PinLabelInstruction",
+      "scroll_view": "#/$defs/ScrollViewInstruction",
+      "show_equation": "#/$defs/ShowEquationInstruction",
+      "show_graph": "#/$defs/ShowGraphInstruction",
+      "show_text": "#/$defs/ShowTextInstruction",
+      "slide_pending": "#/$defs/SlidePendingInstruction",
+      "step_equation": "#/$defs/StepEquationInstruction",
+      "strikethrough": "#/$defs/StrikethroughInstruction",
+      "switch_board": "#/$defs/SwitchBoardInstruction",
+      "write_answer": "#/$defs/WriteAnswerInstruction",
+      "write_equation": "#/$defs/WriteEquationInstruction",
+      "write_section": "#/$defs/WriteSectionInstruction",
+      "write_step": "#/$defs/WriteStepInstruction",
+      "write_text": "#/$defs/WriteTextInstruction"
     },
-    "VisualFrame": {
-      "description": "A batch of visual instructions (for future batching support).",
-      "properties": {
-        "sequence": {
-          "title": "Sequence",
-          "type": "integer"
-        },
-        "instructions": {
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "annotate": "#/$defs/AnnotateInstruction",
-                "clear": "#/$defs/ClearInstruction",
-                "draw_diagram": "#/$defs/DrawDiagramInstruction",
-                "draw_scene": "#/$defs/DrawSceneInstruction",
-                "highlight": "#/$defs/HighlightInstruction",
-                "highlight_walk": "#/$defs/HighlightWalkInstruction",
-                "show_equation": "#/$defs/ShowEquationInstruction",
-                "show_graph": "#/$defs/ShowGraphInstruction",
-                "show_text": "#/$defs/ShowTextInstruction",
-                "switch_board": "#/$defs/SwitchBoardInstruction"
-              },
-              "propertyName": "type"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/ClearInstruction"
-              },
-              {
-                "$ref": "#/$defs/ShowTextInstruction"
-              },
-              {
-                "$ref": "#/$defs/ShowEquationInstruction"
-              },
-              {
-                "$ref": "#/$defs/DrawDiagramInstruction"
-              },
-              {
-                "$ref": "#/$defs/DrawSceneInstruction"
-              },
-              {
-                "$ref": "#/$defs/ShowGraphInstruction"
-              },
-              {
-                "$ref": "#/$defs/HighlightInstruction"
-              },
-              {
-                "$ref": "#/$defs/AnnotateInstruction"
-              },
-              {
-                "$ref": "#/$defs/HighlightWalkInstruction"
-              },
-              {
-                "$ref": "#/$defs/SwitchBoardInstruction"
-              }
-            ]
-          },
-          "title": "Instructions",
-          "type": "array"
-        }
-      },
-      "required": ["sequence", "instructions"],
-      "title": "VisualFrame",
-      "type": "object"
+    "propertyName": "type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ClearInstruction"
+    },
+    {
+      "$ref": "#/$defs/ShowTextInstruction"
+    },
+    {
+      "$ref": "#/$defs/ShowEquationInstruction"
+    },
+    {
+      "$ref": "#/$defs/StepEquationInstruction"
+    },
+    {
+      "$ref": "#/$defs/DrawDiagramInstruction"
+    },
+    {
+      "$ref": "#/$defs/DrawDesignDiagramInstruction"
+    },
+    {
+      "$ref": "#/$defs/DrawSceneInstruction"
+    },
+    {
+      "$ref": "#/$defs/ShowGraphInstruction"
+    },
+    {
+      "$ref": "#/$defs/HighlightInstruction"
+    },
+    {
+      "$ref": "#/$defs/AnnotateInstruction"
+    },
+    {
+      "$ref": "#/$defs/HighlightWalkInstruction"
+    },
+    {
+      "$ref": "#/$defs/SwitchBoardInstruction"
+    },
+    {
+      "$ref": "#/$defs/ScrollViewInstruction"
+    },
+    {
+      "$ref": "#/$defs/SlidePendingInstruction"
+    },
+    {
+      "$ref": "#/$defs/WriteEquationInstruction"
+    },
+    {
+      "$ref": "#/$defs/WriteStepInstruction"
+    },
+    {
+      "$ref": "#/$defs/WriteTextInstruction"
+    },
+    {
+      "$ref": "#/$defs/WriteSectionInstruction"
+    },
+    {
+      "$ref": "#/$defs/WriteAnswerInstruction"
+    },
+    {
+      "$ref": "#/$defs/StrikethroughInstruction"
+    },
+    {
+      "$ref": "#/$defs/NewPageInstruction"
+    },
+    {
+      "$ref": "#/$defs/PinLabelInstruction"
+    },
+    {
+      "$ref": "#/$defs/DrawCalloutInstruction"
+    },
+    {
+      "$ref": "#/$defs/BracketInstruction"
+    },
+    {
+      "$ref": "#/$defs/HighlightPulseInstruction"
     }
-  }
+  ]
 }

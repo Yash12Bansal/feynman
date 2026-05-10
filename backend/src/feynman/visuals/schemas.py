@@ -593,3 +593,63 @@ class NewPageInstruction(_BaseInstruction):
 
     type: Literal["new_page"] = "new_page"
     carry_forward_ids: list[str] = Field(default_factory=list)
+
+
+# ──────────────────────────────────────────────
+# Slide annotation tools (diagram awareness)
+#
+# These four instruction types render as an overlay layer above the slide's
+# diagram SVG. The teaching agent uses them to write *around* a diagram —
+# pinned labels, callouts, brackets spanning two elements, single-element
+# pulse highlights. Targeted by `element_id` resolved from a diagram-dictionary
+# role on the backend before publish.
+# ──────────────────────────────────────────────
+
+
+class PinLabelInstruction(_BaseInstruction):
+    """Place a small text label near a diagram element with a thin connector.
+
+    ``panel`` is stamped to ``Panel.SLIDE`` by ``_stamp_panel`` at publish time
+    via ``INSTRUCTION_TYPE_TO_PANEL`` — the model leaves it ``None`` so that
+    the same stamping contract holds for every instruction type.
+    """
+
+    type: Literal["pin_label"] = "pin_label"
+    target_element_id: str
+    text: str = Field(..., max_length=120)
+    position: Literal["above", "below", "left", "right"] = "above"
+
+
+class DrawCalloutInstruction(_BaseInstruction):
+    """Speech-bubble callout from a specific diagram element."""
+
+    type: Literal["draw_callout"] = "draw_callout"
+    target_element_id: str
+    text: str = Field(..., max_length=200)
+    direction: Literal[
+        "up",
+        "down",
+        "up-left",
+        "up-right",
+        "down-left",
+        "down-right",
+    ] = "up-right"
+
+
+class BracketInstruction(_BaseInstruction):
+    """Curly-brace bracket spanning two diagram elements with a centered label."""
+
+    type: Literal["bracket"] = "bracket"
+    element_a_id: str
+    element_b_id: str
+    label: str = Field(..., max_length=80)
+    side: Literal["above", "below", "left", "right"] = "above"
+
+
+class HighlightPulseInstruction(_BaseInstruction):
+    """Single-element pulse highlight — one short glow cycle."""
+
+    type: Literal["highlight_pulse"] = "highlight_pulse"
+    target_element_id: str
+    duration_ms: int = Field(1200, ge=400, le=3000)
+    color_token: str = "--sb-neon"

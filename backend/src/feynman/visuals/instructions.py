@@ -19,14 +19,18 @@ from pydantic import Discriminator
 from feynman.visuals.schemas import (
     AnnotateInstruction,
     BoardZone,
+    BracketInstruction,
     ClearInstruction,
+    DrawCalloutInstruction,
     DrawDesignDiagramInstruction,
     DrawDiagramInstruction,
     DrawSceneInstruction,
     HighlightInstruction,
+    HighlightPulseInstruction,
     HighlightWalkInstruction,
     NewPageInstruction,
     Panel,
+    PinLabelInstruction,
     PlacementIntent,
     ScrollViewInstruction,
     ShowEquationInstruction,
@@ -65,21 +69,29 @@ VisualInstruction = Annotated[
     | WriteSectionInstruction
     | WriteAnswerInstruction
     | StrikethroughInstruction
-    | NewPageInstruction,
+    | NewPageInstruction
+    | PinLabelInstruction
+    | DrawCalloutInstruction
+    | BracketInstruction
+    | HighlightPulseInstruction,
     Discriminator("type"),
 ]
 
 __all__ = [
     "AnnotateInstruction",
     "BoardZone",
+    "BracketInstruction",
     "ClearInstruction",
+    "DrawCalloutInstruction",
     "DrawDesignDiagramInstruction",
     "DrawDiagramInstruction",
     "DrawSceneInstruction",
     "HighlightInstruction",
+    "HighlightPulseInstruction",
     "HighlightWalkInstruction",
     "NewPageInstruction",
     "Panel",
+    "PinLabelInstruction",
     "PlacementIntent",
     "ScrollViewInstruction",
     "ShowEquationInstruction",

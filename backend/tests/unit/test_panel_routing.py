@@ -26,21 +26,25 @@ from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
     BoardIntent,
+    BracketInstruction,
     ClearInstruction,
     DataPoint,
     DataSeries,
     DiagramNode,
+    DrawCalloutInstruction,
     DrawDesignDiagramInstruction,
     DrawDiagramInstruction,
     DrawSceneInstruction,
     EquationStep,
     GraphType,
     HighlightInstruction,
+    HighlightPulseInstruction,
     HighlightStyle,
     HighlightWalkInstruction,
     HighlightWalkStep,
     NewPageInstruction,
     Panel,
+    PinLabelInstruction,
     SceneTemplateId,
     SceneTemplateRef,
     ScrollViewInstruction,
@@ -93,8 +97,8 @@ def test_mapping_covers_every_instruction_type() -> None:
     registered in INSTRUCTION_TYPE_TO_PANEL.
     """
     type_literals = _all_instruction_type_literals()
-    assert len(type_literals) == 21, (
-        f"expected 21 instruction types, discovered {len(type_literals)}: {type_literals}"
+    assert len(type_literals) == 25, (
+        f"expected 25 instruction types, discovered {len(type_literals)}: {type_literals}"
     )
     missing = [t for t in type_literals if t not in INSTRUCTION_TYPE_TO_PANEL]
     assert not missing, f"missing from INSTRUCTION_TYPE_TO_PANEL: {missing}"
@@ -171,6 +175,18 @@ def _minimal(instruction_type: str) -> _BaseInstruction:
         return StrikethroughInstruction(target_id="eq-3")
     if instruction_type == "new_page":
         return NewPageInstruction()
+    if instruction_type == "pin_label":
+        return PinLabelInstruction(target_element_id="side_AB", text="hypotenuse")
+    if instruction_type == "draw_callout":
+        return DrawCalloutInstruction(target_element_id="side_AB", text="key insight")
+    if instruction_type == "bracket":
+        return BracketInstruction(
+            element_a_id="side_AB",
+            element_b_id="side_AC",
+            label="right triangle",
+        )
+    if instruction_type == "highlight_pulse":
+        return HighlightPulseInstruction(target_element_id="side_AB")
     raise ValueError(f"unknown instruction_type: {instruction_type}")
 
 
@@ -192,6 +208,10 @@ def _minimal(instruction_type: str) -> _BaseInstruction:
         ("draw_design_diagram", Panel.SLIDE),
         ("draw_scene", Panel.SLIDE),
         ("slide_pending", Panel.SLIDE),
+        ("pin_label", Panel.SLIDE),
+        ("draw_callout", Panel.SLIDE),
+        ("bracket", Panel.SLIDE),
+        ("highlight_pulse", Panel.SLIDE),
         ("highlight", Panel.REFERENCE),
         ("highlight_walk", Panel.REFERENCE),
         ("annotate", Panel.REFERENCE),
@@ -282,6 +302,23 @@ async def test_scroll_board_stamps_reference() -> None:
     published = json.loads(call_args[0][0])
     assert published["type"] == "scroll_view"
     assert published["panel"] == "reference"
+
+
+# ── Phase 1A: 4 new annotation tools all route to SLIDE ──────
+
+
+def test_panel_routing_includes_4_new_tools() -> None:
+    """Every annotation-tool instruction (Phase 1A) targets the slide panel."""
+    from feynman.agent.tools import INSTRUCTION_TYPE_TO_PANEL
+
+    new_types = ("pin_label", "draw_callout", "bracket", "highlight_pulse")
+    for type_name in new_types:
+        assert type_name in INSTRUCTION_TYPE_TO_PANEL, (
+            f"{type_name} missing from INSTRUCTION_TYPE_TO_PANEL"
+        )
+        assert INSTRUCTION_TYPE_TO_PANEL[type_name] is Panel.SLIDE, (
+            f"{type_name} should route to SLIDE, got {INSTRUCTION_TYPE_TO_PANEL[type_name]}"
+        )
 
 
 # ── JSON roundtrip ────────────────────────────────────────────

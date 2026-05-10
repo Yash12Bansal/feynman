@@ -517,6 +517,109 @@ Available relations: "illustrates", "derives_from", "compares_with", "supports",
 Check the Board State section above for current element IDs before using relates_to.
 """
 
+DIAGRAM_AWARENESS_INSTRUCTIONS = """\
+
+## Annotating the Slide Diagram
+
+When a diagram is on the slide, you can write *around* it using four annotation \
+tools that render as an overlay on the slide panel. Use them like a teacher's \
+marker — mark the part you're talking about, then talk.
+
+- **pin_label_near(element_or_role, text, position)** — small text label near \
+an element with a thin connector line. For "← hypotenuse", "8 m", quick tags. \
+Max 120 chars, position: above/below/left/right.
+- **draw_callout(from_element, text, direction)** — speech-bubble callout from \
+an element. Use sparingly for emphasis ("← key insight!"). Max 200 chars.
+- **bracket(element_a, element_b, label, side)** — curly brace spanning two \
+elements with a centered label. For "right triangle" across hypotenuse + adjacent. \
+Max 80 chars on label.
+- **highlight_pulse(element_or_role, duration_ms, color_token)** — single \
+short glow on one element. Simpler than highlight_walk when you just want to \
+point at one thing while saying its name. Default 1200ms; clamp 400-3000ms.
+
+### Prefer roles over raw IDs
+
+Every diagram on the slide carries a semantic dictionary (see "Diagram on Slide" \
+below when present). It maps element IDs to *roles* — `"hypotenuse"`, \
+`"applied_force"`, `"object"`. **Use roles, not IDs**, when calling these four \
+tools: `highlight_pulse("hypotenuse")` is more readable than \
+`highlight_pulse("side_AB")` and survives diagram regeneration. The system \
+resolves the role to the right element id at publish time. Raw IDs still work \
+as an escape hatch when no role fits.
+
+### When to use which
+
+- Single element, brief tap → `highlight_pulse`
+- Single element with text → `pin_label_near`
+- Single element with emphasis text → `draw_callout`
+- Span between two elements → `bracket`
+- Walk through several elements as you talk → `highlight_walk` (existing)
+- Free-form mark on the board → `annotate` (existing)
+"""
+
+
+def _render_diagram_dictionary_section(teaching_ctx: TeachingContext) -> str:
+    """Render the active slide's diagram dictionary as a prompt section.
+
+    Returns the empty string when no diagram is on the slide.
+    """
+    directory = getattr(teaching_ctx, "current_diagram_dictionary", None) or {}
+    if not directory:
+        return ""
+
+    lines: list[str] = ["\n## Diagram on Slide\n"]
+
+    # Group by role so the agent sees a roles-list at the top.
+    role_lines: list[str] = []
+    spatial_lines: list[str] = []
+    raw_ids: list[str] = []
+
+    for element_id, meta in directory.items():
+        # Support both dict and Pydantic-instance shapes.
+        get = (
+            (lambda key, default=None, m=meta: getattr(m, key, default))
+            if not isinstance(meta, dict)
+            else (lambda key, default=None, m=meta: m.get(key, default))
+        )
+        role = get("role")
+        semantic = get("semantic", "")
+        position = get("position", "")
+        relations = get("spatial_relations", []) or []
+
+        raw_ids.append(element_id)
+        if role:
+            role_text = f"- {role}"
+            if semantic:
+                role_text += f": {semantic}"
+            if position:
+                role_text += f" ({position})"
+            role_lines.append(role_text)
+        if relations:
+            rels_str = ", ".join(str(r) for r in relations[:4])
+            spatial_lines.append(f"- {element_id} ({role or 'element'}): {rels_str}")
+
+    if role_lines:
+        lines.append("Available roles you can highlight or annotate:\n")
+        lines.extend(line + "\n" for line in role_lines)
+        lines.append("\n")
+
+    lines.append(
+        "Use these roles in highlight_pulse, pin_label_near, draw_callout, "
+        "bracket. You can also use the raw element_ids if needed: "
+        f"{', '.join(raw_ids[:20])}.\n"
+    )
+    lines.append(
+        "\n**Prefer roles over raw IDs** when calling annotation tools — "
+        "roles are more readable and survive diagram regeneration.\n"
+    )
+
+    if spatial_lines:
+        lines.append("\nSpatial relationships:\n")
+        lines.extend(line + "\n" for line in spatial_lines[:8])
+
+    return "".join(lines)
+
+
 STATE_TOOL_INSTRUCTIONS = """\
 
 ## Lesson Flow Tools
@@ -768,6 +871,7 @@ def build_teaching_prompt(
         SCENE_INSTRUCTIONS,
         PLACEMENT_INSTRUCTIONS,
         BOARD_RELATIONSHIPS_INSTRUCTIONS,
+        DIAGRAM_AWARENESS_INSTRUCTIONS,
     ]
 
     parts = [
@@ -777,6 +881,10 @@ def build_teaching_prompt(
 
     # Board state section — always included (applies in both modes).
     parts.append(_build_board_state_section(teaching_ctx))
+
+    # Diagram dictionary section — appears only when a diagram is on the slide.
+    # Tells the agent what's there and what roles are available for annotation.
+    parts.append(_render_diagram_dictionary_section(teaching_ctx))
 
     # Notebook state section (Phase 5b) — reconstructed live from audit so the
     # agent sees what it has already written and can reason across turns.
