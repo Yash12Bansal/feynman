@@ -10,8 +10,12 @@ We read its prompt at runtime so changes to the prompt propagate automatically.
 
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 import re
+from collections import OrderedDict
+from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -146,7 +150,11 @@ def _repair_json(json_str: str) -> dict[str, Any] | None:
 
 
 def _parse_response(raw_text: str) -> dict[str, Any]:
-    """Extract JSON from the model output, validate structure, and return dict."""
+    """Extract JSON from the model output, validate structure, and return dict.
+
+    Phase 3-4: also runs ``_ensure_dictionary_completeness`` so every element
+    has a dictionary entry by the time the caller sees the spec.
+    """
     json_str = _extract_json(raw_text)
 
     try:
@@ -165,7 +173,125 @@ def _parse_response(raw_text: str) -> dict[str, Any]:
     if not isinstance(data, dict) or "elements" not in data:
         raise ValueError("Response missing required 'elements' field.")
 
-    return data
+    return _ensure_dictionary_completeness(data)
+
+
+# ── Dispatch heuristic (Phase 3-4) ─────────────────────────
+
+_PYTHON_TRIGGERS_RE = re.compile(
+    r"\b(?:"
+    r"exact\s+angle"
+    r"|exactly\s+\d+\s*°?"
+    r"|perpendicular"
+    r"|tangent\s+(?:to|line|at)"
+    r"|intersect(?:ion)?"
+    r"|parallel\s+to"
+    r"|normal\s+(?:to|force)"
+    r"|bisect(?:or)?"
+    r"|parametric"
+    r"|at\s+(?:an\s+)?angle\s+of"
+    r"|polar(?:\s+coord)?"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def _dispatch_mode(prompt: str) -> str:
+    """Choose ``direct`` vs ``python`` for ``mode="auto"`` callers.
+
+    Conservative: only escalate to ``python`` when a strong geometric
+    signal is present in the prompt; default to ``direct``. The LLM can
+    still override with explicit ``mode="python"`` when the prompt is
+    ambiguous (the override bypasses this heuristic entirely).
+    """
+    if _PYTHON_TRIGGERS_RE.search(prompt):
+        return "python"
+    return "direct"
+
+
+# ── Auto-dictionary completion (Phase 3-4) ─────────────────
+
+
+def _walk_elements(elements: Any) -> Iterator[dict[str, Any]]:
+    """Yield every element dict in ``elements``, recursing into svg_group children."""
+    if not isinstance(elements, list):
+        return
+    for elem in elements:
+        if not isinstance(elem, dict):
+            continue
+        yield elem
+        if elem.get("type") == "svg_group":
+            yield from _walk_elements(elem.get("elements"))
+
+
+def _ensure_dictionary_completeness(spec: dict[str, Any]) -> dict[str, Any]:
+    """Fill missing dictionary entries with auto-derived role/semantic.
+
+    Idempotent — existing entries are preserved unchanged. New entries
+    use ``role=element_id`` and ``semantic=f"a {type_short}"`` (the
+    element-type prefix). Walks into ``svg_group`` children so nested
+    elements get entries on par with top-level ones, matching the flat
+    dictionary convention from Canvas DSL.
+    """
+    raw_dict = spec.get("dictionary") or {}
+    dictionary: dict[str, Any] = dict(raw_dict) if isinstance(raw_dict, dict) else {}
+    for elem in _walk_elements(spec.get("elements")):
+        eid = elem.get("id")
+        if not eid or eid in dictionary:
+            continue
+        type_short = str(elem.get("type", "element")).removeprefix("svg_")
+        dictionary[eid] = {
+            "role": eid,
+            "semantic": f"a {type_short}",
+            "position": "center",
+            "spatial_relations": [],
+        }
+    spec["dictionary"] = dictionary
+    return spec
+
+
+# ── In-memory FIFO cache (Phase 3-4) ───────────────────────
+
+_CACHE_MAX_SIZE = 64
+_DIAGRAM_CACHE: OrderedDict[str, dict[str, Any]] = OrderedDict()
+
+
+def _cache_key(prompt: str, *, mode: str, model: str) -> str:
+    """SHA-256 key over prompt + mode + provider + model + prompt/schema mtimes.
+
+    Including the prompt-file and schema-file mtimes invalidates the
+    cache the moment either is edited — no manual flush needed.
+    """
+    from feynman.config import settings
+
+    provider = settings.design_agent_provider
+    direct_mtime = _PROMPT_FILE.stat().st_mtime if _PROMPT_FILE.exists() else 0.0
+    python_mtime = _PYTHON_PROMPT_FILE.stat().st_mtime if _PYTHON_PROMPT_FILE.exists() else 0.0
+    schema_file = _DESIGN_AGENT_DIR / "schema.py"
+    schema_mtime = schema_file.stat().st_mtime if schema_file.exists() else 0.0
+    key_src = f"{prompt}|{mode}|{provider}|{model}|{direct_mtime}|{python_mtime}|{schema_mtime}"
+    return hashlib.sha256(key_src.encode("utf-8")).hexdigest()[:16]
+
+
+def _cache_get(key: str) -> dict[str, Any] | None:
+    """Return a deep copy of the cached spec, or ``None`` on miss."""
+    cached = _DIAGRAM_CACHE.get(key)
+    if cached is None:
+        return None
+    return copy.deepcopy(cached)
+
+
+def _cache_put(key: str, spec: dict[str, Any]) -> None:
+    """Insert into the cache; FIFO-evict when at capacity.
+
+    Stores a deep copy so subsequent mutations by callers don't bleed
+    into cached values.
+    """
+    if key in _DIAGRAM_CACHE:
+        return
+    _DIAGRAM_CACHE[key] = copy.deepcopy(spec)
+    while len(_DIAGRAM_CACHE) > _CACHE_MAX_SIZE:
+        _DIAGRAM_CACHE.popitem(last=False)
 
 
 # ── Model mapping ──────────────────────────────────────────
@@ -287,6 +413,8 @@ async def generate_design_diagram(
     """Generate a DiagramSpec using the design agent prompt.
 
     Routes to Anthropic or Ollama based on ``settings.design_agent_provider``.
+    Phase 3-4 wraps the call in an in-memory cache; identical prompts (same
+    model, provider, prompt-file mtimes) skip the LLM round-trip.
 
     Args:
         prompt: Natural language description of the diagram to draw.
@@ -297,8 +425,21 @@ async def generate_design_diagram(
     Returns:
         A validated DiagramSpec dict with elements, title, etc.
     """
-    spec = await _route_call(prompt, model=model, max_tokens=max_tokens)
+    key = _cache_key(prompt, mode="direct", model=model)
+    cached = _cache_get(key)
+    if cached is not None:
+        logger.info(
+            "design_bridge.cache_hit",
+            path="direct",
+            key=key,
+            prompt=prompt[:60],
+        )
+        return cached
 
+    spec = await _route_call(prompt, model=model, max_tokens=max_tokens)
+    # `_parse_response` already ran `_ensure_dictionary_completeness`.
+
+    _cache_put(key, spec)
     _save_spec(spec, prompt)
     logger.info(
         "design_bridge.complete",
@@ -425,6 +566,17 @@ async def generate_via_python(
             "Switch DESIGN_AGENT_PROVIDER=anthropic or use mode='direct'."
         )
 
+    key = _cache_key(prompt, mode="python", model=model)
+    cached = _cache_get(key)
+    if cached is not None:
+        logger.info(
+            "design_bridge.cache_hit",
+            path="python",
+            key=key,
+            prompt=prompt[:60],
+        )
+        return cached
+
     raw_response = await _call_anthropic_python(prompt, model=model, max_tokens=max_tokens)
     code = _extract_python(raw_response)
     if not code:
@@ -440,7 +592,11 @@ async def generate_via_python(
         )
         raise ValueError(f"Python-DSL sandbox failed: {exc}") from exc
 
-    spec = canvas.export()
+    # Canvas DSL auto-registers via `_register`, but run completeness as a
+    # belt-and-suspenders pass — also protects against any direct-dict
+    # construction users add later.
+    spec = _ensure_dictionary_completeness(canvas.export())
+    _cache_put(key, spec)
     _save_spec(spec, f"PYTHON: {prompt}")
     logger.info(
         "design_bridge.python.complete",

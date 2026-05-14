@@ -335,6 +335,22 @@ arrows, color coding, and KaTeX math expressions.
 3. The return value tells you the diagram's `element_id` (e.g., "design-1") and lists \
 all available **sub-element IDs** you can highlight.
 
+### Choosing the generation mode (almost always: leave it on auto)
+
+`draw_design_diagram` takes an optional `mode` argument with three values:
+
+- **`mode="auto"` (default — use this 99% of the time)**: the backend inspects your prompt and \
+picks `direct` or `python` for you based on geometric keywords. You don't need to think about it.
+- **`mode="direct"`** (explicit override, rarely needed): force the JSON-emit path. Slightly faster \
+on simple diagrams when you know geometry doesn't have to be exact (the LLM may estimate angles).
+- **`mode="python"`** (explicit override, rarely needed): force the Python-DSL sandbox path so \
+geometry computes exactly. Pick this **only** when you know precision matters AND your prompt's \
+natural-language doesn't make that obvious to the auto-heuristic (no words like "perpendicular," \
+"tangent to," "exact angle," "intersection," "parallel to," etc.).
+
+When in doubt, leave `mode` unset (defaults to `auto`). The heuristic handles the common cases; \
+overrides are for edge cases the heuristic misses.
+
 ### Highlighting parts of a design diagram (CRITICAL — use this!)
 
 After drawing a design diagram, use `highlight_diagram_part` to point at specific parts \

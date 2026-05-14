@@ -1356,7 +1356,7 @@ async def draw_design_diagram(
     near: str = "",
     near_side: str = "",
     size_hint: str = "",
-    mode: str = "direct",
+    mode: str = "auto",
 ) -> str:
     """Draw a detailed, precise SVG diagram using the AI design agent.
 
@@ -1384,14 +1384,16 @@ The system computes exact position. Prefer this over zone.
 "below", "above", "left_of".
         size_hint: Expected size: "small", "medium" (default), "large". \
 Helps the system check fit before placing.
-        mode: Diagram generation path. "direct" (default) emits JSON directly — \
-fastest for stock diagrams (right triangle, simple FBD, ramp+block). "python" \
-runs Claude through the canvas_dsl sandbox so geometry computes exactly — use \
-this when angles, parametric positions, or trigonometric coordinates must be \
-precise (refraction at specific indices, projectile range, orbital geometry, \
-VSEPR bond angles). Phase 3-1 walking skeleton; auto-routing comes in 3-4.
+        mode: Diagram generation path. **"auto" (default and recommended for almost every call)** — \
+the backend picks "direct" or "python" from the prompt's geometric signals; you don't need to think \
+about it. **"direct"** explicitly emits JSON — slightly faster for stock diagrams when you already \
+know geometry doesn't matter; the LLM may estimate angles. **"python"** explicitly runs through \
+the canvas_dsl sandbox so geometry computes exactly — pick this when you know the diagram needs \
+precise parametric positions, perpendiculars, tangents, intersections, or specific angles, AND the \
+prompt's natural-language doesn't make that obvious to the auto-heuristic.
     """
     from feynman.agent.design_bridge import (
+        _dispatch_mode,
         generate_design_diagram,
         generate_via_python,
     )
@@ -1423,12 +1425,17 @@ VSEPR bond angles). Phase 3-1 walking skeleton; auto-routing comes in 3-4.
                 SlidePendingInstruction(title=caption_title),
                 wait_for_speech=False,
             )
-            if mode == "python":
+            # Phase 3-4: `mode="auto"` runs the backend keyword heuristic.
+            # Explicit `mode="python"` / `mode="direct"` bypass the heuristic
+            # so the LLM can override when the prompt is ambiguous.
+            resolved_mode = _dispatch_mode(prompt) if mode == "auto" else mode
+            if resolved_mode == "python":
                 spec = await generate_via_python(prompt, model="sonnet")
                 logger.info(
                     "draw_design_diagram.python_path",
                     concept=tc.current_concept_index,
                     prompt=prompt[:60],
+                    requested_mode=mode,
                 )
             else:
                 spec = await generate_design_diagram(prompt, model="sonnet")
@@ -1437,11 +1444,13 @@ VSEPR bond angles). Phase 3-1 walking skeleton; auto-routing comes in 3-4.
                 concept=tc.current_concept_index,
                 prompt=prompt[:60],
                 mode=mode,
+                resolved_mode=resolved_mode,
             )
             tc.audit.record(
                 "anticipation",
                 "cache_miss",
-                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}', mode='{mode}'",
+                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}', mode='{mode}', "
+                f"resolved='{resolved_mode}'",
             )
     except Exception:
         logger.exception("draw_design_diagram.generation_failed", prompt=prompt[:100])

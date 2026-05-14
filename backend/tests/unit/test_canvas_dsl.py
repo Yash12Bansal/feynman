@@ -150,13 +150,20 @@ def test_explicit_id_is_preserved() -> None:
     assert canvas.export()["elements"][0]["id"] == "hypotenuse"
 
 
-def test_no_dictionary_entry_when_role_and_semantic_omitted() -> None:
-    """Phase 3-1 keeps the dictionary opt-in; auto-population lands in 3-4."""
+def test_dictionary_auto_populated_when_role_and_semantic_omitted() -> None:
+    """Phase 3-4: every primitive auto-registers so annotation tools always have a target.
+
+    Role defaults to the element_id (which already encodes type+counter);
+    semantic defaults to ``f"a {type_short}"`` derived from the id prefix.
+    """
     canvas = Canvas()
-    canvas.add_line(start=(0, 0), end=(1, 1))
-    canvas.add_circle(center=(2, 2), radius=1)
+    line = canvas.add_line(start=(0, 0), end=(1, 1))
+    circle = canvas.add_circle(center=(2, 2), radius=1)
     spec = canvas.export()
-    assert spec["dictionary"] == {}
+    assert spec["dictionary"][line.id]["role"] == line.id
+    assert spec["dictionary"][line.id]["semantic"] == "a line"
+    assert spec["dictionary"][circle.id]["role"] == circle.id
+    assert spec["dictionary"][circle.id]["semantic"] == "a circle"
 
 
 def test_dictionary_entry_uses_role_when_semantic_omitted() -> None:
@@ -166,6 +173,30 @@ def test_dictionary_entry_uses_role_when_semantic_omitted() -> None:
     assert spec["dictionary"][handle.id]["role"] == "moon"
     # When semantic is omitted, falls back to role name.
     assert spec["dictionary"][handle.id]["semantic"] == "moon"
+
+
+def test_explicit_role_wins_over_auto_derivation() -> None:
+    """Caller-supplied role overrides the element_id fallback."""
+    canvas = Canvas()
+    handle = canvas.add_line(start=(0, 0), end=(1, 1), role="hypotenuse")
+    spec = canvas.export()
+    assert spec["dictionary"][handle.id]["role"] == "hypotenuse"
+
+
+def test_auto_semantic_uses_element_type_short_form() -> None:
+    """Semantic derives from the element-id prefix (e.g. ``circle_3`` → ``"a circle"``)."""
+    canvas = Canvas()
+    for handle, expected in [
+        (canvas.add_rect(top_left=(0, 0), width=10, height=10), "a rect"),
+        (canvas.add_ellipse(center=(0, 0), rx=5, ry=3), "a ellipse"),
+        (canvas.add_arrow(start=(0, 0), end=(1, 1)), "a arrow"),
+        (canvas.add_text(position=(0, 0), text="x"), "a text"),
+        (canvas.add_latex(position=(0, 0), expression="x"), "a latex"),
+    ]:
+        spec = canvas.export()
+        assert spec["dictionary"][handle.id]["semantic"] == expected, (
+            f"{handle.id}: expected {expected!r}, got {spec['dictionary'][handle.id]['semantic']!r}"
+        )
 
 
 # ── Multi-element scenes ──────────────────────────────────────────
@@ -183,7 +214,8 @@ def test_right_triangle_scene_validates_against_diagram_spec() -> None:
     spec = canvas.export()
     validated = DiagramSpec.model_validate(spec)
     assert len(validated.elements) == 5
-    assert len(validated.dictionary) == 4  # the text has no role
+    # Phase 3-4: every primitive auto-registers, so the text gets an entry too.
+    assert len(validated.dictionary) == 5
 
 
 # ── Phase 3-2: additional primitives ──────────────────────────────

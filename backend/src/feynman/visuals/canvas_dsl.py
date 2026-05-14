@@ -833,17 +833,22 @@ class Canvas(_PrimitiveMixin):
         role: str | None,
         semantic: str | None,
     ) -> None:
-        """Add a dictionary entry if the caller supplied semantic metadata.
+        """Always add a dictionary entry; auto-derive role/semantic when omitted.
 
-        Phase 3-4 will make ``role`` mandatory and auto-derive ``semantic``
-        when missing. For now we keep it optional so existing direct-JSON
-        parity is preserved.
+        Phase 3-4 closes the loop on annotation targeting: every element
+        gets a dictionary entry, so the fail-loud annotation tools always
+        have something to resolve. Explicit ``role``/``semantic`` from the
+        caller still win; when omitted, we fall back to:
+
+        - ``role`` = the auto-generated ``element_id`` (e.g. ``"circle_3"``)
+        - ``semantic`` = ``f"a {type_short}"`` from the id's prefix (e.g. ``"a circle"``)
         """
-        if role is None and semantic is None:
-            return
+        type_short = element_id.rsplit("_", 1)[0] if "_" in element_id else element_id
+        final_role = role or element_id
+        final_semantic = semantic or role or f"a {type_short}"
         self._dictionary[element_id] = {
-            "role": role or "element",
-            "semantic": semantic or role or element_id,
+            "role": final_role,
+            "semantic": final_semantic,
             "position": "center",
             "spatial_relations": [],
         }
