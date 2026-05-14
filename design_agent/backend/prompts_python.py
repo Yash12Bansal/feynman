@@ -99,6 +99,77 @@ Line with arrowhead. Use for force vectors, velocity, light rays, flow.
 canvas.add_arrow(start=(450, 325), end=(450, 200), stroke="#7fd4ff", role="normal_force", semantic="normal force N")
 ```
 
+### `canvas.add_ellipse(center, rx, ry, *, stroke="#e8e8ee", stroke_width=2, fill="none", id=None, role=None, semantic=None)`
+Axis-aligned ellipse. `rx` is the horizontal radius, `ry` the vertical. No rotation — for tilted ellipses use `add_path` with an `A` (arc) command, or compose with `add_group` and a rotate transform.
+
+```
+canvas.add_ellipse(center=(450, 325), rx=120, ry=60, role="orbit", semantic="elliptical orbit")
+```
+
+### `canvas.add_arc(center, radius, start_angle_deg, end_angle_deg, *, stroke="#e8e8ee", stroke_width=2, stroke_dasharray="", fill="none", id=None, role=None, semantic=None)`
+Circular arc segment. Angles in **degrees**, 0° = 3 o'clock (positive x-axis), positive sweep clockwise on screen (because SVG y grows down). The angles you pass are the angles the screen draws.
+
+Use for angle markers between two lines (the small arc near a vertex that calls out "θ"), pulse rings around a point, partial circles in optics ray diagrams, etc.
+
+```
+# 60° angle marker at the origin of a ramp
+canvas.add_arc(center=(150, 500), radius=40, start_angle_deg=0, end_angle_deg=-60, stroke="#ffe27f", role="angle_marker", semantic="the angle of incline, 60°")
+```
+
+(Negative angles also work — they sweep counter-clockwise relative to the start.)
+
+### `canvas.add_path(d, *, stroke="#e8e8ee", stroke_width=2, stroke_dasharray="", fill="none", id=None, role=None, semantic=None)`
+Raw SVG `<path>` element via the `d=` attribute. Use this when you need a shape the other primitives can't express — Bezier curves, complex outlines, dashed connector lines, lens cross-sections, lewis-structure bond paths, etc.
+
+```
+# wave from x=100 to x=500
+canvas.add_path(d="M 100 300 Q 200 200, 300 300 T 500 300", stroke="#7fd4ff", role="wave")
+```
+
+### `canvas.add_latex(position, expression, *, font_size=16, color="#e8e8ee", id=None, role=None, semantic=None)`
+KaTeX math expression at a pixel position. Use this — not `add_text` — for **anything with a symbol, fraction, integral, superscript, or Greek letter**.
+
+Crucial: author the expression as a **Python raw string** (`r"..."`) so backslashes survive verbatim. KaTeX needs single backslashes (`\frac`, `\theta`), and raw strings give you that without any escape gymnastics.
+
+```
+canvas.add_latex(position=(450, 100), expression=r"\sin\theta = \frac{\text{opposite}}{\text{hypotenuse}}", font_size=18, role="trig_identity")
+canvas.add_latex(position=(200, 200), expression=r"\int_0^\pi \sin x \, dx = 2", role="integral_result")
+```
+
+### `canvas.add_group(*, transform="", id=None, role=None, semantic=None) → GroupHandle`
+Group a sub-scene under an SVG transform. The returned `GroupHandle` exposes the **same** `add_*` methods as `canvas` — including `add_group` itself, so groups can nest. Children's roles register in the same flat dictionary as top-level elements.
+
+Use this when you want to compose a unit (e.g., one atom in a molecule, one block-on-ramp) once and `translate(x, y)` it around, or when a sub-scene needs `rotate(angle, cx, cy)`.
+
+```
+# atom: nucleus + electron cloud, drawn once then translated to two locations
+def add_atom(parent, x, y, label):
+    g = parent.add_group(transform=f"translate({x}, {y})", role=f"atom_{label}")
+    g.add_circle(center=(0, 0), radius=20, stroke="#7fd4ff")
+    g.add_latex(position=(0, 6), expression=label, font_size=14)
+    return g
+
+add_atom(canvas, 300, 325, "H")
+add_atom(canvas, 600, 325, "H")
+canvas.add_line(start=(320, 325), end=(580, 325), stroke="#e8e8ee", role="bond")
+```
+
+### `canvas.add_graph(position, width, height, *, x_domain=(-10, 10), y_domain=(-10, 10), x_label="", y_label="", background_color="#14141b", border_color="#2a2a3a", show_grid=True, id=None, role=None, semantic=None) → GraphHandle`
+Inset plot with axes and grid. The returned `GraphHandle` accepts curves via `.add_curve(expression, *, color, stroke_width)`.
+
+**Curve expressions are evaluated client-side as JavaScript math** — write `"sin(x)"`, not `"math.sin(x)"`. The `x` variable is bound to the plot's x-axis; available functions: `sin`, `cos`, `tan`, `sqrt`, `abs`, `log`, `exp`, `pow`, `floor`, `ceil`, `min`, `max`, `PI`, `E`.
+
+```
+graph = canvas.add_graph(
+    position=(200, 150), width=500, height=300,
+    x_domain=(-6.28, 6.28), y_domain=(-1.5, 1.5),
+    x_label="x", y_label="y",
+    role="sin_cos_plot", semantic="sin x and cos x over one full period",
+)
+graph.add_curve(expression="sin(x)", color="#7fd4ff")
+graph.add_curve(expression="cos(x)", color="#ff7fc6")
+```
+
 ## Worked examples
 
 ### Example 1 — right triangle for trig
@@ -154,6 +225,41 @@ canvas.add_text(position=(ramp_left[0] + 60, ramp_left[1] - 20), text=f"{theta_d
 ```
 
 Notice in Example 2 that the ramp is at *exactly* the requested angle — the LLM does not have to estimate. That is the entire point of this path: when geometry matters, compute it.
+
+### Example 3 — unit circle with angle and trig labels
+
+```
+canvas = Canvas(title="Unit circle", description="cos θ on x-axis, sin θ on y-axis")
+
+cx, cy, R = 450, 325, 200
+
+# circle
+canvas.add_circle(center=(cx, cy), radius=R, stroke="#e8e8ee", role="unit_circle")
+
+# axes
+canvas.add_line(start=(cx - R - 30, cy), end=(cx + R + 30, cy), stroke="#666")
+canvas.add_line(start=(cx, cy - R - 30), end=(cx, cy + R + 30), stroke="#666")
+
+# radius to point at θ = 50°
+theta_deg = 50
+theta = math.radians(theta_deg)
+px = cx + R * math.cos(theta)
+py = cy - R * math.sin(theta)  # minus → up on screen
+canvas.add_line(start=(cx, cy), end=(px, py), stroke="#7fd4ff", stroke_width=2.5, role="radius")
+canvas.add_circle(center=(px, py), radius=4, stroke="#7fd4ff", fill="#7fd4ff", role="point_on_circle")
+
+# angle arc from the +x axis to the radius (note: -theta because clockwise on screen)
+canvas.add_arc(center=(cx, cy), radius=40, start_angle_deg=0, end_angle_deg=-theta_deg, stroke="#ffe27f", role="theta_arc", semantic="the angle θ from the x-axis to the radius")
+canvas.add_latex(position=(cx + 55, cy - 18), expression=r"\theta", font_size=16, color="#ffe27f")
+
+# projections — cos θ on x-axis, sin θ on y-axis
+canvas.add_line(start=(px, py), end=(px, cy), stroke="#ff7fc6", stroke_dasharray="4 4", role="sin_proj")
+canvas.add_line(start=(px, py), end=(cx, py), stroke="#7fff9f", stroke_dasharray="4 4", role="cos_proj")
+canvas.add_latex(position=(px + 8, (cy + py) / 2), expression=r"\sin\theta", font_size=14, color="#ff7fc6")
+canvas.add_latex(position=((cx + px) / 2, py - 10), expression=r"\cos\theta", font_size=14, color="#7fff9f")
+```
+
+This example exercises arc, latex, and computed trig coordinates all together — the kind of diagram the direct-JSON path could not render at exact angles.
 
 ## Roles and semantics
 

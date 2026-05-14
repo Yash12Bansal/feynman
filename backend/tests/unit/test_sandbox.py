@@ -58,6 +58,45 @@ async def test_for_loop_and_list_comprehension() -> None:
     assert len(canvas.export()["elements"]) == 5
 
 
+@pytest.mark.asyncio
+async def test_phase_3_2_arc_latex_group_round_trip() -> None:
+    """End-to-end: angle marker (arc) + KaTeX label inside a translated group."""
+    code = (
+        'g = canvas.add_group(transform="translate(100, 50)", role="angle_block")\n'
+        "g.add_arc(center=(0, 0), radius=40, start_angle_deg=0, end_angle_deg=-60, "
+        'role="theta_arc")\n'
+        'g.add_latex(position=(20, -10), expression=r"\\theta", role="theta_label")\n'
+    )
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+    assert len(spec["elements"]) == 1
+    grp = spec["elements"][0]
+    assert grp["type"] == "svg_group"
+    assert grp["transform"] == "translate(100, 50)"
+    assert grp["elements"][0]["type"] == "svg_arc"
+    assert grp["elements"][1]["type"] == "svg_latex"
+    # Backslash in r"\theta" survives intact across the sandbox + DSL boundary
+    assert grp["elements"][1]["expression"] == r"\theta"
+    # Children registered in flat top-level dictionary
+    assert "theta_arc" in {v["role"] for v in spec["dictionary"].values()}
+    assert "theta_label" in {v["role"] for v in spec["dictionary"].values()}
+
+
+@pytest.mark.asyncio
+async def test_phase_3_2_graph_with_js_math_curves() -> None:
+    """Graph curve expressions pass through verbatim (evaluated client-side as JS)."""
+    code = (
+        "g = canvas.add_graph(position=(50, 50), width=400, height=200, "
+        "x_domain=(-3.14, 3.14), y_domain=(-1.5, 1.5))\n"
+        'g.add_curve(expression="sin(x)", color="#7fd4ff")\n'
+        'g.add_curve(expression="cos(x)", color="#ff7fc6")\n'
+    )
+    canvas = await execute_python_diagram(code)
+    g = canvas.export()["elements"][0]
+    assert g["type"] == "graph"
+    assert [c["expression"] for c in g["curves"]] == ["sin(x)", "cos(x)"]
+
+
 # ── Whitelist enforcement ─────────────────────────────────────────
 
 
