@@ -41,7 +41,15 @@ import asyncio
 import math as _math
 from typing import Any
 
-from feynman.visuals.canvas_dsl import Canvas
+from feynman.visuals.canvas_dsl import (
+    Canvas,
+    intersect,
+    midpoint,
+    parallel_at_distance,
+    perpendicular_to,
+    polar,
+    tangent_to,
+)
 
 EXEC_TIMEOUT_SECONDS = 2.0
 
@@ -149,6 +157,13 @@ def _run_sync(code: str) -> Canvas:
         "math": _math,
         "Canvas": Canvas,
         "canvas": canvas,
+        # Phase 3-3 geometric helpers (bare names — match design doc).
+        "midpoint": midpoint,
+        "polar": polar,
+        "perpendicular_to": perpendicular_to,
+        "parallel_at_distance": parallel_at_distance,
+        "intersect": intersect,
+        "tangent_to": tangent_to,
     }
     locals_dict: dict[str, Any] = {"canvas": canvas}
 

@@ -29,6 +29,7 @@ That is the entire program. No imports, no `if __name__`, no `print`, no `return
 - `canvas` — a pre-constructed `Canvas` instance, 900×650, transparent background, ready to draw on.
 - `Canvas` — the class itself, if you want to rebind `canvas` to one with different dimensions: `canvas = Canvas(width=1024, height=720, title="...", description="...")`.
 - `math` — the standard library `math` module. Use `math.radians`, `math.sin`, `math.cos`, `math.pi`, etc. for any geometry.
+- Six **geometric helpers** as bare names: `midpoint`, `polar`, `perpendicular_to`, `parallel_at_distance`, `intersect`, `tangent_to`. See the **Geometric helpers** section below. Prefer these over raw trig — they handle screen-y-down conventions for you.
 - Plain Python: variables, tuples, lists, dicts, arithmetic, `for`/`while` loops, list comprehensions, `range`, `len`, `min`/`max`/`abs`/`round`.
 
 ## What is NOT in scope
@@ -41,7 +42,32 @@ If your code tries to use any of the above, the sandbox raises an error and the 
 
 ## Coordinate system
 
-900 wide × 650 tall by default. Origin is **top-left**, x grows right, y grows down (standard SVG). Center of the canvas is `(450, 325)`. When you compute trig coordinates, remember that positive `math.sin(θ)` adds to **y** which moves **downward** on screen — flip the sign if you want "upward in physics."
+900 wide × 650 tall by default. Origin is **top-left**, x grows right, y grows down (standard SVG). Center of the canvas is `(450, 325)`. When you compute trig coordinates by hand, remember that positive `math.sin(θ)` adds to **y** which moves **downward** on screen — flip the sign if you want "upward in physics." For any non-trivial geometry, prefer the `polar`/`perpendicular_to`/`intersect` helpers below — they handle the screen-y-down convention for you.
+
+## Geometric helpers
+
+Six pure functions, available as **bare names** (no namespace prefix). Use them instead of raw trig — they turn "estimate-then-hope" into "compute-exactly."
+
+**Angle convention everywhere**: 0° = right (3 o'clock), positive sweep clockwise on screen (because SVG y grows down). `polar`, `add_arc`, and `CircleHandle.boundary_at_angle` all agree.
+
+**`side` argument** (used by `perpendicular_to`, `parallel_at_distance`, `tangent_to`): `side="left"` is the **screen-up** side for a left-to-right reference direction. For a ramp going from `ramp_bottom_left` to `ramp_top_right`, `side="left"` is the side the block sits on — the normal-force direction.
+
+- `midpoint(p1, p2) → Point` — arithmetic midpoint of segment p1→p2.
+- `polar(center, radius, angle_deg) → Point` — point at distance `radius` from `center` at `angle_deg`.
+- `perpendicular_to(p1, p2, base, length, side="left") → Point` — endpoint of a perpendicular vector anchored at `base`, of given `length`, on the chosen side of the `p1→p2` direction. Drops in as the `end=` of `add_arrow`.
+- `parallel_at_distance(p1, p2, distance, side="left") → (Point, Point)` — endpoints of a segment parallel to `p1→p2`, offset by `distance` on `side`.
+- `intersect(line1, line2) → Point` — intersection of two infinite lines, each given as `(p1, p2)`. Raises an error on parallel lines.
+- `tangent_to(circle_center, radius, external_point, side="left") → Point` — tangent contact point on the circle from an external point. Two tangents exist; `side` picks one.
+
+```
+# Reflected ray hitting a mirror at exactly 30° above the +x axis
+hit = polar((450, 325), 200, -30)  # negative angle → screen-up
+canvas.add_arrow(start=hit, end=(700, 250), role="reflected_ray")
+
+# Normal force on a 35° ramp — perpendicular to the slope, anchored at the block
+N_tip = perpendicular_to(ramp_left, ramp_right, base=block_center, length=80, side="left")
+canvas.add_arrow(start=block_center, end=N_tip, role="normal_force")
+```
 
 ## Visual style
 
@@ -170,6 +196,25 @@ graph.add_curve(expression="sin(x)", color="#7fd4ff")
 graph.add_curve(expression="cos(x)", color="#ff7fc6")
 ```
 
+### Anchor points on returned handles
+
+Every shape-bearing primitive returns a handle with **anchor-point fields** so you don't have to recompute corners and edges:
+
+- `add_rect(...)` → `top_left, top_center, top_right, middle_left, center, middle_right, bottom_left, bottom_center, bottom_right`
+- `add_circle(...)` → `center, top, right, bottom, left, radius`, plus method `boundary_at_angle(angle_deg) → Point`
+- `add_ellipse(...)` → `center, top, right, bottom, left, rx, ry`, plus method `boundary_at_angle(angle_deg)`
+- `add_line(...)` → `start, end, midpoint`, plus method `point_at(t) → Point` for `t ∈ [0,1]`
+- `add_arc(...)` → `center, radius, start_angle_deg, end_angle_deg, start, end`
+- `add_arrow(...)` → `start, end, midpoint` (mirrors `LineHandle`)
+
+`add_text`, `add_latex`, `add_path`, `add_group`, `add_graph` return plain handles (no anchor fields).
+
+```
+block = canvas.add_rect(top_left=(300, 300), width=80, height=80, role="block")
+sun = canvas.add_circle(center=(700, 100), radius=30, role="sun")
+canvas.add_arrow(start=block.top_center, end=sun.boundary_at_angle(180), role="ray")
+```
+
 ## Worked examples
 
 ### Example 1 — right triangle for trig
@@ -193,38 +238,50 @@ canvas.add_text(position=(570, 300), text="opposite", text_anchor="start", role=
 canvas.add_text(position=(330, 280), text="hypotenuse", role="label_hyp")
 ```
 
-### Example 2 — ramp at exact angle, with block
+### Example 2 — ramp at exact angle, with perpendicular normal force
 
 ```
-# `math` is already in scope; do not `import math`.
-theta_deg = 30
-theta = math.radians(theta_deg)
+theta_deg = 35  # the exact angle the lesson calls for
 
 ramp_left = (150, 500)
-ramp_length = 400
-ramp_right = (
-    ramp_left[0] + ramp_length * math.cos(theta),
-    ramp_left[1] - ramp_length * math.sin(theta),  # minus → upward on screen
-)
+# `polar` handles the screen-y-down convention: negative angle → goes up on screen.
+ramp_right = polar(ramp_left, 400, -theta_deg)
 
-# ramp surface
-canvas.add_line(start=ramp_left, end=ramp_right, stroke="#e8e8ee", stroke_width=3, role="incline")
-# ground
+# ramp surface — `add_line` returns a `LineHandle` with `.midpoint` ready to use
+ramp = canvas.add_line(start=ramp_left, end=ramp_right, stroke="#e8e8ee", stroke_width=3, role="incline")
+# ground (dashed) — same x-extent as the ramp, on the floor
 canvas.add_line(start=ramp_left, end=(ramp_right[0], ramp_left[1]), stroke="#e8e8ee", stroke_dasharray="4 4", role="ground")
 
-# block at midpoint of ramp
-mid_x = (ramp_left[0] + ramp_right[0]) / 2
-mid_y = (ramp_left[1] + ramp_right[1]) / 2
-canvas.add_rect(top_left=(mid_x - 25, mid_y - 50), width=50, height=50, stroke="#e8e8ee", role="block", semantic="5 kg block on the ramp")
+# block centered above the ramp's midpoint
+ramp_mid = ramp.midpoint
+block = canvas.add_rect(
+    top_left=(ramp_mid[0] - 25, ramp_mid[1] - 50),
+    width=50, height=50,
+    stroke="#e8e8ee",
+    role="block", semantic="5 kg block on the ramp",
+)
 
-# gravity arrow (always straight down)
-canvas.add_arrow(start=(mid_x, mid_y - 25), end=(mid_x, mid_y - 25 + 100), stroke="#ff7fc6", role="gravity", semantic="weight mg pulling straight down")
+# normal force — perpendicular to the ramp surface, anchored at the block's center.
+# side="left" is the screen-up side of (ramp_left → ramp_right), where the block sits.
+N_tip = perpendicular_to(ramp_left, ramp_right, base=block.center, length=80, side="left")
+canvas.add_arrow(start=block.center, end=N_tip, stroke="#7fd4ff",
+                 role="normal_force", semantic="normal force N")
 
-canvas.add_text(position=(mid_x + 25, mid_y + 90), text="mg", fill="#ff7fc6", text_anchor="start")
-canvas.add_text(position=(ramp_left[0] + 60, ramp_left[1] - 20), text=f"{theta_deg}°", fill="#ffe27f")
+# gravity arrow — always straight down from the block's center
+canvas.add_arrow(start=block.center, end=(block.center[0], block.center[1] + 80),
+                 stroke="#ff7fc6", role="gravity", semantic="weight mg")
+
+# labels
+canvas.add_text(position=(N_tip[0] - 12, N_tip[1] - 6), text="N", fill="#7fd4ff", text_anchor="end")
+canvas.add_text(position=(block.center[0] + 12, block.center[1] + 84), text="mg", fill="#ff7fc6", text_anchor="start")
+
+# angle marker at the base of the ramp (the 35° between ground and incline)
+canvas.add_arc(center=ramp_left, radius=40, start_angle_deg=0, end_angle_deg=-theta_deg,
+               stroke="#ffe27f", role="angle_marker", semantic=f"the angle of incline, {theta_deg}°")
+canvas.add_text(position=(ramp_left[0] + 55, ramp_left[1] - 12), text=f"{theta_deg}°", fill="#ffe27f")
 ```
 
-Notice in Example 2 that the ramp is at *exactly* the requested angle — the LLM does not have to estimate. That is the entire point of this path: when geometry matters, compute it.
+Two precision payoffs in one diagram: the ramp surface is at *exactly* 35° (via `polar`), and the normal-force arrow is *exactly* perpendicular to the ramp surface (via `perpendicular_to`). The LLM does not estimate either angle. That precision is the entire reason this path exists.
 
 ### Example 3 — unit circle with angle and trig labels
 
@@ -264,6 +321,10 @@ This example exercises arc, latex, and computed trig coordinates all together �
 ## Roles and semantics
 
 Whenever you draw something the teacher will later refer to by name ("the hypotenuse," "the normal force"), pass `role=` and `semantic=`. The teaching agent uses these to point at elements with the annotation tools. Without them, your shapes are anonymous to the rest of the system.
+
+## Do not shadow helper names
+
+Names like `midpoint`, `polar`, `intersect`, `perpendicular_to`, `parallel_at_distance`, `tangent_to` are functions provided by the runtime. **Do not reassign them** to local variables (e.g., `midpoint = (x, y)`) — call your local variable something else like `mid` or `ramp_mid`. Same for `canvas`, `Canvas`, and `math`: leave them bound to what the runtime gives you (the one exception is `canvas = Canvas(...)` if you want different dimensions — that rebinds to a fresh Canvas, which is fine).
 
 ## One last reminder
 

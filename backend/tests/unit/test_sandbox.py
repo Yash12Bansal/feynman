@@ -190,3 +190,74 @@ async def test_timeout_raises_sandbox_error() -> None:
             "canvas.add_circle(center=(0, 0), radius=10)",
             timeout=0.2,
         )
+
+
+# ── Phase 3-3: geometric helpers reachable as bare names ──────────
+
+
+@pytest.mark.asyncio
+async def test_phase_3_3_helpers_available_as_bare_names_in_sandbox() -> None:
+    """`midpoint`, `polar`, `perpendicular_to` etc. are in scope without import."""
+    code = (
+        "hit = polar((0, 0), 100, 0)\n"  # 0° = right edge, so hit == (100, 0)
+        "mid = midpoint((0, 0), (10, 10))\n"
+        "tip = perpendicular_to((0, 0), (10, 0), base=(5, 0), length=5)\n"
+        "canvas.add_circle(center=hit, radius=2, role='hit_marker')\n"
+        "canvas.add_text(position=mid, text='midpoint', role='mid_label')\n"
+        "canvas.add_arrow(start=(5, 0), end=tip, role='normal')\n"
+    )
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+    # Three elements landed cleanly — no NameError on the bare-name helpers.
+    assert len(spec["elements"]) == 3
+    # polar(0,0)→100,0 routes through correctly
+    hit_marker = spec["elements"][0]
+    assert hit_marker["cx"] == 100.0 and hit_marker["cy"] == 0.0
+
+
+@pytest.mark.asyncio
+async def test_phase_3_3_done_criterion_ramp_at_35_degrees_with_perpendicular_normal_force() -> (
+    None
+):
+    """Done criterion: agent draws 35° ramp + normal force perpendicular to surface,
+    measured to ±0.5° on the rendered spec."""
+    import math as _m
+
+    code = (
+        "theta_deg = 35\n"
+        "ramp_left = (150, 500)\n"
+        "ramp_right = polar(ramp_left, 400, -theta_deg)\n"
+        "ramp = canvas.add_line(start=ramp_left, end=ramp_right, role='incline')\n"
+        "block = canvas.add_rect(\n"
+        "    top_left=(ramp.midpoint[0] - 25, ramp.midpoint[1] - 50),\n"
+        "    width=50, height=50, role='block',\n"
+        ")\n"
+        "N_tip = perpendicular_to(ramp_left, ramp_right, base=block.center, "
+        "length=80, side='left')\n"
+        "canvas.add_arrow(start=block.center, end=N_tip, role='normal_force')\n"
+    )
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+
+    line = next(e for e in spec["elements"] if e["type"] == "svg_line")
+    arrow = next(e for e in spec["elements"] if e["type"] == "svg_arrow")
+
+    # Ramp angle, from the rendered coords. atan2(-dy, dx) flips the screen-y-down
+    # convention back to "above-horizon" degrees.
+    dx = line["x2"] - line["x1"]
+    dy = line["y2"] - line["y1"]
+    measured_deg = _m.degrees(_m.atan2(-dy, dx))
+    assert measured_deg == pytest.approx(35.0, abs=0.5)
+
+    # Normal force orthogonality on the rendered arrow vs the rendered ramp line.
+    arr_dx = arrow["x2"] - arrow["x1"]
+    arr_dy = arrow["y2"] - arrow["y1"]
+    assert arr_dx * dx + arr_dy * dy == pytest.approx(0.0, abs=1e-6)
+
+
+@pytest.mark.asyncio
+async def test_phase_3_3_intersect_failure_surfaces_as_sandbox_error() -> None:
+    """Parallel-line failure inside the sandbox surfaces with a clear message."""
+    code = "p = intersect(((0,0),(10,0)), ((0,5),(10,5)))\n"
+    with pytest.raises(SandboxError, match="parallel"):
+        await execute_python_diagram(code)

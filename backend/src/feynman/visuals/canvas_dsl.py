@@ -6,16 +6,17 @@ small Python script using this library; the sandbox executes it; the
 library produces a dict matching ``design_agent/backend/schema.py:DiagramSpec``
 which flows to the frontend through the existing wire format unchanged.
 
-Phase 3-1 shipped the walking skeleton with five primitives (line, rect,
-circle, text, arrow). Phase 3-2 (this revision) rounds the surface out
-to the full ``DiagramSpec`` element set — arc, ellipse, path, latex,
-nested groups via ``add_group``, and inset plots via ``add_graph``.
-Geometric helpers, anchor points on returned handles, and STEM
-composites land in Phase 3-3+ per the active-feature state file.
+Phase 3-3 (this revision) adds module-level geometric helpers
+(``midpoint``, ``polar``, ``perpendicular_to``, ``parallel_at_distance``,
+``intersect``, ``tangent_to``) and per-shape ``ElementHandle`` subclasses
+that surface anchor points (``rect.top_center``, ``circle.boundary_at_angle``,
+``line.midpoint``, etc.). Together these let the LLM compose parametric
+scenes exactly — the "precision payoff" the Python path was built for.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -26,17 +27,267 @@ DEFAULT_BG = "transparent"
 DEFAULT_STROKE_WIDTH = 2.0
 
 
+# ── geometric helpers ─────────────────────────────────────────────
+#
+# Convention (one place, applies to every helper, anchor, and primitive
+# below): angles in **degrees**, 0° = +x axis (right), positive sweep
+# clockwise on screen (because SVG y grows down). ``polar`` and
+# ``CircleHandle.boundary_at_angle`` agree with ``add_arc``.
+#
+# The ``side`` argument (``perpendicular_to``, ``parallel_at_distance``,
+# ``tangent_to``) refers to which side of the reference direction the
+# result sits on. ``side="left"`` is the **screen-up** side for a
+# left-to-right reference direction — matches the physics intuition for
+# "normal force on top of an inclined surface."
+
+
+def midpoint(p1: Point, p2: Point) -> Point:
+    """Arithmetic midpoint of segment p1→p2."""
+    return ((p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0)
+
+
+def polar(center: Point, radius: float, angle_deg: float) -> Point:
+    """Point at ``radius`` from ``center`` at ``angle_deg``.
+
+    0° = right, +90° = screen-down (matches ``add_arc`` and the frontend
+    ``arcPath`` helper).
+    """
+    theta = math.radians(angle_deg)
+    return (
+        center[0] + radius * math.cos(theta),
+        center[1] + radius * math.sin(theta),
+    )
+
+
+def _unit_perpendicular(p1: Point, p2: Point, side: str) -> Point:
+    """Unit perpendicular to the p1→p2 direction. Internal."""
+    dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+    length = math.hypot(dx, dy)
+    if length < 1e-12:
+        raise ValueError("perpendicular direction undefined: p1 and p2 are coincident")
+    ux, uy = dx / length, dy / length
+    # "left" of unit direction (ux, uy) in screen space (y-down) is
+    # (uy, -ux). For a left-to-right direction (1, 0), that's (0, -1) —
+    # screen-up, matching the "normal force on top of an incline" convention.
+    if side == "left":
+        return (uy, -ux)
+    if side == "right":
+        return (-uy, ux)
+    raise ValueError(f"side must be 'left' or 'right', got {side!r}")
+
+
+def perpendicular_to(
+    p1: Point,
+    p2: Point,
+    base: Point,
+    length: float,
+    side: str = "left",
+) -> Point:
+    """Endpoint of a perpendicular vector anchored at ``base``.
+
+    The vector is perpendicular to the ``p1→p2`` direction, has the
+    given ``length``, and sits on the chosen ``side`` (``"left"`` is
+    screen-up for a left-to-right reference direction). Drops in as the
+    ``end=`` argument of ``add_arrow`` for normal-force or
+    perpendicular-velocity diagrams.
+    """
+    perp = _unit_perpendicular(p1, p2, side)
+    return (base[0] + perp[0] * length, base[1] + perp[1] * length)
+
+
+def parallel_at_distance(
+    p1: Point,
+    p2: Point,
+    distance: float,
+    side: str = "left",
+) -> tuple[Point, Point]:
+    """Endpoints of a segment parallel to ``p1→p2``, offset by ``distance``.
+
+    The offset direction follows ``side`` semantics (``"left"`` = screen-up
+    for a left-to-right reference direction).
+    """
+    perp = _unit_perpendicular(p1, p2, side)
+    ox, oy = perp[0] * distance, perp[1] * distance
+    return ((p1[0] + ox, p1[1] + oy), (p2[0] + ox, p2[1] + oy))
+
+
+def intersect(
+    line1: tuple[Point, Point],
+    line2: tuple[Point, Point],
+) -> Point:
+    """Intersection of two infinite lines (each defined by two points).
+
+    Raises ``ValueError`` on parallel or coincident lines (the sandbox
+    surfaces this as a clear ``SandboxError``).
+    """
+    (x1, y1), (x2, y2) = line1
+    (x3, y3), (x4, y4) = line2
+    det = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if abs(det) < 1e-9:
+        raise ValueError("intersect: lines are parallel or coincident")
+    t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / det
+    return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
+
+
+def tangent_to(
+    circle_center: Point,
+    radius: float,
+    external_point: Point,
+    side: str = "left",
+) -> Point:
+    """Tangent contact point on the circle from an external point.
+
+    Two tangent lines exist from any external point; ``side`` picks one.
+    ``"left"`` is the tangent on the screen-up side of the external→center
+    direction (for a left-to-right external→center direction). Raises
+    ``ValueError`` if the external point is inside the circle
+    (``|external_point - center| < radius``).
+    """
+    cx, cy = circle_center
+    px, py = external_point
+    dx, dy = cx - px, cy - py
+    d = math.hypot(dx, dy)
+    if d < radius:
+        raise ValueError(f"tangent_to: external_point distance {d:.6f} < radius {radius:.6f}")
+    if d < 1e-12:
+        raise ValueError("tangent_to: external_point coincides with circle center")
+    # Boundary case d == radius: tangent point IS the external point; the
+    # formula below returns external_point cleanly because ``leg`` is zero.
+    leg = math.sqrt(max(0.0, d * d - radius * radius))
+    ux, uy = dx / d, dy / d  # unit external → center
+    if side == "left":
+        wx, wy = uy, -ux
+    elif side == "right":
+        wx, wy = -uy, ux
+    else:
+        raise ValueError(f"side must be 'left' or 'right', got {side!r}")
+    cos_alpha = leg / d
+    sin_alpha = radius / d
+    return (
+        px + leg * cos_alpha * ux + leg * sin_alpha * wx,
+        py + leg * cos_alpha * uy + leg * sin_alpha * wy,
+    )
+
+
+# ── handles ───────────────────────────────────────────────────────
+
+
 @dataclass
 class ElementHandle:
-    """Reference returned by every primitive call (Canvas + GroupHandle).
+    """Reference returned by every primitive call (base class).
 
-    Phase 3-2 surfaces only ``id``/``role``/``semantic``. Phase 3-3 adds
-    anchor points (``top_center``, ``midpoint``, etc.) and ``bounds``.
+    Subclasses below add anchor-point fields (frozen at construction
+    time, no cost to read repeatedly). ``isinstance(h, ElementHandle)``
+    holds for every handle the library returns, so existing
+    annotation-targeting code keeps working unchanged.
     """
 
     id: str
     role: str | None = None
     semantic: str | None = None
+
+
+@dataclass(kw_only=True)
+class RectHandle(ElementHandle):
+    """Handle for ``add_rect`` with nine corner/edge anchor points."""
+
+    top_left: Point
+    top_center: Point
+    top_right: Point
+    middle_left: Point
+    center: Point
+    middle_right: Point
+    bottom_left: Point
+    bottom_center: Point
+    bottom_right: Point
+
+
+@dataclass(kw_only=True)
+class CircleHandle(ElementHandle):
+    """Handle for ``add_circle`` with cardinal anchors + boundary lookup."""
+
+    center: Point
+    top: Point
+    right: Point
+    bottom: Point
+    left: Point
+    radius: float
+
+    def boundary_at_angle(self, angle_deg: float) -> Point:
+        """Point on the circle boundary at ``angle_deg``.
+
+        0° = right; +90° = screen-down (matches ``polar`` and ``add_arc``).
+        """
+        return polar(self.center, self.radius, angle_deg)
+
+
+@dataclass(kw_only=True)
+class EllipseHandle(ElementHandle):
+    """Handle for ``add_ellipse`` with cardinal anchors + parametric boundary."""
+
+    center: Point
+    top: Point
+    right: Point
+    bottom: Point
+    left: Point
+    rx: float
+    ry: float
+
+    def boundary_at_angle(self, angle_deg: float) -> Point:
+        """Parametric point on the ellipse boundary at ``angle_deg``.
+
+        Computes ``(cx + rx·cos θ, cy + ry·sin θ)`` — the parametric
+        position, not the geodesic-angle position. Good enough for label
+        placement and angle-marker anchors.
+        """
+        theta = math.radians(angle_deg)
+        return (
+            self.center[0] + self.rx * math.cos(theta),
+            self.center[1] + self.ry * math.sin(theta),
+        )
+
+
+@dataclass(kw_only=True)
+class LineHandle(ElementHandle):
+    """Handle for ``add_line`` with endpoint + midpoint + parametric lookup."""
+
+    start: Point
+    end: Point
+    midpoint: Point
+
+    def point_at(self, t: float) -> Point:
+        """Point on the line at parameter ``t`` ∈ [0, 1]."""
+        return (
+            self.start[0] + t * (self.end[0] - self.start[0]),
+            self.start[1] + t * (self.end[1] - self.start[1]),
+        )
+
+
+@dataclass(kw_only=True)
+class ArcHandle(ElementHandle):
+    """Handle for ``add_arc`` with endpoint anchors + arc parameters."""
+
+    center: Point
+    radius: float
+    start_angle_deg: float
+    end_angle_deg: float
+    start: Point
+    end: Point
+
+
+@dataclass(kw_only=True)
+class ArrowHandle(ElementHandle):
+    """Handle for ``add_arrow`` — mirrors ``LineHandle`` (start, end, midpoint)."""
+
+    start: Point
+    end: Point
+    midpoint: Point
+
+    def point_at(self, t: float) -> Point:
+        return (
+            self.start[0] + t * (self.end[0] - self.start[0]),
+            self.start[1] + t * (self.end[1] - self.start[1]),
+        )
 
 
 class _PrimitiveMixin:
@@ -74,23 +325,32 @@ class _PrimitiveMixin:
         stroke_dasharray: str = "",
         role: str | None = None,
         semantic: str | None = None,
-    ) -> ElementHandle:
+    ) -> LineHandle:
         element_id = id or self._root._next_id("line")
+        sx, sy = float(start[0]), float(start[1])
+        ex, ey = float(end[0]), float(end[1])
         self._elements.append(
             {
                 "type": "svg_line",
                 "id": element_id,
-                "x1": float(start[0]),
-                "y1": float(start[1]),
-                "x2": float(end[0]),
-                "y2": float(end[1]),
+                "x1": sx,
+                "y1": sy,
+                "x2": ex,
+                "y2": ey,
                 "stroke": stroke,
                 "strokeWidth": float(stroke_width),
                 "strokeDasharray": stroke_dasharray,
             }
         )
         self._root._register(element_id, role, semantic)
-        return ElementHandle(id=element_id, role=role, semantic=semantic)
+        return LineHandle(
+            id=element_id,
+            role=role,
+            semantic=semantic,
+            start=(sx, sy),
+            end=(ex, ey),
+            midpoint=((sx + ex) / 2.0, (sy + ey) / 2.0),
+        )
 
     def add_rect(
         self,
@@ -105,16 +365,18 @@ class _PrimitiveMixin:
         corner_radius: float = 0,
         role: str | None = None,
         semantic: str | None = None,
-    ) -> ElementHandle:
+    ) -> RectHandle:
         element_id = id or self._root._next_id("rect")
+        x, y = float(top_left[0]), float(top_left[1])
+        w, h = float(width), float(height)
         self._elements.append(
             {
                 "type": "svg_rect",
                 "id": element_id,
-                "x": float(top_left[0]),
-                "y": float(top_left[1]),
-                "width": float(width),
-                "height": float(height),
+                "x": x,
+                "y": y,
+                "width": w,
+                "height": h,
                 "stroke": stroke,
                 "strokeWidth": float(stroke_width),
                 "fill": fill,
@@ -122,7 +384,21 @@ class _PrimitiveMixin:
             }
         )
         self._root._register(element_id, role, semantic)
-        return ElementHandle(id=element_id, role=role, semantic=semantic)
+        hw, hh = w / 2.0, h / 2.0
+        return RectHandle(
+            id=element_id,
+            role=role,
+            semantic=semantic,
+            top_left=(x, y),
+            top_center=(x + hw, y),
+            top_right=(x + w, y),
+            middle_left=(x, y + hh),
+            center=(x + hw, y + hh),
+            middle_right=(x + w, y + hh),
+            bottom_left=(x, y + h),
+            bottom_center=(x + hw, y + h),
+            bottom_right=(x + w, y + h),
+        )
 
     def add_circle(
         self,
@@ -136,15 +412,17 @@ class _PrimitiveMixin:
         fill: str = "none",
         role: str | None = None,
         semantic: str | None = None,
-    ) -> ElementHandle:
+    ) -> CircleHandle:
         element_id = id or self._root._next_id("circle")
+        cx, cy = float(center[0]), float(center[1])
+        r = float(radius)
         self._elements.append(
             {
                 "type": "svg_circle",
                 "id": element_id,
-                "cx": float(center[0]),
-                "cy": float(center[1]),
-                "r": float(radius),
+                "cx": cx,
+                "cy": cy,
+                "r": r,
                 "stroke": stroke,
                 "strokeWidth": float(stroke_width),
                 "strokeDasharray": stroke_dasharray,
@@ -152,7 +430,17 @@ class _PrimitiveMixin:
             }
         )
         self._root._register(element_id, role, semantic)
-        return ElementHandle(id=element_id, role=role, semantic=semantic)
+        return CircleHandle(
+            id=element_id,
+            role=role,
+            semantic=semantic,
+            center=(cx, cy),
+            top=(cx, cy - r),
+            right=(cx + r, cy),
+            bottom=(cx, cy + r),
+            left=(cx - r, cy),
+            radius=r,
+        )
 
     def add_ellipse(
         self,
@@ -166,23 +454,36 @@ class _PrimitiveMixin:
         fill: str = "none",
         role: str | None = None,
         semantic: str | None = None,
-    ) -> ElementHandle:
+    ) -> EllipseHandle:
         element_id = id or self._root._next_id("ellipse")
+        cx, cy = float(center[0]), float(center[1])
+        rx_f, ry_f = float(rx), float(ry)
         self._elements.append(
             {
                 "type": "svg_ellipse",
                 "id": element_id,
-                "cx": float(center[0]),
-                "cy": float(center[1]),
-                "rx": float(rx),
-                "ry": float(ry),
+                "cx": cx,
+                "cy": cy,
+                "rx": rx_f,
+                "ry": ry_f,
                 "stroke": stroke,
                 "strokeWidth": float(stroke_width),
                 "fill": fill,
             }
         )
         self._root._register(element_id, role, semantic)
-        return ElementHandle(id=element_id, role=role, semantic=semantic)
+        return EllipseHandle(
+            id=element_id,
+            role=role,
+            semantic=semantic,
+            center=(cx, cy),
+            top=(cx, cy - ry_f),
+            right=(cx + rx_f, cy),
+            bottom=(cx, cy + ry_f),
+            left=(cx - rx_f, cy),
+            rx=rx_f,
+            ry=ry_f,
+        )
 
     def add_arc(
         self,
@@ -198,7 +499,7 @@ class _PrimitiveMixin:
         fill: str = "none",
         role: str | None = None,
         semantic: str | None = None,
-    ) -> ElementHandle:
+    ) -> ArcHandle:
         """Circular arc segment.
 
         Angles in **degrees**. 0° = positive x-axis (3 o'clock). Positive
@@ -207,15 +508,18 @@ class _PrimitiveMixin:
         you pass here are the angles the screen draws.
         """
         element_id = id or self._root._next_id("arc")
+        cx, cy = float(center[0]), float(center[1])
+        r = float(radius)
+        sa, ea = float(start_angle_deg), float(end_angle_deg)
         self._elements.append(
             {
                 "type": "svg_arc",
                 "id": element_id,
-                "cx": float(center[0]),
-                "cy": float(center[1]),
-                "r": float(radius),
-                "startAngle": float(start_angle_deg),
-                "endAngle": float(end_angle_deg),
+                "cx": cx,
+                "cy": cy,
+                "r": r,
+                "startAngle": sa,
+                "endAngle": ea,
                 "stroke": stroke,
                 "strokeWidth": float(stroke_width),
                 "strokeDasharray": stroke_dasharray,
@@ -223,7 +527,17 @@ class _PrimitiveMixin:
             }
         )
         self._root._register(element_id, role, semantic)
-        return ElementHandle(id=element_id, role=role, semantic=semantic)
+        return ArcHandle(
+            id=element_id,
+            role=role,
+            semantic=semantic,
+            center=(cx, cy),
+            radius=r,
+            start_angle_deg=sa,
+            end_angle_deg=ea,
+            start=polar((cx, cy), r, sa),
+            end=polar((cx, cy), r, ea),
+        )
 
     def add_path(
         self,
@@ -330,23 +644,32 @@ class _PrimitiveMixin:
         stroke_dasharray: str = "",
         role: str | None = None,
         semantic: str | None = None,
-    ) -> ElementHandle:
+    ) -> ArrowHandle:
         element_id = id or self._root._next_id("arrow")
+        sx, sy = float(start[0]), float(start[1])
+        ex, ey = float(end[0]), float(end[1])
         self._elements.append(
             {
                 "type": "svg_arrow",
                 "id": element_id,
-                "x1": float(start[0]),
-                "y1": float(start[1]),
-                "x2": float(end[0]),
-                "y2": float(end[1]),
+                "x1": sx,
+                "y1": sy,
+                "x2": ex,
+                "y2": ey,
                 "stroke": stroke,
                 "strokeWidth": float(stroke_width),
                 "strokeDasharray": stroke_dasharray,
             }
         )
         self._root._register(element_id, role, semantic)
-        return ElementHandle(id=element_id, role=role, semantic=semantic)
+        return ArrowHandle(
+            id=element_id,
+            role=role,
+            semantic=semantic,
+            start=(sx, sy),
+            end=(ex, ey),
+            midpoint=((sx + ex) / 2.0, (sy + ey) / 2.0),
+        )
 
     # ── composites: group + graph ────────────────────────────────────
 
