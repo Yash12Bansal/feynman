@@ -25,7 +25,12 @@ from feynman.livekit.action_tag_dispatch import dispatch_action_tag
 
 if TYPE_CHECKING:
     from livekit import rtc
-    from livekit.agents.llm import ModelSettings
+    from livekit.agents.llm import (
+        ChatChunk,
+        ChatContext,
+        FunctionTool,
+        ModelSettings,
+    )
 from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.agent.state_machine import TeachingStateMachine
 from feynman.agent.states import TeachingState
@@ -134,6 +139,32 @@ async def strip_action_tags(
         yield tail
 
 
+def drain_perception_feedback(
+    teaching_ctx: TeachingContext,
+    chat_ctx: ChatContext,
+) -> int:
+    """Drain Phase 5a-1 perception-feedback queue into ``chat_ctx``.
+
+    Appends each ``PerceptionFeedback`` as a single ``role="user"`` note
+    using ``[PERCEPTION_FEEDBACK]`` as the system-signal prefix the prompt
+    teaches the LLM to recognize. Returns the number of feedbacks drained
+    so the caller can log it.
+    """
+    queue = teaching_ctx.perception_feedback_queue
+    if not queue:
+        return 0
+    count = len(queue)
+    for fb in queue:
+        chat_ctx.add_message(role="user", content=fb.as_chat_note())
+    queue.clear()
+    logger.info(
+        "perception_feedback.injected",
+        count=count,
+        concept=teaching_ctx.current_concept_index,
+    )
+    return count
+
+
 class FeynmanAgent(Agent):
     def __init__(
         self,
@@ -182,6 +213,30 @@ class FeynmanAgent(Agent):
         cleaned = strip_action_tags(text, schedule)
         async for frame in Agent.default.tts_node(self, cleaned, model_settings):
             yield frame
+
+    async def llm_node(
+        self,
+        chat_ctx: ChatContext,
+        tools: list[FunctionTool],
+        model_settings: ModelSettings,
+    ) -> AsyncGenerator[ChatChunk | str]:
+        """Drain perception-feedback queue into chat_ctx before the LLM call.
+
+        Phase 5a-1: background vision verification (per-annotation) enqueues
+        :class:`PerceptionFeedback` on the teaching context when an annotation
+        misses. Just before the next LLM turn fires, we append each feedback
+        as a synthetic ``role="user"`` note prefixed with
+        ``[PERCEPTION_FEEDBACK]`` — the agent's prompt teaches it to interpret
+        the prefix as a system signal, acknowledge briefly, and re-point with
+        the suggested target via an inline action tag.
+
+        Mutating ``chat_ctx`` here persists because livekit-agents' LLM
+        pipeline uses the same underlying ``session.history`` object the
+        next turn will read from.
+        """
+        drain_perception_feedback(self._teaching_ctx, chat_ctx)
+        async for chunk in Agent.default.llm_node(self, chat_ctx, tools, model_settings):
+            yield chunk
 
     async def on_enter(self) -> None:
         logger.info(

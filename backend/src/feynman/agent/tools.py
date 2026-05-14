@@ -203,6 +203,65 @@ def _build_placement(near: str, near_side: str, size_hint: str) -> PlacementInte
     )
 
 
+def _schedule_annotation_verification(
+    ctx: RunContext,
+    *,
+    tool_name: str,
+    original_claim: str,
+    target_id: str,
+    spoken_context: str = "",
+) -> None:
+    """Phase 5a-1: fire-and-forget vision check that the annotation landed right.
+
+    No-op when no diagram is on the slide, no verifier is configured, or the
+    same ``(tool, target, concept)`` triple has already been verified. The
+    background task enqueues a :class:`PerceptionFeedback` onto
+    :attr:`TeachingContext.perception_feedback_queue` when the vision model
+    flags a low score with a usable suggestion, subject to a per-concept
+    budget of 2.
+    """
+    tc: TeachingContext = ctx.userdata
+    if tc.board_verifier is None:
+        return
+    if not tc.current_diagram_dictionary:
+        return
+    concept_index = tc.current_concept_index
+    dedup_key = (tool_name, target_id, concept_index)
+    if dedup_key in tc.annotation_verified:
+        return
+    tc.annotation_verified.add(dedup_key)
+
+    def _on_feedback(feedback: Any, result: Any) -> None:
+        # Stale-feedback guard: agent moved to a new concept before vision
+        # finished. The result is logged inside the verifier; we just drop
+        # the queue enqueue.
+        if tc.current_concept_index != concept_index:
+            return
+        used = tc.perception_feedback_budget_used.get(concept_index, 0)
+        if used >= 2:
+            tc.audit.record(
+                "annotation_verification",
+                "budget_exceeded",
+                f"concept={concept_index}, tool={tool_name}, target={target_id}",
+            )
+            return
+        tc.perception_feedback_queue.append(feedback)
+        tc.perception_feedback_budget_used[concept_index] = used + 1
+
+    asyncio.create_task(  # noqa: RUF006
+        tc.board_verifier.request_annotation_verification(
+            tool_name=tool_name,
+            original_claim=original_claim,
+            target_id=target_id,
+            spoken_context=spoken_context,
+            dictionary=tc.current_diagram_dictionary,
+            concept_index=concept_index,
+            on_feedback=_on_feedback,
+        ),
+        name="annotation_verification",
+    )
+
+
 async def _publish_visual(
     ctx: RunContext,
     instruction: _BaseInstruction,
@@ -971,6 +1030,13 @@ Options: "above" (default), "below", "left", "right".
     tc: TeachingContext = ctx.userdata
     if instruction.element_id:
         tc.active_annotations.append(instruction.element_id)
+    _schedule_annotation_verification(
+        ctx,
+        tool_name="pin_label_near",
+        original_claim=element_or_role,
+        target_id=target_id,
+        spoken_context=text,
+    )
     return f'Pinned "{text}" {position} of {target_id}'
 
 
@@ -1024,6 +1090,13 @@ Options: "up-right" (default), "up-left", "down-right", "down-left", "up", "down
     tc: TeachingContext = ctx.userdata
     if instruction.element_id:
         tc.active_annotations.append(instruction.element_id)
+    _schedule_annotation_verification(
+        ctx,
+        tool_name="draw_callout",
+        original_claim=from_element,
+        target_id=target_id,
+        spoken_context=text,
+    )
     return f"Callout '{text[:40]}' on {target_id}"
 
 
@@ -1081,6 +1154,13 @@ Options: "above" (default), "below", "left", "right".
     tc: TeachingContext = ctx.userdata
     if instruction.element_id:
         tc.active_annotations.append(instruction.element_id)
+    _schedule_annotation_verification(
+        ctx,
+        tool_name="bracket",
+        original_claim=f"{element_a},{element_b}",
+        target_id=f"{a_id},{b_id}",
+        spoken_context=label,
+    )
     return f"Bracketed {a_id}↔{b_id} ({label})"
 
 
@@ -1128,6 +1208,12 @@ Roles are preferred.
     tc: TeachingContext = ctx.userdata
     if target_id not in tc.active_highlights:
         tc.active_highlights.append(target_id)
+    _schedule_annotation_verification(
+        ctx,
+        tool_name="highlight_pulse",
+        original_claim=element_or_role,
+        target_id=target_id,
+    )
     return f"Pulsed {target_id} ({duration_ms}ms)"
 
 
@@ -1916,6 +2002,10 @@ async def advance_concept(ctx: RunContext) -> str:
 
     # Reset verification guard for the new concept.
     tc._verified_this_concept = False
+    # Phase 5a-1: any unconsumed perception feedback was for the previous
+    # concept's diagram + annotations — drop it. New concept gets a fresh
+    # budget (the per-concept counter dict is keyed by concept_index).
+    tc.perception_feedback_queue.clear()
 
     if next_concept is not None:
         # Create a new board for the next concept.

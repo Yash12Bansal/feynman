@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -31,9 +32,16 @@ from feynman.visuals.schemas import (
 def fake_session() -> SimpleNamespace:
     """An ``AgentSession``-shaped stub. ``userdata`` is unused because we
     patch out ``_build_annotation_target`` and ``_publish_visual`` — both
-    of which are the only paths that read it.
+    of which are the only paths that read it. ``board_verifier=None`` lets
+    the Phase 5a-1 scheduling helper short-circuit cleanly.
     """
-    return SimpleNamespace(userdata=SimpleNamespace(), room_io=None)
+    return SimpleNamespace(
+        userdata=SimpleNamespace(
+            board_verifier=None,
+            current_diagram_dictionary={},
+        ),
+        room_io=None,
+    )
 
 
 @pytest.fixture
@@ -268,3 +276,71 @@ async def test_publish_exception_is_swallowed(
     tag = ActionTag(verb="highlight", attrs={"target": "x"})
     # Must not raise.
     await action_tag_dispatch.dispatch_action_tag(fake_session, tag)
+
+
+# ── Phase 5a-1: verification scheduling ────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_dispatch_schedules_verification_for_highlight(
+    fake_session: SimpleNamespace, patches: dict[str, Any]
+) -> None:
+    """Successful dispatch of `<highlight target="..."/>` schedules a
+    verification call with the right tool name, claim, and target id."""
+    scheduled: list[dict[str, Any]] = []
+
+    def fake_schedule(_ctx: Any, **kwargs: Any) -> None:
+        scheduled.append(kwargs)
+
+    with patch.object(action_tag_dispatch, "_schedule_annotation_verification", fake_schedule):
+        tag = ActionTag(verb="highlight", attrs={"target": "hypotenuse"})
+        await action_tag_dispatch.dispatch_action_tag(fake_session, tag)
+
+    assert len(scheduled) == 1
+    call = scheduled[0]
+    assert call["tool_name"] == "highlight_pulse"
+    assert call["original_claim"] == "hypotenuse"
+    assert call["target_id"] == "hypotenuse"
+
+
+@pytest.mark.asyncio
+async def test_dispatch_schedules_verification_for_bracket_with_joined_id(
+    fake_session: SimpleNamespace, patches: dict[str, Any]
+) -> None:
+    """Bracket's target_id is the comma-joined pair so dedup keys are unique."""
+    scheduled: list[dict[str, Any]] = []
+
+    def fake_schedule(_ctx: Any, **kwargs: Any) -> None:
+        scheduled.append(kwargs)
+
+    with patch.object(action_tag_dispatch, "_schedule_annotation_verification", fake_schedule):
+        tag = ActionTag(
+            verb="bracket",
+            attrs={"between": "opposite, hypotenuse", "label": "sin θ"},
+        )
+        await action_tag_dispatch.dispatch_action_tag(fake_session, tag)
+
+    assert len(scheduled) == 1
+    call = scheduled[0]
+    assert call["tool_name"] == "bracket"
+    assert call["original_claim"] == "opposite, hypotenuse"
+    assert call["target_id"] == "opposite,hypotenuse"
+
+
+@pytest.mark.asyncio
+async def test_dispatch_missing_target_skips_verification(
+    fake_session: SimpleNamespace, patches: dict[str, Any]
+) -> None:
+    """When the builder returns None (missing attr), no verification scheduled."""
+    scheduled: list[dict[str, Any]] = []
+
+    def fake_schedule(_ctx: Any, **kwargs: Any) -> None:
+        scheduled.append(kwargs)
+
+    with patch.object(action_tag_dispatch, "_schedule_annotation_verification", fake_schedule):
+        # No target attribute → _build_highlight returns None → dispatch
+        # short-circuits before publish or schedule.
+        tag = ActionTag(verb="highlight", attrs={})
+        await action_tag_dispatch.dispatch_action_tag(fake_session, tag)
+
+    assert scheduled == []

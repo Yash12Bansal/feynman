@@ -8,6 +8,7 @@ from uuid import UUID
 
 from feynman.agent.anticipation import AnticipationEngine
 from feynman.agent.board import BoardManager
+from feynman.agent.board_verifier import PerceptionFeedback
 from feynman.agent.concept_planner import ConceptTeachingPlan
 from feynman.agent.doubt_orchestrator import DoubtOrchestrator
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
@@ -35,6 +36,13 @@ class TeachingContext:
     curriculum: Any | None = None  # CurriculumData from curriculum_loader (Neo4j)
     board_verifier: Any | None = None  # BoardVerifier (set by worker.py at session start)
     _verified_this_concept: bool = field(default=False, init=False, repr=False)
+    # Phase 5a-1 perception loop: queue drained by FeynmanAgent.llm_node into
+    # chat_ctx before each LLM turn. Budget caps enqueues per concept (2) to
+    # prevent retry spirals. Dedup set prevents the same emission from being
+    # verified twice.
+    perception_feedback_queue: list[PerceptionFeedback] = field(default_factory=list)
+    perception_feedback_budget_used: dict[int, int] = field(default_factory=dict)
+    annotation_verified: set[tuple[str, str, int]] = field(default_factory=set)
     # Planning agent: pre-computed teaching plans per concept index.
     concept_plans: dict[int, ConceptTeachingPlan] = field(default_factory=dict)
     doubt_plan: ConceptTeachingPlan | None = None

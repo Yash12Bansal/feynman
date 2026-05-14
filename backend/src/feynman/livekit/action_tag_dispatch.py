@@ -28,7 +28,11 @@ from typing import TYPE_CHECKING, Any
 import structlog
 
 from feynman.agent.action_tag_parser import ActionTag
-from feynman.agent.tools import _build_annotation_target, _publish_visual
+from feynman.agent.tools import (
+    _build_annotation_target,
+    _publish_visual,
+    _schedule_annotation_verification,
+)
 from feynman.visuals.schemas import (
     BracketInstruction,
     DrawCalloutInstruction,
@@ -61,6 +65,24 @@ _VALID_CALLOUT_DIRECTIONS = {
 _VALID_PIN_POSITIONS = {"above", "below", "left", "right"}
 _VALID_BRACKET_SIDES = {"above", "below", "left", "right"}
 
+# Phase 5a-1: route inline-tag verbs onto the same verification path as the
+# matching tool. `<highlight>` and `<pulse>` both render as
+# HighlightPulseInstruction, so they share the canonical tool name.
+_VERB_TO_TOOL_NAME = {
+    "highlight": "highlight_pulse",
+    "pulse": "highlight_pulse",
+    "callout": "draw_callout",
+    "bracket": "bracket",
+    "pin": "pin_label_near",
+}
+_VERB_TO_CLAIM_ATTR = {
+    "highlight": "target",
+    "pulse": "target",
+    "callout": "from",
+    "bracket": "between",
+    "pin": "near",
+}
+
 
 class _ActionTagContext:
     """Minimal ``RunContext``-shaped adapter for :func:`_publish_visual`.
@@ -90,6 +112,7 @@ async def dispatch_action_tag(session: AgentSession, tag: ActionTag) -> None:
         if instruction is None:
             return
         await _publish_visual(ctx, instruction, wait_for_speech=False)
+        _schedule_verification_from_tag(ctx, tag, instruction)
     except Exception:
         logger.warning(
             "action_tag.dispatch_failed",
@@ -97,6 +120,41 @@ async def dispatch_action_tag(session: AgentSession, tag: ActionTag) -> None:
             attrs=tag.attrs,
             exc_info=True,
         )
+
+
+def _schedule_verification_from_tag(
+    ctx: _ActionTagContext,
+    tag: ActionTag,
+    instruction: _BaseInstruction,
+) -> None:
+    """Bridge action-tag emission onto the Phase 5a-1 verification path."""
+    tool_name = _VERB_TO_TOOL_NAME.get(tag.verb)
+    if tool_name is None:
+        return
+    attrs = {k.lower(): v for k, v in tag.attrs.items()}
+    claim_attr = _VERB_TO_CLAIM_ATTR.get(tag.verb, "target")
+    claim = (attrs.get(claim_attr) or "").strip()
+    if not claim:
+        return
+    target_id = _instruction_target_id(instruction)
+    if not target_id:
+        return
+    spoken_context = (attrs.get("text") or attrs.get("label") or "").strip()
+    _schedule_annotation_verification(
+        ctx,  # type: ignore[arg-type]
+        tool_name=tool_name,
+        original_claim=claim,
+        target_id=target_id,
+        spoken_context=spoken_context,
+    )
+
+
+def _instruction_target_id(instruction: _BaseInstruction) -> str:
+    """Pull the resolved target id off whichever annotation instruction."""
+    if isinstance(instruction, BracketInstruction):
+        return f"{instruction.element_a_id},{instruction.element_b_id}"
+    target_id = getattr(instruction, "target_element_id", None)
+    return target_id or ""
 
 
 def _build_instruction(ctx: _ActionTagContext, tag: ActionTag) -> _BaseInstruction | None:

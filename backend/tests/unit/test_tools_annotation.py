@@ -25,6 +25,9 @@ def _make_mock_ctx() -> MagicMock:
     userdata.current_concept = None
     userdata.lesson_plan = None
     userdata.current_concept_index = 0
+    # Phase 5a-1: short-circuit verification scheduling — these tests don't
+    # exercise the vision loop.
+    userdata.board_verifier = None
     # Diagram dictionary for the ladder problem (role → element_id resolver).
     # `bounds` is required for frontend positioning; the annotation tools
     # reject entries without bounds so a bogus instruction never reaches the
