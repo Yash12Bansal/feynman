@@ -7,17 +7,25 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import AsyncGenerator, AsyncIterable, Callable
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import structlog
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
+from feynman.agent.action_tag_parser import ActionTag, ActionTagParser
 from feynman.agent.board_verifier import BoardVerifier
 from feynman.agent.concept_planner import plan_concept
 from feynman.agent.curriculum_loader import load_curriculum
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
+from feynman.livekit.action_tag_dispatch import dispatch_action_tag
+
+if TYPE_CHECKING:
+    from livekit import rtc
+    from livekit.agents.llm import ModelSettings
 from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.agent.state_machine import TeachingStateMachine
 from feynman.agent.states import TeachingState
@@ -103,6 +111,29 @@ ALL_TOOLS = [
 ]
 
 
+async def strip_action_tags(
+    text: AsyncIterable[str],
+    on_tag: Callable[[ActionTag], None],
+) -> AsyncGenerator[str]:
+    """Strip inline action tags from a streaming text iterable.
+
+    Yields TTS-bound chunks with action tags removed. Each parsed tag is
+    handed to ``on_tag`` synchronously (the worker schedules an async
+    dispatch task there). Orphan tag fragments at stream end are dropped
+    by ``ActionTagParser.finalize``.
+    """
+    parser = ActionTagParser()
+    async for chunk in text:
+        clean, tags = parser.feed(chunk)
+        for tag in tags:
+            on_tag(tag)
+        if clean:
+            yield clean
+    tail = parser.finalize()
+    if tail:
+        yield tail
+
+
 class FeynmanAgent(Agent):
     def __init__(
         self,
@@ -120,6 +151,37 @@ class FeynmanAgent(Agent):
             instructions=TEACHING_SYSTEM_PROMPT,
             tools=ALL_TOOLS,
         )
+
+    async def tts_node(
+        self,
+        text: AsyncIterable[str],
+        model_settings: ModelSettings,
+    ) -> AsyncGenerator[rtc.AudioFrame]:
+        """Intercept the text stream pre-TTS to strip inline action tags.
+
+        Phase 4 of the diagram-awareness re-architecture: the LLM emits
+        self-closing tags inside narration (``<highlight target="x"/>``)
+        as a lightweight alternative to pointing-tool calls. This override
+        feeds each chunk through :class:`ActionTagParser`, dispatches the
+        parsed tags as visual instructions (fire-and-forget), and yields
+        only the cleaned text to TTS.
+
+        Because ``AgentSession`` is created with
+        ``use_tts_aligned_transcript=True``, the user-facing transcription
+        automatically mirrors the cleaned TTS text — no separate
+        ``transcription_node`` override is required.
+        """
+        session = self.session
+
+        def schedule(tag: ActionTag) -> None:
+            asyncio.create_task(  # noqa: RUF006
+                dispatch_action_tag(session, tag),
+                name="action_tag_dispatch",
+            )
+
+        cleaned = strip_action_tags(text, schedule)
+        async for frame in Agent.default.tts_node(self, cleaned, model_settings):
+            yield frame
 
     async def on_enter(self) -> None:
         logger.info(
