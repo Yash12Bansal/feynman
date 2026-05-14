@@ -616,9 +616,10 @@ def _render_diagram_dictionary_section(teaching_ctx: TeachingContext) -> str:
 
     lines: list[str] = ["\n## Diagram on Slide\n"]
 
-    # Group by role so the agent sees a roles-list at the top.
+    # Render only {id, role, semantic} per element. Bounds, position, and
+    # spatial_relations are deliberately omitted — the LLM reasons about
+    # WHAT is on the board (roles) and tools/perception resolve WHERE.
     role_lines: list[str] = []
-    spatial_lines: list[str] = []
     raw_ids: list[str] = []
 
     for element_id, meta in directory.items():
@@ -630,20 +631,13 @@ def _render_diagram_dictionary_section(teaching_ctx: TeachingContext) -> str:
         )
         role = get("role")
         semantic = get("semantic", "")
-        position = get("position", "")
-        relations = get("spatial_relations", []) or []
 
         raw_ids.append(element_id)
         if role:
             role_text = f"- {role}"
             if semantic:
                 role_text += f": {semantic}"
-            if position:
-                role_text += f" ({position})"
             role_lines.append(role_text)
-        if relations:
-            rels_str = ", ".join(str(r) for r in relations[:4])
-            spatial_lines.append(f"- {element_id} ({role or 'element'}): {rels_str}")
 
     if role_lines:
         lines.append("Available roles you can highlight or annotate:\n")
@@ -659,10 +653,6 @@ def _render_diagram_dictionary_section(teaching_ctx: TeachingContext) -> str:
         "\n**Prefer roles over raw IDs** when calling annotation tools — "
         "roles are more readable and survive diagram regeneration.\n"
     )
-
-    if spatial_lines:
-        lines.append("\nSpatial relationships:\n")
-        lines.extend(line + "\n" for line in spatial_lines[:8])
 
     return "".join(lines)
 

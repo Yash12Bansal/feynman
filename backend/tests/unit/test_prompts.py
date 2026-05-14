@@ -730,8 +730,11 @@ class TestDiagramDictionarySection:
         assert "the ladder, 10 m" in prompt
         assert "opposite" in prompt
         assert "side_AB" in prompt
-        # Semantic relations show up in the spatial section.
-        assert "longest_side" in prompt
+        # Phase 0: position, bounds, and spatial_relations are no longer
+        # rendered into the prompt. The LLM reasons over {id, role, semantic}.
+        assert "longest_side" not in prompt
+        assert "diagonal" not in prompt
+        assert "Spatial relationships" not in prompt
 
     def test_prefer_roles_instruction_present(self):
         ctx = _make_ctx(plan=None)
