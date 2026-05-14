@@ -24,9 +24,12 @@ logger = structlog.get_logger()
 
 # ── Prompt loading ─────────────────────────────────────────
 
-_PROMPT_FILE = Path(__file__).resolve().parents[4] / "design_agent" / "backend" / "prompts.py"
+_DESIGN_AGENT_DIR = Path(__file__).resolve().parents[4] / "design_agent" / "backend"
+_PROMPT_FILE = _DESIGN_AGENT_DIR / "prompts.py"
+_PYTHON_PROMPT_FILE = _DESIGN_AGENT_DIR / "prompts_python.py"
 
 _cached_prompt: str | None = None
+_cached_python_prompt: str | None = None
 
 
 def _load_system_prompt() -> str:
@@ -47,9 +50,42 @@ def _load_system_prompt() -> str:
     return _cached_prompt
 
 
+def _load_python_system_prompt() -> str:
+    """Read SYSTEM_PROMPT_PYTHON from the Python-DSL prompts module.
+
+    Phase 3 of the diagram-awareness re-architecture — used by
+    ``generate_via_python``. Mirrors ``_load_system_prompt`` so the
+    on-disk file stays the source of truth and changes propagate
+    without code edits.
+    """
+    global _cached_python_prompt
+    if _cached_python_prompt is not None:
+        return _cached_python_prompt
+
+    if not _PYTHON_PROMPT_FILE.exists():
+        raise FileNotFoundError(
+            f"Python-DSL prompt not found at {_PYTHON_PROMPT_FILE}. "
+            "Ensure the design_agent directory contains prompts_python.py."
+        )
+
+    ns: dict[str, Any] = {}
+    exec(compile(_PYTHON_PROMPT_FILE.read_text(), _PYTHON_PROMPT_FILE, "exec"), ns)
+    _cached_python_prompt = ns["SYSTEM_PROMPT_PYTHON"]
+    return _cached_python_prompt
+
+
 # ── JSON extraction & repair (ported from design_agent) ────
 
 _CODE_FENCE_RE = re.compile(r"```(?:json)?\s*\n?(.*?)\n?\s*```", re.DOTALL)
+_PYTHON_FENCE_RE = re.compile(r"```(?:python|py)?\s*\n?(.*?)\n?\s*```", re.DOTALL)
+
+
+def _extract_python(text: str) -> str:
+    """Return Python source from a Claude response, stripping markdown fences."""
+    match = _PYTHON_FENCE_RE.search(text)
+    if match:
+        return match.group(1).strip()
+    return text.strip()
 
 
 def _extract_json(text: str) -> str:
@@ -115,7 +151,7 @@ def _parse_response(raw_text: str) -> dict[str, Any]:
 
     try:
         data = json.loads(json_str)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as exc:
         data = _repair_json(json_str)
         if data is None:
             logger.error(
@@ -123,7 +159,7 @@ def _parse_response(raw_text: str) -> dict[str, Any]:
                 chars=len(json_str),
                 preview=json_str[:500],
             )
-            raise ValueError("Claude returned invalid/truncated JSON for diagram.")
+            raise ValueError("Claude returned invalid/truncated JSON for diagram.") from exc
 
     # Basic structural validation
     if not isinstance(data, dict) or "elements" not in data:
@@ -164,7 +200,9 @@ async def _call_anthropic(
     model_id = _MODELS.get(model, model)
     client = _get_client()
 
-    logger.info("design_bridge.calling", provider="anthropic", prompt=user_message[:100], model=model_id)
+    logger.info(
+        "design_bridge.calling", provider="anthropic", prompt=user_message[:100], model=model_id
+    )
 
     accumulated = ""
     async with client.messages.stream(
@@ -308,6 +346,107 @@ async def modify_design_diagram_spec(
         title=spec.get("title", ""),
         elements=len(spec.get("elements", [])),
         modification=modification[:80],
+    )
+    return spec
+
+
+# ── Python-DSL path (Phase 3, walking skeleton) ────────────
+
+
+async def _call_anthropic_python(
+    user_message: str,
+    model: str = "sonnet",
+    max_tokens: int = 8000,
+) -> str:
+    """Call Claude with the Python-DSL system prompt; return raw text response."""
+    system_prompt = _load_python_system_prompt()
+    model_id = _MODELS.get(model, model)
+    client = _get_client()
+
+    logger.info(
+        "design_bridge.python.calling",
+        provider="anthropic",
+        prompt=user_message[:100],
+        model=model_id,
+    )
+
+    accumulated = ""
+    async with client.messages.stream(
+        model=model_id,
+        max_tokens=max_tokens,
+        system=system_prompt,
+        messages=[{"role": "user", "content": user_message}],
+    ) as stream:
+        async for text in stream.text_stream:
+            accumulated += text
+
+        final = await stream.get_final_message()
+        if final.stop_reason == "max_tokens":
+            logger.warning("design_bridge.python.truncated", chars=len(accumulated))
+
+    return accumulated
+
+
+async def generate_via_python(
+    prompt: str,
+    model: str = "sonnet",
+    max_tokens: int = 8000,
+) -> dict[str, Any]:
+    """Generate a DiagramSpec by asking Claude to write Python in our DSL.
+
+    Phase 3 (walking skeleton) of the diagram-awareness re-architecture
+    (`docs/design/16-diagram-awareness-rearchitecture.md`). The LLM
+    authors a short script using ``feynman.visuals.canvas_dsl``; the
+    sandbox runs it; we export the resulting Canvas to the same dict
+    shape that ``generate_design_diagram`` returns, so all downstream
+    code (Pydantic validation, WS publishing, frontend rendering,
+    annotation dictionary) sees identical wire format.
+
+    Args:
+        prompt: Natural-language description of the diagram to draw.
+        model: Anthropic model key — "opus" / "sonnet" / "haiku".
+        max_tokens: Maximum response tokens.
+
+    Returns:
+        A validated DiagramSpec dict.
+
+    Raises:
+        ValueError: if Claude's response is empty, malformed, or the
+            sandbox rejects it. Caller surfaces this to the tool layer
+            so the teaching agent can fall back to direct-JSON generation.
+    """
+    from feynman.config import settings
+    from feynman.visuals.sandbox import SandboxError, execute_python_diagram
+
+    # Phase 3-1 routes Anthropic only — Ollama support is a later phase.
+    if settings.design_agent_provider == "ollama":
+        raise ValueError(
+            "Python-DSL diagram path is not yet wired for the Ollama provider. "
+            "Switch DESIGN_AGENT_PROVIDER=anthropic or use mode='direct'."
+        )
+
+    raw_response = await _call_anthropic_python(prompt, model=model, max_tokens=max_tokens)
+    code = _extract_python(raw_response)
+    if not code:
+        raise ValueError("design_bridge.python: model returned no Python code.")
+
+    try:
+        canvas = await execute_python_diagram(code)
+    except SandboxError as exc:
+        logger.warning(
+            "design_bridge.python.sandbox_failed",
+            error=str(exc),
+            code_preview=code[:300],
+        )
+        raise ValueError(f"Python-DSL sandbox failed: {exc}") from exc
+
+    spec = canvas.export()
+    _save_spec(spec, f"PYTHON: {prompt}")
+    logger.info(
+        "design_bridge.python.complete",
+        title=spec.get("title", ""),
+        elements=len(spec.get("elements", [])),
+        code_chars=len(code),
     )
     return spec
 

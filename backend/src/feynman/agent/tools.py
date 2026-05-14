@@ -1356,6 +1356,7 @@ async def draw_design_diagram(
     near: str = "",
     near_side: str = "",
     size_hint: str = "",
+    mode: str = "direct",
 ) -> str:
     """Draw a detailed, precise SVG diagram using the AI design agent.
 
@@ -1383,8 +1384,17 @@ The system computes exact position. Prefer this over zone.
 "below", "above", "left_of".
         size_hint: Expected size: "small", "medium" (default), "large". \
 Helps the system check fit before placing.
+        mode: Diagram generation path. "direct" (default) emits JSON directly — \
+fastest for stock diagrams (right triangle, simple FBD, ramp+block). "python" \
+runs Claude through the canvas_dsl sandbox so geometry computes exactly — use \
+this when angles, parametric positions, or trigonometric coordinates must be \
+precise (refraction at specific indices, projectile range, orbital geometry, \
+VSEPR bond angles). Phase 3-1 walking skeleton; auto-routing comes in 3-4.
     """
-    from feynman.agent.design_bridge import generate_design_diagram
+    from feynman.agent.design_bridge import (
+        generate_design_diagram,
+        generate_via_python,
+    )
 
     tc: TeachingContext = ctx.userdata
 
@@ -1413,16 +1423,25 @@ Helps the system check fit before placing.
                 SlidePendingInstruction(title=caption_title),
                 wait_for_speech=False,
             )
-            spec = await generate_design_diagram(prompt, model="sonnet")
+            if mode == "python":
+                spec = await generate_via_python(prompt, model="sonnet")
+                logger.info(
+                    "draw_design_diagram.python_path",
+                    concept=tc.current_concept_index,
+                    prompt=prompt[:60],
+                )
+            else:
+                spec = await generate_design_diagram(prompt, model="sonnet")
             logger.info(
                 "draw_design_diagram.cache_miss",
                 concept=tc.current_concept_index,
                 prompt=prompt[:60],
+                mode=mode,
             )
             tc.audit.record(
                 "anticipation",
                 "cache_miss",
-                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
+                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}', mode='{mode}'",
             )
     except Exception:
         logger.exception("draw_design_diagram.generation_failed", prompt=prompt[:100])
