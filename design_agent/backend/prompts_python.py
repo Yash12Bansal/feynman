@@ -215,6 +215,68 @@ sun = canvas.add_circle(center=(700, 100), radius=30, role="sun")
 canvas.add_arrow(start=block.top_center, end=sun.boundary_at_angle(180), role="ray")
 ```
 
+## STEM composites
+
+Five high-level helpers cover the most common STEM diagrams in one parametric call. They wrap primitives + geometric helpers under a transparent group, auto-register every sub-element with a meaningful role, and expose the sub-elements as named fields on the returned handle. **Prefer composites over hand-building** when the diagram matches one of these shapes — same precision, ~¼ the code, stable roles for annotation.
+
+### `canvas.add_right_triangle(origin, legs, *, orientation="right_up", role=None, semantic=None) → RightTriangleHandle`
+
+A right triangle with three labeled sides + a right-angle marker. `origin` is the right-angle vertex. `legs=(adjacent_length, opposite_length)` in pixels. `orientation` ∈ `{"right_up", "right_down", "left_up", "left_down"}` picks which screen quadrant the triangle occupies. Sub-element roles: `"adjacent"`, `"opposite"`, `"hypotenuse"`, `"right_angle_marker"`. Anchors: `tri.corner_right_angle`, `tri.corner_adjacent`, `tri.corner_opposite`, `tri.centroid`.
+
+### `canvas.add_free_body_diagram(center, forces, *, box_size=80, role=None, semantic=None) → FreeBodyHandle`
+
+An FBD: square object box with force arrows + labels. `forces` is a list of dicts: `{"name": "N", "direction_deg": -90, "magnitude": 80}` (only `name` and `direction_deg` are required; `magnitude` defaults to 80, `color` auto-routes by canonical name). Color routing: `mg`/`weight` → pink, `N`/`normal` → cyan, `F`/`applied` → green, `f_*` (friction family) → orange. Anchors: `fbd.center`, `fbd.top`, `fbd.bottom`, `fbd.left`, `fbd.right`, plus convenience aliases `fbd.weight`, `fbd.normal_force`, `fbd.applied_force` for canonical force names (each `None` when the named force isn't in `forces`).
+
+### `canvas.add_ray(from_point, angle_deg, length, *, arrow=True, role=None, semantic=None) → RayHandle`
+
+A directed segment from `from_point` at `angle_deg` (screen-CW), of given `length`. With `arrow=True` (default) it has an arrowhead; with `arrow=False` it's a plain line. The end point is computed via `polar` — no manual trig. Anchors: `ray.start`, `ray.end`, `ray.midpoint`, plus `ray.point_at(t)` for parametric lookup.
+
+### `canvas.add_lens(center, focal_length, *, lens_type="convex", height=200, show_focal_points=True, role=None, semantic=None) → LensHandle`
+
+A biconvex or biconcave lens with principal axis + optical-center dot + focal points. `lens_type` ∈ `{"convex", "concave"}`. Focal-point dots sit at `(center.x ± focal_length, center.y)`. Anchors: `lens.center`, `lens.top`, `lens.bottom`, `lens.f` (right focal point), `lens.f_prime` (left focal point — IGCSE convention), `lens.focal_length`.
+
+### `canvas.add_lewis_structure(atoms, bonds, *, role=None, semantic=None) → LewisStructureHandle`
+
+A Lewis (electron-dot) structure. `atoms` is a list of `{"symbol": "C", "position": (450, 300), "lone_pairs": 0}`; `position` is required (no auto-layout in v0), `lone_pairs` defaults to 0. `bonds` is a list of `{"between": (i, j), "order": 1}` where `i`, `j` are atom indices (v0 supports single bonds; higher orders fall back to single-line rendering). Atom symbols sit at their positions; bonds are drawn between atom positions, shortened to clear the symbols; lone-pair dots auto-place at the unoccupied compass directions for each atom. Methane: 1 C with 4 H at compass points, no lone pairs. Water: 1 O with `lone_pairs=2` and 2 H — dots auto-place at top and bottom (the two unoccupied directions).
+
+```
+# Right triangle replaces ~9 lines of hand-building
+tri = canvas.add_right_triangle(origin=(150, 450), legs=(400, 300))
+
+# Free body diagram of a block in equilibrium under three forces
+fbd = canvas.add_free_body_diagram(
+    center=(450, 300),
+    forces=[
+        {"name": "N", "direction_deg": -90, "magnitude": 100},  # cyan, up
+        {"name": "mg", "direction_deg": 90, "magnitude": 100},   # pink, down
+        {"name": "F", "direction_deg": 0, "magnitude": 80},      # green, right
+    ],
+)
+
+# Single ray at exactly 30° below horizontal
+canvas.add_ray(from_point=(100, 325), angle_deg=30, length=400, role="incident_ray")
+
+# Convex lens with focal length 120
+lens = canvas.add_lens(center=(450, 325), focal_length=120, lens_type="convex")
+
+# Methane Lewis structure — 1 C, 4 H, 4 bonds, no lone pairs
+canvas.add_lewis_structure(
+    atoms=[
+        {"symbol": "C", "position": (450, 325), "lone_pairs": 0},
+        {"symbol": "H", "position": (370, 325)},
+        {"symbol": "H", "position": (530, 325)},
+        {"symbol": "H", "position": (450, 245)},
+        {"symbol": "H", "position": (450, 405)},
+    ],
+    bonds=[
+        {"between": (0, 1), "order": 1},
+        {"between": (0, 2), "order": 1},
+        {"between": (0, 3), "order": 1},
+        {"between": (0, 4), "order": 1},
+    ],
+)
+```
+
 ## Worked examples
 
 ### Example 1 — right triangle for trig
@@ -222,21 +284,15 @@ canvas.add_arrow(start=block.top_center, end=sun.boundary_at_angle(180), role="r
 ```
 canvas = Canvas(title="Right triangle", description="Adjacent, opposite, hypotenuse")
 
-a_xy = (150, 450)
-b_xy = (550, 450)
-c_xy = (550, 150)
+tri = canvas.add_right_triangle(origin=(150, 450), legs=(400, 300))
 
-canvas.add_line(start=a_xy, end=b_xy, stroke="#e8e8ee", role="adjacent", semantic="the adjacent side")
-canvas.add_line(start=b_xy, end=c_xy, stroke="#e8e8ee", role="opposite", semantic="the opposite side")
-canvas.add_line(start=a_xy, end=c_xy, stroke="#7fd4ff", stroke_width=3, role="hypotenuse", semantic="the hypotenuse")
-
-# right-angle marker — small square at vertex B
-canvas.add_rect(top_left=(530, 430), width=20, height=20, stroke="#e8e8ee", role="right_angle_marker", semantic="the right-angle marker at B")
-
+# Labels — composites don't auto-label, leaving room for lesson-specific text.
 canvas.add_text(position=(350, 470), text="adjacent", role="label_adj")
 canvas.add_text(position=(570, 300), text="opposite", text_anchor="start", role="label_opp")
 canvas.add_text(position=(330, 280), text="hypotenuse", role="label_hyp")
 ```
+
+The composite handles the four shapes (three sides + right-angle marker). Labels stay separate because their wording is lesson-specific.
 
 ### Example 2 — ramp at exact angle, with perpendicular normal force
 

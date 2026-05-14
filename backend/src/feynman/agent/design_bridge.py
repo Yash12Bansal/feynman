@@ -180,6 +180,7 @@ def _parse_response(raw_text: str) -> dict[str, Any]:
 
 _PYTHON_TRIGGERS_RE = re.compile(
     r"\b(?:"
+    # Phase 3-4: geometric-precision triggers
     r"exact\s+angle"
     r"|exactly\s+\d+\s*°?"
     r"|perpendicular"
@@ -191,6 +192,17 @@ _PYTHON_TRIGGERS_RE = re.compile(
     r"|parametric"
     r"|at\s+(?:an\s+)?angle\s+of"
     r"|polar(?:\s+coord)?"
+    # Phase 3-5: composite triggers — when a STEM diagram name is
+    # mentioned, the Python path has a single-call composite for it.
+    r"|right\s+triangle"
+    r"|free[-\s]?body(?:\s+diagram)?"
+    r"|fbd"
+    r"|ray\s+diagram"
+    r"|(?:convex|concave)\s+lens"
+    r"|lens"
+    r"|lewis(?:\s+structure)?"
+    r"|methane"
+    r"|ammonia"
     r")\b",
     re.IGNORECASE,
 )

@@ -261,3 +261,103 @@ async def test_phase_3_3_intersect_failure_surfaces_as_sandbox_error() -> None:
     code = "p = intersect(((0,0),(10,0)), ((0,5),(10,5)))\n"
     with pytest.raises(SandboxError, match="parallel"):
         await execute_python_diagram(code)
+
+
+# ── Phase 3-5: STEM composites reachable via sandbox ──────────────
+
+
+@pytest.mark.asyncio
+async def test_phase_3_5_right_triangle_composite_via_sandbox() -> None:
+    code = "canvas.add_right_triangle(origin=(150, 450), legs=(400, 300))\n"
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+    # 1 wrapping group + 3 lines + 1 rect = 5 dictionary entries
+    assert len(spec["dictionary"]) == 5
+    roles = {e["role"] for e in spec["dictionary"].values()}
+    assert {"adjacent", "opposite", "hypotenuse", "right_angle_marker"} <= roles
+
+
+@pytest.mark.asyncio
+async def test_phase_3_5_free_body_diagram_composite_via_sandbox() -> None:
+    code = (
+        "canvas.add_free_body_diagram("
+        "center=(450, 300),"
+        "forces=["
+        " {'name': 'N', 'direction_deg': -90},"
+        " {'name': 'mg', 'direction_deg': 90},"
+        "])\n"
+    )
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+    roles = {e["role"] for e in spec["dictionary"].values()}
+    assert "normal_force" in roles
+    assert "weight" in roles
+
+
+@pytest.mark.asyncio
+async def test_phase_3_5_ray_composite_via_sandbox() -> None:
+    code = "canvas.add_ray(from_point=(100, 325), angle_deg=30, length=400, role='incident')\n"
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+    roles = {e["role"] for e in spec["dictionary"].values()}
+    assert "incident" in roles
+    assert "ray_shaft" in roles
+
+
+@pytest.mark.asyncio
+async def test_phase_3_5_lens_composite_via_sandbox() -> None:
+    code = "canvas.add_lens(center=(450, 325), focal_length=120, lens_type='convex')\n"
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+    roles = {e["role"] for e in spec["dictionary"].values()}
+    assert "lens_body" in roles
+    assert "principal_axis" in roles
+    assert "focal_point_left" in roles
+    assert "focal_point_right" in roles
+
+
+@pytest.mark.asyncio
+async def test_phase_3_5_lewis_methane_via_sandbox() -> None:
+    code = (
+        "canvas.add_lewis_structure("
+        "atoms=["
+        " {'symbol': 'C', 'position': (450, 300)},"
+        " {'symbol': 'H', 'position': (370, 300)},"
+        " {'symbol': 'H', 'position': (530, 300)},"
+        " {'symbol': 'H', 'position': (450, 220)},"
+        " {'symbol': 'H', 'position': (450, 380)},"
+        "],"
+        "bonds=["
+        " {'between': (0, 1), 'order': 1},"
+        " {'between': (0, 2), 'order': 1},"
+        " {'between': (0, 3), 'order': 1},"
+        " {'between': (0, 4), 'order': 1},"
+        "])\n"
+    )
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+    roles = {e["role"] for e in spec["dictionary"].values()}
+    # 1 composite group + 5 atom symbols + 4 bonds = 10 entries minimum
+    assert "atom_0_C" in roles
+    assert "atom_1_H" in roles
+    assert "bond_0" in roles
+
+
+@pytest.mark.asyncio
+async def test_phase_3_5_all_five_composites_in_one_program() -> None:
+    """All 5 composites coexist in a single sandbox program — IDs stay unique."""
+    code = (
+        "canvas.add_right_triangle(origin=(50, 100), legs=(80, 60))\n"
+        "canvas.add_free_body_diagram(center=(300, 100), forces=[{'name':'mg','direction_deg':90}])\n"
+        "canvas.add_ray(from_point=(500, 100), angle_deg=30, length=50)\n"
+        "canvas.add_lens(center=(700, 100), focal_length=50, height=80)\n"
+        "canvas.add_lewis_structure(atoms=[{'symbol':'H','position':(100,400)}], bonds=[])\n"
+    )
+    canvas = await execute_python_diagram(code)
+    spec = canvas.export()
+    # All element IDs in the dictionary must be unique
+    assert len(spec["dictionary"]) == len(set(spec["dictionary"].keys()))
+    # All 5 composite top-level groups present
+    composite_prefixes = {eid.rsplit("_", 1)[0] for eid in spec["dictionary"] if "_" in eid}
+    for needed in ("right_triangle", "free_body", "ray", "lens", "lewis_structure"):
+        assert needed in composite_prefixes, f"missing {needed} in {composite_prefixes}"

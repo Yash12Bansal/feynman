@@ -20,8 +20,14 @@ from feynman.visuals.canvas_dsl import (
     CircleHandle,
     ElementHandle,
     EllipseHandle,
+    FreeBodyHandle,
+    LensHandle,
+    LewisAtomHandle,
+    LewisStructureHandle,
     LineHandle,
+    RayHandle,
     RectHandle,
+    RightTriangleHandle,
     intersect,
     midpoint,
     parallel_at_distance,
@@ -665,3 +671,342 @@ def test_composite_ramp_uses_anchors_and_helpers_for_precise_perpendicular() -> 
     # Normal-force orthogonality: arrow direction · ramp direction ≈ 0
     arr_dx, arr_dy = arrow["x2"] - arrow["x1"], arrow["y2"] - arrow["y1"]
     assert arr_dx * dx + arr_dy * dy == pytest.approx(0.0, abs=1e-6)
+
+
+# ── Phase 3-5: STEM composites ────────────────────────────────────
+
+
+def test_right_triangle_constructs_four_sub_elements_with_auto_roles() -> None:
+    canvas = Canvas()
+    tri = canvas.add_right_triangle(origin=(100, 400), legs=(300, 200))
+
+    assert isinstance(tri, RightTriangleHandle)
+    assert isinstance(tri.adjacent, LineHandle)
+    assert isinstance(tri.opposite, LineHandle)
+    assert isinstance(tri.hypotenuse, LineHandle)
+    assert isinstance(tri.right_angle_marker, RectHandle)
+
+    roles = {meta["role"] for meta in canvas._dictionary.values()}
+    assert {"adjacent", "opposite", "hypotenuse", "right_angle_marker"} <= roles
+    # Composite itself is registered too (4 sub-elements + the wrapping group)
+    assert len(canvas._dictionary) == 5
+
+
+def test_right_triangle_default_orientation_places_legs_right_and_up() -> None:
+    canvas = Canvas()
+    tri = canvas.add_right_triangle(origin=(100, 400), legs=(300, 200))
+    # right_up: adjacent extends right (+x), opposite extends up (-y on screen)
+    assert tri.corner_adjacent == (400.0, 400.0)
+    assert tri.corner_opposite == (100.0, 200.0)
+    # Hypotenuse connects the two non-right-angle corners
+    assert tri.hypotenuse.start == (400.0, 400.0)
+    assert tri.hypotenuse.end == (100.0, 200.0)
+
+
+def test_right_triangle_left_down_orientation_mirrors_signs() -> None:
+    canvas = Canvas()
+    tri = canvas.add_right_triangle(origin=(500, 200), legs=(300, 200), orientation="left_down")
+    # left_down: adjacent extends left (-x), opposite extends down (+y)
+    assert tri.corner_adjacent == (200.0, 200.0)
+    assert tri.corner_opposite == (500.0, 400.0)
+
+
+def test_right_triangle_explicit_role_wins_over_auto_derivation() -> None:
+    canvas = Canvas()
+    tri = canvas.add_right_triangle(
+        origin=(100, 400), legs=(300, 200), role="trig_demo", semantic="warmup"
+    )
+    entry = canvas._dictionary[tri.id]
+    assert entry["role"] == "trig_demo"
+    assert entry["semantic"] == "warmup"
+
+
+def test_right_triangle_invalid_orientation_raises() -> None:
+    canvas = Canvas()
+    with pytest.raises(ValueError, match="orientation"):
+        canvas.add_right_triangle(origin=(0, 0), legs=(10, 10), orientation="up_right")
+
+
+def test_free_body_diagram_box_plus_three_forces_registered() -> None:
+    canvas = Canvas()
+    fbd = canvas.add_free_body_diagram(
+        center=(450, 300),
+        forces=[
+            {"name": "N", "direction_deg": -90},
+            {"name": "mg", "direction_deg": 90},
+            {"name": "F", "direction_deg": 0},
+        ],
+    )
+    assert isinstance(fbd, FreeBodyHandle)
+    assert isinstance(fbd.box, RectHandle)
+    assert set(fbd.forces.keys()) == {"N", "mg", "F"}
+    assert set(fbd.labels.keys()) == {"N", "mg", "F"}
+    # Convenience aliases hit canonical force names
+    assert fbd.normal_force is fbd.forces["N"]
+    assert fbd.weight is fbd.forces["mg"]
+    assert fbd.applied_force is fbd.forces["F"]
+
+
+def test_free_body_diagram_weight_is_none_when_no_mg_force_passed() -> None:
+    canvas = Canvas()
+    fbd = canvas.add_free_body_diagram(
+        center=(450, 300),
+        forces=[{"name": "T", "direction_deg": -90}],
+    )
+    assert fbd.weight is None
+    assert fbd.normal_force is None
+    assert fbd.applied_force is None
+    # Custom force name keeps its identity in the forces dict
+    assert "T" in fbd.forces
+
+
+def test_free_body_diagram_routes_color_by_canonical_name() -> None:
+    canvas = Canvas()
+    canvas.add_free_body_diagram(
+        center=(450, 300),
+        forces=[
+            {"name": "N", "direction_deg": -90},
+            {"name": "mg", "direction_deg": 90},
+            {"name": "F", "direction_deg": 0},
+            {"name": "f_friction", "direction_deg": 180},
+        ],
+    )
+    group = next(e for e in canvas._elements if e["type"] == "svg_group")
+    arrow_by_stroke = {e["stroke"] for e in group["elements"] if e["type"] == "svg_arrow"}
+    # mg→pink, N→cyan, F→green, f_*→orange
+    assert "#ff7fc6" in arrow_by_stroke
+    assert "#7fd4ff" in arrow_by_stroke
+    assert "#9effc9" in arrow_by_stroke
+    assert "#ffaf7f" in arrow_by_stroke
+
+
+def test_free_body_diagram_explicit_color_overrides_name_routing() -> None:
+    canvas = Canvas()
+    canvas.add_free_body_diagram(
+        center=(450, 300),
+        forces=[{"name": "mg", "direction_deg": 90, "color": "#abcdef"}],
+    )
+    group = next(e for e in canvas._elements if e["type"] == "svg_group")
+    arrow = next(e for e in group["elements"] if e["type"] == "svg_arrow")
+    assert arrow["stroke"] == "#abcdef"
+
+
+def test_free_body_diagram_box_anchors_match_box_size() -> None:
+    canvas = Canvas()
+    fbd = canvas.add_free_body_diagram(center=(100, 100), box_size=40, forces=[])
+    # box_size=40 → half=20; center=(100,100)
+    assert fbd.top == (100.0, 80.0)
+    assert fbd.bottom == (100.0, 120.0)
+    assert fbd.left == (80.0, 100.0)
+    assert fbd.right == (120.0, 100.0)
+
+
+def test_ray_end_matches_polar_to_within_floating_point() -> None:
+    canvas = Canvas()
+    ray = canvas.add_ray(from_point=(100, 200), angle_deg=37, length=150)
+    expected = polar((100, 200), 150, 37)
+    assert ray.end[0] == pytest.approx(expected[0])
+    assert ray.end[1] == pytest.approx(expected[1])
+    assert ray.midpoint[0] == pytest.approx((100 + expected[0]) / 2.0)
+    assert ray.midpoint[1] == pytest.approx((200 + expected[1]) / 2.0)
+
+
+def test_ray_point_at_half_is_midpoint() -> None:
+    canvas = Canvas()
+    ray = canvas.add_ray(from_point=(0, 0), angle_deg=0, length=100)
+    assert ray.point_at(0.5) == ray.midpoint
+
+
+def test_ray_arrow_false_emits_line_handle_instead_of_arrow_handle() -> None:
+    canvas = Canvas()
+    ray = canvas.add_ray(from_point=(0, 0), angle_deg=0, length=100, arrow=False)
+    assert isinstance(ray.shaft, LineHandle)
+    canvas2 = Canvas()
+    ray2 = canvas2.add_ray(from_point=(0, 0), angle_deg=0, length=100)
+    assert isinstance(ray2.shaft, ArrowHandle)
+
+
+def test_lens_convex_path_differs_from_concave_path() -> None:
+    c1 = Canvas()
+    convex = c1.add_lens(center=(450, 325), focal_length=120, lens_type="convex")
+    c2 = Canvas()
+    concave = c2.add_lens(center=(450, 325), focal_length=120, lens_type="concave")
+    # The path is hidden in the body element's `d` attribute.
+    c1_group = next(e for e in c1._elements if e["type"] == "svg_group")
+    c2_group = next(e for e in c2._elements if e["type"] == "svg_group")
+    body_convex = next(e for e in c1_group["elements"] if e["type"] == "svg_path")
+    body_concave = next(e for e in c2_group["elements"] if e["type"] == "svg_path")
+    assert body_convex["d"] != body_concave["d"]
+    # Both paths must close (textbook lens silhouettes are closed shapes)
+    assert body_convex["d"].rstrip().endswith("Z")
+    assert body_concave["d"].rstrip().endswith("Z")
+    # Anchors are identical (lens type doesn't shift center/focal points)
+    assert convex.f == concave.f
+    assert convex.f_prime == concave.f_prime
+
+
+def test_lens_focal_points_placed_symmetrically_around_center() -> None:
+    canvas = Canvas()
+    lens = canvas.add_lens(center=(450, 325), focal_length=120)
+    assert lens.f == (570.0, 325.0)
+    assert lens.f_prime == (330.0, 325.0)
+    assert lens.focal_length == 120.0
+
+
+def test_lens_show_focal_points_false_omits_dots_but_keeps_anchors() -> None:
+    canvas = Canvas()
+    lens = canvas.add_lens(center=(450, 325), focal_length=120, show_focal_points=False)
+    assert lens.f_left is None
+    assert lens.f_right is None
+    # Anchor points still resolve — caller can still use them for ray-tracing math
+    assert lens.f == (570.0, 325.0)
+    assert lens.f_prime == (330.0, 325.0)
+
+
+def test_lens_invalid_type_raises() -> None:
+    canvas = Canvas()
+    with pytest.raises(ValueError, match="lens_type"):
+        canvas.add_lens(center=(0, 0), focal_length=100, lens_type="plano")
+
+
+def test_lewis_methane_renders_one_carbon_and_four_hydrogens_with_four_bonds() -> None:
+    canvas = Canvas()
+    methane = canvas.add_lewis_structure(
+        atoms=[
+            {"symbol": "C", "position": (450, 300), "lone_pairs": 0},
+            {"symbol": "H", "position": (350, 300)},
+            {"symbol": "H", "position": (550, 300)},
+            {"symbol": "H", "position": (450, 200)},
+            {"symbol": "H", "position": (450, 400)},
+        ],
+        bonds=[
+            {"between": (0, 1), "order": 1},
+            {"between": (0, 2), "order": 1},
+            {"between": (0, 3), "order": 1},
+            {"between": (0, 4), "order": 1},
+        ],
+    )
+    assert isinstance(methane, LewisStructureHandle)
+    assert len(methane.atoms) == 5
+    assert len(methane.bonds) == 4
+    # No lone pairs on methane
+    for atom in methane.atoms:
+        assert atom.lone_pair_dots == []
+    assert methane.atoms[0].symbol == "C"
+    assert isinstance(methane.atoms[0], LewisAtomHandle)
+
+
+def test_lewis_water_oxygen_has_two_lone_pairs_with_four_dots() -> None:
+    canvas = Canvas()
+    water = canvas.add_lewis_structure(
+        atoms=[
+            {"symbol": "O", "position": (450, 300), "lone_pairs": 2},
+            {"symbol": "H", "position": (350, 300)},
+            {"symbol": "H", "position": (550, 300)},
+        ],
+        bonds=[
+            {"between": (0, 1), "order": 1},
+            {"between": (0, 2), "order": 1},
+        ],
+    )
+    # 2 lone pairs * 2 dots each = 4 dots on O
+    assert len(water.atoms[0].lone_pair_dots) == 4
+    # H atoms occupy left/right (angles 0 and 180), so lone pairs go on
+    # top/bottom (90 and 270) — dots should sit above and below the O center.
+    o_y = 300.0
+    dot_ys = sorted({round(d.center[1]) for d in water.atoms[0].lone_pair_dots})
+    # Two distinct y-rows, one above (y < 300) and one below (y > 300)
+    assert len(dot_ys) == 2
+    assert min(dot_ys) < o_y
+    assert max(dot_ys) > o_y
+
+
+def test_lewis_centroid_is_average_of_atom_positions() -> None:
+    canvas = Canvas()
+    lewis = canvas.add_lewis_structure(
+        atoms=[
+            {"symbol": "C", "position": (0, 0)},
+            {"symbol": "H", "position": (100, 0)},
+            {"symbol": "H", "position": (0, 100)},
+            {"symbol": "H", "position": (100, 100)},
+        ],
+        bonds=[],
+    )
+    assert lewis.centroid == (50.0, 50.0)
+
+
+def test_lewis_bond_index_out_of_range_raises() -> None:
+    canvas = Canvas()
+    with pytest.raises(ValueError, match="out of range"):
+        canvas.add_lewis_structure(
+            atoms=[
+                {"symbol": "C", "position": (0, 0)},
+                {"symbol": "H", "position": (10, 0)},
+            ],
+            bonds=[{"between": (0, 5), "order": 1}],
+        )
+
+
+def test_lewis_bond_self_loop_raises() -> None:
+    canvas = Canvas()
+    with pytest.raises(ValueError, match="self-loop"):
+        canvas.add_lewis_structure(
+            atoms=[{"symbol": "C", "position": (0, 0)}],
+            bonds=[{"between": (0, 0), "order": 1}],
+        )
+
+
+def test_composite_handle_inherits_element_handle_so_existing_code_keeps_working() -> None:
+    """``isinstance(h, ElementHandle)`` must hold for every composite handle.
+
+    Phase 3-4 annotation code branches on ``ElementHandle``; composites
+    can't break that contract.
+    """
+    canvas = Canvas()
+    tri = canvas.add_right_triangle(origin=(0, 0), legs=(10, 10))
+    fbd = canvas.add_free_body_diagram(center=(50, 50), forces=[])
+    ray = canvas.add_ray(from_point=(0, 0), angle_deg=0, length=10)
+    lens = canvas.add_lens(center=(100, 100), focal_length=50)
+    lewis = canvas.add_lewis_structure(atoms=[{"symbol": "H", "position": (0, 0)}], bonds=[])
+    for h in (tri, fbd, ray, lens, lewis):
+        assert isinstance(h, ElementHandle)
+    # Each composite is also its concrete handle type.
+    assert isinstance(tri, RightTriangleHandle)
+    assert isinstance(fbd, FreeBodyHandle)
+    assert isinstance(ray, RayHandle)
+    assert isinstance(lens, LensHandle)
+    assert isinstance(lewis, LewisStructureHandle)
+
+
+def test_composites_via_diagram_spec_export_pass_pydantic_validation() -> None:
+    """Each composite's dict must validate against the design_agent schema.
+
+    The whole point of composites is that they don't drop out of the wire
+    contract — sub-elements + the wrapping group all flow through the
+    existing DiagramSpec unchanged.
+    """
+    schema = _load_design_agent_schema()
+    canvas = Canvas(title="all composites in one canvas")
+    canvas.add_right_triangle(origin=(50, 100), legs=(100, 80))
+    canvas.add_free_body_diagram(
+        center=(300, 100),
+        forces=[
+            {"name": "N", "direction_deg": -90},
+            {"name": "mg", "direction_deg": 90},
+        ],
+    )
+    canvas.add_ray(from_point=(500, 100), angle_deg=30, length=50)
+    canvas.add_lens(center=(700, 100), focal_length=50, height=80)
+    canvas.add_lewis_structure(
+        atoms=[
+            {"symbol": "O", "position": (450, 400), "lone_pairs": 2},
+            {"symbol": "H", "position": (380, 400)},
+            {"symbol": "H", "position": (520, 400)},
+        ],
+        bonds=[
+            {"between": (0, 1), "order": 1},
+            {"between": (0, 2), "order": 1},
+        ],
+    )
+    spec = canvas.export()
+    schema.DiagramSpec(**spec)  # raises if invalid
