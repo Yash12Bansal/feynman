@@ -71,6 +71,26 @@ async def test_pin_label_near_resolves_role() -> None:
     assert payload["target_element_id"] == "side_AB"
     assert payload["text"] == "10 m"
     assert payload["position"] == "above"
+    # Phase 2: annotations default to sentence-boundary sync so the label
+    # lands as the agent finishes the relevant clause, not ~800ms before.
+    assert payload["sync_mode"] == "after_next_sentence"
+
+
+@pytest.mark.asyncio
+async def test_all_annotation_tools_default_to_sentence_boundary_sync() -> None:
+    """Phase 2 sync default — every annotation tool emits ``after_next_sentence``."""
+    for tool, kwargs in [
+        (pin_label_near, {"element_or_role": "hypotenuse", "text": "10 m"}),
+        (draw_callout, {"from_element": "hypotenuse", "text": "the ladder"}),
+        (bracket, {"element_a": "hypotenuse", "element_b": "adjacent", "label": "Δ"}),
+        (highlight_pulse, {"element_or_role": "hypotenuse"}),
+    ]:
+        ctx = _make_mock_ctx()
+        await tool(ctx, **kwargs)  # type: ignore[arg-type]
+        payload = _published_payload(ctx)
+        assert payload["sync_mode"] == "after_next_sentence", (
+            f"{tool.__name__} must default to sentence-boundary sync (Phase 2)"
+        )
 
 
 @pytest.mark.asyncio

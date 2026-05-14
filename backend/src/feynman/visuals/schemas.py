@@ -80,6 +80,12 @@ class SyncMode(StrEnum):
     IMMEDIATE = "immediate"
     ON_PLAYOUT = "on_playout"
     TERM_SYNC = "term_sync"
+    # Phase 2 (voice-visual sync, Tier A): defer the instruction until the
+    # next sentence boundary in the agent's TTS playout. Used by overlay
+    # annotations so a "highlight the hypotenuse" call lands as the agent
+    # finishes saying the word, not ~800ms before TTS catches up. Frontend
+    # honors this via a sentence-boundary queue in `useVisualChannel`.
+    AFTER_NEXT_SENTENCE = "after_next_sentence"
 
 
 class BoardIntent(StrEnum):

@@ -932,6 +932,10 @@ async def pin_label_near(
     next to a side, or "8 m" next to a measured length. The label fades in
     over ~300ms and stays until the diagram is replaced.
 
+    Timing: fires at the next sentence boundary in your speech (Phase 2 sync).
+    Call it inside the sentence whose end should reveal the label — typically
+    right before you say the word the label corresponds to.
+
     Args:
         element_or_role: Either an exact element_id from the diagram \
 (e.g. "side_AB") or a semantic role from the diagram's dictionary \
@@ -959,7 +963,9 @@ Options: "above" (default), "below", "left", "right".
         target=target,
         text=text,
         position=pos,
-        sync_mode=SyncMode.IMMEDIATE,
+        # Phase 2: defer to next sentence boundary so the label lands as the
+        # agent finishes the relevant clause, not ~800ms before TTS catches up.
+        sync_mode=SyncMode.AFTER_NEXT_SENTENCE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
     tc: TeachingContext = ctx.userdata
@@ -980,6 +986,9 @@ async def draw_callout(
     Use sparingly for emphasis or short pedagogical notes — "← key insight!" or
     "this is what we're solving for". The bubble's tail draws first (~200ms),
     then the bubble inflates (~300ms), then the text fades in.
+
+    Timing: fires at the next sentence boundary in your speech (Phase 2 sync).
+    Call it inside the sentence whose end should reveal the callout.
 
     Args:
         from_element: Element ID or semantic role of the element the callout \
@@ -1008,7 +1017,8 @@ Options: "up-right" (default), "up-left", "down-right", "down-left", "up", "down
         target=target,
         text=text,
         direction=direction_value,
-        sync_mode=SyncMode.IMMEDIATE,
+        # Phase 2: defer to next sentence boundary; see PinLabel comment above.
+        sync_mode=SyncMode.AFTER_NEXT_SENTENCE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
     tc: TeachingContext = ctx.userdata
@@ -1030,6 +1040,9 @@ async def bracket(
     Use this to show a relationship between two parts — "right triangle"
     spanning hypotenuse and adjacent, or "this is what we're measuring" across
     two sides. The bracket draws (~400ms), then the label fades in.
+
+    Timing: fires at the next sentence boundary in your speech (Phase 2 sync).
+    Call it inside the sentence whose end should reveal the bracket.
 
     Args:
         element_a: Element ID or role of the first element.
@@ -1061,7 +1074,8 @@ Options: "above" (default), "below", "left", "right".
         target_b=target_b,
         label=label,
         side=side_value,
-        sync_mode=SyncMode.IMMEDIATE,
+        # Phase 2: defer to next sentence boundary; see PinLabel comment above.
+        sync_mode=SyncMode.AFTER_NEXT_SENTENCE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
     tc: TeachingContext = ctx.userdata
@@ -1080,8 +1094,10 @@ async def highlight_pulse(
     """Pulse a single diagram element with one short glow cycle.
 
     Simpler than ``highlight_walk`` when you only need to spotlight one element
-    while saying its name. Fires instantly — call it BEFORE speaking about
-    the element, like a teacher tapping the board.
+    while saying its name. Timing: fires at the next sentence boundary in your
+    speech (Phase 2 sync) — call it INSIDE the sentence whose end should
+    reveal the pulse, like a teacher tapping the board as they finish naming
+    the part.
 
     Args:
         element_or_role: Element ID or semantic role of the element to pulse. \
@@ -1105,7 +1121,8 @@ Roles are preferred.
         target=target,
         duration_ms=duration_ms,
         color_token=color_token,
-        sync_mode=SyncMode.IMMEDIATE,
+        # Phase 2: defer to next sentence boundary; see PinLabel comment above.
+        sync_mode=SyncMode.AFTER_NEXT_SENTENCE,
     )
     await _publish_visual(ctx, instruction, wait_for_speech=False)
     tc: TeachingContext = ctx.userdata

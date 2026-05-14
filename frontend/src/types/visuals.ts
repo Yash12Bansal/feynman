@@ -43,7 +43,18 @@ export type HighlightStyle = "glow" | "underline" | "box" | "pulse";
 
 export type AnnotationAction = "circle" | "underline" | "arrow";
 
-export type SyncMode = "immediate" | "on_playout" | "term_sync";
+export type SyncMode =
+  | "immediate"
+  | "on_playout"
+  | "term_sync"
+  /**
+   * Phase 2 (voice-visual sync, Tier A). Defer applying the instruction until
+   * the next sentence boundary in the agent's TTS playout. Annotation overlays
+   * use this so a "highlight the hypotenuse" call lands as the agent finishes
+   * the relevant clause instead of ~800ms before TTS catches up. Honored by
+   * `useVisualChannel` via a transcription-event-driven queue.
+   */
+  | "after_next_sentence";
 
 export type BoardIntent = "new" | "revisit" | "reference";
 
