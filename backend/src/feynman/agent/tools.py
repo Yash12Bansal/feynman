@@ -24,6 +24,7 @@ from feynman.agent.tool_constraints import state_constrained
 from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
+    AnnotationTarget,
     AxisConfig,
     BoardIntent,
     BoardZone,
@@ -850,9 +851,10 @@ def _resolve_diagram_target(ctx: RunContext, element_or_role: str) -> str | None
     """Resolve ``element_or_role`` against the active diagram's dictionary.
 
     Returns the resolved ``element_id`` or ``None`` when nothing matched.
-    Callers must check for ``None`` and surface a useful error to the LLM —
-    otherwise the published instruction will reference a bogus id and the
-    frontend will silently drop it.
+    Callers should treat ``None`` as a soft miss — Phase 1 of the diagram-
+    awareness re-architecture moved annotation positioning to the live DOM,
+    so the frontend can still resolve role/color/near_text targets that the
+    backend dictionary doesn't know about.
     """
     from feynman.agent.diagram_dictionary import DictionaryResolver
 
@@ -860,18 +862,45 @@ def _resolve_diagram_target(ctx: RunContext, element_or_role: str) -> str | None
     return DictionaryResolver(tc).resolve(element_or_role)
 
 
-def _diagram_target_error(ctx: RunContext, element_or_role: str) -> str:
-    """Build a tool-result error string that helps the LLM correct itself.
+def _no_diagram_error(ctx: RunContext) -> str | None:
+    """Return an error string iff there's no diagram on the slide at all.
 
-    Lists the active diagram's available roles + element ids so the LLM can
-    retry with a valid handle on the next call. Returns a short empty-state
-    message when no diagram is on the slide.
+    Annotations only make sense over a rendered diagram. If no diagram has
+    been drawn, the LLM should call ``draw_design_diagram`` first.
     """
     tc: TeachingContext = ctx.userdata
     directory = tc.current_diagram_dictionary or {}
-    if not directory:
-        return "No diagram on the slide yet — draw one with draw_design_diagram first."
+    if directory:
+        return None
+    return "No diagram on the slide yet — draw one with draw_design_diagram first."
 
+
+def _build_annotation_target(
+    ctx: RunContext, element_or_role: str
+) -> tuple[str, AnnotationTarget, bool]:
+    """Resolve ``element_or_role`` into ``(target_element_id, target, resolved)``.
+
+    - When the dictionary resolves the input → ``kind="id"`` with the
+      resolved element_id.
+    - When it doesn't → ``kind="role"`` with the raw value. The frontend
+      tries to match it against the live DOM (role lookup → DOM query) and
+      fails silently if nothing matches. This is the Phase 1 softening of
+      ``f134180``'s "fail loud" patch: the dictionary is advisory, not
+      mandatory.
+
+    The third element of the tuple is True iff the dictionary resolved the
+    handle, so callers can decide whether to log a warning.
+    """
+    resolved = _resolve_diagram_target(ctx, element_or_role)
+    if resolved is not None:
+        return resolved, AnnotationTarget(kind="id", value=resolved), True
+    return element_or_role, AnnotationTarget(kind="role", value=element_or_role), False
+
+
+def _available_handles(ctx: RunContext) -> str:
+    """Human-readable list of available roles/ids for warning log context."""
+    tc: TeachingContext = ctx.userdata
+    directory = tc.current_diagram_dictionary or {}
     ids = list(directory.keys())
     roles: list[str] = []
     for meta in directory.values():
@@ -880,36 +909,14 @@ def _diagram_target_error(ctx: RunContext, element_or_role: str) -> str:
             role = meta.get("role")
         if isinstance(role, str) and role:
             roles.append(role)
-    # Dedupe while preserving order.
     seen: set[str] = set()
     roles_unique = [r for r in roles if not (r in seen or seen.add(r))]
-
-    lines = [f"No element matched '{element_or_role}'."]
+    parts = []
     if roles_unique:
-        lines.append(f"Available roles: {', '.join(roles_unique)}")
+        parts.append(f"roles={roles_unique}")
     if ids:
-        lines.append(f"Available element_ids: {', '.join(ids)}")
-    lines.append(
-        "Tip: call this tool again with one of the roles above (preferred) or an exact element_id."
-    )
-    return "\n".join(lines)
-
-
-def _has_bounds(ctx: RunContext, element_id: str) -> bool:
-    """True iff the dictionary entry for ``element_id`` carries non-null bounds.
-
-    The frontend's annotation overlay positions itself from
-    ``dictionary[element_id].bounds``; an entry without bounds renders
-    nothing. Catch it at the backend so the LLM gets a clean error.
-    """
-    tc: TeachingContext = ctx.userdata
-    meta = (tc.current_diagram_dictionary or {}).get(element_id)
-    if meta is None:
-        return False
-    bounds = getattr(meta, "bounds", None)
-    if bounds is None and isinstance(meta, dict):
-        bounds = meta.get("bounds")
-    return bounds is not None
+        parts.append(f"ids={ids}")
+    return " ".join(parts) if parts else "<empty>"
 
 
 @function_tool()
@@ -933,19 +940,23 @@ async def pin_label_near(
         position: Where to place the label relative to the element. \
 Options: "above" (default), "below", "left", "right".
     """
-    target_id = _resolve_diagram_target(ctx, element_or_role)
-    if target_id is None:
-        return _diagram_target_error(ctx, element_or_role)
-    if not _has_bounds(ctx, target_id):
-        return (
-            f"Element '{target_id}' has no bounds in the diagram dictionary "
-            "— pick a different role/element so the annotation can be placed."
+    no_diagram = _no_diagram_error(ctx)
+    if no_diagram is not None:
+        return no_diagram
+    target_id, target, resolved = _build_annotation_target(ctx, element_or_role)
+    if not resolved:
+        logger.warning(
+            "annotation.dict_miss",
+            tool="pin_label_near",
+            handle=element_or_role,
+            available=_available_handles(ctx),
         )
     pos: Literal["above", "below", "left", "right"] = (
         position if position in ("above", "below", "left", "right") else "above"  # type: ignore[assignment]
     )
     instruction = PinLabelInstruction(
         target_element_id=target_id,
+        target=target,
         text=text,
         position=pos,
         sync_mode=SyncMode.IMMEDIATE,
@@ -977,13 +988,16 @@ points at. Roles are preferred.
         direction: Which way the callout extends from the element. \
 Options: "up-right" (default), "up-left", "down-right", "down-left", "up", "down".
     """
-    target_id = _resolve_diagram_target(ctx, from_element)
-    if target_id is None:
-        return _diagram_target_error(ctx, from_element)
-    if not _has_bounds(ctx, target_id):
-        return (
-            f"Element '{target_id}' has no bounds in the diagram dictionary "
-            "— pick a different role/element so the callout can be placed."
+    no_diagram = _no_diagram_error(ctx)
+    if no_diagram is not None:
+        return no_diagram
+    target_id, target, resolved = _build_annotation_target(ctx, from_element)
+    if not resolved:
+        logger.warning(
+            "annotation.dict_miss",
+            tool="draw_callout",
+            handle=from_element,
+            available=_available_handles(ctx),
         )
     valid_dirs = {"up", "down", "up-left", "up-right", "down-left", "down-right"}
     direction_value: Literal["up", "down", "up-left", "up-right", "down-left", "down-right"] = (
@@ -991,6 +1005,7 @@ Options: "up-right" (default), "up-left", "down-right", "down-left", "up", "down
     )  # type: ignore[assignment]
     instruction = DrawCalloutInstruction(
         target_element_id=target_id,
+        target=target,
         text=text,
         direction=direction_value,
         sync_mode=SyncMode.IMMEDIATE,
@@ -1023,25 +1038,27 @@ async def bracket(
         side: Which side of the elements the bracket goes on. \
 Options: "above" (default), "below", "left", "right".
     """
-    a_id = _resolve_diagram_target(ctx, element_a)
-    if a_id is None:
-        return _diagram_target_error(ctx, element_a)
-    b_id = _resolve_diagram_target(ctx, element_b)
-    if b_id is None:
-        return _diagram_target_error(ctx, element_b)
-    for resolved_id, requested in ((a_id, element_a), (b_id, element_b)):
-        if not _has_bounds(ctx, resolved_id):
-            return (
-                f"Element '{resolved_id}' (from '{requested}') has no bounds "
-                "in the diagram dictionary — pick a different role/element "
-                "so the bracket can span it."
-            )
+    no_diagram = _no_diagram_error(ctx)
+    if no_diagram is not None:
+        return no_diagram
+    a_id, target_a, a_resolved = _build_annotation_target(ctx, element_a)
+    b_id, target_b, b_resolved = _build_annotation_target(ctx, element_b)
+    if not (a_resolved and b_resolved):
+        logger.warning(
+            "annotation.dict_miss",
+            tool="bracket",
+            handles=(element_a, element_b),
+            resolved=(a_resolved, b_resolved),
+            available=_available_handles(ctx),
+        )
     side_value: Literal["above", "below", "left", "right"] = (
         side if side in ("above", "below", "left", "right") else "above"  # type: ignore[assignment]
     )
     instruction = BracketInstruction(
         element_a_id=a_id,
         element_b_id=b_id,
+        target_a=target_a,
+        target_b=target_b,
         label=label,
         side=side_value,
         sync_mode=SyncMode.IMMEDIATE,
@@ -1072,16 +1089,20 @@ Roles are preferred.
         duration_ms: Total pulse duration in ms. Default 1200; clamped 400-3000.
         color_token: CSS variable for the glow color. Default "--sb-neon".
     """
-    target_id = _resolve_diagram_target(ctx, element_or_role)
-    if target_id is None:
-        return _diagram_target_error(ctx, element_or_role)
-    if not _has_bounds(ctx, target_id):
-        return (
-            f"Element '{target_id}' has no bounds in the diagram dictionary "
-            "— pick a different role/element so the pulse can be placed."
+    no_diagram = _no_diagram_error(ctx)
+    if no_diagram is not None:
+        return no_diagram
+    target_id, target, resolved = _build_annotation_target(ctx, element_or_role)
+    if not resolved:
+        logger.warning(
+            "annotation.dict_miss",
+            tool="highlight_pulse",
+            handle=element_or_role,
+            available=_available_handles(ctx),
         )
     instruction = HighlightPulseInstruction(
         target_element_id=target_id,
+        target=target,
         duration_ms=duration_ms,
         color_token=color_token,
         sync_mode=SyncMode.IMMEDIATE,

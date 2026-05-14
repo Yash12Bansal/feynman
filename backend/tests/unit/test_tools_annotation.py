@@ -74,16 +74,22 @@ async def test_pin_label_near_resolves_role() -> None:
 
 
 @pytest.mark.asyncio
-async def test_pin_label_near_errors_on_unknown_role() -> None:
-    """Unknown role → tool returns an error message that lists available
-    roles/ids; nothing is published to the frontend (no silent failure)."""
+async def test_pin_label_near_unknown_role_publishes_soft_target() -> None:
+    """Phase 1: unknown role no longer blocks publish. The tool emits a
+    ``target.kind == "role"`` instruction so the frontend can try a live-DOM
+    resolution; backend logs a warning but doesn't fail the LLM call."""
     ctx = _make_mock_ctx()
     result = await pin_label_near(ctx, element_or_role="the line in red", text="60°")
-    assert "No element matched 'the line in red'" in result
-    assert "hypotenuse" in result  # available role surfaced for LLM retry
-    assert "side_AB" in result  # available element_id surfaced too
-    # No instruction was published — the only call to publish_data was nothing.
-    ctx.session.room_io.room.local_participant.publish_data.assert_not_called()
+    # Tool result reads as a success — the dictionary miss is a soft warning,
+    # not an error the LLM needs to retry on.
+    assert "the line in red" in result
+    payload = _published_payload(ctx)
+    assert payload["type"] == "pin_label"
+    # Legacy field carries the raw handle (back-compat with frontend that
+    # only reads `target_element_id`); the structured `target` carries kind.
+    assert payload["target_element_id"] == "the line in red"
+    assert payload["target"]["kind"] == "role"
+    assert payload["target"]["value"] == "the line in red"
 
 
 @pytest.mark.asyncio
@@ -98,38 +104,51 @@ async def test_highlight_pulse_errors_with_no_diagram() -> None:
 
 
 @pytest.mark.asyncio
-async def test_bracket_errors_when_either_element_unknown() -> None:
-    """Bracket needs both ends — if either resolves to None, error + no publish."""
+async def test_bracket_unknown_element_publishes_soft_target() -> None:
+    """Phase 1: one missing handle no longer aborts the bracket. Both ends
+    are emitted as targets — the frontend resolves each against the live
+    DOM, and silently skips the bracket if either end can't be located."""
     ctx = _make_mock_ctx()
     result = await bracket(
         ctx,
-        element_a="hypotenuse",  # valid
-        element_b="floating_unicorn",  # invalid
+        element_a="hypotenuse",  # valid — resolves via dictionary
+        element_b="floating_unicorn",  # invalid — falls through as role
         label="right triangle",
     )
-    assert "No element matched 'floating_unicorn'" in result
-    ctx.session.room_io.room.local_participant.publish_data.assert_not_called()
+    assert "right triangle" in result.lower() or "floating_unicorn" in result
+    payload = _published_payload(ctx)
+    assert payload["type"] == "bracket"
+    assert payload["element_a_id"] == "side_AB"  # dictionary resolved
+    assert payload["element_b_id"] == "floating_unicorn"  # raw fallback
+    assert payload["target_a"]["kind"] == "id"
+    assert payload["target_a"]["value"] == "side_AB"
+    assert payload["target_b"]["kind"] == "role"
+    assert payload["target_b"]["value"] == "floating_unicorn"
 
 
 @pytest.mark.asyncio
-async def test_annotation_tool_errors_when_bounds_missing() -> None:
-    """Resolved id but its dictionary entry has no bounds → tool errors,
-    nothing published. Catches the rare case where design_agent skips bounds
-    for an irregular shape."""
+async def test_annotation_tool_publishes_when_bounds_missing() -> None:
+    """Phase 1: backend no longer gates publish on dictionary bounds.
+    Bounds come from the live DOM (``getBoundingClientRect``) so a missing
+    ``bounds`` field in the dictionary is no longer a blocker — the frontend
+    measures the rendered element itself."""
     ctx = _make_mock_ctx()
-    # Add an entry without bounds.
     ctx.userdata.current_diagram_dictionary["theta-marker"] = {
         "role": "right_angle_marker",
         "semantic": "the right angle marker",
-        # no bounds key
+        # no bounds key — frontend will measure live
     }
     result = await pin_label_near(
         ctx,
         element_or_role="right_angle_marker",
         text="90°",
     )
-    assert "no bounds" in result.lower()
-    ctx.session.room_io.room.local_participant.publish_data.assert_not_called()
+    payload = _published_payload(ctx)
+    assert payload["type"] == "pin_label"
+    assert payload["target_element_id"] == "theta-marker"
+    assert payload["target"]["kind"] == "id"
+    assert payload["target"]["value"] == "theta-marker"
+    assert "theta-marker" in result
 
 
 @pytest.mark.asyncio

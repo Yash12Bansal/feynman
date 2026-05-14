@@ -2,9 +2,26 @@
  * SlideAnnotationLayer — sibling SVG overlay on the slide panel.
  *
  * Renders the four annotation types (`pin_label`, `draw_callout`, `bracket`,
- * `highlight_pulse`) above the active design diagram. Shares the diagram's
- * viewBox so the backend's `bounds: [x, y, w, h]` (in DiagramSpec coordinates)
- * map directly to overlay coordinates — no DOM measurement needed.
+ * `highlight_pulse`) above the active design diagram.
+ *
+ * Phase 1 (diagram-awareness re-architecture): bounds are resolved against
+ * the **live DOM** of the rendered diagram (via `getBoundingClientRect()`
+ * converted into our viewBox coordinate space through the overlay SVG's
+ * `screenCTM`). This replaces the prior path of trusting LLM-estimated
+ * `spec.dictionary[id].bounds`, which drifted from rendered reality for
+ * text metrics, arc bboxes, and transformed groups.
+ *
+ * Resolution order:
+ *   1. Live-DOM query within `stageRef` (handles both SVG geometry and
+ *      HTML KaTeX overlays — both stamped with `data-design-element`).
+ *   2. Dictionary `bounds` fallback — only hits during the brief race
+ *      between annotation arrival and diagram fade-in completing, and as
+ *      a last-resort for elements that haven't been stamped.
+ *
+ * Multi-kind targets (`AnnotationTarget`): when present, the instruction's
+ * `target` field carries `{kind, value, attr?}`. Kinds: `id`, `role`,
+ * `color`, `near_text`, `data_attr`. When absent, we synthesize an
+ * `{kind: "id", value: target_element_id}` from the legacy field.
  *
  * Annotations are anchored to the current diagram. `useSplitBoardState`
  * resets the list on every fresh `draw_*_diagram`, so stale overlays never
@@ -15,9 +32,10 @@
  * that attribute to disable entry animations and freeze the pulse.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type {
   AnnotationInstruction,
+  AnnotationTarget,
   BracketInstruction,
   DrawCalloutInstruction,
   ElementBounds,
@@ -47,21 +65,175 @@ interface SlideAnnotationLayerProps {
   readonly viewBox: string;
   readonly dictionary: Record<string, ElementMeta> | undefined;
   readonly annotations: readonly AnnotationInstruction[];
+  /**
+   * Ref to the slide stage container. The layer queries it for
+   * `[data-design-element]` to read live bounds via
+   * `getBoundingClientRect()`. The diagram SVG and KaTeX overlays live
+   * inside this subtree.
+   */
+  readonly stageRef?: RefObject<HTMLElement | null>;
 }
 
-function lookupBounds(
-  dictionary: Record<string, ElementMeta> | undefined,
-  id: string,
-): ElementBounds | null {
-  const bounds = dictionary?.[id]?.bounds;
-  if (!bounds) {
-    if (import.meta.env.DEV) {
-      console.debug("[SlideAnnotationLayer] missing bounds for element_id", id);
-    }
-    return null;
-  }
-  return bounds;
+// ── Multi-kind target resolution ─────────────────────────────
+
+/** Normalize the legacy `target_element_id` into the structured target. */
+function asTarget(
+  target: AnnotationTarget | null | undefined,
+  legacyId: string,
+): AnnotationTarget {
+  if (target) return target;
+  return { kind: "id", value: legacyId };
 }
+
+/** Query the live DOM for the element this target points at. */
+function queryTargetElement(
+  scope: HTMLElement,
+  target: AnnotationTarget,
+  dictionary: Record<string, ElementMeta> | undefined,
+): Element | null {
+  switch (target.kind) {
+    case "id":
+      return scope.querySelector(
+        `[data-design-element="${cssEscape(target.value)}"]`,
+      );
+
+    case "role": {
+      // Walk the dictionary for a matching role → element_id → DOM.
+      if (!dictionary) return null;
+      for (const [id, meta] of Object.entries(dictionary)) {
+        if (meta?.role === target.value) {
+          const el = scope.querySelector(
+            `[data-design-element="${cssEscape(id)}"]`,
+          );
+          if (el) return el;
+        }
+      }
+      return null;
+    }
+
+    case "color": {
+      // Best-effort: try stroke first, then fill. The LLM emits the value
+      // as it'd write it in CSS, but DiagramSpec uses both hex (`#ff0000`)
+      // and named colors. We accept either.
+      const escaped = cssEscape(target.value);
+      return (
+        scope.querySelector(`[stroke="${escaped}"]`) ??
+        scope.querySelector(`[fill="${escaped}"]`)
+      );
+    }
+
+    case "near_text": {
+      // Find a <text> whose content includes the substring; return its
+      // parent group (more useful annotation anchor) if available, else
+      // the text node itself.
+      const texts = scope.querySelectorAll("text");
+      for (const t of Array.from(texts)) {
+        if ((t.textContent ?? "").includes(target.value)) {
+          return t.closest("[data-design-element]") ?? t;
+        }
+      }
+      return null;
+    }
+
+    case "data_attr": {
+      const attr = target.attr;
+      if (!attr) return null;
+      // Allow plain `foo` or `data-foo` — normalize to `data-foo`.
+      const attrName = attr.startsWith("data-") ? attr : `data-${attr}`;
+      return scope.querySelector(`[${attrName}="${cssEscape(target.value)}"]`);
+    }
+  }
+}
+
+/** CSS.escape with a safe fallback (jsdom may not provide it). */
+function cssEscape(value: string): string {
+  if (
+    typeof globalThis !== "undefined" &&
+    typeof (globalThis as { CSS?: { escape?: (s: string) => string } }).CSS
+      ?.escape === "function"
+  ) {
+    return (
+      globalThis as { CSS: { escape: (s: string) => string } }
+    ).CSS.escape(value);
+  }
+  // Conservative fallback: only escape characters that could break the
+  // selector grammar. Element ids and roles in our pipeline are
+  // hyphen/underscore/alphanumeric in practice.
+  return value.replace(/(["'\\[\] <>])/g, "\\$1");
+}
+
+/**
+ * Convert a live DOM element's rect to viewBox-space bounds using the
+ * overlay SVG as the reference frame. Returns null if any required
+ * matrix is unavailable (degenerate render state — fall back to dict).
+ */
+function liveBoundsViaScreenCTM(
+  overlaySvg: SVGSVGElement,
+  el: Element,
+): ElementBounds | null {
+  const rect = el.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) return null;
+
+  const screenCTM = overlaySvg.getScreenCTM();
+  if (!screenCTM) return null;
+  const inverse = screenCTM.inverse();
+
+  const topLeft = overlaySvg.createSVGPoint();
+  topLeft.x = rect.left;
+  topLeft.y = rect.top;
+  const tl = topLeft.matrixTransform(inverse);
+
+  const bottomRight = overlaySvg.createSVGPoint();
+  bottomRight.x = rect.right;
+  bottomRight.y = rect.bottom;
+  const br = bottomRight.matrixTransform(inverse);
+
+  return [tl.x, tl.y, br.x - tl.x, br.y - tl.y];
+}
+
+/**
+ * Resolve a target to bounds in viewBox space.
+ *
+ * Path 1 (preferred): query the live DOM, measure via getBoundingClientRect,
+ *   convert to viewBox via overlay SVG's screenCTM. This is the truth source.
+ * Path 2 (fallback): the dictionary's stale bounds — used while the diagram
+ *   is fading in and `stageRef` may not yet contain it, and for
+ *   element_ids/roles that don't appear in the DOM. Only kinds `id` and
+ *   `role` have a dictionary path.
+ */
+function resolveBounds(
+  target: AnnotationTarget,
+  stageRef: RefObject<HTMLElement | null> | undefined,
+  overlaySvg: SVGSVGElement | null,
+  dictionary: Record<string, ElementMeta> | undefined,
+): ElementBounds | null {
+  const scope = stageRef?.current;
+  if (scope && overlaySvg) {
+    const el = queryTargetElement(scope, target, dictionary);
+    if (el) {
+      const bounds = liveBoundsViaScreenCTM(overlaySvg, el);
+      if (bounds) return bounds;
+    }
+  }
+  // Dictionary fallback — only meaningful for id/role kinds.
+  if (target.kind === "id") {
+    return dictionary?.[target.value]?.bounds ?? null;
+  }
+  if (target.kind === "role" && dictionary) {
+    for (const meta of Object.values(dictionary)) {
+      if (meta?.role === target.value && meta.bounds) return meta.bounds;
+    }
+  }
+  if (import.meta.env.DEV) {
+    console.debug(
+      "[SlideAnnotationLayer] no bounds resolved for target",
+      target,
+    );
+  }
+  return null;
+}
+
+// ── Reduced motion ───────────────────────────────────────────
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(() => {
@@ -80,17 +252,22 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
+// ── Layer ────────────────────────────────────────────────────
+
 export function SlideAnnotationLayer({
   viewBox,
   dictionary,
   annotations,
+  stageRef,
 }: SlideAnnotationLayerProps) {
   const reduced = useReducedMotion();
+  const overlayRef = useRef<SVGSVGElement>(null);
 
   if (annotations.length === 0) return null;
 
   return (
     <svg
+      ref={overlayRef}
       className="sb-slide-annotations"
       viewBox={viewBox}
       preserveAspectRatio="xMidYMid meet"
@@ -102,29 +279,80 @@ export function SlideAnnotationLayer({
           key={annotation.element_id ?? `${annotation.type}-${idx}`}
           annotation={annotation}
           dictionary={dictionary}
+          stageRef={stageRef}
+          overlayRef={overlayRef}
         />
       ))}
     </svg>
   );
 }
 
-function Annotation({
-  annotation,
-  dictionary,
-}: {
+interface AnnotationProps {
   readonly annotation: AnnotationInstruction;
   readonly dictionary: Record<string, ElementMeta> | undefined;
-}) {
-  switch (annotation.type) {
+  readonly stageRef: RefObject<HTMLElement | null> | undefined;
+  readonly overlayRef: RefObject<SVGSVGElement | null>;
+}
+
+function Annotation(props: AnnotationProps) {
+  switch (props.annotation.type) {
     case "pin_label":
-      return <PinLabel instr={annotation} dictionary={dictionary} />;
+      return <PinLabel {...props} instr={props.annotation} />;
     case "draw_callout":
-      return <Callout instr={annotation} dictionary={dictionary} />;
+      return <Callout {...props} instr={props.annotation} />;
     case "bracket":
-      return <Bracket instr={annotation} dictionary={dictionary} />;
+      return <Bracket {...props} instr={props.annotation} />;
     case "highlight_pulse":
-      return <HighlightPulse instr={annotation} dictionary={dictionary} />;
+      return <HighlightPulse {...props} instr={props.annotation} />;
   }
+}
+
+/**
+ * `useResolvedBounds` recomputes bounds on every layout pass tied to
+ * `annotations`. The screenCTM is only valid post-render, so we resolve in
+ * a layout effect and store in state — the first render gets dictionary
+ * bounds (or null), the second gets live-DOM bounds.
+ */
+function useResolvedBounds(
+  target: AnnotationTarget,
+  stageRef: RefObject<HTMLElement | null> | undefined,
+  overlayRef: RefObject<SVGSVGElement | null>,
+  dictionary: Record<string, ElementMeta> | undefined,
+): ElementBounds | null {
+  const [bounds, setBounds] = useState<ElementBounds | null>(() =>
+    resolveBounds(target, stageRef, overlayRef.current, dictionary),
+  );
+
+  useEffect(() => {
+    const next = resolveBounds(
+      target,
+      stageRef,
+      overlayRef.current,
+      dictionary,
+    );
+    setBounds(next);
+    // Resize listeners keep annotation alignment when the viewport changes.
+    if (typeof window === "undefined") return;
+    const onResize = () => {
+      setBounds(
+        resolveBounds(target, stageRef, overlayRef.current, dictionary),
+      );
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // We intentionally key on target.kind/value/attr — passing the full
+    // target object would re-run every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    target.kind,
+    target.value,
+    target.attr,
+    dictionary,
+    stageRef,
+    overlayRef,
+  ]);
+
+  return bounds;
 }
 
 // ── Pin label ─────────────────────────────────────────────────
@@ -132,11 +360,11 @@ function Annotation({
 function PinLabel({
   instr,
   dictionary,
-}: {
-  readonly instr: PinLabelInstruction;
-  readonly dictionary: Record<string, ElementMeta> | undefined;
-}) {
-  const bounds = lookupBounds(dictionary, instr.target_element_id);
+  stageRef,
+  overlayRef,
+}: AnnotationProps & { readonly instr: PinLabelInstruction }) {
+  const target = asTarget(instr.target, instr.target_element_id);
+  const bounds = useResolvedBounds(target, stageRef, overlayRef, dictionary);
   if (!bounds) return null;
   const [x, y, w, h] = bounds;
   const position = instr.position ?? "above";
@@ -193,6 +421,7 @@ function PinLabel({
       className="sb-annot sb-annot-pin"
       data-annotation-type="pin_label"
       data-target-element-id={instr.target_element_id}
+      data-target-kind={target.kind}
     >
       <line
         className="sb-annot-pin-connector"
@@ -219,11 +448,11 @@ function PinLabel({
 function Callout({
   instr,
   dictionary,
-}: {
-  readonly instr: DrawCalloutInstruction;
-  readonly dictionary: Record<string, ElementMeta> | undefined;
-}) {
-  const bounds = lookupBounds(dictionary, instr.target_element_id);
+  stageRef,
+  overlayRef,
+}: AnnotationProps & { readonly instr: DrawCalloutInstruction }) {
+  const target = asTarget(instr.target, instr.target_element_id);
+  const bounds = useResolvedBounds(target, stageRef, overlayRef, dictionary);
   if (!bounds) return null;
   const [x, y, w, h] = bounds;
   const direction = instr.direction ?? "up-right";
@@ -284,6 +513,7 @@ function Callout({
       className="sb-annot sb-annot-callout"
       data-annotation-type="draw_callout"
       data-target-element-id={instr.target_element_id}
+      data-target-kind={target.kind}
     >
       <path className="sb-annot-callout-tail" d={tailPath} />
       <rect
@@ -343,12 +573,13 @@ function longest(lines: readonly string[]): number {
 function Bracket({
   instr,
   dictionary,
-}: {
-  readonly instr: BracketInstruction;
-  readonly dictionary: Record<string, ElementMeta> | undefined;
-}) {
-  const a = lookupBounds(dictionary, instr.element_a_id);
-  const b = lookupBounds(dictionary, instr.element_b_id);
+  stageRef,
+  overlayRef,
+}: AnnotationProps & { readonly instr: BracketInstruction }) {
+  const targetA = asTarget(instr.target_a, instr.element_a_id);
+  const targetB = asTarget(instr.target_b, instr.element_b_id);
+  const a = useResolvedBounds(targetA, stageRef, overlayRef, dictionary);
+  const b = useResolvedBounds(targetB, stageRef, overlayRef, dictionary);
   if (!a || !b) return null;
   const side = instr.side ?? "above";
 
@@ -428,11 +659,11 @@ function Bracket({
 function HighlightPulse({
   instr,
   dictionary,
-}: {
-  readonly instr: HighlightPulseInstruction;
-  readonly dictionary: Record<string, ElementMeta> | undefined;
-}) {
-  const bounds = lookupBounds(dictionary, instr.target_element_id);
+  stageRef,
+  overlayRef,
+}: AnnotationProps & { readonly instr: HighlightPulseInstruction }) {
+  const target = asTarget(instr.target, instr.target_element_id);
+  const bounds = useResolvedBounds(target, stageRef, overlayRef, dictionary);
   if (!bounds) return null;
   const [x, y, w, h] = bounds;
   const duration = instr.duration_ms ?? PULSE_DEFAULT_DURATION_MS;
@@ -451,6 +682,7 @@ function HighlightPulse({
       className="sb-annot sb-annot-pulse"
       data-annotation-type="highlight_pulse"
       data-target-element-id={instr.target_element_id}
+      data-target-kind={target.kind}
       x={x - PULSE_PAD}
       y={y - PULSE_PAD}
       width={w + PULSE_PAD * 2}

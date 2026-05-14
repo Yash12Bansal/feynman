@@ -586,9 +586,41 @@ export type CalloutDirection =
 
 export type BracketSide = "above" | "below" | "left" | "right";
 
+/**
+ * Multi-kind annotation target (Phase 1 diagram-awareness re-architecture).
+ *
+ * The legacy `target_element_id` string only resolves against pre-baked
+ * diagram-dictionary ids/roles. Real teaching needs wider vocabulary:
+ * "the red line", "next to '60°'", arbitrary data-attr queries. This
+ * structured form lets the frontend pick a resolver against the live DOM.
+ *
+ * Kinds:
+ *  - `id`        — exact `data-design-element="value"` match.
+ *  - `role`      — dictionary role lookup → element id → DOM.
+ *  - `color`     — `[stroke="value"]` or `[fill="value"]` match.
+ *  - `near_text` — `<text>` whose content contains `value` (substring).
+ *  - `data_attr` — arbitrary `[data-{attr}="value"]` (escape hatch).
+ */
+export type AnnotationTargetKind =
+  | "id"
+  | "role"
+  | "color"
+  | "near_text"
+  | "data_attr";
+
+export interface AnnotationTarget {
+  kind: AnnotationTargetKind;
+  value: string;
+  /** Attribute name for `data_attr` kind only; ignored otherwise. */
+  attr?: string | null;
+}
+
 export interface PinLabelInstruction extends BaseInstruction {
   type: "pin_label";
   target_element_id: string;
+  /** Phase 1: richer multi-kind target. When present, prefer over the
+   * legacy `target_element_id` string. */
+  target?: AnnotationTarget | null;
   text: string;
   position?: PinLabelPosition;
 }
@@ -596,6 +628,7 @@ export interface PinLabelInstruction extends BaseInstruction {
 export interface DrawCalloutInstruction extends BaseInstruction {
   type: "draw_callout";
   target_element_id: string;
+  target?: AnnotationTarget | null;
   text: string;
   direction?: CalloutDirection;
 }
@@ -604,6 +637,8 @@ export interface BracketInstruction extends BaseInstruction {
   type: "bracket";
   element_a_id: string;
   element_b_id: string;
+  target_a?: AnnotationTarget | null;
+  target_b?: AnnotationTarget | null;
   label: string;
   side?: BracketSide;
 }
@@ -611,6 +646,7 @@ export interface BracketInstruction extends BaseInstruction {
 export interface HighlightPulseInstruction extends BaseInstruction {
   type: "highlight_pulse";
   target_element_id: string;
+  target?: AnnotationTarget | null;
   /** Pulse duration in ms; backend default 1200, range 400–3000. */
   duration_ms?: number;
   /** CSS variable token for the glow color, e.g. `--sb-neon`. */

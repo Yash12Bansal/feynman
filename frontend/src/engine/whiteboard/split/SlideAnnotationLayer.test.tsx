@@ -1,17 +1,20 @@
 /**
  * SlideAnnotationLayer — visual rendering tests.
  *
- * The layer's positioning is pure math over `dictionary[id].bounds`, so we
- * can assert exact SVG attributes without rendering the diagram itself or
- * reaching for `getBoundingClientRect`. Each test renders the overlay with
- * a tiny dictionary fixture and inspects the resulting SVG nodes.
+ * Two paths exercised:
+ *   1. Dictionary-bounds fallback (no `stageRef` → mathematical assertions
+ *      against fixture bounds, no DOM measurement required).
+ *   2. Live-DOM resolution (`stageRef` provided + mocked
+ *      `getBoundingClientRect`/`getScreenCTM`) — the Phase 1 happy path.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useRef } from "react";
 import { render } from "@testing-library/react";
 import { SlideAnnotationLayer } from "./SlideAnnotationLayer";
 import type {
   AnnotationInstruction,
+  AnnotationTarget,
   BracketInstruction,
   DrawCalloutInstruction,
   ElementMeta,
@@ -242,5 +245,192 @@ describe("SlideAnnotationLayer", () => {
     expect(
       layer?.querySelector('[data-annotation-type="pin_label"]'),
     ).toBeNull();
+  });
+});
+
+// ── Phase 1: multi-kind targets + live-DOM resolution ─────────
+
+describe("SlideAnnotationLayer — multi-kind targets", () => {
+  it("legacy target_element_id is treated as kind=id and stamps data-target-kind", () => {
+    const dictionary: Record<string, ElementMeta> = {
+      side_AB: meta([10, 20, 100, 50], { role: "hypotenuse" }),
+    };
+    const instr: PinLabelInstruction = {
+      type: "pin_label",
+      target_element_id: "side_AB",
+      text: "10m",
+    };
+    const { container } = renderLayer([instr], dictionary);
+    const pin = container.querySelector('[data-annotation-type="pin_label"]');
+    expect(pin?.getAttribute("data-target-kind")).toBe("id");
+  });
+
+  it("resolves a role-kind target via the dictionary when DOM lookup misses", () => {
+    const dictionary: Record<string, ElementMeta> = {
+      side_AB: meta([10, 20, 100, 50], { role: "hypotenuse" }),
+    };
+    const target: AnnotationTarget = { kind: "role", value: "hypotenuse" };
+    const instr: PinLabelInstruction = {
+      type: "pin_label",
+      target_element_id: "side_AB",
+      target,
+      text: "10m",
+    };
+    const { container } = renderLayer([instr], dictionary);
+    const pin = container.querySelector('[data-annotation-type="pin_label"]');
+    expect(pin).not.toBeNull();
+    expect(pin?.getAttribute("data-target-kind")).toBe("role");
+    // Falls back to dictionary bounds since no stageRef in this render —
+    // position math centers over x=10, w=100 → text x = 60.
+    const text = pin?.querySelector(".sb-annot-pin-text");
+    expect(text?.getAttribute("x")).toBe("60");
+  });
+
+  it("drops the annotation when neither DOM nor dictionary can locate the target", () => {
+    const target: AnnotationTarget = {
+      kind: "color",
+      value: "#ff0000",
+    };
+    const instr: PinLabelInstruction = {
+      type: "pin_label",
+      target_element_id: "irrelevant",
+      target,
+      text: "red line",
+    };
+    const { container } = renderLayer([instr], {});
+    // Layer mounts but nothing inside — no DOM scope to query, no
+    // dictionary entry matches.
+    expect(
+      container.querySelector('[data-annotation-type="pin_label"]'),
+    ).toBeNull();
+  });
+});
+
+describe("SlideAnnotationLayer — live-DOM resolution", () => {
+  /**
+   * Live-DOM resolution test harness. JSDOM's `getBoundingClientRect`
+   * and `SVGSVGElement.getScreenCTM` return degenerate values, so we
+   * stub them with a known mapping to assert the conversion path:
+   *
+   *   screen (200, 100, 50, 30) × identity-CTM = viewBox (200, 100, 50, 30)
+   *
+   * The point of the test is to confirm: (a) the layer queries the
+   * stage subtree for `[data-design-element]`, (b) it converts client
+   * rects through `getScreenCTM().inverse()`, (c) the result feeds the
+   * annotation positioning math.
+   */
+  function HarnessWithStage({
+    annotations,
+    dictionary,
+  }: {
+    annotations: readonly AnnotationInstruction[];
+    dictionary: Record<string, ElementMeta>;
+  }) {
+    const stageRef = useRef<HTMLDivElement>(null);
+    return (
+      <div ref={stageRef}>
+        {/* Simulated rendered diagram: just the data-design-element nodes. */}
+        <svg viewBox={VIEW_BOX} data-testid="diagram-svg">
+          <rect
+            data-design-element="side_AB"
+            x={0}
+            y={0}
+            width={1}
+            height={1}
+          />
+        </svg>
+        <SlideAnnotationLayer
+          viewBox={VIEW_BOX}
+          dictionary={dictionary}
+          annotations={annotations}
+          stageRef={stageRef}
+        />
+      </div>
+    );
+  }
+
+  function stubLiveBounds(rect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) {
+    // Stub the target element's screen rect.
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
+      function (this: Element) {
+        if (this.getAttribute("data-design-element") === "side_AB") {
+          return {
+            x: rect.x,
+            y: rect.y,
+            left: rect.x,
+            top: rect.y,
+            right: rect.x + rect.width,
+            bottom: rect.y + rect.height,
+            width: rect.width,
+            height: rect.height,
+            toJSON() {
+              return this;
+            },
+          } as DOMRect;
+        }
+        return new DOMRect(0, 0, 0, 0);
+      },
+    );
+
+    // JSDOM lacks SVGGraphicsElement.getScreenCTM / SVGSVGElement.createSVGPoint.
+    // Install them directly on the prototype with identity-CTM stubs so the
+    // screen → viewBox conversion is a pass-through in tests.
+    const identity = {
+      a: 1,
+      b: 0,
+      c: 0,
+      d: 1,
+      e: 0,
+      f: 0,
+      inverse() {
+        return identity;
+      },
+    };
+    // @ts-expect-error — patching missing JSDOM members
+    SVGGraphicsElement.prototype.getScreenCTM = function () {
+      return identity as unknown as DOMMatrix;
+    };
+    // @ts-expect-error — patching missing JSDOM members
+    SVGSVGElement.prototype.createSVGPoint = function () {
+      const pt = {
+        x: 0,
+        y: 0,
+        matrixTransform() {
+          return { x: pt.x, y: pt.y } as DOMPoint;
+        },
+      };
+      return pt as unknown as DOMPoint;
+    };
+  }
+
+  it("uses live getBoundingClientRect via screenCTM when stageRef finds the element", async () => {
+    stubLiveBounds({ x: 200, y: 100, width: 50, height: 30 });
+    const dictionary: Record<string, ElementMeta> = {
+      // Stale dictionary bounds — should be ignored when live DOM resolves.
+      side_AB: meta([0, 0, 1, 1], { role: "hypotenuse" }),
+    };
+    const instr: PinLabelInstruction = {
+      type: "pin_label",
+      target_element_id: "side_AB",
+      text: "10m",
+      position: "below",
+    };
+
+    const { container, findByTestId } = render(
+      <HarnessWithStage annotations={[instr]} dictionary={dictionary} />,
+    );
+    await findByTestId("diagram-svg");
+
+    // Wait one effect cycle so `useResolvedBounds` runs.
+    await new Promise((r) => setTimeout(r, 0));
+
+    const text = container.querySelector(".sb-annot-pin-text");
+    // Live bounds: x=200, y=100, w=50, h=30 → text centered at x=225.
+    expect(text?.getAttribute("x")).toBe("225");
   });
 });

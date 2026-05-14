@@ -5,7 +5,7 @@
  * stroke-reveals the diagram on arrival. Cross-fades between slides.
  */
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import type { VisualInstruction } from "../../../types/visuals";
 import type { SlideState, SlideSketch } from "./types";
 import { DraftingLoader } from "./DraftingLoader";
@@ -35,6 +35,12 @@ function liveTitleFor(instr: VisualInstruction): {
 export function SlidePanel({ state }: SlidePanelProps) {
   const { status, active, pendingTitle, liveInstruction, annotations } = state;
 
+  // Live-DOM bounds anchor: the annotation layer queries this subtree for
+  // `[data-design-element]` and reads `getBoundingClientRect()` instead of
+  // trusting the LLM-estimated `spec.dictionary[id].bounds` (Phase 1 of
+  // the diagram-awareness re-architecture).
+  const stageRef = useRef<HTMLDivElement>(null);
+
   // Only design diagrams carry the semantic dictionary; the overlay layer is
   // a no-op for legacy diagram types since it has nothing to anchor against.
   const designDiagram =
@@ -58,7 +64,7 @@ export function SlidePanel({ state }: SlidePanelProps) {
         <span className="sb-slide-subtitle">{headerSubtitle || "\u00A0"}</span>
       </div>
 
-      <div className="sb-slide-stage">
+      <div className="sb-slide-stage" ref={stageRef}>
         {status === "loading" && (
           <DraftingLoader
             caption={
@@ -79,6 +85,7 @@ export function SlidePanel({ state }: SlidePanelProps) {
             viewBox={`0 0 ${designDiagram.spec?.width ?? 900} ${designDiagram.spec?.height ?? 650}`}
             dictionary={designDiagram.spec?.dictionary}
             annotations={annotations ?? []}
+            stageRef={stageRef}
           />
         )}
         {status === "ready" && !liveInstruction && active && (
