@@ -262,6 +262,126 @@ def _schedule_annotation_verification(
     )
 
 
+def _make_perception_feedback_callback(
+    tc: TeachingContext,
+    concept_index: int,
+    audit_category: str,
+    audit_detail: str,
+) -> Any:
+    """Build the on_feedback closure used by the diagram verification helpers.
+
+    Stale-feedback guard + 2-per-concept budget cap. Shared between intent and
+    layout verifications so a single low-intent + low-layout combo on one
+    diagram doesn't blow the budget — they enqueue, count, and stop together.
+    """
+
+    def _on_feedback(feedback: Any, result: Any) -> None:
+        if tc.current_concept_index != concept_index:
+            return
+        used = tc.perception_feedback_budget_used.get(concept_index, 0)
+        if used >= 2:
+            tc.audit.record(
+                audit_category,
+                "budget_exceeded",
+                audit_detail,
+            )
+            return
+        tc.perception_feedback_queue.append(feedback)
+        tc.perception_feedback_budget_used[concept_index] = used + 1
+
+    return _on_feedback
+
+
+def _schedule_diagram_verification(
+    ctx: RunContext,
+    *,
+    tool_name: str,
+    element_id: str,
+    claim_text: str,
+    role_list: list[str],
+    do_intent: bool = True,
+) -> None:
+    """Phase 5a-2: fire-and-forget vision check after a diagram event.
+
+    For ``draw_design_diagram`` / ``modify_design_diagram`` (``do_intent=True``)
+    schedules BOTH a diagram-intent verification and a layout verification
+    against the same screenshot capture cycle. For ``draw_scene``
+    (``do_intent=False``) schedules layout only — scenes are assembled from
+    a component library and the layout question is the relevant one.
+
+    Each emission gets its own ``version`` (init draw is 0, each subsequent
+    modify increments) so verification re-fires per modification. A per-
+    ``(element_id, version, concept_index)`` dedup prevents accidental
+    double-schedules; the 2-per-concept feedback budget is shared with
+    annotations.
+    """
+    from feynman.agent.teaching_context import DiagramClaim
+
+    tc: TeachingContext = ctx.userdata
+    if tc.board_verifier is None:
+        return
+
+    concept_index = tc.current_concept_index
+    # Version bookkeeping — initial draw is 0, each modify increments.
+    version = tc.diagram_version.get(element_id, -1) + 1
+    tc.diagram_version[element_id] = version
+    tc.last_diagram_claims[element_id] = DiagramClaim(
+        element_id=element_id,
+        claim_text=claim_text,
+        tool_name=tool_name,
+        version=version,
+    )
+
+    dedup_key = (element_id, version, concept_index)
+
+    on_feedback = _make_perception_feedback_callback(
+        tc,
+        concept_index,
+        audit_category="diagram_verification",
+        audit_detail=(
+            f"diagram={element_id}, version={version}, tool={tool_name}, concept={concept_index}"
+        ),
+    )
+
+    if do_intent and dedup_key not in tc.diagram_intent_verified:
+        tc.diagram_intent_verified.add(dedup_key)
+        asyncio.create_task(  # noqa: RUF006
+            tc.board_verifier.request_diagram_intent_verification(
+                tool_name=tool_name,
+                original_claim=claim_text,
+                target_diagram_id=element_id,
+                diagram_version=version,
+                role_list=role_list,
+                concept_index=concept_index,
+                on_feedback=on_feedback,
+            ),
+            name="diagram_intent_verification",
+        )
+
+    if dedup_key not in tc.diagram_layout_verified:
+        tc.diagram_layout_verified.add(dedup_key)
+        board_ctx = tc.board_manager.active_board.state.summary()
+        asyncio.create_task(  # noqa: RUF006
+            tc.board_verifier.request_verification(
+                element_id=element_id,
+                concept_index=concept_index,
+                board_context=board_ctx,
+                on_feedback=on_feedback,
+                original_claim=claim_text,
+            ),
+            name="diagram_layout_verification",
+        )
+
+    logger.info(
+        "diagram_verification.scheduled",
+        tool=tool_name,
+        diagram=element_id,
+        version=version,
+        do_intent=do_intent,
+        concept=concept_index,
+    )
+
+
 async def _publish_visual(
     ctx: RunContext,
     instruction: _BaseInstruction,
@@ -1594,22 +1714,20 @@ prompt's natural-language doesn't make that obvious to the auto-heuristic.
     sub_ids = [el.get("id") for el in spec.get("elements", []) if el.get("id")]
     eid = instruction.element_id  # e.g. "design-1"
 
-    # Background visual verification (at most once per concept).
-    if tc.board_verifier and not tc._verified_this_concept:
-        board_ctx = tc.board_manager.active_board.state.summary()
-        _verify_task = asyncio.create_task(  # noqa: RUF006
-            tc.board_verifier.request_verification(
-                element_id=eid,
-                concept_index=tc.current_concept_index,
-                board_context=board_ctx,
-            )
-        )
-        tc._verified_this_concept = True
-        logger.info(
-            "visual_verification.fired",
-            element_id=eid,
-            concept=tc.current_concept_index,
-        )
+    # Phase 5a-2: schedule intent + layout verification against the rendered
+    # diagram. Replaces the single-shot _verified_this_concept guard; each
+    # subsequent modify_design_diagram gets its own version + verification.
+    role_list = [
+        getattr(meta, "role", None) or (meta.get("role") if isinstance(meta, dict) else None) or ""
+        for meta in (spec.get("dictionary") or {}).values()
+    ]
+    _schedule_diagram_verification(
+        ctx,
+        tool_name="draw_design_diagram",
+        element_id=eid,
+        claim_text=prompt,
+        role_list=[r for r in role_list if r],
+    )
 
     result = f'Drew design diagram (element_id: "{eid}"): {title or prompt[:80]}'
     if sub_ids:
@@ -1746,6 +1864,21 @@ to keep it in place.
     # Collect sub-element IDs.
     sub_ids = [el.get("id") for el in modified_spec.get("elements", []) if el.get("id")]
 
+    # Phase 5a-2: schedule intent + layout verification of the modification.
+    # The modification text is the agent's claim; vision checks whether it
+    # actually landed on the board.
+    role_list = [
+        getattr(meta, "role", None) or (meta.get("role") if isinstance(meta, dict) else None) or ""
+        for meta in (modified_spec.get("dictionary") or {}).values()
+    ]
+    _schedule_diagram_verification(
+        ctx,
+        tool_name="modify_design_diagram",
+        element_id=target_id,
+        claim_text=modification,
+        role_list=[r for r in role_list if r],
+    )
+
     result = f'Modified design diagram (element_id: "{target_id}"): {modification[:80]}'
     if sub_ids:
         result += (
@@ -1828,8 +1961,6 @@ The system computes exact position. Prefer this over zone.
         size_hint: Expected size: "small", "medium" (default), "large". \
 Helps the system check fit before placing.
     """
-    tc: TeachingContext = ctx.userdata
-
     # Parse semantic elements — graceful on malformed JSON.
     elements: list[dict] = []
     if elements_json:
@@ -1867,22 +1998,17 @@ Helps the system check fit before placing.
         duration_s = (800 + len(validated_elements) * 150) / 1000.0
         await asyncio.sleep(duration_s)
 
-        # Background visual verification (at most once per concept).
-        if tc.board_verifier and not tc._verified_this_concept:
-            eid = instruction.element_id
-            board_ctx = tc.board_manager.active_board.state.summary()
-            _verify_task = asyncio.create_task(  # noqa: RUF006
-                tc.board_verifier.request_verification(
-                    element_id=eid,
-                    concept_index=tc.current_concept_index,
-                    board_context=board_ctx,
-                )
-            )
-            tc._verified_this_concept = True
-            logger.info(
-                "visual_verification.fired",
-                element_id=eid,
-                concept=tc.current_concept_index,
+        # Phase 5a-2: layout-only verification (scenes are assembled from a
+        # deterministic component library, so intent matching is less useful
+        # than for design-agent diagrams).
+        if instruction.element_id:
+            _schedule_diagram_verification(
+                ctx,
+                tool_name="draw_scene",
+                element_id=instruction.element_id,
+                claim_text=title or description or scene_type,
+                role_list=[],
+                do_intent=False,
             )
 
         label = title or description or scene_type
@@ -1929,22 +2055,15 @@ Helps the system check fit before placing.
     duration_s = _SCENE_DURATION_MS.get(template_id, 1000) / 1000.0
     await asyncio.sleep(duration_s)
 
-    # Background visual verification (at most once per concept).
-    if tc.board_verifier and not tc._verified_this_concept:
-        eid = instruction.element_id
-        board_ctx = tc.board_manager.active_board.state.summary()
-        _verify_task = asyncio.create_task(  # noqa: RUF006
-            tc.board_verifier.request_verification(
-                element_id=eid,
-                concept_index=tc.current_concept_index,
-                board_context=board_ctx,
-            )
-        )
-        tc._verified_this_concept = True
-        logger.info(
-            "visual_verification.fired",
-            element_id=eid,
-            concept=tc.current_concept_index,
+    # Phase 5a-2: layout-only verification (see semantic path above).
+    if instruction.element_id:
+        _schedule_diagram_verification(
+            ctx,
+            tool_name="draw_scene",
+            element_id=instruction.element_id,
+            claim_text=title or description or template_id,
+            role_list=[],
+            do_intent=False,
         )
 
     label = title or description or template_id
@@ -2000,12 +2119,15 @@ async def advance_concept(ctx: RunContext) -> str:
 
     next_concept = tc.advance()
 
-    # Reset verification guard for the new concept.
-    tc._verified_this_concept = False
     # Phase 5a-1: any unconsumed perception feedback was for the previous
     # concept's diagram + annotations — drop it. New concept gets a fresh
     # budget (the per-concept counter dict is keyed by concept_index).
     tc.perception_feedback_queue.clear()
+    # Phase 5a-2: the diagram-intent / layout-verification dedup sets are also
+    # per-concept — clear so the new concept can re-verify any diagrams that
+    # carry over (the version counters persist; only the verified flags reset).
+    tc.diagram_intent_verified.clear()
+    tc.diagram_layout_verified.clear()
 
     if next_concept is not None:
         # Create a new board for the next concept.

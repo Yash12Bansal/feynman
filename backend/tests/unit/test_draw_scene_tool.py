@@ -176,6 +176,9 @@ def _make_mock_ctx() -> MagicMock:
     userdata.board_manager = BoardManager()
     userdata.current_concept = None
     userdata.lesson_plan = None
+    # Phase 5a-2: short-circuit the diagram-verification scheduler — these
+    # tests don't exercise the perception loop.
+    userdata.board_verifier = None
     ctx.userdata = userdata
 
     return ctx

@@ -98,3 +98,52 @@ def test_each_message_has_perception_feedback_prefix() -> None:
     for msg in chat_ctx.messages:
         assert msg["role"] == "user"
         assert msg["content"].startswith("[PERCEPTION_FEEDBACK]")
+
+
+# ── Phase 5a-2: diagram-flavoured feedback ─────────────────
+
+
+def _make_diagram_feedback(
+    tool_name: str = "draw_design_diagram",
+    claim: str = "block on ramp",
+    modification: str = "Add a ramp at 30°",
+    diagram_id: str = "design-1",
+) -> PerceptionFeedback:
+    return PerceptionFeedback(
+        tool_name=tool_name,
+        original_claim=claim,
+        score=1,
+        issue="ramp is missing",
+        suggested_modification=modification,
+        target_diagram_id=diagram_id,
+    )
+
+
+def test_diagram_feedback_injects_with_modify_call_syntax() -> None:
+    tc = _make_tc()
+    tc.perception_feedback_queue.append(_make_diagram_feedback())
+    chat_ctx = _FakeChatCtx()
+    count = drain_perception_feedback(tc, chat_ctx)  # type: ignore[arg-type]
+    assert count == 1
+    assert len(chat_ctx.messages) == 1
+    msg = chat_ctx.messages[0]
+    assert msg["role"] == "user"
+    assert msg["content"].startswith("[PERCEPTION_FEEDBACK]")
+    assert 'modify_design_diagram(target_id="design-1"' in msg["content"]
+    assert "Add a ramp at 30°" in msg["content"]
+
+
+def test_mixed_annotation_and_diagram_queue_drains_in_order() -> None:
+    """Annotation + diagram feedback in one drain — both prefixed; second has modify call."""
+    tc = _make_tc()
+    tc.perception_feedback_queue.append(_make_feedback(claim="hypotenuse", suggestion="side_AB"))
+    tc.perception_feedback_queue.append(_make_diagram_feedback())
+    chat_ctx = _FakeChatCtx()
+    drain_perception_feedback(tc, chat_ctx)  # type: ignore[arg-type]
+    assert len(chat_ctx.messages) == 2
+    for msg in chat_ctx.messages:
+        assert msg["content"].startswith("[PERCEPTION_FEEDBACK]")
+    # Order preserved: annotation first (inline tag), diagram second (modify call).
+    assert "<highlight" in chat_ctx.messages[0]["content"]
+    assert "modify_design_diagram(" in chat_ctx.messages[1]["content"]
+    assert "modify_design_diagram(" not in chat_ctx.messages[0]["content"]

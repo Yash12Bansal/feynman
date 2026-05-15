@@ -16,6 +16,22 @@ from feynman.agent.session_audit import SessionAudit
 from feynman.agent.state_machine import TeachingStateMachine
 
 
+@dataclass(frozen=True)
+class DiagramClaim:
+    """The agent's stated intent for a diagram event, frozen at schedule time.
+
+    Without this snapshot the verification path has nothing to compare the
+    rendered screen against — :class:`DiagramSpec` retains only the design
+    agent's derived ``title``/``description`` after generation, never the
+    original ``prompt`` or ``modification`` string the agent passed in.
+    """
+
+    element_id: str
+    claim_text: str  # prompt for draw_design_diagram, modification for modify_design_diagram
+    tool_name: str  # "draw_design_diagram" | "modify_design_diagram"
+    version: int  # 0 for the initial draw; increments per modify
+
+
 @dataclass
 class TeachingContext:
     """Mutable teaching state accessible by all tools via RunContext.userdata.
@@ -35,14 +51,21 @@ class TeachingContext:
     doubt_orchestrator: DoubtOrchestrator = field(init=False)
     curriculum: Any | None = None  # CurriculumData from curriculum_loader (Neo4j)
     board_verifier: Any | None = None  # BoardVerifier (set by worker.py at session start)
-    _verified_this_concept: bool = field(default=False, init=False, repr=False)
     # Phase 5a-1 perception loop: queue drained by FeynmanAgent.llm_node into
     # chat_ctx before each LLM turn. Budget caps enqueues per concept (2) to
     # prevent retry spirals. Dedup set prevents the same emission from being
-    # verified twice.
+    # verified twice. Phase 5a-2 reuses this same queue + budget for diagram
+    # feedback (annotations and diagrams share one cap).
     perception_feedback_queue: list[PerceptionFeedback] = field(default_factory=list)
     perception_feedback_budget_used: dict[int, int] = field(default_factory=dict)
     annotation_verified: set[tuple[str, str, int]] = field(default_factory=set)
+    # Phase 5a-2 diagram-awareness verification — replaces the legacy single-shot
+    # ``_verified_this_concept`` flag. Each modification gets its own version
+    # so verification runs after every diagram event, not just the first.
+    last_diagram_claims: dict[str, DiagramClaim] = field(default_factory=dict)
+    diagram_version: dict[str, int] = field(default_factory=dict)
+    diagram_intent_verified: set[tuple[str, int, int]] = field(default_factory=set)
+    diagram_layout_verified: set[tuple[str, int, int]] = field(default_factory=set)
     # Planning agent: pre-computed teaching plans per concept index.
     concept_plans: dict[int, ConceptTeachingPlan] = field(default_factory=dict)
     doubt_plan: ConceptTeachingPlan | None = None

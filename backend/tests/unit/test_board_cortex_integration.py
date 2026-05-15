@@ -46,7 +46,6 @@ def _make_mock_ctx(board_manager: BoardManager | None = None) -> MagicMock:
     userdata.lesson_plan = None
     userdata.current_concept_index = 0
     userdata.board_verifier = None
-    userdata._verified_this_concept = False
     ctx.userdata = userdata
     return ctx
 
@@ -121,7 +120,9 @@ class TestMassiveElement:
         """Snapshot with massive element still labels free region."""
         solver = SpatialSolver()
         solver.update_occupied("big", Rect(0, 0, 1536, 1080))
-        snapshot = generate_snapshot(solver, {"big": MagicMock(type="draw_design_diagram", label="Big Diagram")})
+        snapshot = generate_snapshot(
+            solver, {"big": MagicMock(type="draw_design_diagram", label="Big Diagram")}
+        )
         assert "(empty)" in snapshot
 
 
@@ -404,16 +405,19 @@ class TestScenarioPlacementIntegration:
 
         # Tool 3: Step equation
         from feynman.visuals.schemas import EquationStep
-        instr3 = StepEquationInstruction(steps=[
-            EquationStep(latex="F = ma"),
-            EquationStep(latex="a = F/m"),
-        ])
+
+        instr3 = StepEquationInstruction(
+            steps=[
+                EquationStep(latex="F = ma"),
+                EquationStep(latex="a = F/m"),
+            ]
+        )
         await _publish_visual(ctx, instr3)
 
         # All should be positioned
         for i, instr in enumerate([instr1, instr2, instr3]):
-            assert instr.position_x is not None, f"Instruction {i+1} not positioned"
-            assert instr.position_y is not None, f"Instruction {i+1} not positioned"
+            assert instr.position_x is not None, f"Instruction {i + 1} not positioned"
+            assert instr.position_y is not None, f"Instruction {i + 1} not positioned"
 
         # Verify no pairwise overlap using solver's occupied rects
         occupied = board_state.spatial_solver.occupied
