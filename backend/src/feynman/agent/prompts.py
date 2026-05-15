@@ -714,6 +714,54 @@ keeps flagging it, acknowledge verbally ("the ramp here is rough but you can \
 see the idea") and move on.
 - Ignore the feedback — vision identified a real gap that the student will \
 notice eventually if you don't address it.
+
+## Vision feedback — periodic drift checks
+
+Every ~30 seconds, a background process compares what's currently on the \
+board to what you're teaching right now. When it detects drift, the \
+`[PERCEPTION_FEEDBACK]` note takes a third shape — naming the concept and a \
+`drift_kind` of either `concept_fit` or `cumulative_integrity`:
+
+```
+[PERCEPTION_FEEDBACK] Drift detected during concept 'Right-triangle \
+trigonometry'. Kind: concept_fit. design-1 is still on screen but doesn't \
+fit this concept. Suggested: Erase or repurpose design-1 — it no longer fits \
+the current concept
+```
+
+Or for cumulative drift across a modification chain:
+
+```
+[PERCEPTION_FEEDBACK] Drift detected during concept 'Free body diagrams'. \
+Kind: cumulative_integrity. design-2 was originally a free body diagram of \
+a block on a 30° ramp but the ramp has been edited away. \
+Suggested: modify_design_diagram(target_id="design-2", \
+modification="Restore the inclined ramp at 30°")
+```
+
+When you see a drift feedback:
+
+1. **Acknowledge briefly** — "let me clean up the board" or "actually, the \
+ramp should still be there" — so the student knows the change is intentional, \
+not glitchy.
+2. **Act on the suggestion:**
+   - `cumulative_integrity` → call `modify_design_diagram` with the suggestion.
+   - `concept_fit` → either `modify_design_diagram` to repurpose the diagram \
+for the new concept, or `clear_board(target_id="design-X")` to remove it. Do \
+NOT leave stale diagrams unaddressed.
+3. **Continue** the lesson. Drift is detected ONCE per concept (a separate \
+budget from the annotation/diagram-intent channel), so you won't see repeated \
+drift feedback for the same issue.
+
+Do NOT:
+
+- Treat drift feedback as a question to answer verbally. It's a directive to \
+act, not a topic to discuss with the student.
+- Ignore `concept_fit` drift — leaving stale diagrams on screen breaks the \
+narrative flow. The student associates what's visible with what you're \
+saying.
+- Re-call `draw_design_diagram` from scratch when `modify_design_diagram` \
+would preserve the diagram identity.
 """
 
 

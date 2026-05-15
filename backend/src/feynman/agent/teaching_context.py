@@ -66,6 +66,19 @@ class TeachingContext:
     diagram_version: dict[str, int] = field(default_factory=dict)
     diagram_intent_verified: set[tuple[str, int, int]] = field(default_factory=set)
     diagram_layout_verified: set[tuple[str, int, int]] = field(default_factory=set)
+    # Phase 5a-3 periodic drift check: the FIRST claim ever made for an element
+    # via draw_design_diagram is retained here; modifications never overwrite.
+    # Used by cumulative-claim verification so we can compare original intent
+    # vs current board state regardless of modification chain depth.
+    original_diagram_claims: dict[str, str] = field(default_factory=dict)
+    # State hash of (concept_index, sorted element_ids, versions) at the time
+    # of the last successful drift check. If the next tick finds the same
+    # hash, the Haiku call is skipped (audited as drift_check.skipped_unchanged).
+    last_drift_check_hash: str | None = None
+    # Per-concept budget for drift feedback (independent of the 5a-1/5a-2
+    # 2-per-concept budget). Default cap is 1 — drift is informational and
+    # we don't want it crowding the corrective channel.
+    drift_feedback_budget_used: dict[int, int] = field(default_factory=dict)
     # Planning agent: pre-computed teaching plans per concept index.
     concept_plans: dict[int, ConceptTeachingPlan] = field(default_factory=dict)
     doubt_plan: ConceptTeachingPlan | None = None
@@ -153,6 +166,10 @@ class TeachingContext:
         self.curriculum = None
         self.concept_plans = {}
         self.doubt_plan = None
+        # Phase 5a-3: drift state is per-topic; clear on topic reset.
+        self.original_diagram_claims.clear()
+        self.last_drift_check_hash = None
+        self.drift_feedback_budget_used.clear()
 
     @property
     def current_curriculum_concept(self) -> Any | None:

@@ -14,6 +14,7 @@ Systems tracked:
 - layout:           zone_missing
 - modify_diagram:   modified (with timing)
 - doubt:            background_gen_fired, visual_ready_before_needed, fallback_to_scene
+- drift_check:      completed (Phase 5a-3), skipped_*, screenshot_timeout, error
 """
 
 from __future__ import annotations
@@ -108,9 +109,12 @@ class SessionAudit:
         if curr:
             curriculum_summary = {
                 "source": (
-                    "ConceptGraph" if curr.get("graph_loaded", 0) > 0
-                    else "LessonPlan (runtime)" if curr.get("graph_missing_fallback_runtime", 0) > 0
-                    else "FAILED" if curr.get("plan_failed", 0) > 0
+                    "ConceptGraph"
+                    if curr.get("graph_loaded", 0) > 0
+                    else "LessonPlan (runtime)"
+                    if curr.get("graph_missing_fallback_runtime", 0) > 0
+                    else "FAILED"
+                    if curr.get("plan_failed", 0) > 0
                     else "unknown"
                 ),
             }
@@ -128,8 +132,10 @@ class SessionAudit:
                 "cache_misses": misses,
                 "hit_rate": f"{hits / total * 100:.0f}%" if total > 0 else "N/A",
                 "source": (
-                    "ConceptGraph" if ant.get("source_graph", 0) > 0
-                    else "LessonPlan" if ant.get("source_plan", 0) > 0
+                    "ConceptGraph"
+                    if ant.get("source_graph", 0) > 0
+                    else "LessonPlan"
+                    if ant.get("source_plan", 0) > 0
                     else "none"
                 ),
             }
@@ -181,19 +187,12 @@ class SessionAudit:
         if mod:
             mod_count = mod.get("modified", 0)
             mod_events = [
-                e for e in self._events
-                if e.system == "modify_diagram" and e.event == "modified"
+                e for e in self._events if e.system == "modify_diagram" and e.event == "modified"
             ]
             elapsed_values = [
-                e.metadata["elapsed_ms"]
-                for e in mod_events
-                if e.metadata.get("elapsed_ms")
+                e.metadata["elapsed_ms"] for e in mod_events if e.metadata.get("elapsed_ms")
             ]
-            avg_ms = (
-                sum(elapsed_values) / len(elapsed_values)
-                if elapsed_values
-                else 0
-            )
+            avg_ms = sum(elapsed_values) / len(elapsed_values) if elapsed_values else 0
             modify_summary = {
                 "modifications": mod_count,
                 "avg_time_ms": round(avg_ms),
@@ -209,6 +208,38 @@ class SessionAudit:
                 "fallback_to_scene": dbt.get("fallback_to_scene", 0),
             }
 
+        # ── Drift check (Phase 5a-3) ──────────────────────────────
+        drift_events = systems.get("drift_check", {}).get("events", {})
+        drift_summary = None
+        if drift_events:
+            completed = drift_events.get("completed", 0)
+            skipped_total = sum(
+                count for event, count in drift_events.items() if event.startswith("skipped_")
+            )
+            # Detected-drift counts come from completed-event details where
+            # is_consistent=False appears in the detail string.
+            drift_detected = 0
+            by_kind: dict[str, int] = {
+                "concept_fit": 0,
+                "cumulative_integrity": 0,
+                "both": 0,
+            }
+            for evt in self._events:
+                if evt.system != "drift_check" or evt.event != "completed":
+                    continue
+                if "is_consistent=False" in evt.detail:
+                    drift_detected += 1
+                    for kind in by_kind:
+                        if f"drift_kind={kind}" in evt.detail:
+                            by_kind[kind] += 1
+                            break
+            drift_summary = {
+                "checks_run": completed,
+                "checks_skipped": skipped_total,
+                "drift_detected": drift_detected,
+                "by_kind": by_kind,
+            }
+
         return {
             "elapsed_seconds": round(elapsed, 1),
             "total_events": len(self._events),
@@ -220,6 +251,7 @@ class SessionAudit:
             "layout": layout_summary,
             "modify": modify_summary,
             "doubt": doubt_summary,
+            "drift": drift_summary,
             "systems": systems,
         }
 
@@ -264,7 +296,9 @@ class SessionAudit:
         # Board graph
         if data.get("board_graph"):
             bg = data["board_graph"]
-            orphan_status = f" [WARNING: {bg['orphan_elements']} orphans]" if bg["orphan_elements"] else ""
+            orphan_status = (
+                f" [WARNING: {bg['orphan_elements']} orphans]" if bg["orphan_elements"] else ""
+            )
             lines.append(
                 f"BOARD GRAPH: {bg['edges_declared']} edges declared, "
                 f"{bg['orphan_elements']} orphan elements{orphan_status}"
@@ -293,8 +327,7 @@ class SessionAudit:
         if data.get("modify"):
             mod = data["modify"]
             lines.append(
-                f"MODIFY: {mod['modifications']} modifications | "
-                f"Avg time: {mod['avg_time_ms']}ms"
+                f"MODIFY: {mod['modifications']} modifications | Avg time: {mod['avg_time_ms']}ms"
             )
 
         # Doubt
@@ -304,6 +337,19 @@ class SessionAudit:
                 f"DOUBT: bg_gen={dbt['background_gen_fired']}, "
                 f"ready_before_needed={dbt['visual_ready_before_needed']}, "
                 f"fallback={dbt['fallback_to_scene']}"
+            )
+
+        # Drift check (Phase 5a-3)
+        if data.get("drift"):
+            drift = data["drift"]
+            kind_str = ", ".join(
+                f"{kind}={count}" for kind, count in drift["by_kind"].items() if count
+            )
+            kind_suffix = f" ({kind_str})" if kind_str else ""
+            lines.append(
+                f"DRIFT: {drift['checks_run']} checks run, "
+                f"{drift['checks_skipped']} skipped, "
+                f"{drift['drift_detected']} drift detected{kind_suffix}"
             )
 
         lines.append("══════════════════════════════════════════════════════════")

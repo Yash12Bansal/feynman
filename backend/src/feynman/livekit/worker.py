@@ -6,9 +6,10 @@ cd backend && uv run python -m feynman.livekit.worker dev
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 from collections.abc import AsyncGenerator, AsyncIterable, Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import structlog
@@ -16,9 +17,10 @@ from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
 from feynman.agent.action_tag_parser import ActionTag, ActionTagParser
-from feynman.agent.board_verifier import BoardVerifier
+from feynman.agent.board_verifier import BoardVerifier, PerceptionFeedback
 from feynman.agent.concept_planner import plan_concept
 from feynman.agent.curriculum_loader import load_curriculum
+from feynman.agent.drift_state import build_element_summary, compute_drift_state_hash
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
 from feynman.livekit.action_tag_dispatch import dispatch_action_tag
@@ -76,6 +78,13 @@ from feynman.livekit.pipeline import create_llm, create_stt, create_tts, create_
 
 setup_logging(settings.log_level)
 logger = structlog.get_logger()
+
+# Phase 5a-3: periodic drift-check cadence. 30s balances detection latency
+# (caught within one student utterance window) against Haiku cost — combined
+# with the state-hash dedup in _should_run_drift_check, typical hourly call
+# count stays around 25-30 (~$0.05-0.10/hr).
+DRIFT_CHECK_INTERVAL_SECS = 30.0
+DRIFT_FEEDBACK_BUDGET_PER_CONCEPT = 1
 
 # All tools the agent can use — visual + state management
 ALL_TOOLS = [
@@ -165,6 +174,85 @@ def drain_perception_feedback(
     return count
 
 
+# ── Phase 5a-3: periodic drift check helpers ──────────────────
+
+
+def _should_run_drift_check(tc: TeachingContext) -> bool:
+    """Cheap pre-flight before spending a Haiku call on a drift check.
+
+    Audits each skip reason so the session summary can attribute Haiku-call
+    misses correctly (state-hash dedup vs no diagrams vs doubt branch etc.).
+    """
+    if tc.board_verifier is None:
+        return False
+    if tc.state_machine.depth > 1:
+        tc.audit.record("drift_check", "skipped_doubt_branch", "")
+        return False
+    if tc.current_concept is None:
+        tc.audit.record("drift_check", "skipped_no_concept", "")
+        return False
+    design_ids = list(tc.board_manager.active_board.state._design_specs.keys())
+    if not design_ids:
+        tc.audit.record("drift_check", "skipped_no_diagrams", "")
+        return False
+    used = tc.drift_feedback_budget_used.get(tc.current_concept_index, 0)
+    if used >= DRIFT_FEEDBACK_BUDGET_PER_CONCEPT:
+        tc.audit.record("drift_check", "skipped_budget", "")
+        return False
+    state_hash = compute_drift_state_hash(tc.current_concept_index, design_ids, tc.diagram_version)
+    if state_hash == tc.last_drift_check_hash:
+        tc.audit.record("drift_check", "skipped_unchanged", state_hash)
+        return False
+    return True
+
+
+async def _run_drift_check(tc: TeachingContext) -> None:
+    """Run one drift check against the current active-board state.
+
+    Snapshots concept context + element summary before the screenshot await
+    so a mid-flight concept advance can't corrupt the prompt. The on_feedback
+    closure re-checks ``current_concept_index`` at fire time as a stale guard.
+    """
+    concept = tc.current_concept
+    if concept is None:
+        return  # belt-and-suspenders; _should_run_drift_check already gated this
+    concept_index = tc.current_concept_index
+    concept_title = concept.title
+    concept_description = getattr(concept, "description", "") or ""
+    total_concepts = tc.lesson_plan.total_concepts if tc.lesson_plan else 1
+    design_ids = list(tc.board_manager.active_board.state._design_specs.keys())
+    state_hash = compute_drift_state_hash(concept_index, design_ids, tc.diagram_version)
+    element_summary = build_element_summary(
+        design_ids, tc.original_diagram_claims, tc.diagram_version
+    )
+
+    def _on_feedback(fb: PerceptionFeedback, _result: Any) -> None:
+        # Stale-guard: the concept may have advanced while vision was running.
+        if tc.current_concept_index != concept_index:
+            tc.audit.record("drift_check", "feedback_stale", "")
+            return
+        used = tc.drift_feedback_budget_used.get(concept_index, 0)
+        if used >= DRIFT_FEEDBACK_BUDGET_PER_CONCEPT:
+            tc.audit.record("drift_check", "feedback_budget_full", "")
+            return
+        tc.perception_feedback_queue.append(fb)
+        tc.drift_feedback_budget_used[concept_index] = used + 1
+
+    result = await tc.board_verifier.request_drift_check(
+        concept_index=concept_index,
+        concept_title=concept_title,
+        concept_description=concept_description,
+        total_concepts=total_concepts,
+        element_summary=element_summary,
+        state_hash=state_hash,
+        on_feedback=_on_feedback,
+    )
+    # Only commit the dedup hash on a successful result. On timeout/exception
+    # result is None and the next tick retries against the same board state.
+    if result is not None:
+        tc.last_drift_check_hash = state_hash
+
+
 class FeynmanAgent(Agent):
     def __init__(
         self,
@@ -237,6 +325,27 @@ class FeynmanAgent(Agent):
         drain_perception_feedback(self._teaching_ctx, chat_ctx)
         async for chunk in Agent.default.llm_node(self, chat_ctx, tools, model_settings):
             yield chunk
+
+    async def _periodic_drift_check(self) -> None:
+        """Phase 5a-3: every 30s, ask vision if the board still fits the lesson.
+
+        Long-running background task — survives until the session shuts down
+        (cancelled in the ``finally`` block around ``session.start``). One bad
+        check never kills the loop; only ``CancelledError`` propagates out.
+        """
+        tc = self._teaching_ctx
+        while True:
+            try:
+                await asyncio.sleep(DRIFT_CHECK_INTERVAL_SECS)
+                if not _should_run_drift_check(tc):
+                    continue
+                await _run_drift_check(tc)
+            except asyncio.CancelledError:
+                logger.info("drift_check.cancelled")
+                raise
+            except Exception:
+                logger.warning("drift_check.failed", exc_info=True)
+                # Don't break — one bad check shouldn't kill the loop.
 
     async def on_enter(self) -> None:
         logger.info(
@@ -355,6 +464,14 @@ class FeynmanAgent(Agent):
             # Previously: if exception → continue without plan (free-form teaching)
             # Now: CurriculumNotFoundError propagates — session fails with clear error.
             # --- END COMMENTED OUT ---
+
+        # Phase 5a-3: periodic drift check runs in BOTH curriculum and
+        # free-form modes — _should_run_drift_check skips when there's no
+        # active concept, so the loop is a no-op until teaching begins.
+        self._drift_check_task = asyncio.create_task(
+            self._periodic_drift_check(),
+            name="periodic_drift_check",
+        )
 
         # Update instructions with lesson context
         prompt = build_teaching_prompt(
@@ -511,13 +628,24 @@ async def entrypoint(ctx: JobContext) -> None:
             return
         teaching_ctx.doubt_orchestrator.on_voice_emitted(text, branch.id)
 
-    await session.start(agent=agent, room=ctx.room)
-    logger.info(
-        "worker.session_started",
-        room_name=ctx.room.name,
-        topic=topic,
-        subject=subject,
-    )
+    try:
+        await session.start(agent=agent, room=ctx.room)
+        logger.info(
+            "worker.session_started",
+            room_name=ctx.room.name,
+            topic=topic,
+            subject=subject,
+        )
+    finally:
+        # Phase 5a-3: the drift-check loop is the only background task that
+        # runs forever — cancel it explicitly so a session shutdown doesn't
+        # leak the asyncio task. The warm/plan/rebuild tasks are one-shot
+        # and exit naturally.
+        drift_task = getattr(agent, "_drift_check_task", None)
+        if drift_task is not None and not drift_task.done():
+            drift_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await drift_task
 
 
 if __name__ == "__main__":

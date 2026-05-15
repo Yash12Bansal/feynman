@@ -1714,6 +1714,13 @@ prompt's natural-language doesn't make that obvious to the auto-heuristic.
     sub_ids = [el.get("id") for el in spec.get("elements", []) if el.get("id")]
     eid = instruction.element_id  # e.g. "design-1"
 
+    # Phase 5a-3: retain the FIRST draw prompt for this element_id so the
+    # periodic drift check has a stable cumulative-claim anchor regardless of
+    # how many modify_design_diagram calls follow. The if-guard means a
+    # rare element_id collision never overwrites the original.
+    if eid not in tc.original_diagram_claims:
+        tc.original_diagram_claims[eid] = prompt
+
     # Phase 5a-2: schedule intent + layout verification against the rendered
     # diagram. Replaces the single-shot _verified_this_concept guard; each
     # subsequent modify_design_diagram gets its own version + verification.
@@ -2128,6 +2135,11 @@ async def advance_concept(ctx: RunContext) -> str:
     # carry over (the version counters persist; only the verified flags reset).
     tc.diagram_intent_verified.clear()
     tc.diagram_layout_verified.clear()
+    # Phase 5a-3: invalidate the drift state hash so the next periodic tick
+    # runs a fresh check against the new concept (rather than skipping based
+    # on the old concept's hash). The budget dict is concept_index-keyed and
+    # naturally falls away; no clear needed.
+    tc.last_drift_check_hash = None
 
     if next_concept is not None:
         # Create a new board for the next concept.

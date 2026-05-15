@@ -147,3 +147,63 @@ def test_mixed_annotation_and_diagram_queue_drains_in_order() -> None:
     assert "<highlight" in chat_ctx.messages[0]["content"]
     assert "modify_design_diagram(" in chat_ctx.messages[1]["content"]
     assert "modify_design_diagram(" not in chat_ctx.messages[0]["content"]
+
+
+# ── Phase 5a-3: drift-flavoured feedback ─────────────────
+
+
+def _make_drift_feedback(
+    concept_title: str = "Right-triangle trigonometry",
+    drift_kind: str = "concept_fit",
+    issue: str = "stale ladder diagram on screen",
+    suggested_action: str = "Erase or repurpose design-1",
+    target_id: str | None = "design-1",
+) -> PerceptionFeedback:
+    return PerceptionFeedback(
+        tool_name="periodic_drift_check",
+        original_claim=concept_title,
+        score=0,
+        issue=issue,
+        drift_kind=drift_kind,
+        suggested_action=suggested_action,
+        target_diagram_id=target_id,
+    )
+
+
+def test_drift_feedback_injects_with_drift_detected_prefix() -> None:
+    tc = _make_tc()
+    tc.perception_feedback_queue.append(_make_drift_feedback())
+    chat_ctx = _FakeChatCtx()
+    count = drain_perception_feedback(tc, chat_ctx)  # type: ignore[arg-type]
+    assert count == 1
+    assert len(chat_ctx.messages) == 1
+    msg = chat_ctx.messages[0]
+    assert msg["role"] == "user"
+    assert msg["content"].startswith("[PERCEPTION_FEEDBACK] Drift detected")
+    assert "Right-triangle trigonometry" in msg["content"]
+    assert "Kind: concept_fit" in msg["content"]
+    assert "Erase or repurpose design-1" in msg["content"]
+    # Drift notes must not carry the diagram/annotation re-fire syntax.
+    assert "modify_design_diagram(target_id=" not in msg["content"]
+    assert "Re-point now:" not in msg["content"]
+
+
+def test_mixed_annotation_diagram_and_drift_queue_drains_in_order() -> None:
+    """All three flavours in one queue — each gets its own format."""
+    tc = _make_tc()
+    tc.perception_feedback_queue.append(_make_feedback(claim="hypotenuse", suggestion="side_AB"))
+    tc.perception_feedback_queue.append(_make_diagram_feedback())
+    tc.perception_feedback_queue.append(_make_drift_feedback())
+    chat_ctx = _FakeChatCtx()
+    drain_perception_feedback(tc, chat_ctx)  # type: ignore[arg-type]
+    assert len(chat_ctx.messages) == 3
+    for msg in chat_ctx.messages:
+        assert msg["content"].startswith("[PERCEPTION_FEEDBACK]")
+    # Order preserved across all three flavours.
+    assert "<highlight" in chat_ctx.messages[0]["content"]
+    assert "modify_design_diagram(" in chat_ctx.messages[1]["content"]
+    assert "Drift detected" in chat_ctx.messages[2]["content"]
+    # No cross-contamination of formats.
+    assert "Drift detected" not in chat_ctx.messages[0]["content"]
+    assert "Drift detected" not in chat_ctx.messages[1]["content"]
+    assert "modify_design_diagram(" not in chat_ctx.messages[2]["content"]
