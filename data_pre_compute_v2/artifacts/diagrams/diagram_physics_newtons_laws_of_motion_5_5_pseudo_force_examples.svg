@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="660" viewBox="0 0 900 660">
+<rect x="0" y="0" width="900" height="660" fill="#ffffff"/>
+<text id="title" x="450" y="36" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Pseudo Force Examples</text>
+<line id="col_div1" x1="300" y1="55" x2="300" y2="640" stroke="#ddd" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line id="col_div2" x1="600" y1="55" x2="600" y2="640" stroke="#ddd" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text id="ex1_title" x="150" y="68" font-size="14" fill="#1565c0" text-anchor="middle" font-weight="bold">1. Elevator (Accelerating Up)</text>
+<text id="ex2_title" x="450" y="68" font-size="14" fill="#6a1b9a" text-anchor="middle" font-weight="bold">2. Train (Accelerating Forward)</text>
+<text id="ex3_title" x="750" y="68" font-size="14" fill="#e65100" text-anchor="middle" font-weight="bold">3. Spinning Ride</text>
+<rect id="elev_shaft" x="80" y="90" width="140" height="280" rx="4" fill="#e3f2fd" stroke="#90a4ae" stroke-width="2"/>
+<rect id="elev_car" x="95" y="240" width="110" height="110" rx="6" fill="#bbdefb" stroke="#1565c0" stroke-width="3"/>
+<line id="elev_cable" x1="150" y1="90" x2="150" y2="240" stroke="#555" stroke-width="3" stroke-dasharray=""/>
+<rect id="person_body" x="135" y="270" width="30" height="55" rx="4" fill="#1565c0" stroke="#0d47a1" stroke-width="1.5"/>
+<circle id="person_head" cx="150" cy="263" r="10" fill="#ffcc80" stroke="#e65100" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_elev_accel_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1565c0"/></marker></defs><line id="elev_accel_arrow" x1="215" y1="290" x2="215" y2="245" stroke="#1565c0" stroke-width="2.5" marker-end="url(#arrowhead_elev_accel_arrow)"/>
+<text id="elev_accel_label" x="228" y="258" font-size="14" fill="#1565c0" font-style="italic" text-anchor="middle">a</text>
+<defs><marker id="arrowhead_elev_gravity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="elev_gravity" x1="150" y1="390" x2="150" y2="430" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_elev_gravity)"/>
+<text id="elev_gravity_label" x="162" y="438" font-size="13" fill="#4CAF50" font-style="italic" text-anchor="middle">mg</text>
+<defs><marker id="arrowhead_elev_pseudo" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="elev_pseudo" x1="150" y1="390" x2="150" y2="450" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_elev_pseudo)"/>
+<text id="elev_pseudo_label" x="162" y="458" font-size="12" fill="#D32F2F" font-style="italic" text-anchor="middle">ma_{pseudo}</text>
+<defs><marker id="arrowhead_elev_normal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="elev_normal" x1="150" y1="390" x2="150" y2="340" stroke="#FF9800" stroke-width="2.5" marker-end="url(#arrowhead_elev_normal)"/>
+<text id="elev_normal_label" x="162" y="338" font-size="13" fill="#FF9800" font-style="italic" text-anchor="middle">N</text>
+<text id="elev_note1" x="150" y="490" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">You feel heavier!</text>
+<text id="elev_formula" x="150" y="520" font-size="14" fill="#1565c0" font-style="italic" text-anchor="middle">N = m(g + a)</text>
+<text id="elev_pseudo_note" x="150" y="548" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="normal">Pseudo force points DOWN</text>
+<text id="elev_pseudo_note2" x="150" y="564" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="normal">(opposite to frame accel.)</text>
+<rect id="train_body" x="315" y="130" width="270" height="130" rx="10" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="3"/>
+<circle id="train_wheel1" cx="360" cy="263" r="18" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="train_wheel2" cx="540" cy="263" r="18" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<line id="train_track" x1="315" y1="280" x2="585" y2="280" stroke="#888" stroke-width="3" stroke-dasharray=""/>
+<circle id="train_ball" cx="390" cy="220" r="16" fill="#7b1fa2" stroke="#4a148c" stroke-width="2" stroke-dasharray=""/>
+<text id="train_ball_label" x="390" y="208" font-size="12" fill="#4a148c" text-anchor="middle" font-weight="normal">ball</text>
+<defs><marker id="arrowhead_train_accel_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#6a1b9a"/></marker></defs><line id="train_accel_arrow" x1="510" y1="195" x2="575" y2="195" stroke="#6a1b9a" stroke-width="2.5" marker-end="url(#arrowhead_train_accel_arrow)"/>
+<text id="train_accel_label" x="570" y="185" font-size="13" fill="#6a1b9a" font-style="italic" text-anchor="middle">a_{train}</text>
+<defs><marker id="arrowhead_train_pseudo_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="train_pseudo_arrow" x1="390" y1="220" x2="340" y2="220" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_train_pseudo_arrow)"/>
+<text id="train_pseudo_label" x="318" y="210" font-size="12" fill="#D32F2F" font-style="italic" text-anchor="middle">F_{pseudo}</text>
+<text id="train_observer" x="450" y="315" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">Platform view: ball stays still,</text>
+<text id="train_observer2" x="450" y="331" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">train moves forward.</text>
+<text id="train_inside" x="450" y="358" font-size="12" fill="#6a1b9a" text-anchor="middle" font-weight="normal">Train view: ball rolls backward.</text>
+<text id="train_inside2" x="450" y="374" font-size="12" fill="#6a1b9a" text-anchor="middle" font-weight="normal">Pseudo force explains it!</text>
+<text id="train_formula" x="450" y="410" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">F_{pseudo} = -ma_{train}</text>
+<circle id="ride_outer" cx="750" cy="210" r="110" fill="#fff3e0" stroke="#e65100" stroke-width="3" stroke-dasharray=""/>
+<circle id="ride_center" cx="750" cy="210" r="8" fill="#e65100" stroke="#bf360c" stroke-width="2" stroke-dasharray=""/>
+<rect id="rider_body" x="840" y="190" width="18" height="35" rx="3" fill="#e65100" stroke="#bf360c" stroke-width="1.5"/>
+<circle id="rider_head" cx="849" cy="184" r="9" fill="#ffcc80" stroke="#e65100" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_centripetal_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="centripetal_arrow" x1="840" y1="207" x2="790" y2="207" stroke="#FF9800" stroke-width="2.5" marker-end="url(#arrowhead_centripetal_arrow)"/>
+<text id="centripetal_label" x="768" y="197" font-size="12" fill="#FF9800" font-style="italic" text-anchor="middle">N \text{ (wall)}</text>
+<defs><marker id="arrowhead_centrifugal_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="centrifugal_arrow" x1="849" y1="207" x2="880" y2="207" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_centrifugal_arrow)"/>
+<text id="centrifugal_label" x="882" y="197" font-size="12" fill="#D32F2F" font-style="italic" text-anchor="middle">F_{centrifugal}</text>
+<path id="rotation_arrow" d="M 750 100 A 60 60 0 0 1 810 160" stroke="#e65100" stroke-width="2" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_rotation_tip" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e65100"/></marker></defs><line id="rotation_tip" x1="808" y1="158" x2="815" y2="168" stroke="#e65100" stroke-width="2" marker-end="url(#arrowhead_rotation_tip)"/>
+<text id="ride_omega" x="720" y="100" font-size="12" fill="#e65100" text-anchor="middle" font-weight="normal">rotation</text>
+<text id="ride_note1" x="750" y="345" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">Outside: wall pushes you inward</text>
+<text id="ride_note2" x="750" y="361" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">(centripetal force keeps circular motion).</text>
+<text id="ride_note3" x="750" y="388" font-size="12" fill="#e65100" text-anchor="middle" font-weight="normal">Inside: centrifugal pseudo force</text>
+<text id="ride_note4" x="750" y="404" font-size="12" fill="#e65100" text-anchor="middle" font-weight="normal">pushes you outward against wall.</text>
+<text id="ride_formula" x="750" y="438" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">F_{centrifugal} = m\omega^2 r \text{ (outward)}</text>
+<line id="bottom_line" x1="60" y1="590" x2="840" y2="590" stroke="#ccc" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="summary_box" x="60" y="600" width="780" height="48" rx="8" fill="#fafafa" stroke="#bbb" stroke-width="1.5"/>
+<text id="summary_label" x="130" y="620" font-size="13" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Rule:</text>
+<text id="summary_formula" x="310" y="622" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">\vec{F}_{pseudo} = -m\vec{a}_{frame}</text>
+<text id="summary_text" x="640" y="620" font-size="12" fill="#333" text-anchor="middle" font-weight="normal">Always opposite to the frame&#x27;s acceleration. Only in noninertial frames.</text>
+</svg>

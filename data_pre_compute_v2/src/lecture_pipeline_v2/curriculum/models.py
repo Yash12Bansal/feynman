@@ -44,8 +44,80 @@ class TopicStartEvent(BaseModel):
     topic_id: str
 
 
+# ---------------------------------------------------------------------------
+# Notebook events — the teacher writing on the right-hand panel of SplitBoard.
+# Zero playback duration; runtime appends a NotebookEntry and moves on so the
+# entry appears AS THE VOICE SPEAKS the matching sentence.
+# ---------------------------------------------------------------------------
+
+
+class WriteSectionEvent(BaseModel):
+    type: Literal["write_section"] = "write_section"
+    id: str
+    title: str
+
+
+class WriteEquationEvent(BaseModel):
+    type: Literal["write_equation"] = "write_equation"
+    id: str
+    latex: str
+    align_group: str | None = Field(
+        default=None,
+        description="Equations sharing an align_group line up their '=' signs.",
+    )
+    boxed: bool = False
+
+
+class WriteStepEvent(BaseModel):
+    type: Literal["write_step"] = "write_step"
+    id: str
+    text: str
+    indent: int = Field(default=0, ge=0, le=3)
+
+
+class WriteTextEvent(BaseModel):
+    type: Literal["write_text"] = "write_text"
+    id: str
+    text: str
+
+
+class WriteKeyPointEvent(BaseModel):
+    type: Literal["write_key_point"] = "write_key_point"
+    id: str
+    text: str
+
+
+class WriteAnswerEvent(BaseModel):
+    type: Literal["write_answer"] = "write_answer"
+    id: str
+    text: str
+
+
+class StrikethroughEvent(BaseModel):
+    type: Literal["strikethrough"] = "strikethrough"
+    target_id: str
+
+
+class NewPageEvent(BaseModel):
+    type: Literal["new_page"] = "new_page"
+    carry_forward_ids: list[str] = Field(default_factory=list)
+
+
 ManifestEvent = Annotated[
-    Union[AudioEvent, PauseEvent, ShowDiagramEvent, TopicStartEvent],
+    Union[
+        AudioEvent,
+        PauseEvent,
+        ShowDiagramEvent,
+        TopicStartEvent,
+        WriteSectionEvent,
+        WriteEquationEvent,
+        WriteStepEvent,
+        WriteTextEvent,
+        WriteKeyPointEvent,
+        WriteAnswerEvent,
+        StrikethroughEvent,
+        NewPageEvent,
+    ],
     Field(discriminator="type"),
 ]
 
@@ -183,6 +255,10 @@ class Topic(BaseModel):
 
     # playback
     standalone_manifest: Manifest = Field(default_factory=Manifest)
+    # Raw script (with inline <<SECTION>>/<<WRITE_*>>/<<SHOW_DIAGRAM>>/<<PAUSE>>
+    # markers) used to produce the standalone_manifest. Persisted so the
+    # narration is recoverable, re-TTS-able, and inspectable.
+    standalone_narration_text: str = ""
 
     # retrieval + QA
     embedding: list[float] = Field(default_factory=list)
@@ -205,6 +281,8 @@ class Chapter(BaseModel):
     page_end: int
     topic_ids: list[str] = Field(default_factory=list, description="Ordered by lecture flow")
     chapter_manifest: Manifest = Field(default_factory=Manifest)
+    # Full chapter-context narration (with inline markers) the LLM produced.
+    narration_text: str = ""
     embedding: list[float] = Field(default_factory=list)
     language: str = "en"
     version: int = 1

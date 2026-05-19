@@ -1,51 +1,62 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
 <rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
-<text id="hc_title" x="450" y="38" font-size="26" fill="#1a1a2e" text-anchor="middle" font-weight="bold">The Horse and the Cart</text>
-<text id="hc_subtitle" x="450" y="64" font-size="15" fill="#555" text-anchor="middle" font-weight="normal">Free Body Diagrams — analyze each object separately!</text>
-<line id="hc_divider" x1="450" y1="80" x2="450" y2="620" stroke="#ccc" stroke-width="2" stroke-dasharray="6,4"/>
-<text id="hc_horse_label" x="225" y="100" font-size="18" fill="#2e7d32" text-anchor="middle" font-weight="bold">THE HORSE</text>
-<text id="hc_cart_label" x="675" y="100" font-size="18" fill="#1565c0" text-anchor="middle" font-weight="bold">THE CART</text>
-<rect id="hc_horse_body" x="155" y="230" width="140" height="80" rx="10" fill="#e8f5e9" stroke="#2e7d32" stroke-width="3"/>
-<text id="hc_horse_body_label" x="225" y="276" font-size="16" fill="#2e7d32" text-anchor="middle" font-weight="bold">Horse</text>
-<rect id="hc_horse_ground" x="80" y="340" width="290" height="18" rx="3" fill="#8d6e63" stroke="#5d4037" stroke-width="2"/>
-<text id="hc_horse_ground_label" x="225" y="378" font-size="13" fill="#5d4037" text-anchor="middle" font-weight="normal">Ground</text>
-<defs><marker id="arrowhead_hc_ground_push" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="hc_ground_push" x1="225" y1="338" x2="225" y2="195" stroke="#4CAF50" stroke-width="4" marker-end="url(#arrowhead_hc_ground_push)"/>
-<text id="hc_ground_push_label" x="130" y="260" font-size="13" fill="#2e7d32" text-anchor="middle" font-weight="normal">Ground pushes</text>
-<text id="hc_ground_push_label2" x="130" y="276" font-size="13" fill="#2e7d32" text-anchor="middle" font-weight="bold">horse FORWARD</text>
-<text id="hc_ground_push_val" x="130" y="295" font-size="13" fill="#2e7d32" font-style="italic" text-anchor="middle">F_{ground} = 900\text{ N}</text>
-<defs><marker id="arrowhead_hc_cart_pull" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="hc_cart_pull" x1="295" y1="270" x2="380" y2="270" stroke="#D32F2F" stroke-width="4" marker-end="url(#arrowhead_hc_cart_pull)"/>
-<text id="hc_cart_pull_label" x="340" y="248" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="normal">Cart pulls horse</text>
-<text id="hc_cart_pull_label2" x="340" y="264" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="bold">BACKWARD</text>
-<text id="hc_cart_pull_val" x="340" y="285" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">500\text{ N}</text>
-<rect id="hc_horse_net_box" x="100" y="410" width="250" height="70" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="2"/>
-<text id="hc_horse_net_title" x="225" y="432" font-size="14" fill="#333" text-anchor="middle" font-weight="bold">Net Force on Horse:</text>
-<text id="hc_horse_net_eq" x="225" y="460" font-size="14" fill="#e65100" font-style="italic" text-anchor="middle">900 - 500 = 400\text{ N forward}</text>
-<defs><marker id="arrowhead_hc_horse_accel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e65100"/></marker></defs><line id="hc_horse_accel" x1="225" y1="500" x2="310" y2="500" stroke="#e65100" stroke-width="4" marker-end="url(#arrowhead_hc_horse_accel)"/>
-<text id="hc_horse_accel_label" x="225" y="525" font-size="13" fill="#e65100" text-anchor="middle" font-weight="bold">Horse accelerates FORWARD!</text>
-<rect id="hc_cart_body" x="605" y="230" width="140" height="80" rx="10" fill="#e3f2fd" stroke="#1565c0" stroke-width="3"/>
-<text id="hc_cart_body_label" x="675" y="276" font-size="16" fill="#1565c0" text-anchor="middle" font-weight="bold">Cart</text>
-<rect id="hc_cart_ground" x="530" y="340" width="290" height="18" rx="3" fill="#8d6e63" stroke="#5d4037" stroke-width="2"/>
-<text id="hc_cart_ground_label" x="675" y="378" font-size="13" fill="#5d4037" text-anchor="middle" font-weight="normal">Ground</text>
-<defs><marker id="arrowhead_hc_horse_pull" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="hc_horse_pull" x1="605" y1="270" x2="520" y2="270" stroke="#4CAF50" stroke-width="4" marker-end="url(#arrowhead_hc_horse_pull)"/>
-<text id="hc_horse_pull_label" x="560" y="248" font-size="13" fill="#2e7d32" text-anchor="middle" font-weight="normal">Horse pulls cart</text>
-<text id="hc_horse_pull_label2" x="560" y="264" font-size="13" fill="#2e7d32" text-anchor="middle" font-weight="bold">FORWARD</text>
-<text id="hc_horse_pull_val" x="560" y="285" font-size="13" fill="#2e7d32" font-style="italic" text-anchor="middle">500\text{ N}</text>
-<defs><marker id="arrowhead_hc_road_friction" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="hc_road_friction" x1="745" y1="338" x2="745" y2="312" stroke="#D32F2F" stroke-width="4" marker-end="url(#arrowhead_hc_road_friction)"/>
-<text id="hc_road_friction_label" x="800" y="300" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="normal">Road friction</text>
-<text id="hc_road_friction_label2" x="800" y="316" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="bold">BACKWARD</text>
-<text id="hc_road_friction_val" x="800" y="335" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">100\text{ N}</text>
-<rect id="hc_cart_net_box" x="550" y="410" width="250" height="70" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="2"/>
-<text id="hc_cart_net_title" x="675" y="432" font-size="14" fill="#333" text-anchor="middle" font-weight="bold">Net Force on Cart:</text>
-<text id="hc_cart_net_eq" x="675" y="460" font-size="14" fill="#e65100" font-style="italic" text-anchor="middle">500 - 100 = 400\text{ N forward}</text>
-<defs><marker id="arrowhead_hc_cart_accel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e65100"/></marker></defs><line id="hc_cart_accel" x1="675" y1="500" x2="760" y2="500" stroke="#e65100" stroke-width="4" marker-end="url(#arrowhead_hc_cart_accel)"/>
-<text id="hc_cart_accel_label" x="675" y="525" font-size="13" fill="#e65100" text-anchor="middle" font-weight="bold">Cart accelerates FORWARD!</text>
-<rect id="hc_key_box" x="180" y="570" width="540" height="55" rx="10" fill="#fce4ec" stroke="#c62828" stroke-width="2"/>
-<text id="hc_key_text1" x="450" y="592" font-size="13" fill="#b71c1c" text-anchor="middle" font-weight="bold">KEY INSIGHT: Newton&#x27;s 3rd Law pairs act on DIFFERENT objects — never add them together!</text>
-<text id="hc_key_text2" x="450" y="612" font-size="13" fill="#b71c1c" text-anchor="middle" font-weight="normal">The ground friction on the horse&#x27;s hooves is the force that makes everything move.</text>
-<text id="hc_n3_label" x="450" y="155" font-size="13" fill="#7b1fa2" text-anchor="middle" font-weight="bold">Newton&#x27;s 3rd Law Pair</text>
-<defs><marker id="arrowhead_hc_n3_arrow1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7b1fa2"/></marker></defs><line id="hc_n3_arrow1" x1="380" y1="165" x2="295" y2="165" stroke="#7b1fa2" stroke-width="2" marker-end="url(#arrowhead_hc_n3_arrow1)"/>
-<defs><marker id="arrowhead_hc_n3_arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7b1fa2"/></marker></defs><line id="hc_n3_arrow2" x1="520" y1="165" x2="605" y2="165" stroke="#7b1fa2" stroke-width="2" marker-end="url(#arrowhead_hc_n3_arrow2)"/>
-<text id="hc_n3_equal" x="450" y="175" font-size="12" fill="#7b1fa2" text-anchor="middle" font-weight="normal">equal &amp; opposite — but on DIFFERENT objects</text>
-<line id="hc_rope" x1="295" y1="270" x2="605" y2="270" stroke="#795548" stroke-width="5" stroke-dasharray=""/>
-<text id="hc_rope_label" x="450" y="258" font-size="12" fill="#795548" text-anchor="middle" font-weight="normal">rope / harness</text>
+<text id="hc_title" x="450" y="38" font-size="24" fill="#1a1a2e" text-anchor="middle" font-weight="bold">The Horse and the Cart</text>
+<text id="hc_subtitle" x="450" y="62" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Why do they actually move? Identify the SYSTEM, then list forces on THAT system only.</text>
+<rect id="hc_ground" x="60" y="390" width="780" height="28" rx="0" fill="#c8b89a" stroke="#8B6914" stroke-width="2"/>
+<text id="hc_ground_label" x="450" y="409" font-size="13" fill="#5a3e1b" text-anchor="middle" font-weight="bold">GROUND (Road)</text>
+<line id="hc_ground_hatch1" x1="60" y1="418" x2="840" y2="418" stroke="#8B6914" stroke-width="1" stroke-dasharray="8,6"/>
+<rect id="hc_horse_body" x="130" y="250" width="160" height="130" rx="18" fill="#d4a96a" stroke="#8B6914" stroke-width="2.5"/>
+<text id="hc_horse_label" x="210" y="322" font-size="18" fill="#3e2000" text-anchor="middle" font-weight="bold">HORSE</text>
+<text id="hc_horse_mass" x="210" y="344" font-size="13" fill="#5a3e1b" text-anchor="middle" font-weight="normal">mass M</text>
+<circle id="hc_horse_wheel1" cx="165" cy="390" r="18" fill="#b0895a" stroke="#5a3e1b" stroke-width="2" stroke-dasharray=""/>
+<circle id="hc_horse_wheel2" cx="255" cy="390" r="18" fill="#b0895a" stroke="#5a3e1b" stroke-width="2" stroke-dasharray=""/>
+<rect id="hc_cart_body" x="560" y="265" width="200" height="115" rx="10" fill="#a8d8ea" stroke="#2a6fa8" stroke-width="2.5"/>
+<text id="hc_cart_label" x="660" y="330" font-size="18" fill="#0d3b5e" text-anchor="middle" font-weight="bold">CART</text>
+<text id="hc_cart_mass" x="660" y="352" font-size="13" fill="#1a5276" text-anchor="middle" font-weight="normal">mass m</text>
+<circle id="hc_cart_wheel1" cx="600" cy="390" r="18" fill="#7ab8d4" stroke="#2a6fa8" stroke-width="2" stroke-dasharray=""/>
+<circle id="hc_cart_wheel2" cx="720" cy="390" r="18" fill="#7ab8d4" stroke="#2a6fa8" stroke-width="2" stroke-dasharray=""/>
+<line id="hc_rope" x1="290" y1="315" x2="560" y2="315" stroke="#7a5c2e" stroke-width="5" stroke-dasharray=""/>
+<text id="hc_rope_label" x="425" y="305" font-size="12" fill="#5a3e1b" text-anchor="middle" font-weight="normal">rope / harness</text>
+<defs><marker id="arrowhead_hc_horse_on_cart" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e67e22"/></marker></defs><line id="hc_horse_on_cart" x1="560" y1="290" x2="480" y2="290" stroke="#e67e22" stroke-width="3" marker-end="url(#arrowhead_hc_horse_on_cart)"/>
+<text id="hc_horse_on_cart_label1" x="516" y="276" font-size="12" fill="#e67e22" text-anchor="middle" font-weight="bold">Horse pulls Cart</text>
+<text id="hc_horse_on_cart_label2" x="516" y="289" font-size="11" fill="#e67e22" text-anchor="middle" font-weight="normal">FORWARD</text>
+<defs><marker id="arrowhead_hc_cart_on_horse" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e67e22"/></marker></defs><line id="hc_cart_on_horse" x1="290" y1="340" x2="380" y2="340" stroke="#e67e22" stroke-width="3" marker-end="url(#arrowhead_hc_cart_on_horse)"/>
+<text id="hc_cart_on_horse_label1" x="336" y="356" font-size="12" fill="#e67e22" text-anchor="middle" font-weight="bold">Cart pulls Horse</text>
+<text id="hc_cart_on_horse_label2" x="336" y="369" font-size="11" fill="#e67e22" text-anchor="middle" font-weight="normal">BACKWARD</text>
+<rect id="hc_n3l_box" x="370" y="278" width="110" height="80" rx="8" fill="#fff8e1" stroke="#e67e22" stroke-width="2"/>
+<text id="hc_n3l_label1" x="425" y="298" font-size="11" fill="#c0392b" text-anchor="middle" font-weight="bold">Newton&#x27;s</text>
+<text id="hc_n3l_label2" x="425" y="312" font-size="11" fill="#c0392b" text-anchor="middle" font-weight="bold">3rd Law PAIR</text>
+<text id="hc_n3l_label3" x="425" y="328" font-size="10" fill="#c0392b" text-anchor="middle" font-weight="normal">Equal &amp; Opposite</text>
+<text id="hc_n3l_label4" x="425" y="343" font-size="10" fill="#c0392b" text-anchor="middle" font-weight="normal">Different objects!</text>
+<defs><marker id="arrowhead_hc_ground_on_horse" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#27ae60"/></marker></defs><line id="hc_ground_on_horse" x1="210" y1="390" x2="210" y2="440" stroke="#27ae60" stroke-width="3" marker-end="url(#arrowhead_hc_ground_on_horse)"/>
+<defs><marker id="arrowhead_hc_friction_horse_fwd" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#27ae60"/></marker></defs><line id="hc_friction_horse_fwd" x1="130" y1="370" x2="60" y2="370" stroke="#27ae60" stroke-width="3" marker-end="url(#arrowhead_hc_friction_horse_fwd)"/>
+<text id="hc_friction_horse_label" x="92" y="358" font-size="12" fill="#27ae60" text-anchor="middle" font-weight="bold">Friction</text>
+<text id="hc_friction_horse_label2" x="92" y="371" font-size="11" fill="#27ae60" text-anchor="middle" font-weight="normal">(Ground</text>
+<text id="hc_friction_horse_label3" x="92" y="384" font-size="11" fill="#27ae60" text-anchor="middle" font-weight="normal">on Horse)</text>
+<defs><marker id="arrowhead_hc_friction_horse_fwd2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#27ae60"/></marker></defs><line id="hc_friction_horse_fwd2" x1="130" y1="370" x2="60" y2="370" stroke="#27ae60" stroke-width="3" marker-end="url(#arrowhead_hc_friction_horse_fwd2)"/>
+<defs><marker id="arrowhead_hc_ground_friction_horse" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#27ae60"/></marker></defs><line id="hc_ground_friction_horse" x1="175" y1="365" x2="100" y2="365" stroke="#27ae60" stroke-width="3.5" marker-end="url(#arrowhead_hc_ground_friction_horse)"/>
+<defs><marker id="arrowhead_hc_ground_friction_cart" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#c0392b"/></marker></defs><line id="hc_ground_friction_cart" x1="645" y1="365" x2="730" y2="365" stroke="#c0392b" stroke-width="3" marker-end="url(#arrowhead_hc_ground_friction_cart)"/>
+<text id="hc_friction_cart_label" x="790" y="358" font-size="12" fill="#c0392b" text-anchor="middle" font-weight="bold">Rolling</text>
+<text id="hc_friction_cart_label2" x="790" y="371" font-size="11" fill="#c0392b" text-anchor="middle" font-weight="normal">Friction</text>
+<text id="hc_friction_cart_label3" x="790" y="384" font-size="11" fill="#c0392b" text-anchor="middle" font-weight="normal">(opposes cart)</text>
+<defs><marker id="arrowhead_hc_motion_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1a1a2e"/></marker></defs><line id="hc_motion_arrow" x1="350" y1="210" x2="550" y2="210" stroke="#1a1a2e" stroke-width="4" marker-end="url(#arrowhead_hc_motion_arrow)"/>
+<text id="hc_motion_label" x="450" y="200" font-size="14" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Direction of Motion</text>
+<rect id="hc_key_box_horse" x="60" y="460" width="370" height="160" rx="10" fill="#f0fdf4" stroke="#27ae60" stroke-width="2"/>
+<text id="hc_key_horse_title" x="245" y="482" font-size="14" fill="#1a5e2a" text-anchor="middle" font-weight="bold">Forces on HORSE</text>
+<defs><marker id="arrowhead_hc_key_h1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#27ae60"/></marker></defs><line id="hc_key_h1" x1="80" y1="500" x2="130" y2="500" stroke="#27ae60" stroke-width="2.5" marker-end="url(#arrowhead_hc_key_h1)"/>
+<text id="hc_key_h1_label" x="135" y="504" font-size="12" fill="#1a5e2a" text-anchor="start" font-weight="normal">Ground friction (FORWARD) — drives horse</text>
+<defs><marker id="arrowhead_hc_key_h2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e67e22"/></marker></defs><line id="hc_key_h2" x1="130" y1="525" x2="80" y2="525" stroke="#e67e22" stroke-width="2.5" marker-end="url(#arrowhead_hc_key_h2)"/>
+<text id="hc_key_h2_label" x="135" y="529" font-size="12" fill="#c0392b" text-anchor="start" font-weight="normal">Cart pulls horse (BACKWARD) — rope tension</text>
+<text id="hc_key_h3" x="245" y="558" font-size="12" fill="#1a5e2a" text-anchor="middle" font-weight="bold">If Ground Friction &gt; Rope Tension:</text>
+<text id="hc_key_h4" x="245" y="590" font-size="13" fill="#1a5e2a" font-style="italic" text-anchor="middle">F_{\text{ground}} - T = Ma \quad \Rightarrow \text{ Horse accelerates FORWARD}</text>
+<rect id="hc_key_box_cart" x="470" y="460" width="370" height="160" rx="10" fill="#eff6ff" stroke="#2a6fa8" stroke-width="2"/>
+<text id="hc_key_cart_title" x="655" y="482" font-size="14" fill="#0d3b5e" text-anchor="middle" font-weight="bold">Forces on CART</text>
+<defs><marker id="arrowhead_hc_key_c1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e67e22"/></marker></defs><line id="hc_key_c1" x1="540" y1="500" x2="490" y2="500" stroke="#e67e22" stroke-width="2.5" marker-end="url(#arrowhead_hc_key_c1)"/>
+<text id="hc_key_c1_label" x="545" y="504" font-size="12" fill="#c0392b" text-anchor="start" font-weight="normal">Horse pulls cart (FORWARD) — rope tension</text>
+<defs><marker id="arrowhead_hc_key_c2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#c0392b"/></marker></defs><line id="hc_key_c2" x1="490" y1="525" x2="540" y2="525" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arrowhead_hc_key_c2)"/>
+<text id="hc_key_c2_label" x="545" y="529" font-size="12" fill="#c0392b" text-anchor="start" font-weight="normal">Rolling friction (BACKWARD) — small</text>
+<text id="hc_key_c3" x="655" y="558" font-size="12" fill="#0d3b5e" text-anchor="middle" font-weight="bold">Net force on cart:</text>
+<text id="hc_key_c4" x="655" y="590" font-size="13" fill="#0d3b5e" font-style="italic" text-anchor="middle">T - f_{\text{roll}} = ma \quad \Rightarrow \text{ Cart accelerates FORWARD}</text>
+<rect id="hc_mistake_box" x="290" y="430" width="320" height="22" rx="5" fill="#fff3cd" stroke="#f0ad4e" stroke-width="1.5"/>
+<text id="hc_mistake_label" x="450" y="445" font-size="11" fill="#7d4e00" text-anchor="middle" font-weight="bold">The 3rd law pair forces act on DIFFERENT objects — they never cancel!</text>
 </svg>

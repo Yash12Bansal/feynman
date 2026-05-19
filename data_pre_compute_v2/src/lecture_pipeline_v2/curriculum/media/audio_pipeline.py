@@ -25,16 +25,37 @@ from pathlib import Path
 
 from ...config import ArtifactsConfig, TTSConfig
 from ...tts.base import TTSProvider
-from ...tts.chunker import DiagramFragment, PauseFragment, TextFragment, split_script
+from ...tts.chunker import (
+    AnswerFragment,
+    DiagramFragment,
+    EquationFragment,
+    KeyPointFragment,
+    NewPageFragment,
+    PauseFragment,
+    SectionFragment,
+    StepFragment,
+    StrikeFragment,
+    TextEntryFragment,
+    TextFragment,
+    split_script,
+)
 from ..lecture_script.script_writer import ChapterScript
 from ..models import (
     AudioEvent,
     Chapter,
     Manifest,
+    NewPageEvent,
     PauseEvent,
     ShowDiagramEvent,
+    StrikethroughEvent,
     Topic,
     TopicStartEvent,
+    WriteAnswerEvent,
+    WriteEquationEvent,
+    WriteKeyPointEvent,
+    WriteSectionEvent,
+    WriteStepEvent,
+    WriteTextEvent,
 )
 
 logger = logging.getLogger(__name__)
@@ -137,7 +158,9 @@ class AudioPipeline:
             if topic is None:
                 continue
 
-            standalone_fragments = split_script(seg["narration_standalone"])
+            standalone_text = seg["narration_standalone"]
+            topic.standalone_narration_text = standalone_text  # persist raw script
+            standalone_fragments = split_script(standalone_text)
             standalone_events = await self._render_fragments(
                 fragments=standalone_fragments,
                 chapter_dir=chapter_dir,
@@ -149,7 +172,8 @@ class AudioPipeline:
             if standalone_events:
                 report.topics_with_standalone_audio += 1
 
-            chapter_fragments = split_script(seg["narration_chapter"])
+            chapter_text = seg["narration_chapter"]
+            chapter_fragments = split_script(chapter_text)
             seg_events = await self._render_fragments(
                 fragments=chapter_fragments,
                 chapter_dir=chapter_dir,
@@ -159,6 +183,10 @@ class AudioPipeline:
             )
             chapter_events.append(TopicStartEvent(topic_id=tid))
             chapter_events.extend(seg_events)
+            # Tag the topic boundary in the chapter narration for recovery.
+            chapter.narration_text += (
+                f"\n\n<<TOPIC_START:{tid}>>\n{chapter_text}"
+            )
 
         if chapter_events:
             chapter.chapter_manifest = Manifest(events=chapter_events)
@@ -201,6 +229,29 @@ class AudioPipeline:
                     else self.tts_config.pause_long_ms
                 )
                 events.append(PauseEvent(duration_ms=ms))
+            elif isinstance(frag, SectionFragment):
+                events.append(WriteSectionEvent(id=frag.id, title=frag.title))
+            elif isinstance(frag, EquationFragment):
+                events.append(WriteEquationEvent(
+                    id=frag.id,
+                    latex=frag.latex,
+                    align_group=frag.align_group,
+                    boxed=frag.boxed,
+                ))
+            elif isinstance(frag, StepFragment):
+                events.append(WriteStepEvent(
+                    id=frag.id, text=frag.text, indent=frag.indent,
+                ))
+            elif isinstance(frag, KeyPointFragment):
+                events.append(WriteKeyPointEvent(id=frag.id, text=frag.text))
+            elif isinstance(frag, TextEntryFragment):
+                events.append(WriteTextEvent(id=frag.id, text=frag.text))
+            elif isinstance(frag, AnswerFragment):
+                events.append(WriteAnswerEvent(id=frag.id, text=frag.text))
+            elif isinstance(frag, StrikeFragment):
+                events.append(StrikethroughEvent(target_id=frag.target_id))
+            elif isinstance(frag, NewPageFragment):
+                events.append(NewPageEvent(carry_forward_ids=list(frag.carry_forward_ids)))
         return events
 
     def _chapter_audio_dir(self, chapter_id: str) -> Path:

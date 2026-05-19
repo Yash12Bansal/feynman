@@ -1,76 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
 <rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
-<text id="arr_title" x="450" y="42" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Newton&#x27;s Third Law: Action-Reaction Pairs</text>
-<text id="arr_subtitle" x="450" y="68" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">Forces are equal in magnitude, opposite in direction, and act on DIFFERENT objects</text>
-<line id="arr_divider1" x1="300" y1="85" x2="300" y2="620" stroke="#ddd" stroke-width="1.5" stroke-dasharray="6,4"/>
-<line id="arr_divider2" x1="600" y1="85" x2="600" y2="620" stroke="#ddd" stroke-width="1.5" stroke-dasharray="6,4"/>
-<text id="arr_ex1_title" x="150" y="110" font-size="14" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Example 1: Person &amp; Wall</text>
-<rect id="arr_wall" x="220" y="140" width="30" height="160" rx="2" fill="#b0bec5" stroke="#555" stroke-width="2"/>
-<line id="arr_wall_hatch1" x1="250" y1="150" x2="270" y2="130" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_wall_hatch2" x1="250" y1="175" x2="270" y2="155" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_wall_hatch3" x1="250" y1="200" x2="270" y2="180" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_wall_hatch4" x1="250" y1="225" x2="270" y2="205" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_wall_hatch5" x1="250" y1="250" x2="270" y2="230" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<circle id="arr_person_head" cx="140" cy="165" r="18" fill="#ffe0b2" stroke="#e65100" stroke-width="2" stroke-dasharray=""/>
-<rect id="arr_person_body" x="122" y="183" width="36" height="55" rx="4" fill="#ff8f00" stroke="#e65100" stroke-width="2"/>
-<line id="arr_person_arm" x1="158" y1="200" x2="220" y2="210" stroke="#e65100" stroke-width="3" stroke-dasharray=""/>
-<line id="arr_person_leg1" x1="130" y1="238" x2="118" y2="290" stroke="#e65100" stroke-width="3" stroke-dasharray=""/>
-<line id="arr_person_leg2" x1="150" y1="238" x2="162" y2="290" stroke="#e65100" stroke-width="3" stroke-dasharray=""/>
-<defs><marker id="arrowhead_arr_push_on_wall" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="arr_push_on_wall" x1="195" y1="210" x2="222" y2="210" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_arr_push_on_wall)"/>
-<defs><marker id="arrowhead_arr_wall_pushback" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1565C0"/></marker></defs><line id="arr_wall_pushback" x1="218" y1="228" x2="170" y2="228" stroke="#1565C0" stroke-width="3" marker-end="url(#arrowhead_arr_wall_pushback)"/>
-<text id="arr_push_label1" x="150" y="330" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="bold">Person pushes wall</text>
-<text id="arr_push_label1b" x="150" y="346" font-size="11" fill="#D32F2F" text-anchor="middle" font-weight="normal">(force ON wall)</text>
-<text id="arr_push_label2" x="150" y="368" font-size="12" fill="#1565C0" text-anchor="middle" font-weight="bold">Wall pushes person back</text>
-<text id="arr_push_label2b" x="150" y="384" font-size="11" fill="#1565C0" text-anchor="middle" font-weight="normal">(force ON person)</text>
-<rect id="arr_key_box1" x="30" y="405" width="240" height="60" rx="6" fill="#fff8e1" stroke="#f9a825" stroke-width="1.5"/>
-<text id="arr_key1" x="150" y="425" font-size="12" fill="#5d4037" text-anchor="middle" font-weight="bold">Person rolls backward on skates!</text>
-<text id="arr_key1b" x="150" y="445" font-size="11" fill="#5d4037" text-anchor="middle" font-weight="normal">Forces are equal but act on</text>
-<text id="arr_key1c" x="150" y="458" font-size="11" fill="#5d4037" text-anchor="middle" font-weight="normal">different objects — no cancellation!</text>
-<text id="arr_ex2_title" x="450" y="110" font-size="14" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Example 2: Block on Table</text>
-<rect id="arr_table_top" x="340" y="270" width="220" height="18" rx="2" fill="#8d6e63" stroke="#4e342e" stroke-width="2"/>
-<rect id="arr_table_leg1" x="350" y="288" width="14" height="60" rx="1" fill="#8d6e63" stroke="#4e342e" stroke-width="1.5"/>
-<rect id="arr_table_leg2" x="536" y="288" width="14" height="60" rx="1" fill="#8d6e63" stroke="#4e342e" stroke-width="1.5"/>
-<rect id="arr_block" x="410" y="220" width="80" height="50" rx="4" fill="#90caf9" stroke="#1565C0" stroke-width="2.5"/>
-<text id="arr_block_label" x="450" y="250" font-size="13" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Block</text>
-<defs><marker id="arrowhead_arr_gravity_on_block" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="arr_gravity_on_block" x1="450" y1="270" x2="450" y2="310" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_arr_gravity_on_block)"/>
-<text id="arr_gravity_label" x="510" y="300" font-size="11" fill="#2e7d32" text-anchor="start" font-weight="normal">Earth pulls block down</text>
-<defs><marker id="arrowhead_arr_normal_on_block" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="arr_normal_on_block" x1="450" y1="268" x2="450" y2="228" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_arr_normal_on_block)"/>
-<text id="arr_normal_label" x="510" y="245" font-size="11" fill="#e65100" text-anchor="start" font-weight="normal">Table pushes block up</text>
-<defs><marker id="arrowhead_arr_block_on_table" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9c27b0"/></marker></defs><line id="arr_block_on_table" x1="450" y1="272" x2="450" y2="312" stroke="#9c27b0" stroke-width="2" marker-end="url(#arrowhead_arr_block_on_table)"/>
-<text id="arr_block_table_label" x="380" y="360" font-size="11" fill="#6a1b9a" text-anchor="middle" font-weight="normal">Block pushes table down</text>
-<text id="arr_block_table_label2" x="380" y="374" font-size="10" fill="#6a1b9a" text-anchor="middle" font-weight="normal">(reaction — acts on TABLE)</text>
-<rect id="arr_block_system_box" x="315" y="395" width="270" height="80" rx="6" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.5"/>
-<text id="arr_block_system_title" x="450" y="414" font-size="12" fill="#1b5e20" text-anchor="middle" font-weight="bold">Analyzing the BLOCK only:</text>
-<text id="arr_block_system_1" x="450" y="433" font-size="11" fill="#2e7d32" text-anchor="middle" font-weight="normal">Include: gravity down, normal force up</text>
-<text id="arr_block_system_2" x="450" y="450" font-size="11" fill="#c62828" text-anchor="middle" font-weight="normal">Exclude: block&#x27;s push on table</text>
-<text id="arr_block_system_3" x="450" y="467" font-size="10" fill="#555" text-anchor="middle" font-weight="normal">(that force acts on the TABLE, not the block!)</text>
-<text id="arr_ex3_title" x="750" y="110" font-size="14" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Example 3: Hanging Block</text>
-<rect id="arr_ceiling" x="660" y="130" width="180" height="16" rx="2" fill="#b0bec5" stroke="#555" stroke-width="2"/>
-<line id="arr_ceiling_hatch1" x1="670" y1="130" x2="655" y2="115" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_ceiling_hatch2" x1="695" y1="130" x2="680" y2="115" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_ceiling_hatch3" x1="720" y1="130" x2="705" y2="115" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_ceiling_hatch4" x1="745" y1="130" x2="730" y2="115" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_ceiling_hatch5" x1="770" y1="130" x2="755" y2="115" stroke="#888" stroke-width="1.5" stroke-dasharray=""/>
-<line id="arr_string" x1="750" y1="146" x2="750" y2="220" stroke="#555" stroke-width="3" stroke-dasharray=""/>
-<rect id="arr_hang_block" x="710" y="220" width="80" height="60" rx="4" fill="#90caf9" stroke="#1565C0" stroke-width="2.5"/>
-<text id="arr_hang_block_label" x="750" y="255" font-size="13" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Block</text>
-<defs><marker id="arrowhead_arr_tension_up" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="arr_tension_up" x1="750" y1="220" x2="750" y2="170" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_arr_tension_up)"/>
-<text id="arr_tension_label" x="800" y="195" font-size="11" fill="#e65100" text-anchor="start" font-weight="bold">T (string pulls</text>
-<text id="arr_tension_label2" x="800" y="208" font-size="11" fill="#e65100" text-anchor="start" font-weight="normal">block up)</text>
-<defs><marker id="arrowhead_arr_weight_down" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="arr_weight_down" x1="750" y1="280" x2="750" y2="330" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_arr_weight_down)"/>
-<text id="arr_weight_label" x="800" y="310" font-size="11" fill="#2e7d32" text-anchor="start" font-weight="bold">mg (Earth pulls</text>
-<text id="arr_weight_label2" x="800" y="323" font-size="11" fill="#2e7d32" text-anchor="start" font-weight="normal">block down)</text>
-<defs><marker id="arrowhead_arr_block_pulls_string" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9c27b0"/></marker></defs><line id="arr_block_pulls_string" x1="740" y1="218" x2="740" y2="168" stroke="#9c27b0" stroke-width="2" marker-end="url(#arrowhead_arr_block_pulls_string)"/>
-<text id="arr_block_string_label" x="680" y="195" font-size="10" fill="#6a1b9a" text-anchor="end" font-weight="normal">Block pulls</text>
-<text id="arr_block_string_label2" x="680" y="208" font-size="10" fill="#6a1b9a" text-anchor="end" font-weight="normal">string down</text>
-<text id="arr_block_string_label3" x="680" y="221" font-size="10" fill="#6a1b9a" text-anchor="end" font-weight="normal">(reaction)</text>
-<rect id="arr_hang_key_box" x="625" y="395" width="250" height="80" rx="6" fill="#fce4ec" stroke="#c62828" stroke-width="1.5"/>
-<text id="arr_hang_key1" x="750" y="415" font-size="12" fill="#b71c1c" text-anchor="middle" font-weight="bold">If block is at rest:</text>
-<text id="arr_hang_eq" x="750" y="440" font-size="15" fill="#b71c1c" font-style="italic" text-anchor="middle">T = mg</text>
-<text id="arr_hang_key2" x="750" y="462" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">String tension equals weight.</text>
-<text id="arr_hang_key3" x="750" y="476" font-size="10" fill="#555" text-anchor="middle" font-weight="normal">Block pulling string is NOT in block&#x27;s equation.</text>
-<line id="arr_bottom_line" x1="30" y1="560" x2="870" y2="560" stroke="#1a1a2e" stroke-width="1.5" stroke-dasharray=""/>
-<rect id="arr_rule_box" x="100" y="572" width="700" height="58" rx="8" fill="#e8eaf6" stroke="#3949ab" stroke-width="2"/>
-<text id="arr_rule_title" x="450" y="592" font-size="14" fill="#1a237e" text-anchor="middle" font-weight="bold">The Golden Rule:</text>
-<text id="arr_rule_text" x="450" y="613" font-size="12" fill="#283593" text-anchor="middle" font-weight="normal">Only ONE force from each action-reaction pair ever appears in the equation for a given object.</text>
+<text id="title" x="450" y="38" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Newton&#x27;s Third Law: Action-Reaction Pairs</text>
+<text id="subtitle" x="450" y="62" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Forces always come in pairs — equal in magnitude, opposite in direction, acting on DIFFERENT objects</text>
+<line id="divider" x1="450" y1="80" x2="450" y2="620" stroke="#ddd" stroke-width="2" stroke-dasharray="6,4"/>
+<text id="scenario1_title" x="225" y="100" font-size="15" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Scenario 1: Person Pushing a Wall</text>
+<rect id="wall" x="340" y="130" width="40" height="200" rx="3" fill="#b0bec5" stroke="#555" stroke-width="2"/>
+<text id="wall_label" x="360" y="350" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">Wall</text>
+<rect id="person_body" x="195" y="175" width="50" height="90" rx="6" fill="#90caf9" stroke="#1565c0" stroke-width="2"/>
+<circle id="person_head" cx="220" cy="160" r="18" fill="#ffcc80" stroke="#e65100" stroke-width="2" stroke-dasharray=""/>
+<line id="person_arm" x1="245" y1="205" x2="340" y2="215" stroke="#1565c0" stroke-width="4" stroke-dasharray=""/>
+<line id="person_leg1" x1="210" y1="265" x2="200" y2="320" stroke="#1565c0" stroke-width="4" stroke-dasharray=""/>
+<line id="person_leg2" x1="230" y1="265" x2="240" y2="320" stroke="#1565c0" stroke-width="4" stroke-dasharray=""/>
+<line id="ground_s1" x1="100" y1="320" x2="390" y2="320" stroke="#555" stroke-width="3" stroke-dasharray=""/>
+<defs><marker id="arrowhead_push_on_wall" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="push_on_wall" x1="310" y1="215" x2="345" y2="215" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_push_on_wall)"/>
+<defs><marker id="arrowhead_push_on_person" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="push_on_person" x1="375" y1="240" x2="310" y2="240" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_push_on_person)"/>
+<rect id="label_box_push_wall" x="100" y="370" width="155" height="52" rx="6" fill="#ffebee" stroke="#D32F2F" stroke-width="1.5"/>
+<text id="label_push_wall_1" x="178" y="388" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="bold">Person pushes Wall</text>
+<text id="label_push_wall_2" x="178" y="406" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="normal">Force ON: Wall</text>
+<text id="label_push_wall_3" x="178" y="418" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">Direction: rightward</text>
+<rect id="label_box_push_person" x="270" y="370" width="155" height="52" rx="6" fill="#e8f5e9" stroke="#4CAF50" stroke-width="1.5"/>
+<text id="label_push_person_1" x="348" y="388" font-size="12" fill="#2e7d32" text-anchor="middle" font-weight="bold">Wall pushes Person</text>
+<text id="label_push_person_2" x="348" y="406" font-size="12" fill="#2e7d32" text-anchor="middle" font-weight="normal">Force ON: Person</text>
+<text id="label_push_person_3" x="348" y="418" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">Direction: leftward</text>
+<rect id="key_box_s1" x="100" y="445" width="325" height="44" rx="8" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1.5"/>
+<text id="key_s1_1" x="262" y="462" font-size="12" fill="#4a148c" text-anchor="middle" font-weight="bold">These forces are EQUAL in size,</text>
+<text id="key_s1_2" x="262" y="480" font-size="12" fill="#4a148c" text-anchor="middle" font-weight="bold">OPPOSITE in direction, on DIFFERENT objects</text>
+<text id="scenario2_title" x="675" y="100" font-size="15" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Scenario 2: Block on a Table</text>
+<rect id="table_top" x="530" y="280" width="290" height="20" rx="2" fill="#a1887f" stroke="#4e342e" stroke-width="2"/>
+<line id="table_leg1" x1="555" y1="300" x2="555" y2="360" stroke="#4e342e" stroke-width="5" stroke-dasharray=""/>
+<line id="table_leg2" x1="795" y1="300" x2="795" y2="360" stroke="#4e342e" stroke-width="5" stroke-dasharray=""/>
+<text id="table_label" x="675" y="378" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">Table</text>
+<rect id="block" x="630" y="215" width="90" height="65" rx="4" fill="#90caf9" stroke="#1565c0" stroke-width="2"/>
+<text id="block_label" x="675" y="253" font-size="13" fill="#1565c0" text-anchor="middle" font-weight="bold">Block</text>
+<defs><marker id="arrowhead_normal_on_block" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="normal_on_block" x1="675" y1="215" x2="675" y2="155" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_normal_on_block)"/>
+<text id="normal_on_block_label" x="675" y="145" font-size="12" fill="#2e7d32" text-anchor="middle" font-weight="bold">N (Table on Block)</text>
+<defs><marker id="arrowhead_normal_on_table" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="normal_on_table" x1="675" y1="280" x2="675" y2="340" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_normal_on_table)"/>
+<text id="normal_on_table_label" x="675" y="358" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="bold">N (Block on Table)</text>
+<defs><marker id="arrowhead_gravity_on_block" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="gravity_on_block" x1="730" y1="215" x2="730" y2="290" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_gravity_on_block)"/>
+<text id="gravity_label" x="760" y="260" font-size="12" fill="#e65100" text-anchor="start" font-weight="bold">mg</text>
+<rect id="label_box_n_block" x="470" y="420" width="185" height="52" rx="6" fill="#e8f5e9" stroke="#4CAF50" stroke-width="1.5"/>
+<text id="label_n_block_1" x="562" y="438" font-size="12" fill="#2e7d32" text-anchor="middle" font-weight="bold">Table pushes Block UP</text>
+<text id="label_n_block_2" x="562" y="455" font-size="12" fill="#2e7d32" text-anchor="middle" font-weight="normal">Force ON: Block</text>
+<text id="label_n_block_3" x="562" y="467" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">Relevant to block&#x27;s motion</text>
+<rect id="label_box_n_table" x="665" y="420" width="185" height="52" rx="6" fill="#ffebee" stroke="#D32F2F" stroke-width="1.5"/>
+<text id="label_n_table_1" x="757" y="438" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="bold">Block pushes Table DOWN</text>
+<text id="label_n_table_2" x="757" y="455" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="normal">Force ON: Table</text>
+<text id="label_n_table_3" x="757" y="467" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">Irrelevant to block&#x27;s motion</text>
+<rect id="key_box_s2" x="470" y="490" width="380" height="44" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="1.5"/>
+<text id="key_s2_1" x="660" y="508" font-size="12" fill="#5d4037" text-anchor="middle" font-weight="bold">When analyzing the block, only include forces</text>
+<text id="key_s2_2" x="660" y="526" font-size="12" fill="#5d4037" text-anchor="middle" font-weight="bold">acting ON the block — never its reaction partner!</text>
+<rect id="bottom_banner" x="60" y="558" width="780" height="50" rx="10" fill="#e8eaf6" stroke="#3949ab" stroke-width="2"/>
+<text id="bottom_text_1" x="450" y="577" font-size="13" fill="#1a237e" text-anchor="middle" font-weight="bold">Key Insight: Action-reaction pairs NEVER cancel each other out —</text>
+<text id="bottom_text_2" x="450" y="597" font-size="13" fill="#1a237e" text-anchor="middle" font-weight="normal">they act on DIFFERENT objects, so they affect different equations of motion.</text>
 </svg>

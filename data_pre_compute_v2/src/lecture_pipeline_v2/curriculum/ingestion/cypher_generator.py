@@ -83,6 +83,7 @@ class CypherGenerator:
             "page_end": c.page_end,
             "topic_ids": list(c.topic_ids),
             "chapter_manifest": c.chapter_manifest.model_dump_json(),
+            "narration_text": c.narration_text,
             "embedding": list(c.embedding) if c.embedding else None,
             "language": c.language,
             "version": c.version,
@@ -96,6 +97,7 @@ class CypherGenerator:
             "    n.page_end = $page_end,\n"
             "    n.topic_ids = $topic_ids,\n"
             "    n.chapter_manifest = $chapter_manifest,\n"
+            "    n.narration_text = $narration_text,\n"
             "    n.embedding = $embedding,\n"
             "    n.language = $language,\n"
             "    n.version = $version,\n"
@@ -119,6 +121,7 @@ class CypherGenerator:
             "has_diagram_ids": list(t.has_diagram_ids),
             "has_question_ids": list(t.has_question_ids),
             "standalone_manifest": t.standalone_manifest.model_dump_json(),
+            "standalone_narration_text": t.standalone_narration_text,
             "embedding": list(t.embedding) if t.embedding else None,
             "needs_review": t.needs_review,
             "language": t.language,
@@ -138,6 +141,7 @@ class CypherGenerator:
             "    n.has_diagram_ids = $has_diagram_ids,\n"
             "    n.has_question_ids = $has_question_ids,\n"
             "    n.standalone_manifest = $standalone_manifest,\n"
+            "    n.standalone_narration_text = $standalone_narration_text,\n"
             "    n.embedding = $embedding,\n"
             "    n.needs_review = $needs_review,\n"
             "    n.language = $language,\n"

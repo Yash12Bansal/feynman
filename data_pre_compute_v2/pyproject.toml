@@ -48,6 +48,10 @@ lecture-pipeline-v2 = "lecture_pipeline_v2.cli:app"
 [tool.poetry]
 packages = [{ include = "lecture_pipeline_v2", from = "src" }]
 
+[tool.poetry.group.dev.dependencies]
+playwright = "^1.60.0"
+python-dotenv = "^1.2.2"
+
 [build-system]
 requires = ["poetry-core>=2.0"]
 build-backend = "poetry.core.masonry.api"

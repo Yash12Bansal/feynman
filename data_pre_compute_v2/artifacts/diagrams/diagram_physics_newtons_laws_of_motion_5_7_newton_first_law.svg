@@ -1,34 +1,58 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
 <rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
-<text id="n1_title" x="450" y="42" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Newton&#x27;s First Law — The Law of Inertia</text>
-<rect id="n1_top_panel" x="40" y="65" width="820" height="240" rx="12" fill="#E8F5E9" stroke="#388E3C" stroke-width="2"/>
-<text id="n1_top_label" x="450" y="92" font-size="16" fill="#2E7D32" text-anchor="middle" font-weight="bold">Case 1: Object at Rest — No Net Force</text>
-<line id="n1_ground1" x1="80" y1="240" x2="860" y2="240" stroke="#888" stroke-width="2" stroke-dasharray=""/>
-<rect id="n1_block_rest" x="370" y="190" width="80" height="50" rx="5" fill="#A5D6A7" stroke="#2E7D32" stroke-width="2"/>
-<text id="n1_block_rest_label" x="410" y="221" font-size="13" fill="#1B5E20" text-anchor="middle" font-weight="normal">Block</text>
-<text id="n1_rest_v" x="410" y="170" font-size="14" fill="#2E7D32" text-anchor="middle" font-weight="bold">v = 0</text>
-<text id="n1_rest_desc1" x="200" y="215" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">No force applied</text>
-<text id="n1_rest_desc2" x="200" y="235" font-size="14" fill="#2E7D32" text-anchor="middle" font-weight="bold">Block stays at rest</text>
-<text id="n1_rest_desc3" x="660" y="215" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">Inertia keeps it still</text>
-<text id="n1_rest_desc4" x="660" y="235" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">until a force acts</text>
-<text id="n1_rest_quote" x="450" y="278" font-size="14" fill="#388E3C" text-anchor="middle" font-weight="normal">&quot;An object at rest stays at rest.&quot;</text>
-<rect id="n1_bottom_panel" x="40" y="330" width="820" height="240" rx="12" fill="#E3F2FD" stroke="#1565C0" stroke-width="2"/>
-<text id="n1_bottom_label" x="450" y="357" font-size="16" fill="#1565C0" text-anchor="middle" font-weight="bold">Case 2: Object in Motion — No Net Force</text>
-<line id="n1_ground2" x1="80" y1="505" x2="860" y2="505" stroke="#888" stroke-width="2" stroke-dasharray=""/>
-<rect id="n1_block_move1" x="100" y="455" width="70" height="50" rx="5" fill="#90CAF9" stroke="#1565C0" stroke-width="2"/>
-<rect id="n1_block_move2" x="310" y="455" width="70" height="50" rx="5" fill="#90CAF9" stroke="#1565C0" stroke-width="2"/>
-<rect id="n1_block_move3" x="520" y="455" width="70" height="50" rx="5" fill="#90CAF9" stroke="#1565C0" stroke-width="2"/>
-<rect id="n1_block_move4" x="730" y="455" width="70" height="50" rx="5" fill="#BBDEFB" stroke="#1565C0" stroke-width="2"/>
-<defs><marker id="arrowhead_n1_vel_arrow1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1565C0"/></marker></defs><line id="n1_vel_arrow1" x1="175" y1="480" x2="305" y2="480" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowhead_n1_vel_arrow1)"/>
-<defs><marker id="arrowhead_n1_vel_arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1565C0"/></marker></defs><line id="n1_vel_arrow2" x1="385" y1="480" x2="515" y2="480" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowhead_n1_vel_arrow2)"/>
-<defs><marker id="arrowhead_n1_vel_arrow3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1565C0"/></marker></defs><line id="n1_vel_arrow3" x1="595" y1="480" x2="725" y2="480" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowhead_n1_vel_arrow3)"/>
-<text id="n1_vel_v1" x="135" y="445" font-size="14" fill="#1565C0" font-style="italic" text-anchor="middle">v</text>
-<text id="n1_vel_v2" x="345" y="445" font-size="14" fill="#1565C0" font-style="italic" text-anchor="middle">v</text>
-<text id="n1_vel_v3" x="555" y="445" font-size="14" fill="#1565C0" font-style="italic" text-anchor="middle">v</text>
-<text id="n1_vel_v4" x="765" y="445" font-size="14" fill="#1565C0" font-style="italic" text-anchor="middle">v</text>
-<text id="n1_time_label" x="450" y="530" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Time passes — no friction, no force — velocity unchanged</text>
-<text id="n1_motion_quote" x="450" y="553" font-size="14" fill="#1565C0" text-anchor="middle" font-weight="normal">&quot;An object in motion stays in motion at the same speed and direction.&quot;</text>
-<rect id="n1_footer_box" x="200" y="590" width="500" height="48" rx="10" fill="#EDE7F6" stroke="#7B1FA2" stroke-width="2"/>
-<text id="n1_footer_text" x="450" y="610" font-size="15" fill="#4A148C" text-anchor="middle" font-weight="bold">Inertia = resistance to change in motion</text>
-<text id="n1_footer_text2" x="450" y="630" font-size="13" fill="#6A1B9A" text-anchor="middle" font-weight="normal">Measured by mass — more mass, more inertia</text>
+<text id="nfl_title" x="450" y="42" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Newton&#x27;s First Law: Objects Resist Change</text>
+<rect id="nfl_left_panel" x="30" y="65" width="390" height="510" rx="12" fill="#f9fbe7" stroke="#8bc34a" stroke-width="2"/>
+<text id="nfl_left_title" x="225" y="96" font-size="16" fill="#33691e" text-anchor="middle" font-weight="bold">At Rest — Stays at Rest</text>
+<rect id="nfl_block_rest" x="170" y="290" width="110" height="70" rx="6" fill="#aed581" stroke="#558b2f" stroke-width="3"/>
+<text id="nfl_block_rest_label" x="225" y="332" font-size="15" fill="#1b5e20" text-anchor="middle" font-weight="bold">Block</text>
+<line id="nfl_ground_rest" x1="80" y1="360" x2="370" y2="360" stroke="#555" stroke-width="3" stroke-dasharray=""/>
+<line id="nfl_ground_hatch1" x1="80" y1="360" x2="95" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch2" x1="110" y1="360" x2="125" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch3" x1="140" y1="360" x2="155" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch4" x1="170" y1="360" x2="185" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch5" x1="200" y1="360" x2="215" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch6" x1="230" y1="360" x2="245" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch7" x1="260" y1="360" x2="275" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch8" x1="290" y1="360" x2="305" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch9" x1="320" y1="360" x2="335" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<line id="nfl_ground_hatch10" x1="350" y1="360" x2="365" y2="375" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_nfl_normal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="nfl_normal" x1="225" y1="290" x2="225" y2="230" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_nfl_normal)"/>
+<text id="nfl_normal_label" x="258" y="258" font-size="13" fill="#2e7d32" text-anchor="start" font-weight="normal">Normal</text>
+<defs><marker id="arrowhead_nfl_weight" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="nfl_weight" x1="225" y1="360" x2="225" y2="420" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_nfl_weight)"/>
+<text id="nfl_weight_label" x="258" y="398" font-size="13" fill="#2e7d32" text-anchor="start" font-weight="normal">Weight</text>
+<rect id="nfl_zero_force_box" x="110" y="440" width="230" height="36" rx="8" fill="#f1f8e9" stroke="#8bc34a" stroke-width="1.5"/>
+<text id="nfl_zero_force" x="115" y="463" font-size="13" fill="#33691e" font-style="italic" text-anchor="middle">\sum F = 0 \Rightarrow v = 0 \text{ (stays still)}</text>
+<text id="nfl_rest_caption" x="225" y="510" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">No net force acts — the block</text>
+<text id="nfl_rest_caption2" x="225" y="528" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">refuses to move. That is inertia.</text>
+<text id="nfl_rest_inertia_tag" x="225" y="555" font-size="13" fill="#33691e" text-anchor="middle" font-weight="bold">&quot;I was at rest. I stay at rest.&quot;</text>
+<rect id="nfl_right_panel" x="480" y="65" width="390" height="510" rx="12" fill="#e8f4fd" stroke="#4682b4" stroke-width="2"/>
+<text id="nfl_right_title" x="675" y="96" font-size="16" fill="#1565c0" text-anchor="middle" font-weight="bold">In Motion — Stays in Motion</text>
+<circle id="nfl_ball_pos1" cx="530" cy="200" r="22" fill="#bbdefb" stroke="#1565c0" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="nfl_ball_pos2" cx="620" cy="200" r="22" fill="#90caf9" stroke="#1565c0" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="nfl_ball_pos3" cx="710" cy="200" r="22" fill="#64b5f6" stroke="#1565c0" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="nfl_ball_pos4" cx="800" cy="200" r="22" fill="#42a5f5" stroke="#1565c0" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_nfl_vel1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="nfl_vel1" x1="555" y1="200" x2="593" y2="200" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_nfl_vel1)"/>
+<defs><marker id="arrowhead_nfl_vel2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="nfl_vel2" x1="645" y1="200" x2="683" y2="200" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_nfl_vel2)"/>
+<defs><marker id="arrowhead_nfl_vel3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="nfl_vel3" x1="735" y1="200" x2="773" y2="200" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_nfl_vel3)"/>
+<text id="nfl_vel_label" x="675" y="165" font-size="13" fill="#e65100" text-anchor="middle" font-weight="bold">Constant velocity (no force needed)</text>
+<line id="nfl_path_line" x1="500" y1="200" x2="840" y2="200" stroke="#4682b4" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text id="nfl_time1" x="530" y="240" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">t=1</text>
+<text id="nfl_time2" x="620" y="240" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">t=2</text>
+<text id="nfl_time3" x="710" y="240" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">t=3</text>
+<text id="nfl_time4" x="800" y="240" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">t=4</text>
+<rect id="nfl_no_force_box" x="510" y="270" width="330" height="36" rx="8" fill="#e3f2fd" stroke="#4682b4" stroke-width="1.5"/>
+<text id="nfl_no_force" x="515" y="293" font-size="13" fill="#1565c0" font-style="italic" text-anchor="middle">\sum F = 0 \Rightarrow a = 0,\; v = \text{const}</text>
+<text id="nfl_motion_caption" x="675" y="340" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Equal spacing = constant speed.</text>
+<text id="nfl_motion_caption2" x="675" y="358" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">No force needed to keep it going.</text>
+<text id="nfl_motion_inertia_tag" x="675" y="385" font-size="13" fill="#1565c0" text-anchor="middle" font-weight="bold">&quot;I was moving. I keep moving.&quot;</text>
+<rect id="nfl_truck_body" x="510" y="430" width="160" height="70" rx="6" fill="#b0bec5" stroke="#455a64" stroke-width="2.5"/>
+<rect id="nfl_truck_cab" x="660" y="450" width="70" height="50" rx="4" fill="#90a4ae" stroke="#455a64" stroke-width="2.5"/>
+<circle id="nfl_truck_wheel1" cx="555" cy="502" r="16" fill="#37474f" stroke="#263238" stroke-width="2" stroke-dasharray=""/>
+<circle id="nfl_truck_wheel2" cx="680" cy="502" r="16" fill="#37474f" stroke="#263238" stroke-width="2" stroke-dasharray=""/>
+<text id="nfl_truck_label" x="590" y="472" font-size="13" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Loaded Truck</text>
+<text id="nfl_truck_caption" x="675" y="545" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Huge mass = huge inertia.</text>
+<text id="nfl_truck_caption2" x="675" y="562" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Very hard to stop once moving!</text>
+<line id="nfl_center_divider" x1="450" y1="65" x2="450" y2="575" stroke="#cccccc" stroke-width="1.5" stroke-dasharray="8,5"/>
+<rect id="nfl_bottom_box" x="200" y="596" width="500" height="38" rx="8" fill="#ede7f6" stroke="#7e57c2" stroke-width="1.5"/>
+<text id="nfl_bottom_text" x="450" y="620" font-size="14" fill="#4527a0" text-anchor="middle" font-weight="bold">Inertia = resistance to any change in state of motion</text>
 </svg>

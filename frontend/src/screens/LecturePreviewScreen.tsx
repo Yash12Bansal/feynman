@@ -16,8 +16,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SplitBoard } from "../engine/whiteboard/split/SplitBoard";
 import type {
+  AnswerEntry,
+  EquationEntry,
+  KeyPointEntry,
+  NotebookEntry,
   NotebookState,
+  SectionEntry,
   SlideState,
+  StepEntry,
+  TextEntry,
 } from "../engine/whiteboard/split/types";
 import type {
   DrawDesignDiagramInstruction,
@@ -39,7 +46,22 @@ type ManifestEvent =
   | { type: "audio"; url: string; duration_ms: number }
   | { type: "pause"; duration_ms: number }
   | { type: "show_diagram"; diagram_id: string }
-  | { type: "topic_start"; topic_id: string };
+  | { type: "topic_start"; topic_id: string }
+  // Path C notebook events — appear "as the teacher writes them"
+  | { type: "write_section"; id: string; title: string }
+  | {
+      type: "write_equation";
+      id: string;
+      latex: string;
+      align_group?: string | null;
+      boxed?: boolean;
+    }
+  | { type: "write_step"; id: string; text: string; indent?: number }
+  | { type: "write_text"; id: string; text: string }
+  | { type: "write_key_point"; id: string; text: string }
+  | { type: "write_answer"; id: string; text: string }
+  | { type: "strikethrough"; target_id: string }
+  | { type: "new_page"; carry_forward_ids?: string[] };
 
 interface DiagramEntry {
   url: string | null;
@@ -246,10 +268,7 @@ function ChapterListView() {
 // Player
 // ---------------------------------------------------------------------------
 
-const EMPTY_NOTEBOOK: NotebookState = {
-  page: { pageNum: 1, entries: [] },
-  turning: false,
-};
+const PAGE_TURN_MS = 400;
 
 interface PlayerViewProps {
   chapterId: string;
@@ -259,6 +278,12 @@ function PlayerView({ chapterId }: PlayerViewProps) {
   const [chapter, setChapter] = useState<ChapterPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [slide, setSlide] = useState<SlideState>({ status: "empty" });
+  // Notebook state — mirrors SplitBoardPrototype's pattern.
+  const [notebookEntries, setNotebookEntries] = useState<
+    readonly NotebookEntry[]
+  >([]);
+  const [pageNum, setPageNum] = useState(1);
+  const [pageTurning, setPageTurning] = useState(false);
   const [topicLabel, setTopicLabel] = useState<string>("");
   const [progress, setProgress] = useState<string>("—");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -277,6 +302,9 @@ function PlayerView({ chapterId }: PlayerViewProps) {
     setChapter(null);
     setError(null);
     setSlide({ status: "empty" });
+    setNotebookEntries([]);
+    setPageNum(1);
+    setPageTurning(false);
     setTopicLabel("");
     setProgress("—");
     setIsDone(false);
@@ -335,6 +363,17 @@ function PlayerView({ chapterId }: PlayerViewProps) {
     });
   }, []);
 
+  const appendNotebookEntry = useCallback((entry: NotebookEntry) => {
+    setNotebookEntries((prev) => {
+      // Replace if same id already exists, otherwise append.
+      const idx = prev.findIndex((e) => e.id === entry.id);
+      if (idx === -1) return [...prev, entry];
+      const next = [...prev];
+      next[idx] = entry;
+      return next;
+    });
+  }, []);
+
   const handleEvent = useCallback(
     async (ev: ManifestEvent, c: ChapterPayload): Promise<void> => {
       switch (ev.type) {
@@ -347,22 +386,15 @@ function PlayerView({ chapterId }: PlayerViewProps) {
             setTopicLabel(ev.topic_id);
             currentTopicNameRef.current = null;
           }
-          // Show "drafting" loader between topic_start and the first diagram
-          // for this topic. If no diagram fires before the next topic_start,
-          // the loader keeps showing — that's the script writer's call.
-          setSlide({
-            status: "loading",
-            pendingTitle: t?.name,
-          });
+          // Drafting loader between topic_start and the first diagram for
+          // this topic. If no diagram fires before the next topic_start, the
+          // loader keeps showing — but the notebook should still fill up.
+          setSlide({ status: "loading", pendingTitle: t?.name });
           return;
         }
         case "show_diagram": {
           const d = c.diagrams[ev.diagram_id];
-          if (!d || !d.spec) {
-            // Spec missing — fall back to fallback image via raw <img>?
-            // For simplicity, leave the loader visible.
-            return;
-          }
+          if (!d || !d.spec) return;
           const instr: DrawDesignDiagramInstruction = {
             type: "draw_design_diagram",
             element_id: ev.diagram_id,
@@ -370,10 +402,7 @@ function PlayerView({ chapterId }: PlayerViewProps) {
             description: d.description || d.spec.description,
             spec: d.spec,
           };
-          setSlide({
-            status: "ready",
-            liveInstruction: instr,
-          });
+          setSlide({ status: "ready", liveInstruction: instr });
           return;
         }
         case "pause": {
@@ -386,9 +415,91 @@ function PlayerView({ chapterId }: PlayerViewProps) {
           await playAudio(ev.url);
           return;
         }
+
+        // ─── Notebook events (Path C) ─────────────────────────────────────
+
+        case "write_section": {
+          const entry: SectionEntry = {
+            id: ev.id,
+            kind: "section_header",
+            title: ev.title,
+          };
+          appendNotebookEntry(entry);
+          return;
+        }
+        case "write_equation": {
+          const entry: EquationEntry = {
+            id: ev.id,
+            kind: "equation",
+            latex: ev.latex,
+            alignGroup: ev.align_group ?? undefined,
+            boxed: ev.boxed ?? false,
+          };
+          appendNotebookEntry(entry);
+          return;
+        }
+        case "write_step": {
+          const indent = clampIndent(ev.indent);
+          const entry: StepEntry = {
+            id: ev.id,
+            kind: "step",
+            text: ev.text,
+            indent,
+          };
+          appendNotebookEntry(entry);
+          return;
+        }
+        case "write_text": {
+          const entry: TextEntry = {
+            id: ev.id,
+            kind: "text",
+            text: ev.text,
+          };
+          appendNotebookEntry(entry);
+          return;
+        }
+        case "write_key_point": {
+          const entry: KeyPointEntry = {
+            id: ev.id,
+            kind: "key_point",
+            text: ev.text,
+          };
+          appendNotebookEntry(entry);
+          return;
+        }
+        case "write_answer": {
+          const entry: AnswerEntry = {
+            id: ev.id,
+            kind: "answer",
+            text: ev.text,
+          };
+          appendNotebookEntry(entry);
+          return;
+        }
+        case "strikethrough": {
+          setNotebookEntries((prev) =>
+            prev.map((e) =>
+              e.id === ev.target_id
+                ? ({ ...e, struck: true } as NotebookEntry)
+                : e,
+            ),
+          );
+          return;
+        }
+        case "new_page": {
+          // Mirror the prototype's flip: brief turning animation, then
+          // clear + bump page number. Carried entries are an optional
+          // future enhancement; for now we just turn.
+          setPageTurning(true);
+          await sleep(PAGE_TURN_MS / 2);
+          setNotebookEntries([]);
+          setPageNum((n) => n + 1);
+          setPageTurning(false);
+          return;
+        }
       }
     },
-    [playAudio, updateProgress],
+    [appendNotebookEntry, playAudio, updateProgress],
   );
 
   const startPlayback = useCallback(async () => {
@@ -424,9 +535,20 @@ function PlayerView({ chapterId }: PlayerViewProps) {
     currentTopicNameRef.current = null;
     setTopicLabel("");
     setSlide({ status: "empty" });
+    setNotebookEntries([]);
+    setPageNum(1);
+    setPageTurning(false);
     setIsDone(false);
     setProgress(`0 / ${totalAudiosRef.current}`);
   }, [pausePlayback]);
+
+  const notebookState = useMemo<NotebookState>(
+    () => ({
+      page: { pageNum, entries: notebookEntries },
+      turning: pageTurning,
+    }),
+    [notebookEntries, pageNum, pageTurning],
+  );
 
   const onPlayClick = useCallback(() => {
     if (isPlaying) {
@@ -467,11 +589,20 @@ function PlayerView({ chapterId }: PlayerViewProps) {
       chapterTitle={chapter.title}
       chapterIdx={chapter.chapter_index}
     >
-      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          minHeight: 0,
+          width: "100%",
+          margin: "14px 0",
+        }}
+      >
         <SplitBoard
           slide={slide}
-          notebook={EMPTY_NOTEBOOK}
-          mode="slide_full"
+          notebook={notebookState}
+          mode="split"
+          notebookTitle={chapter.title}
         />
       </div>
       <footer
@@ -535,7 +666,7 @@ function ScreenChrome({
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100vh",
         background: "#0a0a0a",
         color: "#fafafa",
         display: "flex",
@@ -543,6 +674,7 @@ function ScreenChrome({
         padding: "24px 32px",
         fontFamily:
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        overflow: "hidden",
       }}
     >
       <header
@@ -619,4 +751,11 @@ function ScreenChrome({
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function clampIndent(raw: number | undefined): 0 | 1 | 2 | 3 {
+  if (raw == null) return 0;
+  if (raw >= 3) return 3;
+  if (raw <= 0) return 0;
+  return raw as 1 | 2;
 }
