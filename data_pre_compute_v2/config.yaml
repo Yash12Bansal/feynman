@@ -1,0 +1,57 @@
+# Curriculum Pipeline v2 Configuration
+
+llm:
+  provider: "anthropic"
+  model: "claude-sonnet-4-6"
+  temperature: 0.3
+  max_tokens: 16384
+
+pdf:
+  ocr_threshold: 50
+  image_dpi: 200
+  ocr_language: "eng"
+
+tts:
+  provider: "kokoro"
+  model: "kokoro-v1.0"
+  voice: "af_heart"
+  sample_rate: 24000
+  output_format: "mp3"
+  pause_short_ms: 250
+  pause_long_ms: 750
+
+validation:
+  # Resource-constrained: one local judge. Add Claude back later if quality
+  # demands it. Note: Ollama has no `qwen3.5:9b` — qwen3:8b is the closest
+  # equivalent (≈5GB at 4-bit, fits comfortably on M4 Pro 24GB).
+  judge_models:
+    - provider: "ollama"
+      model: "qwen3:8b"
+  judge_agreement_threshold: 0.5
+  tts_qa_drift_threshold: 0.05
+  gap_fill_max_retries: 2
+
+neo4j:
+  # Matches the Neo4j service in ../docker-compose.yml at the project root.
+  # Start it with:  docker compose up -d neo4j   (from project root)
+  uri: "bolt://localhost:7687"
+  username: "neo4j"
+  password: "password"
+  database: "neo4j"
+
+embedding:
+  # Default: free, local, 384 dims. Switch to openai if you want 1536 dims
+  # and have an OPENAI_API_KEY.
+  provider: "sentence_transformers"
+  model: "sentence-transformers/all-MiniLM-L6-v2"
+  dimensions: 384
+  batch_size: 64
+  device: "auto"   # auto-picks mps/cuda/cpu
+
+artifacts:
+  base_dir: "./artifacts"
+  audio_dir: "audio"
+  diagram_dir: "diagrams"
+  animation_dir: "animations"
+  runs_dir: "runs"
+  url_prefix: "file://./artifacts"

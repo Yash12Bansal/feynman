@@ -1,0 +1,53 @@
+[project]
+name = "lecture-pipeline-v2"
+version = "0.1.0"
+description = "Curriculum precompute pipeline v2 — Topic/Diagram/Question graph with pre-rendered TTS"
+authors = [
+    { name = "Feynman" },
+]
+requires-python = ">=3.11,<3.13"
+readme = "README.md"
+dependencies = [
+    "PyMuPDF (>=1.24.0)",
+    "pytesseract (>=0.3.10)",
+    "pdf2image (>=1.17.0)",
+    "Pillow (>=10.0.0)",
+    "openai (>=1.40.0)",
+    "anthropic (>=0.40.0)",
+    "ollama (>=0.4.0)",
+    "pydantic (>=2.5.0)",
+    "pydantic-settings (>=2.1.0)",
+    "pyyaml (>=6.0)",
+    "typer (>=0.12.0)",
+    "rich (>=13.7.0)",
+    "neo4j (>=5.20.0)",
+    "sentence-transformers (>=3.0.0)",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest (>=8.0)",
+    "pytest-asyncio (>=0.23)",
+]
+tts = [
+    "kokoro (>=0.7.0)",
+    "soundfile (>=0.12.0)",
+    "numpy (>=1.26.0)",
+]
+render = [
+    "cairosvg (>=2.7.0)",
+]
+preview = [
+    "fastapi (>=0.115.0)",
+    "uvicorn (>=0.32.0)",
+]
+
+[project.scripts]
+lecture-pipeline-v2 = "lecture_pipeline_v2.cli:app"
+
+[tool.poetry]
+packages = [{ include = "lecture_pipeline_v2", from = "src" }]
+
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"

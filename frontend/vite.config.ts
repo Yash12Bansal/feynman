@@ -14,6 +14,15 @@ export default defineConfig({
         target: "ws://localhost:8000",
         ws: true,
       },
+      // v2 precompute preview server (tools/preview_server.py on :8080)
+      "/lecture-api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/lecture-artifacts": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
     },
   },
 });

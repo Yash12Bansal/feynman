@@ -1,0 +1,25 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# pipeline outputs
+artifacts/audio/
+artifacts/diagrams/
+artifacts/animations/
+artifacts/runs/
+
+# extraction JSON dumps (--output ./out)
+out/
+
+# local configs
+.env
+config.local.yaml
