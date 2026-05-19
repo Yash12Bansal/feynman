@@ -11,14 +11,21 @@ htmlcov/
 dist/
 build/
 
-# pipeline outputs
-artifacts/audio/
-artifacts/diagrams/
-artifacts/animations/
-artifacts/runs/
+# pipeline outputs — ignore contents (not the directory itself, so we can
+# selectively un-ignore canonical test fixtures below)
+artifacts/audio/*
+artifacts/diagrams/*
+artifacts/animations/*
+artifacts/runs/*
+out/*
 
-# extraction JSON dumps (--output ./out)
-out/
+# Canonical test fixture: H.C. Verma chapter 5. Committed so a teammate can
+# do `lecture-pipeline-v2 load-extraction out/extraction.json` and have a
+# working graph + playable audio without re-running ingestion.
+!artifacts/audio/chapter_physics_newtons_laws_of_motion/
+!artifacts/diagrams/diagram_physics_newtons_laws_of_motion_*.png
+!artifacts/diagrams/diagram_physics_newtons_laws_of_motion_*.svg
+!out/extraction.json
 
 # local configs
 .env

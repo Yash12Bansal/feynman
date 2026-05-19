@@ -183,7 +183,34 @@ neo4j:
 
 ---
 
-## 7. Running the pipeline
+## 7. Fast path — skip ingestion entirely
+
+The repo ships a canonical fixture: H.C. Verma chapter 5 fully precomputed (audio fragments, diagram PNGs/SVGs, and `out/extraction.json` containing the full Neo4j graph state). To go from `git clone` → playable lecture without running any LLM or TTS:
+
+```bash
+cd ~/Desktop/Projects/feynman
+docker compose up -d neo4j         # start Neo4j
+
+cd data_pre_compute_v2
+poetry install --extras "preview"  # core + FastAPI for the preview server
+
+# Hydrate Neo4j from the committed extraction JSON — zero LLM calls.
+poetry run lecture-pipeline-v2 load-extraction ./out/extraction.json
+# Should report: "Ingestion OK — 125/125 statements, 55 nodes, 70 rels"
+# Takes ~1.5 seconds.
+
+# Confirm
+poetry run lecture-pipeline-v2 stats
+# Expect: Chapter=1, Topic=7, Diagram=12, Question=35
+```
+
+That's it — Neo4j now has chapter 5's graph (manifests, diagrams, questions) and `artifacts/audio/chapter_physics_newtons_laws_of_motion/` already contains the 126 MP3 fragments referenced by the manifest. You can now skip to **§9 Preview servers** to play it back. ~12 MB of fixtures travel with the repo.
+
+> **No need for ANTHROPIC_API_KEY, no need for Ollama, no need for Kokoro/PyTorch.** Those are only required if you want to ingest new chapters yourself. Everything below in §7-§8 covers that "full ingestion" path; skip if the fixture is enough for your immediate needs.
+
+---
+
+## 7b. Full ingestion (when you want to add new chapters)
 
 ### Quick test on H.C. Verma chapter 5 (Newton's Laws of Motion)
 
@@ -280,6 +307,9 @@ poetry run lecture-pipeline-v2 stats
 poetry run lecture-pipeline-v2 query "MATCH (t:Topic) RETURN t.section_number, t.topic_name LIMIT 20"
 poetry run lecture-pipeline-v2 verify-graph ./out/extraction.json   # check what landed
 poetry run lecture-pipeline-v2 validate ./out/extraction.json --semantic
+
+# Replay a saved extraction into Neo4j (no LLM/TTS — for sharing snapshots)
+poetry run lecture-pipeline-v2 load-extraction ./out/extraction.json
 ```
 
 ---
@@ -472,7 +502,22 @@ If you use `pip install -e .` instead of Poetry, macOS Sequoia sets `UF_HIDDEN` 
 
 ## 11. Quick verification checklist
 
-After a fresh setup, this sequence should run end-to-end in ~25 min:
+### Fastest: use committed fixtures (~3 minutes)
+
+```bash
+cd ~/Desktop/Projects/feynman
+docker compose up -d neo4j
+cd data_pre_compute_v2
+poetry install --extras "preview"
+poetry run lecture-pipeline-v2 load-extraction ./out/extraction.json
+poetry run python tools/preview_server.py &
+cd ../frontend && pnpm install && pnpm dev
+# Open http://localhost:5173/#/lecture-preview → click chapter → ▶ Play
+```
+
+### Full: ingest a chapter from scratch (~25 minutes)
+
+This validates the entire pipeline including LLM and TTS:
 
 ```bash
 # 1. Services

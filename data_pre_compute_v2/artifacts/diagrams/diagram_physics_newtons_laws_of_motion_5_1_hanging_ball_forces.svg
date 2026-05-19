@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="620" viewBox="0 0 900 620">
+<rect x="0" y="0" width="900" height="620" fill="#ffffff"/>
+<text id="hb_title" x="450" y="38" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Newton&#x27;s First Law: Balanced Forces</text>
+<text id="hb_subtitle" x="450" y="62" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">Object at rest  →  net force must be zero</text>
+<rect id="hb_ceiling" x="300" y="90" width="300" height="22" rx="3" fill="#90a4ae" stroke="#546e7a" stroke-width="2"/>
+<text id="hb_ceiling_label" x="450" y="107" font-size="12" fill="#fff" text-anchor="middle" font-weight="normal">Ceiling (fixed support)</text>
+<line id="hb_string" x1="450" y1="112" x2="450" y2="240" stroke="#795548" stroke-width="4" stroke-dasharray=""/>
+<text id="hb_string_label" x="490" y="180" font-size="13" fill="#795548" text-anchor="start" font-weight="normal">string</text>
+<circle id="hb_ball" cx="450" cy="290" r="50" fill="#ffd54f" stroke="#f57f17" stroke-width="3" stroke-dasharray=""/>
+<text id="hb_ball_label" x="450" y="295" font-size="16" fill="#5d4037" text-anchor="middle" font-weight="bold">Ball</text>
+<text id="hb_mass_label" x="450" y="315" font-size="14" fill="#5d4037" font-style="italic" text-anchor="middle">m</text>
+<defs><marker id="arrowhead_hb_tension_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="hb_tension_arrow" x1="450" y1="240" x2="450" y2="140" stroke="#FF9800" stroke-width="4" marker-end="url(#arrowhead_hb_tension_arrow)"/>
+<text id="hb_tension_label" x="350" y="185" font-size="14" fill="#FF9800" text-anchor="middle" font-weight="bold">Tension T</text>
+<text id="hb_tension_dir" x="350" y="202" font-size="12" fill="#FF9800" text-anchor="middle" font-weight="normal">(upward)</text>
+<defs><marker id="arrowhead_hb_gravity_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="hb_gravity_arrow" x1="450" y1="340" x2="450" y2="440" stroke="#4CAF50" stroke-width="4" marker-end="url(#arrowhead_hb_gravity_arrow)"/>
+<text id="hb_gravity_label" x="350" y="388" font-size="14" fill="#4CAF50" text-anchor="middle" font-weight="bold">Weight W</text>
+<text id="hb_gravity_dir" x="350" y="405" font-size="12" fill="#4CAF50" text-anchor="middle" font-weight="normal">(downward)</text>
+<text id="hb_tension_eq" x="560" y="185" font-size="15" fill="#FF9800" font-style="italic" text-anchor="middle">T = mg</text>
+<text id="hb_weight_eq" x="560" y="395" font-size="15" fill="#4CAF50" font-style="italic" text-anchor="middle">W = mg</text>
+<line id="hb_equal_line1" x1="540" y1="200" x2="540" y2="380" stroke="#bbb" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text id="hb_equal_label" x="560" y="295" font-size="12" fill="#888" text-anchor="start" font-weight="normal">equal &amp;</text>
+<text id="hb_equal_label2" x="560" y="312" font-size="12" fill="#888" text-anchor="start" font-weight="normal">opposite</text>
+<rect id="hb_reasoning_box" x="60" y="460" width="380" height="130" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2"/>
+<text id="hb_reasoning_title" x="250" y="483" font-size="14" fill="#e65100" text-anchor="middle" font-weight="bold">Reasoning from First Law</text>
+<text id="hb_reasoning_1" x="250" y="505" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">Ball is at rest  →  a = 0</text>
+<text id="hb_reasoning_2" x="250" y="525" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">First Law: a = 0  →  net force = 0</text>
+<text id="hb_reasoning_eq" x="250" y="552" font-size="14" fill="#bf360c" font-style="italic" text-anchor="middle">T - mg = 0 \quad \Rightarrow \quad T = mg</text>
+<text id="hb_reasoning_3" x="250" y="578" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">String tension exactly cancels gravity.</text>
+<rect id="hb_frame_box" x="480" y="460" width="370" height="130" rx="10" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+<text id="hb_frame_title" x="665" y="483" font-size="14" fill="#1b5e20" text-anchor="middle" font-weight="bold">Why this works</text>
+<text id="hb_frame_1" x="665" y="505" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">We are standing on the ground —</text>
+<text id="hb_frame_2" x="665" y="523" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">a good inertial frame.</text>
+<text id="hb_frame_3" x="665" y="548" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">Newton&#x27;s First Law applies correctly,</text>
+<text id="hb_frame_4" x="665" y="566" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">so our force balance is valid.</text>
+<text id="hb_frame_5" x="665" y="584" font-size="12" fill="#2e7d32" text-anchor="middle" font-weight="bold">Earth  ≈  inertial frame for everyday physics.</text>
+</svg>

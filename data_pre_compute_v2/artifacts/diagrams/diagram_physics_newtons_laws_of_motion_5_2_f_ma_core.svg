@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="fma_title" x="450" y="45" font-size="24" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Newton&#x27;s Second Law of Motion</text>
+<text id="fma_equation" x="450" y="90" font-size="28" fill="#D32F2F" font-style="italic" text-anchor="middle">\vec{F}_{net} = m\vec{a}</text>
+<line id="fma_divider" x1="60" y1="115" x2="840" y2="115" stroke="#cccccc" stroke-width="2" stroke-dasharray=""/>
+<text id="fma_scenario_label" x="450" y="148" font-size="15" fill="#555555" text-anchor="middle" font-weight="normal">Same Force — Different Mass — Different Acceleration</text>
+<line id="fma_ground1" x1="60" y1="310" x2="420" y2="310" stroke="#888888" stroke-width="2" stroke-dasharray=""/>
+<rect id="fma_block1" x="170" y="255" width="80" height="55" rx="4" fill="#90CAF9" stroke="#1565C0" stroke-width="2.5"/>
+<text id="fma_block1_mass" x="210" y="288" font-size="15" fill="#1a1a2e" text-anchor="middle" font-weight="bold">1 kg</text>
+<defs><marker id="arrowhead_fma_force1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="fma_force1" x1="95" y1="282" x2="168" y2="282" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_fma_force1)"/>
+<text id="fma_force1_label" x="130" y="270" font-size="13" fill="#E65100" text-anchor="middle" font-weight="normal">F = 10 N</text>
+<defs><marker id="arrowhead_fma_accel1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="fma_accel1" x1="252" y1="282" x2="390" y2="282" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_fma_accel1)"/>
+<text id="fma_accel1_label" x="320" y="265" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">a = 10 \text{ m/s}^2</text>
+<text id="fma_case1_title" x="240" y="335" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">Light Object</text>
+<text id="fma_case1_sub" x="240" y="355" font-size="13" fill="#555555" text-anchor="middle" font-weight="normal">Large acceleration</text>
+<line id="fma_ground2" x1="480" y1="310" x2="840" y2="310" stroke="#888888" stroke-width="2" stroke-dasharray=""/>
+<rect id="fma_block2" x="560" y="240" width="120" height="70" rx="4" fill="#FFCC80" stroke="#E65100" stroke-width="2.5"/>
+<text id="fma_block2_mass" x="620" y="280" font-size="15" fill="#1a1a2e" text-anchor="middle" font-weight="bold">5 kg</text>
+<defs><marker id="arrowhead_fma_force2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="fma_force2" x1="495" y1="275" x2="558" y2="275" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_fma_force2)"/>
+<text id="fma_force2_label" x="525" y="263" font-size="13" fill="#E65100" text-anchor="middle" font-weight="normal">F = 10 N</text>
+<defs><marker id="arrowhead_fma_accel2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="fma_accel2" x1="682" y1="275" x2="730" y2="275" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_fma_accel2)"/>
+<text id="fma_accel2_label" x="780" y="260" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">a = 2 \text{ m/s}^2</text>
+<text id="fma_case2_title" x="620" y="335" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">Heavy Object</text>
+<text id="fma_case2_sub" x="620" y="355" font-size="13" fill="#555555" text-anchor="middle" font-weight="normal">Small acceleration</text>
+<line id="fma_vsep" x1="450" y1="130" x2="450" y2="370" stroke="#dddddd" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line id="fma_hsep" x1="60" y1="390" x2="840" y2="390" stroke="#cccccc" stroke-width="1.5" stroke-dasharray=""/>
+<text id="fma_key_title" x="450" y="420" font-size="16" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Key Relationships</text>
+<rect id="fma_box_force" x="80" y="440" width="210" height="80" rx="8" fill="#FFF3E0" stroke="#FF9800" stroke-width="2"/>
+<text id="fma_box_force_t1" x="185" y="465" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">Force doubles</text>
+<text id="fma_box_force_t2" x="185" y="485" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Acceleration doubles</text>
+<text id="fma_box_force_t3" x="185" y="505" font-size="12" fill="#888" text-anchor="middle" font-weight="normal">(mass constant)</text>
+<rect id="fma_box_mass" x="345" y="440" width="210" height="80" rx="8" fill="#E3F2FD" stroke="#1565C0" stroke-width="2"/>
+<text id="fma_box_mass_t1" x="450" y="465" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">Mass doubles</text>
+<text id="fma_box_mass_t2" x="450" y="485" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Acceleration halves</text>
+<text id="fma_box_mass_t3" x="450" y="505" font-size="12" fill="#888" text-anchor="middle" font-weight="normal">(force constant)</text>
+<rect id="fma_box_dir" x="610" y="440" width="210" height="80" rx="8" fill="#FCE4EC" stroke="#D32F2F" stroke-width="2"/>
+<text id="fma_box_dir_t1" x="715" y="465" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">Direction of</text>
+<text id="fma_box_dir_t2" x="715" y="485" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">acceleration = direction</text>
+<text id="fma_box_dir_t3" x="715" y="505" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">of net force</text>
+<rect id="fma_legend_force" x="80" y="555" width="18" height="4" rx="2" fill="#FF9800" stroke="none" stroke-width="0"/>
+<text id="fma_legend_force_t" x="108" y="562" font-size="13" fill="#E65100" text-anchor="start" font-weight="normal">Applied Force</text>
+<rect id="fma_legend_accel" x="240" y="555" width="18" height="4" rx="2" fill="#D32F2F" stroke="none" stroke-width="0"/>
+<text id="fma_legend_accel_t" x="268" y="562" font-size="13" fill="#D32F2F" text-anchor="start" font-weight="normal">Resulting Acceleration</text>
+<text id="fma_note" x="450" y="620" font-size="12" fill="#777777" text-anchor="middle" font-weight="normal">Acceleration is instant: force present = acceleration present; force removed = acceleration gone immediately.</text>
+</svg>

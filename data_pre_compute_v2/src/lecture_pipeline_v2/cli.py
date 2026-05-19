@@ -302,5 +302,78 @@ def init_schema(
     asyncio.run(_run())
 
 
+@app.command("load-extraction")
+def load_extraction(
+    extraction_path: str = typer.Argument(..., help="Path to extraction.json saved by --output"),
+    config: Optional[str] = typer.Option(None, "--config", "-c", help="Path to config.yaml"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Re-hydrate Neo4j from a previously-saved extraction JSON.
+
+    Zero LLM calls, zero TTS. Runs Cypher MERGE for everything in the
+    JSON (chapters, topics, diagrams, questions, manifests, embeddings)
+    so a teammate can spin up the graph instantly from committed fixtures.
+    """
+    _setup_logging(verbose)
+
+    if not Path(extraction_path).exists():
+        console.print(f"[red]File not found: {extraction_path}[/red]")
+        raise typer.Exit(1)
+
+    cfg = _load_config(config)
+
+    from .curriculum.ingestion.cypher_generator import CypherGenerator
+    from .curriculum.ingestion.neo4j_writer import Neo4jWriter
+    from .curriculum.models import CurriculumExtractionResult
+    from .curriculum.schema import verify_ingestion
+
+    extraction = CurriculumExtractionResult.load(extraction_path)
+    counts = extraction.counts()
+
+    console.print(f"\n[bold]Loading extraction from {extraction_path}[/bold]")
+    console.print(
+        f"  {counts['chapters']} chapters, {counts['topics']} topics, "
+        f"{counts['diagrams']} diagrams, {counts['questions']} questions"
+    )
+
+    async def _run() -> None:
+        cypher_gen = CypherGenerator()
+        statements = cypher_gen.generate(extraction)
+        console.print(f"  generated {len(statements)} Cypher statements")
+
+        async with Neo4jWriter(cfg.neo4j) as writer:
+            report = await writer.ingest(
+                statements,
+                embedding_dimensions=cfg.embedding.dimensions,
+            )
+            console.print(f"\n  {report.summary()}")
+
+            expected_ids = (
+                {c.chapter_id for c in extraction.chapters}
+                | {t.topic_id for t in extraction.topics}
+                | {d.diagram_id for d in extraction.diagrams}
+                | {q.question_id for q in extraction.questions}
+            )
+            expected_rels = sum(
+                1
+                + (1 if t.next_topic_id else 0)
+                + len(t.prereq_topic_ids)
+                + len(t.has_diagram_ids)
+                + len(t.has_question_ids)
+                for t in extraction.topics
+            )
+            verification = await verify_ingestion(
+                writer.driver,
+                expected_node_ids=expected_ids,
+                expected_rel_count=expected_rels,
+                database=cfg.neo4j.database,
+            )
+            console.print(f"\n  {verification.summary()}")
+
+        console.print("\n[bold green]Done.[/bold green]")
+
+    asyncio.run(_run())
+
+
 if __name__ == "__main__":
     app()
