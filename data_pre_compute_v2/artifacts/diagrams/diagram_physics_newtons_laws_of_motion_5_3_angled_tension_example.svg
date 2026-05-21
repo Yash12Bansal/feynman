@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#fafafa"/>
+<text id="title" x="450" y="38" font-size="21" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Angled String: Choosing Smart Axes</text>
+<text id="subtitle" x="450" y="62" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Point your x-axis along the acceleration — the math becomes clean!</text>
+<rect id="table_surface" x="80" y="310" width="520" height="16" rx="2" fill="#888" stroke="#555" stroke-width="1.5"/>
+<text id="table_label" x="340" y="344" font-size="11" fill="#888" text-anchor="middle" font-weight="normal">Smooth table</text>
+<rect id="block" x="220" y="250" width="90" height="60" rx="5" fill="#b3d4f5" stroke="#4682b4" stroke-width="2.5"/>
+<text id="block_label" x="265" y="285" font-size="13" fill="#1a4a7a" text-anchor="middle" font-weight="bold">Block</text>
+<text id="block_m" x="265" y="302" font-size="11" fill="#4682b4" text-anchor="middle" font-weight="normal">mass m</text>
+<line id="string" x1="310" y1="250" x2="430" y2="178" stroke="#555" stroke-width="2.5" stroke-dasharray=""/>
+<text id="string_label" x="390" y="200" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">String</text>
+<path id="angle_arc" d="M 310.0 214.0 A 36.0 36.0 0 0 1 290.9229064876046 219.47026853836866" stroke="#9c27b0" stroke-width="2" fill="none"/>
+<text id="angle_label" x="330" y="228" font-size="14" fill="#9c27b0" font-style="italic" text-anchor="middle">\theta</text>
+<defs><marker id="arrowhead_tension_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="tension_arrow" x1="310" y1="250" x2="430" y2="178" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_tension_arrow)"/>
+<text id="tension_label" x="460" y="168" font-size="16" fill="#D32F2F" text-anchor="start" font-weight="bold">T</text>
+<defs><marker id="arrowhead_normal_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="normal_arrow" x1="265" y1="250" x2="265" y2="178" stroke="#FF9800" stroke-width="2.5" marker-end="url(#arrowhead_normal_arrow)"/>
+<text id="normal_label" x="240" y="200" font-size="14" fill="#FF9800" text-anchor="middle" font-weight="bold">N</text>
+<defs><marker id="arrowhead_weight_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="weight_arrow" x1="265" y1="310" x2="265" y2="382" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_weight_arrow)"/>
+<text id="weight_label" x="240" y="358" font-size="14" fill="#4CAF50" text-anchor="middle" font-weight="bold">mg</text>
+<defs><marker id="arrowhead_accel_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1a1a2e"/></marker></defs><line id="accel_arrow" x1="340" y1="400" x2="430" y2="400" stroke="#1a1a2e" stroke-width="3" marker-end="url(#arrowhead_accel_arrow)"/>
+<text id="accel_label" x="385" y="390" font-size="14" fill="#1a1a2e" text-anchor="middle" font-weight="bold">a</text>
+<text id="accel_desc" x="385" y="420" font-size="10" fill="#555" text-anchor="middle" font-weight="normal">acceleration</text>
+<line id="xaxis" x1="100" y1="450" x2="580" y2="450" stroke="#D32F2F" stroke-width="1.5" stroke-dasharray="6,4"/>
+<defs><marker id="arrowhead_xaxis_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="xaxis_arrow" x1="540" y1="450" x2="580" y2="450" stroke="#D32F2F" stroke-width="2" marker-end="url(#arrowhead_xaxis_arrow)"/>
+<text id="xaxis_label" x="590" y="455" font-size="14" fill="#D32F2F" text-anchor="start" font-weight="bold">x</text>
+<line id="yaxis" x1="100" y1="490" x2="100" y2="420" stroke="#FF9800" stroke-width="1.5" stroke-dasharray="6,4"/>
+<defs><marker id="arrowhead_yaxis_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="yaxis_arrow" x1="100" y1="430" x2="100" y2="420" stroke="#FF9800" stroke-width="2" marker-end="url(#arrowhead_yaxis_arrow)"/>
+<text id="yaxis_label" x="100" y="412" font-size="14" fill="#FF9800" text-anchor="middle" font-weight="bold">y</text>
+<text id="axes_note" x="340" y="468" font-size="11" fill="#D32F2F" text-anchor="middle" font-weight="normal">x-axis points along acceleration (smart choice!)</text>
+<rect id="equations_box" x="610" y="90" width="265" height="500" rx="12" fill="#1a1a2e" stroke="none" stroke-width="0"/>
+<text id="eq_title" x="742" y="120" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="bold">Newton&#x27;s 2nd Law</text>
+<line id="eq_div1" x1="630" y1="132" x2="855" y2="132" stroke="#4682b4" stroke-width="1" stroke-dasharray=""/>
+<text id="eq_x_title" x="742" y="158" font-size="12" fill="#aac8ff" text-anchor="middle" font-weight="bold">x-direction (along a):</text>
+<text id="eq_x1" x="742" y="185" font-size="14" fill="#ffffff" font-style="italic" text-anchor="middle">\sum F_x = ma</text>
+<text id="eq_x2" x="742" y="218" font-size="14" fill="#f5c842" font-style="italic" text-anchor="middle">T\cos\theta = ma</text>
+<text id="eq_x_note" x="742" y="248" font-size="10" fill="#aaa" text-anchor="middle" font-weight="normal">Horizontal part of T</text>
+<text id="eq_x_note2" x="742" y="262" font-size="10" fill="#aaa" text-anchor="middle" font-weight="normal">causes the acceleration</text>
+<line id="eq_div2" x1="630" y1="278" x2="855" y2="278" stroke="#4682b4" stroke-width="1" stroke-dasharray=""/>
+<text id="eq_y_title" x="742" y="302" font-size="12" fill="#aac8ff" text-anchor="middle" font-weight="bold">y-direction (no accel.):</text>
+<text id="eq_y1" x="742" y="328" font-size="14" fill="#ffffff" font-style="italic" text-anchor="middle">\sum F_y = 0</text>
+<text id="eq_y2" x="742" y="362" font-size="13" fill="#f5c842" font-style="italic" text-anchor="middle">N + T\sin\theta - mg = 0</text>
+<text id="eq_y3" x="742" y="396" font-size="13" fill="#7dff7d" font-style="italic" text-anchor="middle">N = mg - T\sin\theta</text>
+<text id="eq_y_note" x="742" y="422" font-size="11" fill="#7dff7d" text-anchor="middle" font-weight="bold">N is less than mg!</text>
+<text id="eq_y_note2" x="742" y="438" font-size="10" fill="#aaa" text-anchor="middle" font-weight="normal">String lifts block slightly,</text>
+<text id="eq_y_note3" x="742" y="452" font-size="10" fill="#aaa" text-anchor="middle" font-weight="normal">so table pushes less.</text>
+<line id="eq_div3" x1="630" y1="468" x2="855" y2="468" stroke="#4682b4" stroke-width="1" stroke-dasharray=""/>
+<text id="eq_solve_label" x="742" y="490" font-size="12" fill="#aac8ff" text-anchor="middle" font-weight="bold">Solve for a:</text>
+<text id="eq_solve" x="742" y="522" font-size="15" fill="#f5c842" font-style="italic" text-anchor="middle">a = \frac{T\cos\theta}{m}</text>
+<line id="tension_x_comp" x1="310" y1="250" x2="430" y2="250" stroke="#D32F2F" stroke-width="1.5" stroke-dasharray="5,4"/>
+<line id="tension_y_comp" x1="430" y1="250" x2="430" y2="178" stroke="#D32F2F" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text id="tx_label" x="370" y="270" font-size="11" fill="#D32F2F" font-style="italic" text-anchor="middle">T\cos\theta</text>
+<text id="ty_label" x="470" y="218" font-size="11" fill="#D32F2F" font-style="italic" text-anchor="middle">T\sin\theta</text>
+</svg>

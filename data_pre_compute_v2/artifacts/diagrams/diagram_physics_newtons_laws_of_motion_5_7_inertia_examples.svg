@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="title" x="450" y="40" font-size="24" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Inertia in Everyday Life</text>
+<text id="subtitle" x="450" y="65" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">Objects resist any change to their state of motion</text>
+<line id="h_divider" x1="40" y1="340" x2="860" y2="340" stroke="#ddd" stroke-width="1.5" stroke-dasharray=""/>
+<line id="v_divider" x1="450" y1="80" x2="450" y2="340" stroke="#ddd" stroke-width="1.5" stroke-dasharray=""/>
+<text id="ex1_title" x="225" y="100" font-size="14" fill="#1565C0" text-anchor="middle" font-weight="bold">Example 1: Tablecloth Trick</text>
+<rect id="table_top" x="80" y="220" width="290" height="12" rx="2" fill="#8D6E63" stroke="#5D4037" stroke-width="1"/>
+<rect id="tablecloth" x="80" y="208" width="290" height="14" rx="2" fill="#EF9A9A" stroke="#C62828" stroke-width="1"/>
+<rect id="table_leg1" x="95" y="232" width="14" height="55" rx="2" fill="#8D6E63" stroke="#5D4037" stroke-width="1"/>
+<rect id="table_leg2" x="341" y="232" width="14" height="55" rx="2" fill="#8D6E63" stroke="#5D4037" stroke-width="1"/>
+<circle id="coin" cx="200" cy="198" r="14" fill="#FFF9C4" stroke="#F9A825" stroke-width="2" stroke-dasharray=""/>
+<text id="coin_label_text" x="200" y="203" font-size="10" fill="#F57F17" text-anchor="middle" font-weight="bold">coin</text>
+<defs><marker id="arrowhead_cloth_pull" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="cloth_pull" x1="370" y1="215" x2="415" y2="215" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_cloth_pull)"/>
+<text id="pull_label" x="390" y="208" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="bold">Pull!</text>
+<text id="coin_stays" x="200" y="175" font-size="12" fill="#1565C0" text-anchor="middle" font-weight="normal">Coin stays put!</text>
+<defs><marker id="arrowhead_coin_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#1565C0"/></marker></defs><line id="coin_arrow" x1="200" y1="179" x2="200" y2="186" stroke="#1565C0" stroke-width="1.5" marker-end="url(#arrowhead_coin_arrow)"/>
+<rect id="ex1_note" x="60" y="298" width="360" height="32" rx="6" fill="#E3F2FD" stroke="#90CAF9" stroke-width="1"/>
+<text id="ex1_note_text" x="240" y="319" font-size="11.5" fill="#1565C0" text-anchor="middle" font-weight="normal">Coin&#x27;s inertia keeps it at rest as cloth is yanked away</text>
+<text id="ex2_title" x="675" y="100" font-size="14" fill="#E65100" text-anchor="middle" font-weight="bold">Example 2: Car Braking Hard</text>
+<rect id="car_body" x="530" y="185" width="200" height="55" rx="10" fill="#FFE0B2" stroke="#E65100" stroke-width="2"/>
+<rect id="car_roof" x="565" y="155" width="120" height="35" rx="8" fill="#FFE0B2" stroke="#E65100" stroke-width="2"/>
+<circle id="wheel1" cx="575" cy="243" r="16" fill="#bbb" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<circle id="wheel2" cx="705" cy="243" r="16" fill="#bbb" stroke="#555" stroke-width="2" stroke-dasharray=""/>
+<circle id="person_head" cx="640" cy="168" r="11" fill="#FFCCBC" stroke="#795548" stroke-width="2" stroke-dasharray=""/>
+<rect id="person_body" x="632" y="179" width="16" height="28" rx="3" fill="#5C6BC0" stroke="#3949AB" stroke-width="1"/>
+<defs><marker id="arrowhead_person_lurch" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="person_lurch" x1="648" y1="175" x2="680" y2="175" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_person_lurch)"/>
+<text id="lurch_label" x="700" y="170" font-size="11" fill="#D32F2F" text-anchor="middle" font-weight="normal">body lurches</text>
+<text id="lurch_label2" x="700" y="183" font-size="11" fill="#D32F2F" text-anchor="middle" font-weight="normal">forward!</text>
+<defs><marker id="arrowhead_brake_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#E65100"/></marker></defs><line id="brake_arrow" x1="530" y1="215" x2="490" y2="215" stroke="#E65100" stroke-width="3" marker-end="url(#arrowhead_brake_arrow)"/>
+<text id="brake_label" x="475" y="208" font-size="12" fill="#E65100" text-anchor="middle" font-weight="bold">Brakes!</text>
+<line id="road" x1="460" y1="260" x2="860" y2="260" stroke="#888" stroke-width="2.5" stroke-dasharray=""/>
+<rect id="ex2_note" x="460" y="298" width="370" height="32" rx="6" fill="#FFF3E0" stroke="#FFCC80" stroke-width="1"/>
+<text id="ex2_note_text" x="645" y="319" font-size="11.5" fill="#E65100" text-anchor="middle" font-weight="normal">Body&#x27;s inertia keeps it moving as car decelerates</text>
+<text id="ex3_title" x="450" y="370" font-size="14" fill="#2E7D32" text-anchor="middle" font-weight="bold">Example 3: Object in Motion Stays in Motion</text>
+<text id="ex3_subtitle" x="450" y="390" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">(No force = no change in motion)</text>
+<line id="motion_line" x1="60" y1="480" x2="840" y2="480" stroke="#aaa" stroke-width="1.5" stroke-dasharray="8,5"/>
+<circle id="ball_pos1" cx="120" cy="460" r="20" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2" stroke-dasharray=""/>
+<circle id="ball_pos2" cx="290" cy="460" r="20" fill="#A5D6A7" stroke="#2E7D32" stroke-width="2" stroke-dasharray=""/>
+<circle id="ball_pos3" cx="460" cy="460" r="20" fill="#81C784" stroke="#2E7D32" stroke-width="2" stroke-dasharray=""/>
+<circle id="ball_pos4" cx="630" cy="460" r="20" fill="#66BB6A" stroke="#2E7D32" stroke-width="2" stroke-dasharray=""/>
+<circle id="ball_pos5" cx="800" cy="460" r="20" fill="#4CAF50" stroke="#2E7D32" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_motion_arrow1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2E7D32"/></marker></defs><line id="motion_arrow1" x1="145" y1="460" x2="263" y2="460" stroke="#2E7D32" stroke-width="2" marker-end="url(#arrowhead_motion_arrow1)"/>
+<defs><marker id="arrowhead_motion_arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2E7D32"/></marker></defs><line id="motion_arrow2" x1="315" y1="460" x2="433" y2="460" stroke="#2E7D32" stroke-width="2" marker-end="url(#arrowhead_motion_arrow2)"/>
+<defs><marker id="arrowhead_motion_arrow3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2E7D32"/></marker></defs><line id="motion_arrow3" x1="485" y1="460" x2="603" y2="460" stroke="#2E7D32" stroke-width="2" marker-end="url(#arrowhead_motion_arrow3)"/>
+<defs><marker id="arrowhead_motion_arrow4" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2E7D32"/></marker></defs><line id="motion_arrow4" x1="655" y1="460" x2="773" y2="460" stroke="#2E7D32" stroke-width="2" marker-end="url(#arrowhead_motion_arrow4)"/>
+<text id="time_label1" x="120" y="500" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">t = 0</text>
+<text id="time_label2" x="290" y="500" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">t = 1s</text>
+<text id="time_label3" x="460" y="500" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">t = 2s</text>
+<text id="time_label4" x="630" y="500" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">t = 3s</text>
+<text id="time_label5" x="800" y="500" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">t = 4s</text>
+<text id="no_force_label" x="450" y="430" font-size="12" fill="#888" text-anchor="middle" font-weight="normal">No net force acting</text>
+<rect id="ex3_note" x="200" y="518" width="500" height="32" rx="6" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="1"/>
+<text id="ex3_note_text" x="450" y="539" font-size="12" fill="#2E7D32" text-anchor="middle" font-weight="normal">Ball moves at constant velocity forever — inertia keeps it going</text>
+<rect id="newton1_box" x="200" y="570" width="500" height="58" rx="10" fill="#EDE7F6" stroke="#7B1FA2" stroke-width="2"/>
+<text id="newton1_label" x="450" y="591" font-size="13" fill="#6A1B9A" text-anchor="middle" font-weight="bold">Newton&#x27;s First Law (Law of Inertia):</text>
+<text id="newton1_text" x="450" y="613" font-size="12" fill="#4A148C" text-anchor="middle" font-weight="normal">An object remains at rest or in uniform motion unless acted on by a net force.</text>
+</svg>

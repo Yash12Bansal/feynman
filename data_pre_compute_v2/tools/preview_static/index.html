@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lecture Player</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- Chapter selector view (shown when no ?chapter= param) -->
+<div id="chapter-list" class="container hidden">
+    <h1>Available chapters</h1>
+    <ul id="chapters-ul"></ul>
+</div>
+
+<!-- Player view (shown when ?chapter= is set) -->
+<div id="player" class="container hidden">
+    <header>
+        <div class="chapter-line">
+            <span id="chapter-index" class="chapter-index"></span>
+            <h1 id="chapter-title">Loading…</h1>
+        </div>
+        <div id="topic-label" class="topic-label">&nbsp;</div>
+    </header>
+
+    <main class="board">
+        <img id="board-img" alt="" />
+        <div id="topic-card" class="topic-card">
+            <div id="topic-card-section" class="topic-card-section"></div>
+            <div id="topic-card-title" class="topic-card-title"></div>
+            <div class="topic-card-underline"></div>
+        </div>
+        <div id="board-empty">— board —</div>
+        <div id="diagram-caption" class="caption"></div>
+    </main>
+
+    <footer>
+        <button id="play-btn" disabled>▶  Play</button>
+        <div id="progress" class="progress">—</div>
+    </footer>
+</div>
+
+<audio id="audio" preload="auto"></audio>
+<script src="/static/app.js"></script>
+</body>
+</html>

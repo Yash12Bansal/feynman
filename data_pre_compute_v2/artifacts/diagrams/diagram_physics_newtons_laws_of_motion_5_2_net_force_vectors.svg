@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="nf_title" x="450" y="42" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Net Force = Vector Sum of All Forces</text>
+<line id="nf_divider" x1="60" y1="60" x2="840" y2="60" stroke="#cccccc" stroke-width="1.5" stroke-dasharray=""/>
+<text id="nf_case1_title" x="220" y="95" font-size="15" fill="#1565C0" text-anchor="middle" font-weight="bold">Case 1: Forces in Same Direction</text>
+<rect id="nf_block1" x="180" y="130" width="80" height="60" rx="4" fill="#90CAF9" stroke="#1565C0" stroke-width="2.5"/>
+<text id="nf_block1_m" x="220" y="165" font-size="14" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Box</text>
+<defs><marker id="arrowhead_nf_f1a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="nf_f1a" x1="80" y1="160" x2="178" y2="160" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_nf_f1a)"/>
+<text id="nf_f1a_label" x="128" y="148" font-size="12" fill="#E65100" text-anchor="middle" font-weight="normal">F1 = 8 N</text>
+<defs><marker id="arrowhead_nf_f1b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="nf_f1b" x1="262" y1="160" x2="340" y2="160" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_nf_f1b)"/>
+<text id="nf_f1b_label" x="300" y="148" font-size="12" fill="#2E7D32" text-anchor="middle" font-weight="normal">F2 = 4 N</text>
+<defs><marker id="arrowhead_nf_net1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="nf_net1" x1="220" y1="205" x2="370" y2="205" stroke="#D32F2F" stroke-width="4" marker-end="url(#arrowhead_nf_net1)"/>
+<text id="nf_net1_label" x="290" y="228" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">F_{net} = 12\text{ N} \rightarrow</text>
+<line id="nf_vsep" x1="450" y1="65" x2="450" y2="380" stroke="#dddddd" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text id="nf_case2_title" x="680" y="95" font-size="15" fill="#6A1B9A" text-anchor="middle" font-weight="bold">Case 2: Forces in Opposite Directions</text>
+<rect id="nf_block2" x="640" y="130" width="80" height="60" rx="4" fill="#CE93D8" stroke="#6A1B9A" stroke-width="2.5"/>
+<text id="nf_block2_m" x="680" y="165" font-size="14" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Box</text>
+<defs><marker id="arrowhead_nf_f2a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="nf_f2a" x1="540" y1="160" x2="638" y2="160" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_nf_f2a)"/>
+<text id="nf_f2a_label" x="588" y="148" font-size="12" fill="#E65100" text-anchor="middle" font-weight="normal">F1 = 10 N</text>
+<defs><marker id="arrowhead_nf_f2b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="nf_f2b" x1="822" y1="160" x2="722" y2="160" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_nf_f2b)"/>
+<text id="nf_f2b_label" x="775" y="148" font-size="12" fill="#2E7D32" text-anchor="middle" font-weight="normal">F2 = 10 N</text>
+<circle id="nf_zero" cx="680" cy="205" r="16" fill="#D32F2F" stroke="#B71C1C" stroke-width="2" stroke-dasharray=""/>
+<text id="nf_zero_label" x="680" y="210" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="bold">0</text>
+<text id="nf_net2_label" x="680" y="238" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">F_{net} = 0 \Rightarrow a = 0</text>
+<line id="nf_hsep" x1="60" y1="385" x2="840" y2="385" stroke="#cccccc" stroke-width="1.5" stroke-dasharray=""/>
+<text id="nf_case3_title" x="450" y="415" font-size="15" fill="#00695C" text-anchor="middle" font-weight="bold">Case 3: Forces at Angles — Vector Addition</text>
+<circle id="nf_ball" cx="450" cy="510" r="28" fill="#80CBC4" stroke="#00695C" stroke-width="2.5" stroke-dasharray=""/>
+<text id="nf_ball_label" x="450" y="515" font-size="13" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Ball</text>
+<defs><marker id="arrowhead_nf_kick1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="nf_kick1" x1="450" y1="510" x2="340" y2="440" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_nf_kick1)"/>
+<text id="nf_kick1_label" x="370" y="455" font-size="12" fill="#E65100" text-anchor="middle" font-weight="normal">Kick 1</text>
+<defs><marker id="arrowhead_nf_kick2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="nf_kick2" x1="450" y1="510" x2="560" y2="440" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_nf_kick2)"/>
+<text id="nf_kick2_label" x="530" y="455" font-size="12" fill="#2E7D32" text-anchor="middle" font-weight="normal">Kick 2</text>
+<defs><marker id="arrowhead_nf_net3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="nf_net3" x1="450" y1="510" x2="450" y2="415" stroke="#D32F2F" stroke-width="4" marker-end="url(#arrowhead_nf_net3)"/>
+<text id="nf_net3_label" x="490" y="455" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">\vec{F}_{net}</text>
+<path id="nf_dashed1" d="M 340 440 L 450 415" stroke="#FF9800" stroke-width="1.5" fill="none" stroke-dasharray="5,4"/>
+<path id="nf_dashed2" d="M 560 440 L 450 415" stroke="#4CAF50" stroke-width="1.5" fill="none" stroke-dasharray="5,4"/>
+<text id="nf_parallelogram_note" x="450" y="600" font-size="12" fill="#777777" text-anchor="middle" font-weight="normal">Parallelogram rule: dashed lines complete the parallelogram — the diagonal is the net force.</text>
+<text id="nf_bottom_note" x="450" y="625" font-size="12" fill="#555555" text-anchor="middle" font-weight="normal">The ball accelerates in the direction of the net force — not in the direction of any single kick.</text>
+</svg>

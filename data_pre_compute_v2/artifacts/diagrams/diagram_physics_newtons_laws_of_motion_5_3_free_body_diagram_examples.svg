@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="main_title" x="450" y="38" font-size="21" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Choosing Your System Changes Everything</text>
+<text id="subtitle" x="450" y="62" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Same situation. Two different systems. Two completely different force lists.</text>
+<rect id="physical_box" x="330" y="78" width="240" height="180" rx="10" fill="#f5f5f5" stroke="#aaa" stroke-width="1.5"/>
+<text id="physical_label" x="450" y="98" font-size="13" fill="#555" text-anchor="middle" font-weight="bold">Physical Situation</text>
+<rect id="floor" x="370" y="228" width="160" height="12" rx="2" fill="#888" stroke="none" stroke-width="0"/>
+<text id="floor_label" x="450" y="252" font-size="10" fill="#888" text-anchor="middle" font-weight="normal">Floor</text>
+<rect id="boy_body" x="422" y="168" width="56" height="60" rx="4" fill="#b3d4f5" stroke="#4682b4" stroke-width="1.5"/>
+<circle id="boy_head" cx="450" cy="158" r="14" fill="#b3d4f5" stroke="#4682b4" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="bag" x="430" y="130" width="40" height="24" rx="4" fill="#f5c842" stroke="#c8a000" stroke-width="1.5"/>
+<text id="bag_label_phys" x="450" y="146" font-size="9" fill="#7a5a00" text-anchor="middle" font-weight="bold">Bag</text>
+<text id="boy_label_phys" x="450" y="204" font-size="9" fill="#1a4a7a" text-anchor="middle" font-weight="bold">Boy</text>
+<text id="still_label" x="450" y="120" font-size="10" fill="#555" text-anchor="middle" font-weight="normal">Standing still</text>
+<defs><marker id="arrowhead_arrow_left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4682b4"/></marker></defs><line id="arrow_left" x1="328" y1="168" x2="200" y2="310" stroke="#4682b4" stroke-width="2" marker-end="url(#arrowhead_arrow_left)"/>
+<text id="arrow_left_label" x="240" y="270" font-size="11" fill="#4682b4" text-anchor="middle" font-weight="bold">System = Boy</text>
+<defs><marker id="arrowhead_arrow_right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#c8a000"/></marker></defs><line id="arrow_right" x1="572" y1="168" x2="700" y2="310" stroke="#c8a000" stroke-width="2" marker-end="url(#arrowhead_arrow_right)"/>
+<text id="arrow_right_label" x="660" y="270" font-size="11" fill="#c8a000" text-anchor="middle" font-weight="bold">System = Bag</text>
+<rect id="fbd_boy_box" x="50" y="300" width="340" height="310" rx="12" fill="#eef5fd" stroke="#4682b4" stroke-width="2"/>
+<rect id="fbd_boy_header" x="50" y="300" width="340" height="36" rx="12" fill="#4682b4" stroke="#4682b4" stroke-width="2"/>
+<rect id="fbd_boy_header_fix" x="50" y="320" width="340" height="16" rx="0" fill="#4682b4" stroke="none" stroke-width="0"/>
+<text id="fbd_boy_title" x="220" y="323" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="bold">FBD: System = Boy</text>
+<circle id="boy_dot" cx="220" cy="440" r="12" fill="#4682b4" stroke="#1a4a7a" stroke-width="2" stroke-dasharray=""/>
+<text id="boy_dot_label" x="220" y="468" font-size="10" fill="#1a4a7a" text-anchor="middle" font-weight="normal">Boy (system)</text>
+<defs><marker id="arrowhead_boy_N" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="boy_N" x1="220" y1="428" x2="220" y2="360" stroke="#FF9800" stroke-width="2.5" marker-end="url(#arrowhead_boy_N)"/>
+<text id="boy_N_label" x="248" y="388" font-size="11" fill="#FF9800" text-anchor="start" font-weight="bold">N (floor)</text>
+<defs><marker id="arrowhead_boy_W" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="boy_W" x1="220" y1="452" x2="220" y2="520" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_boy_W)"/>
+<text id="boy_W_label" x="248" y="492" font-size="11" fill="#4CAF50" text-anchor="start" font-weight="bold">W (gravity)</text>
+<defs><marker id="arrowhead_boy_bag_force" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="boy_bag_force" x1="208" y1="428" x2="150" y2="428" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_boy_bag_force)"/>
+<text id="boy_bag_force_label" x="145" y="418" font-size="10" fill="#D32F2F" text-anchor="end" font-weight="bold">Bag presses</text>
+<text id="boy_bag_force_label2" x="145" y="432" font-size="10" fill="#D32F2F" text-anchor="end" font-weight="normal">down on boy</text>
+<text id="boy_note" x="220" y="548" font-size="11" fill="#1a4a7a" text-anchor="middle" font-weight="bold">3 forces on the boy</text>
+<rect id="fbd_bag_box" x="510" y="300" width="340" height="310" rx="12" fill="#fffbe6" stroke="#c8a000" stroke-width="2"/>
+<rect id="fbd_bag_header" x="510" y="300" width="340" height="36" rx="12" fill="#c8a000" stroke="#c8a000" stroke-width="2"/>
+<rect id="fbd_bag_header_fix" x="510" y="320" width="340" height="16" rx="0" fill="#c8a000" stroke="none" stroke-width="0"/>
+<text id="fbd_bag_title" x="680" y="323" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="bold">FBD: System = Bag</text>
+<circle id="bag_dot" cx="680" cy="440" r="12" fill="#f5c842" stroke="#7a5a00" stroke-width="2" stroke-dasharray=""/>
+<text id="bag_dot_label" x="680" y="468" font-size="10" fill="#7a5a00" text-anchor="middle" font-weight="normal">Bag (system)</text>
+<defs><marker id="arrowhead_bag_N" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="bag_N" x1="680" y1="428" x2="680" y2="360" stroke="#FF9800" stroke-width="2.5" marker-end="url(#arrowhead_bag_N)"/>
+<text id="bag_N_label" x="708" y="388" font-size="11" fill="#FF9800" text-anchor="start" font-weight="bold">N (boy&#x27;s head</text>
+<text id="bag_N_label2" x="708" y="402" font-size="11" fill="#FF9800" text-anchor="start" font-weight="normal">pushes bag up)</text>
+<defs><marker id="arrowhead_bag_W" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="bag_W" x1="680" y1="452" x2="680" y2="520" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_bag_W)"/>
+<text id="bag_W_label" x="708" y="492" font-size="11" fill="#4CAF50" text-anchor="start" font-weight="bold">W (gravity)</text>
+<text id="bag_note" x="680" y="548" font-size="11" fill="#7a5a00" text-anchor="middle" font-weight="bold">Only 2 forces on the bag</text>
+<rect id="key_insight_box" x="50" y="622" width="800" height="0" rx="0" fill="none" stroke="none" stroke-width="0"/>
+</svg>

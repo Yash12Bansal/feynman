@@ -3,6 +3,7 @@ import { useSession } from "./hooks/useSession";
 import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
 import { DevHarness } from "./screens/DevHarness";
+import { LecturePreviewScreen } from "./screens/LecturePreviewScreen";
 import { SplitBoardPrototype } from "./screens/SplitBoardPrototype";
 import { WaitingScreen } from "./screens/WaitingScreen";
 
@@ -25,6 +26,13 @@ export function App() {
 
   if (hash === "#/dev/split-board") {
     return <SplitBoardPrototype />;
+  }
+
+  // v2 precompute classroom playback. Optional ?chapter=<id> in the hash:
+  //   #/lecture-preview                                  → chapter list
+  //   #/lecture-preview?chapter=chapter:physics:...      → player
+  if (hash.startsWith("#/lecture-preview")) {
+    return <LecturePreviewScreen />;
   }
 
   return <MainApp />;

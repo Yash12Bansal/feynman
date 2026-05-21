@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="inst_title" x="450" y="40" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Acceleration Exists Only While Force Acts</text>
+<text id="inst_subtitle" x="450" y="68" font-size="15" fill="#555555" text-anchor="middle" font-weight="normal">Example: Kicking a Soccer Ball</text>
+<line id="inst_timeline" x1="80" y1="310" x2="820" y2="310" stroke="#888888" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_inst_timeline_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#888888"/></marker></defs><line id="inst_timeline_arrow" x1="810" y1="310" x2="840" y2="310" stroke="#888888" stroke-width="2" marker-end="url(#arrowhead_inst_timeline_arrow)"/>
+<text id="inst_time_label" x="855" y="315" font-size="13" fill="#888888" text-anchor="start" font-weight="normal">time</text>
+<text id="inst_phase1_label" x="200" y="100" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">Phase 1: Before Contact</text>
+<circle id="inst_ball1" cx="200" cy="260" r="28" fill="#FFCC02" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<text id="inst_ball1_label" x="200" y="265" font-size="12" fill="#333" text-anchor="middle" font-weight="normal">Ball</text>
+<text id="inst_phase1_force" x="200" y="355" font-size="13" fill="#FF9800" text-anchor="middle" font-weight="normal">Force = 0</text>
+<text id="inst_phase1_accel" x="200" y="378" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="normal">Acceleration = 0</text>
+<text id="inst_phase1_state" x="200" y="405" font-size="12" fill="#555555" text-anchor="middle" font-weight="normal">Ball sits still</text>
+<line id="inst_sep1" x1="330" y1="90" x2="330" y2="430" stroke="#cccccc" stroke-width="1" stroke-dasharray="6,4"/>
+<text id="inst_phase2_label" x="480" y="100" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">Phase 2: Foot Contacts Ball</text>
+<circle id="inst_ball2" cx="480" cy="255" r="28" fill="#FFCC02" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<text id="inst_ball2_label" x="480" y="260" font-size="12" fill="#333" text-anchor="middle" font-weight="normal">Ball</text>
+<path id="inst_foot" d="M 395 270 Q 420 240 445 258" stroke="#795548" stroke-width="5" fill="none" stroke-dasharray=""/>
+<text id="inst_foot_label" x="400" y="240" font-size="12" fill="#795548" text-anchor="middle" font-weight="normal">Foot</text>
+<defs><marker id="arrowhead_inst_kick_force" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="inst_kick_force" x1="445" y1="255" x2="508" y2="240" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_inst_kick_force)"/>
+<defs><marker id="arrowhead_inst_kick_accel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="inst_kick_accel" x1="510" y1="255" x2="580" y2="240" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_inst_kick_accel)"/>
+<text id="inst_phase2_force" x="480" y="355" font-size="13" fill="#FF9800" text-anchor="middle" font-weight="normal">Force = Large (kick!)</text>
+<text id="inst_phase2_accel" x="480" y="378" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="normal">Acceleration = Large</text>
+<text id="inst_phase2_state" x="480" y="405" font-size="12" fill="#555555" text-anchor="middle" font-weight="normal">Ball rapidly speeds up</text>
+<line id="inst_sep2" x1="640" y1="90" x2="640" y2="430" stroke="#cccccc" stroke-width="1" stroke-dasharray="6,4"/>
+<text id="inst_phase3_label" x="760" y="100" font-size="14" fill="#333333" text-anchor="middle" font-weight="bold">Phase 3: After Contact</text>
+<circle id="inst_ball3" cx="760" cy="255" r="28" fill="#FFCC02" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<text id="inst_ball3_label" x="760" y="260" font-size="12" fill="#333" text-anchor="middle" font-weight="normal">Ball</text>
+<defs><marker id="arrowhead_inst_ball3_velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4682b4"/></marker></defs><line id="inst_ball3_velocity" x1="790" y1="250" x2="840" y2="235" stroke="#4682b4" stroke-width="3" marker-end="url(#arrowhead_inst_ball3_velocity)"/>
+<text id="inst_ball3_vel_label" x="840" y="228" font-size="12" fill="#4682b4" text-anchor="start" font-weight="normal">v (constant)</text>
+<text id="inst_phase3_force" x="760" y="355" font-size="13" fill="#FF9800" text-anchor="middle" font-weight="normal">Force = 0</text>
+<text id="inst_phase3_accel" x="760" y="378" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="normal">Acceleration = 0</text>
+<text id="inst_phase3_state" x="760" y="405" font-size="12" fill="#555555" text-anchor="middle" font-weight="normal">Ball coasts at fixed speed</text>
+<rect id="inst_key_box" x="100" y="450" width="700" height="80" rx="10" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2"/>
+<text id="inst_key_title" x="450" y="476" font-size="15" fill="#2E7D32" text-anchor="middle" font-weight="bold">Key Insight</text>
+<text id="inst_key_text1" x="450" y="500" font-size="13" fill="#1B5E20" text-anchor="middle" font-weight="normal">Acceleration exists at the SAME INSTANT as the force — not before, not after.</text>
+<text id="inst_key_text2" x="450" y="520" font-size="13" fill="#1B5E20" text-anchor="middle" font-weight="normal">The ball keeps moving after the kick due to inertia (Newton&#x27;s 1st Law),</text>
+<text id="inst_key_text3" x="450" y="540" font-size="13" fill="#1B5E20" text-anchor="middle" font-weight="normal">but it is no longer accelerating from the kick.</text>
+<rect id="inst_legend_bg" x="100" y="548" width="700" height="36" rx="6" fill="#F5F5F5" stroke="#cccccc" stroke-width="1"/>
+<defs><marker id="arrowhead_inst_leg_force" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="inst_leg_force" x1="130" y1="566" x2="165" y2="566" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_inst_leg_force)"/>
+<text id="inst_leg_force_text" x="215" y="570" font-size="13" fill="#FF9800" text-anchor="middle" font-weight="normal">Force</text>
+<defs><marker id="arrowhead_inst_leg_accel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="inst_leg_accel" x1="290" y1="566" x2="325" y2="566" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_inst_leg_accel)"/>
+<text id="inst_leg_accel_text" x="385" y="570" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="normal">Acceleration</text>
+<defs><marker id="arrowhead_inst_leg_vel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4682b4"/></marker></defs><line id="inst_leg_vel" x1="470" y1="566" x2="505" y2="566" stroke="#4682b4" stroke-width="3" marker-end="url(#arrowhead_inst_leg_vel)"/>
+<text id="inst_leg_vel_text" x="570" y="570" font-size="13" fill="#4682b4" text-anchor="middle" font-weight="normal">Velocity (inertia)</text>
+</svg>
