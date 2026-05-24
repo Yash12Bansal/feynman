@@ -18,8 +18,13 @@ import {
   type AskFeynmanState,
 } from "../components/AskFeynmanButton";
 import {
+  SatisfactionPrompt,
+  type SatisfactionOption,
+} from "../components/SatisfactionPrompt";
+import {
   useExtractionPlayback,
   type ChapterPayload,
+  type DoubtBeatAnnotation,
 } from "../hooks/useExtractionPlayback";
 
 interface LectureViewerProps {
@@ -46,7 +51,46 @@ interface DoubtCaptureFailedPayload {
   readonly reason: string;
 }
 
-type DoubtServerPayload = DoubtCapturedPayload | DoubtCaptureFailedPayload;
+interface DoubtResolutionFailedPayload {
+  readonly type: "doubt_resolution_failed";
+  readonly reason: string;
+}
+
+interface ResolutionReadyPayload {
+  readonly type: "resolution_ready";
+  readonly beats: number;
+  readonly matched_diagram_ids: readonly string[];
+}
+
+interface DoubtBeatStartPayload {
+  readonly type: "doubt_beat_start";
+  readonly beat_index: number;
+  readonly target_diagram_id: string | null;
+  readonly annotation_actions: readonly DoubtBeatAnnotation[];
+}
+
+interface SatisfactionPromptPayload {
+  readonly type: "satisfaction_prompt";
+  readonly options: readonly SatisfactionOption[];
+}
+
+interface LectureResumePayload {
+  readonly type: "lecture_resume";
+}
+
+interface DoubtCaptureReadyPayload {
+  readonly type: "doubt_capture_ready";
+}
+
+type DoubtServerPayload =
+  | DoubtCapturedPayload
+  | DoubtCaptureFailedPayload
+  | DoubtResolutionFailedPayload
+  | ResolutionReadyPayload
+  | DoubtBeatStartPayload
+  | SatisfactionPromptPayload
+  | LectureResumePayload
+  | DoubtCaptureReadyPayload;
 
 export function LectureViewer({ chapterId }: LectureViewerProps) {
   const [chapter, setChapter] = useState<ChapterPayload | null>(null);
@@ -65,10 +109,22 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       .catch((e: Error) => setFetchError(e.message));
   }, [chapterId]);
 
-  const { slide, notebook, setAudioElement, cursor, currentTopicId, pause } =
-    useExtractionPlayback({ chapter, autoStart: true });
+  const {
+    slide,
+    notebook,
+    setAudioElement,
+    cursor,
+    currentTopicId,
+    pause,
+    play,
+    applyDoubtBeat,
+    clearDoubtAnnotations,
+  } = useExtractionPlayback({ chapter, autoStart: true });
 
   const [doubtState, setDoubtState] = useState<AskFeynmanState>("idle");
+  const [satisfactionOptions, setSatisfactionOptions] = useState<
+    readonly SatisfactionOption[] | null
+  >(null);
   const room = useRoomContext();
 
   const onDoubtMessage = useCallback(
@@ -76,17 +132,70 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       try {
         const text = new TextDecoder().decode(msg.payload);
         const parsed = JSON.parse(text) as DoubtServerPayload;
-        if (parsed.type === "doubt_captured") {
-          setDoubtState("thinking");
-        } else if (parsed.type === "doubt_capture_failed") {
-          // Capture failed — drop back to idle so the student can retry.
-          setDoubtState("idle");
+        switch (parsed.type) {
+          case "doubt_captured":
+            setDoubtState("thinking");
+            return;
+          case "doubt_capture_failed":
+          case "doubt_resolution_failed":
+            setDoubtState("idle");
+            setSatisfactionOptions(null);
+            return;
+          case "resolution_ready":
+            // Backend has the plan; voice + visuals start streaming next.
+            // Stay in "thinking" until satisfaction_prompt arrives.
+            return;
+          case "doubt_beat_start":
+            if (chapter) {
+              applyDoubtBeat(
+                {
+                  target_diagram_id: parsed.target_diagram_id,
+                  annotation_actions: parsed.annotation_actions,
+                },
+                chapter,
+              );
+            }
+            return;
+          case "satisfaction_prompt":
+            setSatisfactionOptions(parsed.options);
+            return;
+          case "lecture_resume":
+            setSatisfactionOptions(null);
+            clearDoubtAnnotations();
+            setDoubtState("idle");
+            void play();
+            return;
+          case "doubt_capture_ready":
+            setSatisfactionOptions(null);
+            setDoubtState("listening");
+            return;
         }
       } catch (err) {
         console.error("[LectureViewer] failed to parse doubt payload:", err);
       }
     },
-    [],
+    [applyDoubtBeat, chapter, clearDoubtAnnotations, play],
+  );
+
+  const onSatisfactionChoose = useCallback(
+    (option: string) => {
+      if (!room?.localParticipant) return;
+      const payload = new TextEncoder().encode(
+        JSON.stringify({ type: "satisfaction_choice", option }),
+      );
+      room.localParticipant
+        .publishData(payload, { reliable: true, topic: DOUBT_TOPIC })
+        .catch((err) => {
+          console.error(
+            "[LectureViewer] satisfaction publishData failed:",
+            err,
+          );
+        });
+      setSatisfactionOptions(null);
+      // Hold button at "thinking" until the worker drives the next state.
+      setDoubtState("thinking");
+    },
+    [room],
   );
 
   useDataChannel(DOUBT_TOPIC, onDoubtMessage);
@@ -141,6 +250,12 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       {body}
       {chapter && (
         <AskFeynmanButton state={doubtState} onActivate={onAskFeynman} />
+      )}
+      {satisfactionOptions && (
+        <SatisfactionPrompt
+          options={satisfactionOptions}
+          onChoose={onSatisfactionChoose}
+        />
       )}
     </ImmersiveShell>
   );

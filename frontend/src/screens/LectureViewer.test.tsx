@@ -184,4 +184,164 @@ describe("LectureViewer", () => {
     });
     await waitFor(() => expect(button.getAttribute("data-state")).toBe("idle"));
   });
+
+  // ── Phase 5: delivery + satisfaction prompt ──────────────────────────
+
+  it("satisfaction_prompt renders the 4-option overlay", async () => {
+    const payload = {
+      chapter_id: "chapter:test",
+      title: "Test",
+      chapter_index: 1,
+      events: [],
+      diagrams: {},
+      topics: {},
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findByTestId, queryByTestId } = render(
+      <LectureViewer chapterId="chapter:test" />,
+    );
+    const button = await findByTestId("ask-feynman-button");
+    fireEvent.click(button);
+
+    act(() => {
+      dataChannelHandler?.({
+        payload: encode({
+          type: "satisfaction_prompt",
+          options: [
+            { key: "crystal_clear", label: "Crystal clear", description: "ok" },
+            { key: "counter_doubt", label: "Counter-doubt", description: "ok" },
+            { key: "somewhat_cleared", label: "Somewhat", description: "ok" },
+            { key: "start_over", label: "Start over", description: "ok" },
+          ],
+        }),
+        topic: "doubt_signal",
+      });
+    });
+
+    await waitFor(() =>
+      expect(queryByTestId("satisfaction-prompt")).toBeTruthy(),
+    );
+  });
+
+  it("clicking a satisfaction option publishes satisfaction_choice and flips to thinking", async () => {
+    const payload = {
+      chapter_id: "chapter:test",
+      title: "Test",
+      chapter_index: 1,
+      events: [],
+      diagrams: {},
+      topics: {},
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findByTestId } = render(<LectureViewer chapterId="chapter:test" />);
+    const button = await findByTestId("ask-feynman-button");
+    fireEvent.click(button);
+    publishData.mockClear(); // clear the doubt_intent publish
+
+    act(() => {
+      dataChannelHandler?.({
+        payload: encode({
+          type: "satisfaction_prompt",
+          options: [
+            { key: "crystal_clear", label: "Crystal clear", description: "ok" },
+          ],
+        }),
+        topic: "doubt_signal",
+      });
+    });
+    const choice = await findByTestId("satisfaction-option-crystal_clear");
+    fireEvent.click(choice);
+
+    expect(publishData).toHaveBeenCalledTimes(1);
+    const [bytes] = publishData.mock.calls[0] as [Uint8Array, unknown];
+    const sent = JSON.parse(new TextDecoder().decode(bytes));
+    expect(sent.type).toBe("satisfaction_choice");
+    expect(sent.option).toBe("crystal_clear");
+    expect(button.getAttribute("data-state")).toBe("thinking");
+  });
+
+  it("lecture_resume message flips button to idle and dismisses prompt", async () => {
+    const payload = {
+      chapter_id: "chapter:test",
+      title: "Test",
+      chapter_index: 1,
+      events: [],
+      diagrams: {},
+      topics: {},
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findByTestId, queryByTestId } = render(
+      <LectureViewer chapterId="chapter:test" />,
+    );
+    const button = await findByTestId("ask-feynman-button");
+    fireEvent.click(button);
+    act(() => {
+      dataChannelHandler?.({
+        payload: encode({
+          type: "satisfaction_prompt",
+          options: [
+            { key: "crystal_clear", label: "Crystal clear", description: "ok" },
+          ],
+        }),
+        topic: "doubt_signal",
+      });
+    });
+    await waitFor(() =>
+      expect(queryByTestId("satisfaction-prompt")).toBeTruthy(),
+    );
+
+    act(() => {
+      dataChannelHandler?.({
+        payload: encode({ type: "lecture_resume" }),
+        topic: "doubt_signal",
+      });
+    });
+    await waitFor(() => expect(button.getAttribute("data-state")).toBe("idle"));
+    expect(queryByTestId("satisfaction-prompt")).toBeNull();
+  });
+
+  it("doubt_capture_ready flips button to listening (counter-doubt path)", async () => {
+    const payload = {
+      chapter_id: "chapter:test",
+      title: "Test",
+      chapter_index: 1,
+      events: [],
+      diagrams: {},
+      topics: {},
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findByTestId } = render(<LectureViewer chapterId="chapter:test" />);
+    const button = await findByTestId("ask-feynman-button");
+    fireEvent.click(button);
+
+    act(() => {
+      dataChannelHandler?.({
+        payload: encode({ type: "doubt_capture_ready" }),
+        topic: "doubt_signal",
+      });
+    });
+    await waitFor(() =>
+      expect(button.getAttribute("data-state")).toBe("listening"),
+    );
+  });
 });

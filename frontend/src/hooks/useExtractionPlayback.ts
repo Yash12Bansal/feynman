@@ -261,6 +261,14 @@ export interface UseExtractionPlaybackResult {
   readonly pause: () => void;
   readonly restart: () => void;
   readonly seekToEvent: (index: number) => void;
+  readonly applyDoubtBeat: (
+    beat: {
+      readonly target_diagram_id?: string | null;
+      readonly annotation_actions?: readonly DoubtBeatAnnotation[];
+    },
+    sourceChapter: ChapterPayload,
+  ) => void;
+  readonly clearDoubtAnnotations: () => void;
 }
 
 interface Cancelable {
@@ -807,6 +815,86 @@ export function useExtractionPlayback(
     setCursorState(cursorRef.current);
   }, []);
 
+  // ── Phase 5: doubt-mode slide mutators ─────────────────────────
+  //
+  // During a doubt the playback engine is paused; the LectureViewer
+  // imperatively pushes visual updates into the same SlideState the
+  // lecture uses (one source of truth). Imperative because the data
+  // arrives over the LiveKit data channel — not an event we step
+  // through.
+
+  const applyDoubtBeat = useCallback(
+    (
+      beat: {
+        readonly target_diagram_id?: string | null;
+        readonly annotation_actions?: readonly DoubtBeatAnnotation[];
+      },
+      sourceChapter: ChapterPayload,
+    ) => {
+      const targetId = beat.target_diagram_id ?? null;
+      const annotations = beat.annotation_actions ?? [];
+
+      // Swap the slide if a new diagram is named.
+      if (targetId) {
+        const entry = sourceChapter.diagrams[targetId];
+        if (entry && entry.spec) {
+          const instr: DrawDesignDiagramInstruction = {
+            type: "draw_design_diagram",
+            element_id: targetId,
+            title: entry.spec.title,
+            description: entry.description || entry.spec.description,
+            spec: entry.spec,
+          };
+          setSlide({
+            status: "ready",
+            liveInstruction: instr,
+            focusedElementId: null,
+            focusedRole: null,
+            inlineLabelText: null,
+            presentationMode: entry.spec.presentation_mode ?? "overview",
+            traces: [],
+            markPoints: [],
+            pointers: [],
+            marginNotes: [],
+            nextAnnotationKey: 0,
+          });
+        }
+      }
+
+      // Apply each annotation action via the same setters the lecture uses.
+      for (const action of annotations) {
+        switch (action.action) {
+          case "focus":
+            setFocusedTarget(
+              action.target_element_id ?? null,
+              action.target_role ?? null,
+              action.text?.trim() || null,
+            );
+            break;
+          case "point_at":
+            appendPointer(action.element_id, action.from_side ?? "left");
+            break;
+          case "trace":
+            appendTrace(action.element_id, action.duration_ms ?? 1500);
+            break;
+          case "mark_point":
+            appendMarkPoint(
+              action.x,
+              action.y,
+              action.kind ?? "dot",
+              action.label ?? "",
+            );
+            break;
+        }
+      }
+    },
+    [setFocusedTarget, appendPointer, appendTrace, appendMarkPoint],
+  );
+
+  const clearDoubtAnnotations = useCallback(() => {
+    resetSlideFocus();
+  }, [resetSlideFocus]);
+
   // Auto-start when chapter loads, if requested.
   useEffect(() => {
     if (!autoStart || !chapter || status !== "idle") return;
@@ -836,5 +924,37 @@ export function useExtractionPlayback(
     pause,
     restart,
     seekToEvent,
+    applyDoubtBeat,
+    clearDoubtAnnotations,
   };
 }
+
+// ── Phase 5: shape of the annotation actions arriving from the worker ──
+//
+// Mirrors `backend/src/feynman/agent/doubt_resolution/models.py::AnnotationAction`.
+// The hook stays agnostic about transport; the LectureViewer pulls these
+// from the data channel and hands them off via `applyDoubtBeat`.
+export type DoubtBeatAnnotation =
+  | {
+      readonly action: "focus";
+      readonly target_element_id?: string | null;
+      readonly target_role?: string | null;
+      readonly text?: string | null;
+    }
+  | {
+      readonly action: "point_at";
+      readonly element_id: string;
+      readonly from_side?: "top" | "bottom" | "left" | "right";
+    }
+  | {
+      readonly action: "trace";
+      readonly element_id: string;
+      readonly duration_ms?: number;
+    }
+  | {
+      readonly action: "mark_point";
+      readonly x: number;
+      readonly y: number;
+      readonly kind?: "dot" | "cross" | "star";
+      readonly label?: string;
+    };
