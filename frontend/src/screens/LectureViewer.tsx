@@ -10,7 +10,7 @@
  * prompt come in Phases 5+.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDataChannel, useRoomContext } from "@livekit/components-react";
 import { SplitBoard } from "../engine/whiteboard/split/SplitBoard";
 import {
@@ -122,19 +122,51 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
   } = useExtractionPlayback({ chapter, autoStart: true });
 
   const [doubtState, setDoubtState] = useState<AskFeynmanState>("idle");
+  const [doubtErrorMessage, setDoubtErrorMessage] = useState<string>("");
   const [satisfactionOptions, setSatisfactionOptions] = useState<
     readonly SatisfactionOption[] | null
   >(null);
   const room = useRoomContext();
+
+  // Hotfix: bound the listening / thinking states with explicit timeouts
+  // so a silent backend (worker down, mic permission denied, network
+  // hiccup) surfaces as a clear error instead of an infinite spinner.
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearStuckTimeout = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+  const armStuckTimeout = useCallback(
+    (ms: number, message: string) => {
+      clearStuckTimeout();
+      timeoutRef.current = setTimeout(() => {
+        setDoubtErrorMessage(message);
+        setDoubtState("error");
+        timeoutRef.current = null;
+      }, ms);
+    },
+    [clearStuckTimeout],
+  );
+
+  useEffect(() => clearStuckTimeout, [clearStuckTimeout]);
 
   const onDoubtMessage = useCallback(
     (msg: { payload: Uint8Array; topic?: string }) => {
       try {
         const text = new TextDecoder().decode(msg.payload);
         const parsed = JSON.parse(text) as DoubtServerPayload;
+        // Any worker message means the backend is alive — clear the
+        // stuck-state timeout, then arm a new one for the next leg.
+        clearStuckTimeout();
         switch (parsed.type) {
           case "doubt_captured":
             setDoubtState("thinking");
+            armStuckTimeout(
+              75_000,
+              "Feynman's taking too long to respond. Check the worker logs.",
+            );
             return;
           case "doubt_capture_failed":
           case "doubt_resolution_failed":
@@ -143,7 +175,12 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
             return;
           case "resolution_ready":
             // Backend has the plan; voice + visuals start streaming next.
-            // Stay in "thinking" until satisfaction_prompt arrives.
+            // Re-arm the thinking timeout — we're not done until the
+            // satisfaction prompt arrives.
+            armStuckTimeout(
+              75_000,
+              "Feynman's taking too long to respond. Check the worker logs.",
+            );
             return;
           case "doubt_beat_start":
             if (chapter) {
@@ -168,13 +205,24 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
           case "doubt_capture_ready":
             setSatisfactionOptions(null);
             setDoubtState("listening");
+            armStuckTimeout(
+              12_000,
+              "I didn't hear anything. Make sure your mic is granted and the worker is running.",
+            );
             return;
         }
       } catch (err) {
         console.error("[LectureViewer] failed to parse doubt payload:", err);
       }
     },
-    [applyDoubtBeat, chapter, clearDoubtAnnotations, play],
+    [
+      applyDoubtBeat,
+      armStuckTimeout,
+      chapter,
+      clearDoubtAnnotations,
+      clearStuckTimeout,
+      play,
+    ],
   );
 
   const onSatisfactionChoose = useCallback(
@@ -208,6 +256,10 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     }
     pause();
     setDoubtState("listening");
+    armStuckTimeout(
+      12_000,
+      "I didn't hear anything. Make sure your mic is granted and the worker is running.",
+    );
     const intent: DoubtIntentPayload = {
       type: "doubt_intent",
       chapter_id: chapterId,
@@ -219,9 +271,26 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       .publishData(payload, { reliable: true, topic: DOUBT_TOPIC })
       .catch((err) => {
         console.error("[LectureViewer] publishData failed:", err);
+        clearStuckTimeout();
         setDoubtState("idle");
       });
-  }, [doubtState, room, pause, chapterId, cursor, currentTopicId]);
+  }, [
+    doubtState,
+    room,
+    pause,
+    armStuckTimeout,
+    clearStuckTimeout,
+    chapterId,
+    cursor,
+    currentTopicId,
+  ]);
+
+  const onErrorRetry = useCallback(() => {
+    clearStuckTimeout();
+    setDoubtState("idle");
+    setSatisfactionOptions(null);
+    setDoubtErrorMessage("");
+  }, [clearStuckTimeout]);
 
   const body = useMemo(() => {
     if (fetchError) {
@@ -249,7 +318,12 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     <ImmersiveShell>
       {body}
       {chapter && (
-        <AskFeynmanButton state={doubtState} onActivate={onAskFeynman} />
+        <AskFeynmanButton
+          state={doubtState}
+          onActivate={onAskFeynman}
+          onRetry={onErrorRetry}
+          errorMessage={doubtErrorMessage}
+        />
       )}
       {satisfactionOptions && (
         <SatisfactionPrompt

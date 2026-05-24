@@ -56,4 +56,35 @@ describe("AskFeynmanButton", () => {
     );
     expect(getByRole("button", { name: /ask feynman/i })).toBeTruthy();
   });
+
+  // ── Hotfix: error state + retry ─────────────────────────────────
+
+  it("error state renders the message and a retry control", () => {
+    const onRetry = vi.fn();
+    const { getByTestId, getByText } = render(
+      <AskFeynmanButton
+        state="error"
+        onActivate={() => {}}
+        onRetry={onRetry}
+        errorMessage="I didn't hear anything."
+      />,
+    );
+    expect(getByTestId("ask-feynman-button").getAttribute("data-state")).toBe(
+      "error",
+    );
+    expect(getByText("I didn't hear anything.")).toBeTruthy();
+    fireEvent.click(getByTestId("ask-feynman-retry"));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("error state falls back to a default message", () => {
+    const { getByText } = render(
+      <AskFeynmanButton
+        state="error"
+        onActivate={() => {}}
+        onRetry={() => {}}
+      />,
+    );
+    expect(getByText(/something went wrong/i)).toBeTruthy();
+  });
 });

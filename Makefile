@@ -17,8 +17,8 @@ setup:
 
 # --- Development ---
 dev:
-	@echo "Starting backend on :8000, frontend on :5173, preview server on :8080"
-	@make dev-backend & make dev-frontend & make dev-preview-server & wait
+	@echo "Starting backend :8000, frontend :5173, preview :8080, worker"
+	@make dev-backend & make dev-frontend & make dev-preview-server & make dev-worker & wait
 
 dev-backend:
 	cd backend && uv run uvicorn feynman.main:app --reload --host 0.0.0.0 --port 8000

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "./hooks/useSession";
 import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
@@ -86,8 +86,14 @@ function MainApp() {
     useSession();
 
   // Auto-start a lecture session when ?lecture=<id> is in the URL.
+  // The ref guard short-circuits React strict-mode's double-effect in dev,
+  // which otherwise fires startSession twice before status flips off "idle"
+  // and creates two LiveKit rooms per chapter click.
+  const autoStartFiredRef = useRef(false);
   useEffect(() => {
+    if (autoStartFiredRef.current) return;
     if (lectureChapterParam && status === "idle") {
+      autoStartFiredRef.current = true;
       void startSession({ lecture_chapter_id: lectureChapterParam });
     }
   }, [lectureChapterParam, status, startSession]);

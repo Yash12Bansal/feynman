@@ -16,19 +16,57 @@
 
 import { useCallback } from "react";
 
-export type AskFeynmanState = "idle" | "listening" | "thinking";
+export type AskFeynmanState = "idle" | "listening" | "thinking" | "error";
 
 interface AskFeynmanButtonProps {
   readonly state: AskFeynmanState;
   readonly onActivate: () => void;
+  /** Required when state==="error". The parent passes a retry handler. */
+  readonly onRetry?: () => void;
+  /** Required when state==="error". Shown alongside the "Try again" button. */
+  readonly errorMessage?: string;
 }
 
-export function AskFeynmanButton({ state, onActivate }: AskFeynmanButtonProps) {
+export function AskFeynmanButton({
+  state,
+  onActivate,
+  onRetry,
+  errorMessage,
+}: AskFeynmanButtonProps) {
   const disabled = state !== "idle";
 
   const onClick = useCallback(() => {
     if (!disabled) onActivate();
   }, [disabled, onActivate]);
+
+  const onRetryClick = useCallback(() => {
+    onRetry?.();
+  }, [onRetry]);
+
+  if (state === "error") {
+    return (
+      <div
+        data-testid="ask-feynman-button"
+        data-state="error"
+        style={{ ...buttonBaseStyle, ...buttonStateStyle.error }}
+      >
+        <span aria-hidden style={glyphStyle}>
+          <WarningGlyph />
+        </span>
+        <span style={errorMessageStyle}>
+          {errorMessage ?? "Something went wrong."}
+        </span>
+        <button
+          type="button"
+          data-testid="ask-feynman-retry"
+          onClick={onRetryClick}
+          style={retryButtonStyle}
+        >
+          ↻ Try again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <button
@@ -61,6 +99,7 @@ const LABELS: Record<AskFeynmanState, string> = {
   idle: "Ask Feynman",
   listening: "I'm listening…",
   thinking: "Feynman is thinking…",
+  error: "Something went wrong",
 };
 
 // ── Sub-glyphs ─────────────────────────────────────────────────
@@ -158,6 +197,14 @@ const buttonStateStyle: Record<AskFeynmanState, React.CSSProperties> = {
     borderColor: "rgba(232, 232, 238, 0.12)",
     cursor: "default",
   },
+  error: {
+    background: "#2a1a1d",
+    color: "#ffb4be",
+    borderColor: "rgba(255, 180, 190, 0.3)",
+    cursor: "default",
+    // Slightly wider so the inline retry button fits without wrapping.
+    maxWidth: 420,
+  },
 };
 
 const glyphStyle: React.CSSProperties = {
@@ -172,6 +219,48 @@ const labelStyle: React.CSSProperties = {
   fontVariantLigatures: "none",
   whiteSpace: "nowrap",
 };
+
+const errorMessageStyle: React.CSSProperties = {
+  fontVariantLigatures: "none",
+  fontSize: "0.85rem",
+  fontWeight: 500,
+  lineHeight: 1.35,
+  flex: 1,
+  whiteSpace: "normal",
+};
+
+const retryButtonStyle: React.CSSProperties = {
+  background: "transparent",
+  border: "1px solid rgba(255, 180, 190, 0.5)",
+  color: "#ffb4be",
+  fontFamily: "inherit",
+  fontSize: "0.8rem",
+  fontWeight: 600,
+  padding: "6px 12px",
+  borderRadius: 999,
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+};
+
+function WarningGlyph() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 3 22 21H2L12 3Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 10v5M12 18v.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 // Inject keyframes once on module load (inline styles can't carry @keyframes).
 if (typeof document !== "undefined") {
