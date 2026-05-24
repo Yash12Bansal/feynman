@@ -15,9 +15,40 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated, Any, Literal
 
+from feynman_teaching_kernel.style_guide import BANNED_OPENERS
 from pydantic import BaseModel, Field, field_validator
 
 from feynman.agent.doubt_resolution.doubt_classifier import DoubtClassification
+
+# Phase 6: banned phrases the doubt planner should never emit. The
+# `BANNED_OPENERS` list from the shared kernel covers generic teaching
+# openers ("Let's", "Now,", "Great", "Okay", etc.); we extend it with
+# doubt-specific service-bot phrases the planner kept slipping into
+# during dogfood.
+_DOUBT_EXTRA_BANNED: list[str] = [
+    "I'm happy to help",
+    "I see what you're asking",
+    "Of course",
+    "Sure",
+    "Let me start by",
+    "Let me explain",
+    "Let me think",
+    "Building on that",
+    "First of all",
+    "Umm",
+    "Uhh",
+    "Ah,",
+    "Hmm",
+    "Well,",
+    "Great question",
+    "That's a great question",
+    "Wonderful",
+    "I love that",
+    "You're absolutely right",
+]
+_ALL_BANNED_OPENERS: tuple[str, ...] = tuple(
+    p.lower() for p in (*BANNED_OPENERS, *_DOUBT_EXTRA_BANNED)
+)
 
 # ── Annotation actions (one per type, discriminated union) ──────────────────
 
@@ -81,6 +112,18 @@ class ResolutionBeat(BaseModel):
         text = v.strip()
         if not text:
             raise ValueError("narration_text must be non-empty")
+        # Phase 6: enforce the persona at the validator level so the
+        # planner's 2-attempt retry can re-prompt when the LLM ignores the
+        # banned-opener instruction. We check the opening run of the
+        # narration (case-insensitive, ignoring trailing punctuation
+        # variants the LLM may slip in).
+        normalised = text.lower().lstrip("\"'`*")
+        for phrase in _ALL_BANNED_OPENERS:
+            if normalised.startswith(phrase):
+                raise ValueError(
+                    f"narration_text starts with a banned opener "
+                    f"({phrase!r}). Rewrite without filler or flattery."
+                )
         return text
 
 

@@ -194,3 +194,39 @@ async def test_plan_resolution_recovers_on_retry_after_validation_error():
 
     assert plan is not None
     assert create_mock.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_plan_resolution_rejects_banned_opener_and_retries():
+    """Phase 6: a beat opening with 'Great question!' triggers Pydantic
+    validation; the planner's 2-attempt retry catches it + re-prompts.
+    """
+    bad = {
+        "beats": [
+            {
+                "narration_text": "Great question! Let me explain the idea.",
+                "visual_intent_description": "x",
+                "annotation_actions": [],
+                "target_diagram_id": None,
+            }
+        ]
+    }
+    good = _valid_plan_payload()
+    create_mock = AsyncMock(side_effect=[_plan_response(bad), _plan_response(good)])
+    client = AsyncMock()
+    client.messages = AsyncMock()
+    client.messages.create = create_mock
+
+    with patch(
+        "feynman.agent.doubt_resolution.resolution_planner.anthropic.AsyncAnthropic",
+        return_value=client,
+    ):
+        plan = await plan_resolution(
+            doubt_text="why?",
+            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
+            chapter_context=_ctx(),
+        )
+
+    assert plan is not None
+    assert create_mock.await_count == 2
+    assert not plan.beats[0].narration_text.lower().startswith("great question")

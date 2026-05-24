@@ -201,6 +201,78 @@ async def test_deliver_resolution_publishes_beat_start_per_beat(mocked_room):
 
 
 @pytest.mark.asyncio
+async def test_speak_on_first_frame_callback_fires_once(mocked_room):
+    """Phase 6: latency telemetry hook fires exactly once on the first frame."""
+    chunks = [
+        SimpleNamespace(frame="frame-1"),
+        SimpleNamespace(frame="frame-2"),
+        SimpleNamespace(frame="frame-3"),
+    ]
+    tts = _make_tts(chunks=chunks)
+    delivery = DoubtDelivery(tts=tts)
+    audio_source, track = _patch_rtc_primitives()
+    callback = MagicMock()
+
+    with (
+        patch("feynman.livekit.doubt_delivery.rtc.AudioSource", return_value=audio_source),
+        patch(
+            "feynman.livekit.doubt_delivery.rtc.LocalAudioTrack.create_audio_track",
+            return_value=track,
+        ),
+    ):
+        await delivery.start(mocked_room)
+        await delivery.speak("hello", on_first_frame=callback)
+
+    callback.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_deliver_resolution_on_first_frame_fires_once_across_beats(mocked_room):
+    """Phase 6: the callback fires on the first frame of the first beat only."""
+    tts = _make_tts()
+    delivery = DoubtDelivery(tts=tts)
+    audio_source, track = _patch_rtc_primitives()
+    callback = MagicMock()
+
+    plan = ResolutionPlan(
+        beats=[
+            ResolutionBeat(
+                narration_text="Here's the first idea.",
+                visual_intent_description="a",
+            ),
+            ResolutionBeat(
+                narration_text="Here's the second idea.",
+                visual_intent_description="b",
+            ),
+        ]
+    )
+    chapter = ChapterContext(chapter_id="c1", title="t", topics={}, diagrams={})
+
+    async def _publish(payload: dict) -> None:
+        return None
+
+    with (
+        patch("feynman.livekit.doubt_delivery.rtc.AudioSource", return_value=audio_source),
+        patch(
+            "feynman.livekit.doubt_delivery.rtc.LocalAudioTrack.create_audio_track",
+            return_value=track,
+        ),
+        patch("feynman.livekit.doubt_delivery.asyncio.sleep", new=AsyncMock()),
+    ):
+        await delivery.start(mocked_room)
+        await delivery.deliver_resolution(
+            plan=plan,
+            chapter_context=chapter,
+            publish_data=_publish,
+            on_first_frame=callback,
+        )
+
+    # Two beats, two synthesize() calls, but only one on_first_frame call.
+    assert tts.synthesize.call_count == 2
+    callback.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_stop_unpublishes_and_closes(mocked_room):
     tts = _make_tts()
     delivery = DoubtDelivery(tts=tts)

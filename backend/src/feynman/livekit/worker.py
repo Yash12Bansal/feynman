@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
+import time
 from collections.abc import AsyncGenerator, AsyncIterable, Callable
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
@@ -601,6 +602,7 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
                 {"type": "doubt_resolution_failed", "reason": "chapter_context_unavailable"},
             )
             return None
+        t0 = time.monotonic()  # Phase 6: latency clock starts when we begin work.
         plan = await doubt_session.resolve(
             doubt_text=doubt_text,
             current_topic_id=topic_id,
@@ -633,12 +635,17 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         async def _publish(payload: dict[str, Any]) -> None:
             await _publish_doubt(ctx, payload)
 
+        def _on_first_frame() -> None:
+            ms = int((time.monotonic() - t0) * 1000)
+            logger.info("phase6.time_to_first_voice_ms", ms=ms)
+
         if doubt_delivery.is_started:
             try:
                 await doubt_delivery.deliver_resolution(
                     plan=plan,
                     chapter_context=doubt_session.chapter_context,
                     publish_data=_publish,
+                    on_first_frame=_on_first_frame,
                 )
             except Exception:
                 logger.exception("worker.doubt_delivery_failed")
@@ -691,9 +698,14 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         logger.info("doubt.satisfaction_choice", option=choice)
 
         if choice == "crystal_clear":
+            t0 = time.monotonic()  # Phase 6: time-to-resume from choice receipt.
             if doubt_delivery.is_started:
                 await doubt_delivery.speak("Picking up where we left off.")
             await _publish_doubt(ctx, {"type": "lecture_resume"})
+            logger.info(
+                "phase6.time_to_resume_ms",
+                ms=int((time.monotonic() - t0) * 1000),
+            )
             return
 
         if choice == "counter_doubt":

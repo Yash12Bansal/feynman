@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
 
 from livekit import rtc
@@ -92,11 +92,21 @@ class DoubtDelivery:
             self._audio_source = None
         self._track = None
 
-    async def speak(self, text: str) -> None:
+    async def speak(
+        self,
+        text: str,
+        *,
+        on_first_frame: Callable[[], None] | None = None,
+    ) -> None:
         """Synthesize + push frames into the published source.
 
         Serialised under `_lock` so two concurrent doubts can't interleave
         TTS chunks on the same track.
+
+        `on_first_frame` fires once, synchronously, when the first audio
+        frame is about to be captured. Phase 6 uses this for latency
+        telemetry — measuring time-to-first-voice from the worker's
+        doubt-intent timestamp.
         """
         clean = (text or "").strip()
         if not clean or self._audio_source is None:
@@ -104,11 +114,21 @@ class DoubtDelivery:
 
         async with self._lock:
             stream = self._tts.synthesize(clean)
+            first_frame_emitted = False
             try:
                 async for chunk in stream:
                     frame = getattr(chunk, "frame", None)
                     if frame is None:
                         continue
+                    if not first_frame_emitted and on_first_frame is not None:
+                        try:
+                            on_first_frame()
+                        except Exception:
+                            logger.warning(
+                                "doubt_delivery.first_frame_callback_error",
+                                exc_info=True,
+                            )
+                        first_frame_emitted = True
                     await self._audio_source.capture_frame(frame)
             except Exception:
                 logger.exception("doubt_delivery.tts_error")
@@ -128,13 +148,21 @@ class DoubtDelivery:
         plan: ResolutionPlan,
         chapter_context: ChapterContext,
         publish_data: _PublishDataFn,
+        on_first_frame: Callable[[], None] | None = None,
     ) -> None:
-        """Walk the plan's beats: visual signal → grace → narration."""
+        """Walk the plan's beats: visual signal → grace → narration.
+
+        `on_first_frame` fires once on the first audio frame of the FIRST
+        beat (i.e. the moment Feynman starts speaking). Subsequent beats
+        do not refire it.
+        """
         _ = chapter_context  # frontend looks up the diagram from its cached chapter
+        first_voice_callback = on_first_frame
         for index, beat in enumerate(plan.beats):
             await publish_data(_beat_payload(index, beat))
             await asyncio.sleep(_BEAT_VISUAL_GRACE_MS / 1000)
-            await self.speak(beat.narration_text)
+            await self.speak(beat.narration_text, on_first_frame=first_voice_callback)
+            first_voice_callback = None  # consumed after the first beat fires it
 
 
 def _beat_payload(index: int, beat: ResolutionBeat) -> dict[str, Any]:

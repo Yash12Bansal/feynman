@@ -313,3 +313,67 @@ describe("useExtractionPlayback", () => {
     expect(result.current.slide.status).toBe("empty");
   });
 });
+
+// ── Phase 6: slide snapshot/restore on pause/resume ─────────────
+
+describe("useExtractionPlayback — slide snapshot/restore (Phase 6)", () => {
+  it("pause + applyDoubtBeat + play restores the pre-doubt slide", async () => {
+    // Step 1: lecture renders a diagram via show_diagram.
+    // Step 2: pause + applyDoubtBeat mutates the slide to a different diagram.
+    // Step 3: play() should restore the snapshot taken at pause time.
+    const chapter = mkChapter([
+      { type: "show_diagram", diagram_id: "diagram:test:d1" },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    // Add a second diagram so applyDoubtBeat has somewhere to switch to.
+    chapter.diagrams["diagram:test:doubt"] = {
+      url: null,
+      description: "doubt diagram",
+      spec: {
+        title: "Doubt",
+        description: "doubt",
+        render_data: { elements: [] },
+        presentation_mode: "overview",
+      } as never,
+    };
+
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+
+    // Run the lecture to the audio event. show_diagram has fired by now.
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() =>
+      expect(result.current.slide.liveInstruction?.element_id).toBe(
+        "diagram:test:d1",
+      ),
+    );
+
+    // Pause — should snapshot the current slide (showing d1).
+    await act(async () => {
+      result.current.pause();
+    });
+    await waitFor(() => expect(result.current.status).toBe("paused"));
+
+    // Mutate the slide via applyDoubtBeat (simulates the doubt overlay).
+    await act(async () => {
+      result.current.applyDoubtBeat(
+        { target_diagram_id: "diagram:test:doubt", annotation_actions: [] },
+        chapter,
+      );
+    });
+    expect(result.current.slide.liveInstruction?.element_id).toBe(
+      "diagram:test:doubt",
+    );
+
+    // Resume — the snapshot should restore d1 immediately.
+    await act(async () => {
+      void result.current.play();
+    });
+    expect(result.current.slide.liveInstruction?.element_id).toBe(
+      "diagram:test:d1",
+    );
+  });
+});

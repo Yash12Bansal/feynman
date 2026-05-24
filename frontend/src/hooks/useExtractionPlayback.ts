@@ -361,6 +361,11 @@ export function useExtractionPlayback(
   const abortRef = useRef(false);
   const loopRef = useRef<Promise<void> | null>(null);
   const currentCancelableRef = useRef<Cancelable | null>(null);
+  // Phase 6: SlideState snapshot taken on pause() and restored on play()
+  // so a doubt's diagram + annotations don't linger after the lecture
+  // resumes. The snapshot captures whatever the lecture was showing right
+  // before the student tapped Ask Feynman.
+  const slideSnapshotRef = useRef<SlideState | null>(null);
 
   // Stable refs for callbacks so the loop closure doesn't need to be rebuilt.
   const onEventRef = useRef(onEvent);
@@ -389,6 +394,7 @@ export function useExtractionPlayback(
     currentCancelableRef.current?.cancel();
     cursorRef.current = 0;
     audioIdxRef.current = 0;
+    slideSnapshotRef.current = null;
     setCursorState(0);
     setStatus("idle");
     setSlide({ status: "empty" });
@@ -747,6 +753,12 @@ export function useExtractionPlayback(
       return;
     }
     abortRef.current = false;
+    // Phase 6: restore the pre-pause slide before the loop resumes so the
+    // doubt's diagram doesn't linger as the audio fragment re-plays.
+    if (slideSnapshotRef.current !== null) {
+      setSlide(slideSnapshotRef.current);
+      slideSnapshotRef.current = null;
+    }
     setStatus("playing");
     const loop = (async () => {
       while (cursorRef.current < chapter.events.length && !abortRef.current) {
@@ -786,16 +798,21 @@ export function useExtractionPlayback(
 
   const pause = useCallback(() => {
     if (!loopRef.current) return;
+    // Phase 6: snapshot the slide so play() can restore it after a doubt.
+    // Captured before abort + cancel so any in-flight render is already
+    // reflected in `slide`.
+    slideSnapshotRef.current = slide;
     abortRef.current = true;
     currentCancelableRef.current?.cancel();
     setStatus("paused");
-  }, []);
+  }, [slide]);
 
   const restart = useCallback(() => {
     abortRef.current = true;
     currentCancelableRef.current?.cancel();
     cursorRef.current = 0;
     audioIdxRef.current = 0;
+    slideSnapshotRef.current = null;
     setCursorState(0);
     setCurrentTopicId(null);
     setCurrentTopicLabel("");

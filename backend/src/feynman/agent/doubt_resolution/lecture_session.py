@@ -13,6 +13,7 @@ returned `ResolutionPlan` and delivers it as live voice + visuals.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 
 import structlog
@@ -20,7 +21,10 @@ import structlog
 from feynman.agent.doubt_resolution.diagram_fit_matcher import (
     match_diagrams_for_plan,
 )
-from feynman.agent.doubt_resolution.doubt_classifier import classify_doubt
+from feynman.agent.doubt_resolution.doubt_classifier import (
+    DoubtType,
+    classify_doubt,
+)
 from feynman.agent.doubt_resolution.models import (
     ChapterContext,
     DoubtRecord,
@@ -52,6 +56,7 @@ class LectureDoubtSession:
         caller — currently the worker in `_handle_doubt_intent` — is
         responsible for delivery (Phase 5).
         """
+        t0 = time.monotonic()
         topic_meta = self.chapter_context.topic(current_topic_id)
         topic_summary = topic_meta.summary if topic_meta else ""
 
@@ -83,6 +88,12 @@ class LectureDoubtSession:
             logger.error("lecture_session.planner_failed", cursor=cursor)
             return None
 
+        # Phase 6 adaptive matcher: local clarifications are typically
+        # small verbal explanations where a tangentially-related diagram
+        # is acceptable. Skipping the Haiku verifier shaves ~1-2s off the
+        # latency budget on the most-common doubt type.
+        skip_stage2 = classification.type == DoubtType.LOCAL_CLARIFICATION
+
         await match_diagrams_for_plan(
             plan=plan,
             chapter_context=self.chapter_context,
@@ -90,14 +101,22 @@ class LectureDoubtSession:
             classification=classification,
             current_topic_id=current_topic_id,
             shown_diagram_ids=self.shown_diagram_ids,
+            skip_stage2=skip_stage2,
         )
 
         matched_ids = [b.target_diagram_id for b in plan.beats if b.target_diagram_id]
+        elapsed_ms = int((time.monotonic() - t0) * 1000)
         logger.info(
             "lecture_session.plan_ready",
             beats=len(plan.beats),
             matched=matched_ids,
             narration_chars=sum(len(b.narration_text) for b in plan.beats),
+        )
+        logger.info(
+            "phase6.doubt_pipeline_total_ms",
+            ms=elapsed_ms,
+            classification=classification.type.value,
+            skip_stage2=skip_stage2,
         )
 
         # Update session history + shown set.

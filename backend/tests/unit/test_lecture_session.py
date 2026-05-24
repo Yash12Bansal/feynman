@@ -139,3 +139,99 @@ async def test_resolve_returns_none_when_planner_fails():
     assert plan is None
     # No history recorded when the planner fails.
     assert session.prior_doubts_in_session == []
+
+
+@pytest.mark.asyncio
+async def test_resolve_accumulates_prior_doubts_across_calls():
+    """Phase 6: three doubts in a row → prior_doubts_in_session grows to 3.
+
+    This is the most common multi-doubt path a student walks (counter-doubt
+    or start-over after each resolution). We verify the planner sees the
+    growing history on each subsequent call.
+    """
+    classifier_payload = {
+        "type": "local_clarification",
+        "related_concept_ids": [],
+        "rationale": "ok",
+    }
+    plan_payload = {
+        "beats": [
+            {
+                "narration_text": "Here's the idea — for this doubt.",
+                "visual_intent_description": "",
+                "annotation_actions": [],
+                "target_diagram_id": None,
+            }
+        ]
+    }
+    matcher_payload = {"fits": True, "confidence": 0.9, "rationale": "ok"}
+
+    # Sequence: classifier, planner, matcher x 3 doubts = 9 calls.
+    responses = [
+        _resp("emit_classification", classifier_payload),
+        _resp("emit_resolution_plan", plan_payload),
+        _resp("emit_fit_verdict", matcher_payload),
+    ] * 3
+    # NOTE: when classification is local_clarification, lecture_session
+    # passes skip_stage2=True so the Haiku verifier is bypassed. The
+    # matcher_payload responses above are extra — they'll go unused.
+    client = _make_client(responses)
+    session = LectureDoubtSession(chapter_context=_ctx())
+
+    with patch(
+        "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+        return_value=client,
+    ):
+        await session.resolve(doubt_text="doubt one", current_topic_id="t1")
+        await session.resolve(doubt_text="doubt two", current_topic_id="t1")
+        await session.resolve(doubt_text="doubt three", current_topic_id="t1")
+
+    assert len(session.prior_doubts_in_session) == 3
+    assert [r.doubt_text for r in session.prior_doubts_in_session] == [
+        "doubt one",
+        "doubt two",
+        "doubt three",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_resolve_passes_skip_stage2_for_local_clarification():
+    """Phase 6 latency: classification == local_clarification → skip_stage2."""
+    classifier_payload = {
+        "type": "local_clarification",
+        "related_concept_ids": [],
+        "rationale": "small clarification",
+    }
+    plan_payload = {
+        "beats": [
+            {
+                "narration_text": "Here's what's happening.",
+                "visual_intent_description": "",
+                "annotation_actions": [],
+                "target_diagram_id": None,
+            }
+        ]
+    }
+    client = _make_client(
+        [
+            _resp("emit_classification", classifier_payload),
+            _resp("emit_resolution_plan", plan_payload),
+        ]
+    )
+    session = LectureDoubtSession(chapter_context=_ctx())
+
+    with (
+        patch(
+            "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+            return_value=client,
+        ),
+        patch(
+            "feynman.agent.doubt_resolution.lecture_session.match_diagrams_for_plan",
+            new=AsyncMock(),
+        ) as matcher_spy,
+    ):
+        await session.resolve(doubt_text="what does inertial mean?", current_topic_id="t1")
+
+    matcher_spy.assert_awaited_once()
+    kwargs = matcher_spy.await_args.kwargs
+    assert kwargs.get("skip_stage2") is True
