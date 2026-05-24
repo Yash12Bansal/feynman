@@ -20,6 +20,8 @@ from livekit.rtc import DataPacket
 from feynman.agent.action_tag_parser import ActionTag, ActionTagParser
 from feynman.agent.board_verifier import BoardVerifier, PerceptionFeedback
 from feynman.agent.curriculum_loader import load_curriculum
+from feynman.agent.doubt_resolution import classify_doubt
+from feynman.agent.doubt_resolution.doubt_capture import capture_student_doubt
 from feynman.agent.drift_state import build_element_summary, compute_drift_state_hash
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
@@ -521,6 +523,95 @@ def _parse_room_metadata(ctx: JobContext) -> dict:
         return {}
 
 
+_DOUBT_TOPIC = "doubt_signal"
+
+
+async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
+    """Lecture-mode worker loop.
+
+    The precomputed lecture plays from the frontend; the worker stays in the
+    room as a silent participant. When the Ask Feynman button fires a
+    `doubt_intent` over the data channel, we capture the student's audio,
+    run the (Phase 3 stub) classifier, and emit a `doubt_captured`
+    acknowledgement so the frontend can flip to its "thinking" indicator.
+
+    Phase 4+ will fan out from `_handle_doubt_intent` into the real
+    classifier → planner → matcher → delivery pipeline.
+    """
+    # Lazy-construct the STT instance; if no doubt is ever raised we don't
+    # pay for the Deepgram client setup.
+    stt_instance = None
+    # Hold strong refs to in-flight doubt tasks so the GC doesn't drop them.
+    pending_tasks: set[asyncio.Task[None]] = set()
+
+    async def _handle_doubt_intent(intent: dict[str, Any]) -> None:
+        nonlocal stt_instance
+        if stt_instance is None:
+            stt_instance = create_stt()
+        logger.info(
+            "doubt.intent_received",
+            chapter_id=chapter_id,
+            cursor=intent.get("cursor"),
+            topic_id=intent.get("topic_id"),
+        )
+        captured = await capture_student_doubt(ctx, stt=stt_instance)
+        if captured is None:
+            await _publish_doubt(
+                ctx,
+                {
+                    "type": "doubt_capture_failed",
+                    "reason": "no_transcript",
+                },
+            )
+            return
+        await _publish_doubt(
+            ctx,
+            {
+                "type": "doubt_captured",
+                "text": captured.text,
+                "duration_ms": captured.duration_ms,
+            },
+        )
+        # Phase 3: stub classifier; Phase 4 will swap in the real one.
+        classification = await classify_doubt(
+            doubt_text=captured.text,
+            current_topic_id=intent.get("topic_id"),
+        )
+        logger.info(
+            "doubt.classified",
+            type=classification.type.value,
+            rationale=classification.rationale,
+        )
+
+    @ctx.room.on("data_received")
+    def _on_data_received(packet: DataPacket) -> None:
+        if packet.topic != _DOUBT_TOPIC:
+            return
+        try:
+            payload = json.loads(packet.data)
+        except (json.JSONDecodeError, TypeError):
+            logger.warning("doubt.invalid_payload", raw=packet.data)
+            return
+        if payload.get("type") == "doubt_intent":
+            task = asyncio.create_task(_handle_doubt_intent(payload))
+            pending_tasks.add(task)
+            task.add_done_callback(pending_tasks.discard)
+
+    # Idle in the room until shutdown; doubt_intent handlers run as
+    # background tasks above. The Event never resolves — the LiveKit
+    # framework cancels this coroutine when the room closes.
+    await asyncio.Event().wait()
+
+
+async def _publish_doubt(ctx: JobContext, payload: dict[str, Any]) -> None:
+    """Publish a doubt-signal payload back to the frontend over the data channel."""
+    await ctx.room.local_participant.publish_data(
+        json.dumps(payload).encode(),
+        reliable=True,
+        topic=_DOUBT_TOPIC,
+    )
+
+
 server = AgentServer(
     ws_url=settings.livekit_url,
     api_key=settings.livekit_api_key,
@@ -537,9 +628,10 @@ async def entrypoint(ctx: JobContext) -> None:
     meta = _parse_room_metadata(ctx)
 
     # Lecture playback mode: precomputed lecture is driven by the frontend
-    # client-side; the agent stays connected to the room but silent. Phase 3+
-    # will reactivate STT/LLM/TTS on a "doubt_intent" data-channel message
-    # from the Ask Feynman button.
+    # client-side; the agent stays connected to the room but silent except
+    # when the Ask Feynman button fires a `doubt_intent` data-channel
+    # message. Phase 3 wires capture-only STT; Phase 4 adds classifier +
+    # planner; Phase 5 adds the live voice + visual resolution delivery.
     lecture_chapter_id = meta.get("lecture_chapter_id")
     if lecture_chapter_id:
         logger.info(
@@ -547,9 +639,7 @@ async def entrypoint(ctx: JobContext) -> None:
             room_name=ctx.room.name,
             chapter_id=lecture_chapter_id,
         )
-        # Idle in the room until disconnect. asyncio.Event().wait() never
-        # resolves — the room shutting down terminates the task.
-        await asyncio.Event().wait()
+        await _run_lecture_mode(ctx, chapter_id=lecture_chapter_id)
         return
 
     topic = meta.get("topic", "")
