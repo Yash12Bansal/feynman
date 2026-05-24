@@ -20,7 +20,10 @@ from livekit.rtc import DataPacket
 from feynman.agent.action_tag_parser import ActionTag, ActionTagParser
 from feynman.agent.board_verifier import BoardVerifier, PerceptionFeedback
 from feynman.agent.curriculum_loader import load_curriculum
-from feynman.agent.doubt_resolution import classify_doubt
+from feynman.agent.doubt_resolution import (
+    LectureDoubtSession,
+    load_chapter_by_id,
+)
 from feynman.agent.doubt_resolution.doubt_capture import capture_student_doubt
 from feynman.agent.drift_state import build_element_summary, compute_drift_state_hash
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
@@ -535,14 +538,37 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
     run the (Phase 3 stub) classifier, and emit a `doubt_captured`
     acknowledgement so the frontend can flip to its "thinking" indicator.
 
-    Phase 4+ will fan out from `_handle_doubt_intent` into the real
-    classifier → planner → matcher → delivery pipeline.
+    Phase 4 routes captured doubts through the full classifier → planner
+    → diagram-matcher chain. Phase 5 will pick up the produced
+    `ResolutionPlan` and deliver it as live voice + visuals.
     """
     # Lazy-construct the STT instance; if no doubt is ever raised we don't
     # pay for the Deepgram client setup.
     stt_instance = None
     # Hold strong refs to in-flight doubt tasks so the GC doesn't drop them.
     pending_tasks: set[asyncio.Task[None]] = set()
+
+    # Hydrate the chapter context once for the lifetime of the session. If
+    # this fails, the room stays alive so the precompute playback continues,
+    # but doubts can't be resolved (and we publish a clear failure on each).
+    doubt_session: LectureDoubtSession | None = None
+    try:
+        chapter_context = await load_chapter_by_id(chapter_id)
+        if chapter_context is not None:
+            doubt_session = LectureDoubtSession(chapter_context=chapter_context)
+            logger.info(
+                "worker.lecture_session_ready",
+                chapter_id=chapter_id,
+                topics=len(chapter_context.topics),
+                diagrams=len(chapter_context.diagrams),
+            )
+        else:
+            logger.error(
+                "worker.chapter_context_missing",
+                chapter_id=chapter_id,
+            )
+    except Exception as exc:
+        logger.exception("worker.chapter_load_failed", chapter_id=chapter_id, error=str(exc))
 
     async def _handle_doubt_intent(intent: dict[str, Any]) -> None:
         nonlocal stt_instance
@@ -572,15 +598,43 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
                 "duration_ms": captured.duration_ms,
             },
         )
-        # Phase 3: stub classifier; Phase 4 will swap in the real one.
-        classification = await classify_doubt(
+        if doubt_session is None:
+            await _publish_doubt(
+                ctx,
+                {
+                    "type": "doubt_resolution_failed",
+                    "reason": "chapter_context_unavailable",
+                },
+            )
+            return
+
+        plan = await doubt_session.resolve(
             doubt_text=captured.text,
             current_topic_id=intent.get("topic_id"),
+            cursor=intent.get("cursor"),
         )
-        logger.info(
-            "doubt.classified",
-            type=classification.type.value,
-            rationale=classification.rationale,
+        if plan is None:
+            await _publish_doubt(
+                ctx,
+                {
+                    "type": "doubt_resolution_failed",
+                    "reason": "planner_failed",
+                },
+            )
+            return
+
+        # Phase 4: signal the frontend that a plan is ready so the
+        # "thinking" indicator stays in sync with backend completion.
+        # Phase 5 will replace this with the actual voice + visual delivery.
+        await _publish_doubt(
+            ctx,
+            {
+                "type": "resolution_ready",
+                "beats": len(plan.beats),
+                "matched_diagram_ids": [
+                    b.target_diagram_id for b in plan.beats if b.target_diagram_id
+                ],
+            },
         )
 
     @ctx.room.on("data_received")
