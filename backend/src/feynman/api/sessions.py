@@ -48,6 +48,7 @@ async def _create_livekit_room(
     topic: str,
     subject: str | None,
     grade_level: str,
+    lecture_chapter_id: str | None,
 ) -> None:
     """Pre-create the LiveKit room with metadata so the worker can read the topic."""
     metadata = {}
@@ -57,6 +58,8 @@ async def _create_livekit_room(
         metadata["subject"] = subject
     if grade_level:
         metadata["grade_level"] = grade_level
+    if lecture_chapter_id:
+        metadata["lecture_chapter_id"] = lecture_chapter_id
 
     if not metadata:
         return
@@ -85,7 +88,8 @@ async def create_session(
     topic = body.topic if body else ""
     subject = body.subject.value if body and body.subject else None
     grade_level = body.grade_level if body else ""
-    await _create_livekit_room(session.room_name, topic, subject, grade_level)
+    lecture_chapter_id = body.lecture_chapter_id if body else None
+    await _create_livekit_room(session.room_name, topic, subject, grade_level, lecture_chapter_id)
 
     token = _create_livekit_token(
         room_name=session.room_name,
@@ -97,6 +101,7 @@ async def create_session(
         token=token,
         livekit_url=settings.livekit_url,
         room_name=session.room_name,
+        lecture_chapter_id=lecture_chapter_id,
     )
 
 

@@ -15,12 +15,14 @@ export interface CreateSessionResponse {
   token: string;
   livekit_url: string;
   room_name: string;
+  lecture_chapter_id?: string | null;
 }
 
 export interface CreateSessionRequest {
-  topic: string;
+  topic?: string;
   subject?: string;
   grade_level?: string;
+  lecture_chapter_id?: string;
 }
 
 export async function createSession(

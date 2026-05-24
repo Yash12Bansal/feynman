@@ -18,6 +18,24 @@ function useHash(): string {
   return hash;
 }
 
+function useLectureChapterParam(): string | null {
+  // ?lecture=<chapter_id> on the main app path binds the session to a
+  // precomputed lecture and lands the student in the immersive viewer.
+  const [value, setValue] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("lecture");
+  });
+  useEffect(() => {
+    const onPop = () => {
+      const params = new URLSearchParams(window.location.search);
+      setValue(params.get("lecture"));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  return value;
+}
+
 export function App() {
   const hash = useHash();
 
@@ -45,12 +63,21 @@ export function App() {
 }
 
 function MainApp() {
-  const { token, livekitUrl, status, error, startSession } = useSession();
+  const lectureChapterParam = useLectureChapterParam();
+  const { token, livekitUrl, lectureChapterId, status, error, startSession } =
+    useSession();
+
+  // Auto-start a lecture session when ?lecture=<id> is in the URL.
+  useEffect(() => {
+    if (lectureChapterParam && status === "idle") {
+      void startSession({ lecture_chapter_id: lectureChapterParam });
+    }
+  }, [lectureChapterParam, status, startSession]);
 
   if (status === "connected" && token && livekitUrl) {
     return (
       <RoomProvider token={token} serverUrl={livekitUrl}>
-        <ClassroomScreen />
+        <ClassroomScreen lectureChapterId={lectureChapterId} />
       </RoomProvider>
     );
   }
@@ -85,6 +112,30 @@ function MainApp() {
         >
           Retry
         </button>
+      </div>
+    );
+  }
+
+  // While auto-starting a lecture session, show a minimal "preparing" splash
+  // instead of WaitingScreen (which expects a topic).
+  if (lectureChapterParam) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#0a0a0a",
+          color: "#6b7280",
+          fontFamily:
+            "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+          fontSize: "0.95rem",
+          letterSpacing: "0.05em",
+        }}
+      >
+        Preparing lecture…
       </div>
     );
   }

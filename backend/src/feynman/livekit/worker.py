@@ -535,6 +535,23 @@ async def entrypoint(ctx: JobContext) -> None:
 
     # Parse room metadata for lesson configuration
     meta = _parse_room_metadata(ctx)
+
+    # Lecture playback mode: precomputed lecture is driven by the frontend
+    # client-side; the agent stays connected to the room but silent. Phase 3+
+    # will reactivate STT/LLM/TTS on a "doubt_intent" data-channel message
+    # from the Ask Feynman button.
+    lecture_chapter_id = meta.get("lecture_chapter_id")
+    if lecture_chapter_id:
+        logger.info(
+            "worker.lecture_playback_mode",
+            room_name=ctx.room.name,
+            chapter_id=lecture_chapter_id,
+        )
+        # Idle in the room until disconnect. asyncio.Event().wait() never
+        # resolves — the room shutting down terminates the task.
+        await asyncio.Event().wait()
+        return
+
     topic = meta.get("topic", "")
     subject_str = meta.get("subject")
     subject = Subject(subject_str) if subject_str else None
