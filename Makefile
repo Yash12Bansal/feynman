@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-backend dev-frontend dev-worker test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset migrate migrate-create
+.PHONY: setup dev dev-backend dev-frontend dev-worker dev-preview-server test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset migrate migrate-create
 
 # =============================================================================
 # Feynman — Development Commands
@@ -17,8 +17,12 @@ setup:
 
 # --- Development ---
 dev:
-	@echo "Starting backend on :8000 and frontend on :5173"
-	@make dev-backend & make dev-frontend & wait
+	@echo "Starting worker first, then backend :8000 + frontend :5173 + preview :8080 after 3s warmup"
+	@make dev-worker & \
+		( sleep 3 ; make dev-backend ) & \
+		( sleep 3 ; make dev-frontend ) & \
+		( sleep 3 ; make dev-preview-server ) & \
+		wait
 
 dev-backend:
 	cd backend && uv run uvicorn feynman.main:app --reload --host 0.0.0.0 --port 8000
@@ -28,6 +32,13 @@ dev-frontend:
 
 dev-worker:
 	cd backend && uv run python -m feynman.livekit.worker dev
+
+# Serves /lecture-api/chapters + /lecture-api/chapter/{id} from Neo4j on :8080.
+# Required for the LectureHomeScreen picker and LectureViewer chapter fetch.
+# Binds 0.0.0.0 so both IPv4 and IPv6 wildcards are covered (avoids the
+# IPv4-only-bind + IPv6-localhost-resolution mismatch that bit us in Phase 2).
+dev-preview-server:
+	cd data_pre_compute_v2 && poetry run python tools/preview_server.py --port 8080 --host 0.0.0.0
 
 # --- Testing ---
 test: test-backend test-frontend

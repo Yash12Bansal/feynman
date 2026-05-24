@@ -9,8 +9,24 @@ import { useAgentTranscription } from "../livekit/useAgentTranscription";
 import { SplitBoard } from "../engine/whiteboard/split/SplitBoard";
 import { useSplitBoardState } from "../engine/whiteboard/split/useSplitBoardState";
 import { config } from "../lib/config";
+import { LectureViewer } from "./LectureViewer";
 
-export function ClassroomScreen() {
+interface ClassroomScreenProps {
+  readonly lectureChapterId?: string | null;
+}
+
+export function ClassroomScreen({ lectureChapterId }: ClassroomScreenProps) {
+  // When the session is bound to a precomputed lecture chapter, render the
+  // immersive viewer. The legacy live-agent path is preserved for non-lecture
+  // sessions (existing topic/subject teaching).
+  if (lectureChapterId) {
+    return <LectureViewer chapterId={lectureChapterId} />;
+  }
+
+  return <LiveAgentClassroom />;
+}
+
+function LiveAgentClassroom() {
   const {
     activeInstructions,
     activeWalks,

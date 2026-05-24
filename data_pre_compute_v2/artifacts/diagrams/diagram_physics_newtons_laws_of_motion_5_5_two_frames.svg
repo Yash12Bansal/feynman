@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#f8f9fa"/>
+<rect id="tf_left_panel" x="20" y="60" width="400" height="560" rx="12" fill="#eaf4fb" stroke="#4682b4" stroke-width="2"/>
+<rect id="tf_right_panel" x="480" y="60" width="400" height="560" rx="12" fill="#fff8e1" stroke="#FF9800" stroke-width="2"/>
+<text id="tf_left_title" x="220" y="95" font-size="17" fill="#1a5276" text-anchor="middle" font-weight="bold">INERTIAL FRAME</text>
+<text id="tf_left_subtitle" x="220" y="115" font-size="13" fill="#4682b4" text-anchor="middle" font-weight="normal">(Observer on the Road)</text>
+<text id="tf_right_title" x="680" y="95" font-size="17" fill="#7d4e00" text-anchor="middle" font-weight="bold">NON-INERTIAL FRAME</text>
+<text id="tf_right_subtitle" x="680" y="115" font-size="13" fill="#FF9800" text-anchor="middle" font-weight="normal">(Observer Inside the Bus)</text>
+<rect id="tf_bus_left" x="60" y="155" width="320" height="130" rx="8" fill="#d6eaf8" stroke="#2e86c1" stroke-width="2.5"/>
+<text id="tf_bus_left_label" x="220" y="175" font-size="13" fill="#2e86c1" text-anchor="middle" font-weight="bold">BUS</text>
+<circle id="tf_wheel1_left" cx="110" cy="290" r="18" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="tf_wheel2_left" cx="330" cy="290" r="18" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="tf_ball_left" cx="175" cy="235" r="18" fill="#e74c3c" stroke="#c0392b" stroke-width="2" stroke-dasharray=""/>
+<text id="tf_ball_left_label" x="175" y="240" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold">ball</text>
+<defs><marker id="arrowhead_tf_bus_accel_left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2e86c1"/></marker></defs><line id="tf_bus_accel_left" x1="310" y1="220" x2="390" y2="220" stroke="#2e86c1" stroke-width="3" marker-end="url(#arrowhead_tf_bus_accel_left)"/>
+<text id="tf_bus_accel_label_left" x="390" y="210" font-size="14" fill="#2e86c1" font-style="italic" text-anchor="middle">a_{bus}</text>
+<text id="tf_road_left" x="220" y="325" font-size="12" fill="#888" text-anchor="middle" font-weight="normal">— — — — — — — — — — — — — — —</text>
+<text id="tf_road_label_left" x="220" y="342" font-size="12" fill="#888" text-anchor="middle" font-weight="normal">ROAD (stationary)</text>
+<text id="tf_left_obs_label" x="220" y="375" font-size="13" fill="#1a5276" text-anchor="middle" font-weight="bold">What the road observer sees:</text>
+<text id="tf_left_obs1" x="220" y="400" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">Ball has NO net force on it.</text>
+<text id="tf_left_obs2" x="220" y="420" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">Ball stays (roughly) in place.</text>
+<text id="tf_left_obs3" x="220" y="440" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">Bus accelerates forward under it.</text>
+<rect id="tf_newton_box_left" x="55" y="460" width="330" height="60" rx="8" fill="#d5f5e3" stroke="#27ae60" stroke-width="1.5"/>
+<text id="tf_newton_left_label" x="220" y="483" font-size="12" fill="#1e8449" text-anchor="middle" font-weight="bold">Newton&#x27;s 2nd Law works directly:</text>
+<text id="tf_newton_left_eq" x="220" y="505" font-size="14" fill="#1e8449" font-style="italic" text-anchor="middle">\sum F = 0 \Rightarrow a_{ball} = 0</text>
+<text id="tf_left_check" x="220" y="545" font-size="14" fill="#27ae60" text-anchor="middle" font-weight="bold">✓  No correction needed</text>
+<rect id="tf_bus_right" x="520" y="155" width="320" height="130" rx="8" fill="#fef9e7" stroke="#d4ac0d" stroke-width="2.5"/>
+<text id="tf_bus_right_label" x="680" y="175" font-size="13" fill="#d4ac0d" text-anchor="middle" font-weight="bold">BUS (your frame)</text>
+<circle id="tf_wheel1_right" cx="570" cy="290" r="18" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="tf_wheel2_right" cx="790" cy="290" r="18" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="tf_ball_right" cx="680" cy="235" r="18" fill="#e74c3c" stroke="#c0392b" stroke-width="2" stroke-dasharray=""/>
+<text id="tf_ball_right_label" x="680" y="240" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold">ball</text>
+<defs><marker id="arrowhead_tf_pseudo_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="tf_pseudo_arrow" x1="680" y1="235" x2="600" y2="235" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_tf_pseudo_arrow)"/>
+<text id="tf_pseudo_label" x="600" y="225" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="bold">Pseudo force</text>
+<text id="tf_road_right" x="680" y="325" font-size="12" fill="#888" text-anchor="middle" font-weight="normal">— — — — — — — — — — — — — — —</text>
+<text id="tf_road_label_right" x="680" y="342" font-size="12" fill="#888" text-anchor="middle" font-weight="normal">Floor appears stationary</text>
+<text id="tf_right_obs_label" x="680" y="375" font-size="13" fill="#7d4e00" text-anchor="middle" font-weight="bold">What the bus observer sees:</text>
+<text id="tf_right_obs1" x="680" y="400" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">Ball slides backward on its own!</text>
+<text id="tf_right_obs2" x="680" y="420" font-size="13" fill="#333" text-anchor="middle" font-weight="normal">No real force is pushing it back.</text>
+<text id="tf_right_obs3" x="680" y="440" font-size="13" fill="#c0392b" text-anchor="middle" font-weight="normal">Newton&#x27;s 2nd Law seems broken!</text>
+<rect id="tf_newton_box_right" x="515" y="460" width="330" height="70" rx="8" fill="#fde8e8" stroke="#D32F2F" stroke-width="1.5"/>
+<text id="tf_newton_right_label" x="680" y="480" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="bold">Add pseudo force to fix it:</text>
+<text id="tf_newton_right_eq" x="680" y="500" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">F_{pseudo} = -ma_{frame}</text>
+<text id="tf_right_check" x="680" y="548" font-size="14" fill="#D32F2F" text-anchor="middle" font-weight="bold">✓  Newton&#x27;s 2nd Law restored</text>
+<line id="tf_divider" x1="450" y1="60" x2="450" y2="620" stroke="#aaa" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text id="tf_vs_label" x="450" y="345" font-size="18" fill="#888" text-anchor="middle" font-weight="bold">vs</text>
+</svg>

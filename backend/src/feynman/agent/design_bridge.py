@@ -10,8 +10,12 @@ We read its prompt at runtime so changes to the prompt propagate automatically.
 
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 import re
+from collections import OrderedDict
+from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -24,9 +28,12 @@ logger = structlog.get_logger()
 
 # ── Prompt loading ─────────────────────────────────────────
 
-_PROMPT_FILE = Path(__file__).resolve().parents[4] / "design_agent" / "backend" / "prompts.py"
+_DESIGN_AGENT_DIR = Path(__file__).resolve().parents[4] / "design_agent" / "backend"
+_PROMPT_FILE = _DESIGN_AGENT_DIR / "prompts.py"
+_PYTHON_PROMPT_FILE = _DESIGN_AGENT_DIR / "prompts_python.py"
 
 _cached_prompt: str | None = None
+_cached_python_prompt: str | None = None
 
 
 def _load_system_prompt() -> str:
@@ -47,9 +54,42 @@ def _load_system_prompt() -> str:
     return _cached_prompt
 
 
+def _load_python_system_prompt() -> str:
+    """Read SYSTEM_PROMPT_PYTHON from the Python-DSL prompts module.
+
+    Phase 3 of the diagram-awareness re-architecture — used by
+    ``generate_via_python``. Mirrors ``_load_system_prompt`` so the
+    on-disk file stays the source of truth and changes propagate
+    without code edits.
+    """
+    global _cached_python_prompt
+    if _cached_python_prompt is not None:
+        return _cached_python_prompt
+
+    if not _PYTHON_PROMPT_FILE.exists():
+        raise FileNotFoundError(
+            f"Python-DSL prompt not found at {_PYTHON_PROMPT_FILE}. "
+            "Ensure the design_agent directory contains prompts_python.py."
+        )
+
+    ns: dict[str, Any] = {}
+    exec(compile(_PYTHON_PROMPT_FILE.read_text(), _PYTHON_PROMPT_FILE, "exec"), ns)
+    _cached_python_prompt = ns["SYSTEM_PROMPT_PYTHON"]
+    return _cached_python_prompt
+
+
 # ── JSON extraction & repair (ported from design_agent) ────
 
 _CODE_FENCE_RE = re.compile(r"```(?:json)?\s*\n?(.*?)\n?\s*```", re.DOTALL)
+_PYTHON_FENCE_RE = re.compile(r"```(?:python|py)?\s*\n?(.*?)\n?\s*```", re.DOTALL)
+
+
+def _extract_python(text: str) -> str:
+    """Return Python source from a Claude response, stripping markdown fences."""
+    match = _PYTHON_FENCE_RE.search(text)
+    if match:
+        return match.group(1).strip()
+    return text.strip()
 
 
 def _extract_json(text: str) -> str:
@@ -110,12 +150,16 @@ def _repair_json(json_str: str) -> dict[str, Any] | None:
 
 
 def _parse_response(raw_text: str) -> dict[str, Any]:
-    """Extract JSON from the model output, validate structure, and return dict."""
+    """Extract JSON from the model output, validate structure, and return dict.
+
+    Phase 3-4: also runs ``_ensure_dictionary_completeness`` so every element
+    has a dictionary entry by the time the caller sees the spec.
+    """
     json_str = _extract_json(raw_text)
 
     try:
         data = json.loads(json_str)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as exc:
         data = _repair_json(json_str)
         if data is None:
             logger.error(
@@ -123,13 +167,143 @@ def _parse_response(raw_text: str) -> dict[str, Any]:
                 chars=len(json_str),
                 preview=json_str[:500],
             )
-            raise ValueError("Claude returned invalid/truncated JSON for diagram.")
+            raise ValueError("Claude returned invalid/truncated JSON for diagram.") from exc
 
     # Basic structural validation
     if not isinstance(data, dict) or "elements" not in data:
         raise ValueError("Response missing required 'elements' field.")
 
-    return data
+    return _ensure_dictionary_completeness(data)
+
+
+# ── Dispatch heuristic (Phase 3-4) ─────────────────────────
+
+_PYTHON_TRIGGERS_RE = re.compile(
+    r"\b(?:"
+    # Phase 3-4: geometric-precision triggers
+    r"exact\s+angle"
+    r"|exactly\s+\d+\s*°?"
+    r"|perpendicular"
+    r"|tangent\s+(?:to|line|at)"
+    r"|intersect(?:ion)?"
+    r"|parallel\s+to"
+    r"|normal\s+(?:to|force)"
+    r"|bisect(?:or)?"
+    r"|parametric"
+    r"|at\s+(?:an\s+)?angle\s+of"
+    r"|polar(?:\s+coord)?"
+    # Phase 3-5: composite triggers — when a STEM diagram name is
+    # mentioned, the Python path has a single-call composite for it.
+    r"|right\s+triangle"
+    r"|free[-\s]?body(?:\s+diagram)?"
+    r"|fbd"
+    r"|ray\s+diagram"
+    r"|(?:convex|concave)\s+lens"
+    r"|lens"
+    r"|lewis(?:\s+structure)?"
+    r"|methane"
+    r"|ammonia"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def _dispatch_mode(prompt: str) -> str:
+    """Choose ``direct`` vs ``python`` for ``mode="auto"`` callers.
+
+    Conservative: only escalate to ``python`` when a strong geometric
+    signal is present in the prompt; default to ``direct``. The LLM can
+    still override with explicit ``mode="python"`` when the prompt is
+    ambiguous (the override bypasses this heuristic entirely).
+    """
+    if _PYTHON_TRIGGERS_RE.search(prompt):
+        return "python"
+    return "direct"
+
+
+# ── Auto-dictionary completion (Phase 3-4) ─────────────────
+
+
+def _walk_elements(elements: Any) -> Iterator[dict[str, Any]]:
+    """Yield every element dict in ``elements``, recursing into svg_group children."""
+    if not isinstance(elements, list):
+        return
+    for elem in elements:
+        if not isinstance(elem, dict):
+            continue
+        yield elem
+        if elem.get("type") == "svg_group":
+            yield from _walk_elements(elem.get("elements"))
+
+
+def _ensure_dictionary_completeness(spec: dict[str, Any]) -> dict[str, Any]:
+    """Fill missing dictionary entries with auto-derived role/semantic.
+
+    Idempotent — existing entries are preserved unchanged. New entries
+    use ``role=element_id`` and ``semantic=f"a {type_short}"`` (the
+    element-type prefix). Walks into ``svg_group`` children so nested
+    elements get entries on par with top-level ones, matching the flat
+    dictionary convention from Canvas DSL.
+    """
+    raw_dict = spec.get("dictionary") or {}
+    dictionary: dict[str, Any] = dict(raw_dict) if isinstance(raw_dict, dict) else {}
+    for elem in _walk_elements(spec.get("elements")):
+        eid = elem.get("id")
+        if not eid or eid in dictionary:
+            continue
+        type_short = str(elem.get("type", "element")).removeprefix("svg_")
+        dictionary[eid] = {
+            "role": eid,
+            "semantic": f"a {type_short}",
+            "position": "center",
+            "spatial_relations": [],
+        }
+    spec["dictionary"] = dictionary
+    return spec
+
+
+# ── In-memory FIFO cache (Phase 3-4) ───────────────────────
+
+_CACHE_MAX_SIZE = 64
+_DIAGRAM_CACHE: OrderedDict[str, dict[str, Any]] = OrderedDict()
+
+
+def _cache_key(prompt: str, *, mode: str, model: str) -> str:
+    """SHA-256 key over prompt + mode + provider + model + prompt/schema mtimes.
+
+    Including the prompt-file and schema-file mtimes invalidates the
+    cache the moment either is edited — no manual flush needed.
+    """
+    from feynman.config import settings
+
+    provider = settings.design_agent_provider
+    direct_mtime = _PROMPT_FILE.stat().st_mtime if _PROMPT_FILE.exists() else 0.0
+    python_mtime = _PYTHON_PROMPT_FILE.stat().st_mtime if _PYTHON_PROMPT_FILE.exists() else 0.0
+    schema_file = _DESIGN_AGENT_DIR / "schema.py"
+    schema_mtime = schema_file.stat().st_mtime if schema_file.exists() else 0.0
+    key_src = f"{prompt}|{mode}|{provider}|{model}|{direct_mtime}|{python_mtime}|{schema_mtime}"
+    return hashlib.sha256(key_src.encode("utf-8")).hexdigest()[:16]
+
+
+def _cache_get(key: str) -> dict[str, Any] | None:
+    """Return a deep copy of the cached spec, or ``None`` on miss."""
+    cached = _DIAGRAM_CACHE.get(key)
+    if cached is None:
+        return None
+    return copy.deepcopy(cached)
+
+
+def _cache_put(key: str, spec: dict[str, Any]) -> None:
+    """Insert into the cache; FIFO-evict when at capacity.
+
+    Stores a deep copy so subsequent mutations by callers don't bleed
+    into cached values.
+    """
+    if key in _DIAGRAM_CACHE:
+        return
+    _DIAGRAM_CACHE[key] = copy.deepcopy(spec)
+    while len(_DIAGRAM_CACHE) > _CACHE_MAX_SIZE:
+        _DIAGRAM_CACHE.popitem(last=False)
 
 
 # ── Model mapping ──────────────────────────────────────────
@@ -164,7 +338,9 @@ async def _call_anthropic(
     model_id = _MODELS.get(model, model)
     client = _get_client()
 
-    logger.info("design_bridge.calling", provider="anthropic", prompt=user_message[:100], model=model_id)
+    logger.info(
+        "design_bridge.calling", provider="anthropic", prompt=user_message[:100], model=model_id
+    )
 
     accumulated = ""
     async with client.messages.stream(
@@ -249,6 +425,8 @@ async def generate_design_diagram(
     """Generate a DiagramSpec using the design agent prompt.
 
     Routes to Anthropic or Ollama based on ``settings.design_agent_provider``.
+    Phase 3-4 wraps the call in an in-memory cache; identical prompts (same
+    model, provider, prompt-file mtimes) skip the LLM round-trip.
 
     Args:
         prompt: Natural language description of the diagram to draw.
@@ -259,8 +437,21 @@ async def generate_design_diagram(
     Returns:
         A validated DiagramSpec dict with elements, title, etc.
     """
-    spec = await _route_call(prompt, model=model, max_tokens=max_tokens)
+    key = _cache_key(prompt, mode="direct", model=model)
+    cached = _cache_get(key)
+    if cached is not None:
+        logger.info(
+            "design_bridge.cache_hit",
+            path="direct",
+            key=key,
+            prompt=prompt[:60],
+        )
+        return cached
 
+    spec = await _route_call(prompt, model=model, max_tokens=max_tokens)
+    # `_parse_response` already ran `_ensure_dictionary_completeness`.
+
+    _cache_put(key, spec)
     _save_spec(spec, prompt)
     logger.info(
         "design_bridge.complete",
@@ -308,6 +499,122 @@ async def modify_design_diagram_spec(
         title=spec.get("title", ""),
         elements=len(spec.get("elements", [])),
         modification=modification[:80],
+    )
+    return spec
+
+
+# ── Python-DSL path (Phase 3, walking skeleton) ────────────
+
+
+async def _call_anthropic_python(
+    user_message: str,
+    model: str = "sonnet",
+    max_tokens: int = 8000,
+) -> str:
+    """Call Claude with the Python-DSL system prompt; return raw text response."""
+    system_prompt = _load_python_system_prompt()
+    model_id = _MODELS.get(model, model)
+    client = _get_client()
+
+    logger.info(
+        "design_bridge.python.calling",
+        provider="anthropic",
+        prompt=user_message[:100],
+        model=model_id,
+    )
+
+    accumulated = ""
+    async with client.messages.stream(
+        model=model_id,
+        max_tokens=max_tokens,
+        system=system_prompt,
+        messages=[{"role": "user", "content": user_message}],
+    ) as stream:
+        async for text in stream.text_stream:
+            accumulated += text
+
+        final = await stream.get_final_message()
+        if final.stop_reason == "max_tokens":
+            logger.warning("design_bridge.python.truncated", chars=len(accumulated))
+
+    return accumulated
+
+
+async def generate_via_python(
+    prompt: str,
+    model: str = "sonnet",
+    max_tokens: int = 8000,
+) -> dict[str, Any]:
+    """Generate a DiagramSpec by asking Claude to write Python in our DSL.
+
+    Phase 3 (walking skeleton) of the diagram-awareness re-architecture
+    (`docs/design/16-diagram-awareness-rearchitecture.md`). The LLM
+    authors a short script using ``feynman.visuals.canvas_dsl``; the
+    sandbox runs it; we export the resulting Canvas to the same dict
+    shape that ``generate_design_diagram`` returns, so all downstream
+    code (Pydantic validation, WS publishing, frontend rendering,
+    annotation dictionary) sees identical wire format.
+
+    Args:
+        prompt: Natural-language description of the diagram to draw.
+        model: Anthropic model key — "opus" / "sonnet" / "haiku".
+        max_tokens: Maximum response tokens.
+
+    Returns:
+        A validated DiagramSpec dict.
+
+    Raises:
+        ValueError: if Claude's response is empty, malformed, or the
+            sandbox rejects it. Caller surfaces this to the tool layer
+            so the teaching agent can fall back to direct-JSON generation.
+    """
+    from feynman.config import settings
+    from feynman.visuals.sandbox import SandboxError, execute_python_diagram
+
+    # Phase 3-1 routes Anthropic only — Ollama support is a later phase.
+    if settings.design_agent_provider == "ollama":
+        raise ValueError(
+            "Python-DSL diagram path is not yet wired for the Ollama provider. "
+            "Switch DESIGN_AGENT_PROVIDER=anthropic or use mode='direct'."
+        )
+
+    key = _cache_key(prompt, mode="python", model=model)
+    cached = _cache_get(key)
+    if cached is not None:
+        logger.info(
+            "design_bridge.cache_hit",
+            path="python",
+            key=key,
+            prompt=prompt[:60],
+        )
+        return cached
+
+    raw_response = await _call_anthropic_python(prompt, model=model, max_tokens=max_tokens)
+    code = _extract_python(raw_response)
+    if not code:
+        raise ValueError("design_bridge.python: model returned no Python code.")
+
+    try:
+        canvas = await execute_python_diagram(code)
+    except SandboxError as exc:
+        logger.warning(
+            "design_bridge.python.sandbox_failed",
+            error=str(exc),
+            code_preview=code[:300],
+        )
+        raise ValueError(f"Python-DSL sandbox failed: {exc}") from exc
+
+    # Canvas DSL auto-registers via `_register`, but run completeness as a
+    # belt-and-suspenders pass — also protects against any direct-dict
+    # construction users add later.
+    spec = _ensure_dictionary_completeness(canvas.export())
+    _cache_put(key, spec)
+    _save_spec(spec, f"PYTHON: {prompt}")
+    logger.info(
+        "design_bridge.python.complete",
+        title=spec.get("title", ""),
+        elements=len(spec.get("elements", [])),
+        code_chars=len(code),
     )
     return spec
 

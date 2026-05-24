@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="title" x="450" y="38" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Tension in Strings</text>
+<text id="subtitle" x="450" y="62" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">Newton&#x27;s Third Law explains why tension exists — each segment of string pulls equally on its neighbors</text>
+<line id="divider" x1="450" y1="80" x2="450" y2="600" stroke="#ddd" stroke-width="2" stroke-dasharray="6,4"/>
+<text id="left_title" x="225" y="100" font-size="16" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Massless String</text>
+<text id="left_subtitle" x="225" y="118" font-size="12" fill="#2e7d32" text-anchor="middle" font-weight="normal">Tension is the same everywhere</text>
+<rect id="ceiling_left" x="120" y="130" width="210" height="18" rx="2" fill="#b0bec5" stroke="#555" stroke-width="2"/>
+<line id="hatch1" x1="130" y1="130" x2="120" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch2" x1="155" y1="130" x2="145" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch3" x1="180" y1="130" x2="170" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch4" x1="205" y1="130" x2="195" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch5" x1="230" y1="130" x2="220" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch6" x1="255" y1="130" x2="245" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch7" x1="280" y1="130" x2="270" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch8" x1="305" y1="130" x2="295" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="massless_string" x1="225" y1="148" x2="225" y2="370" stroke="#4682b4" stroke-width="5" stroke-dasharray=""/>
+<rect id="block_left" x="175" y="370" width="100" height="70" rx="5" fill="#90caf9" stroke="#1565c0" stroke-width="2"/>
+<text id="block_left_label" x="225" y="410" font-size="13" fill="#1565c0" text-anchor="middle" font-weight="bold">Mass m</text>
+<circle id="cut_point_top" cx="225" cy="200" r="7" fill="#fff" stroke="#D32F2F" stroke-width="2" stroke-dasharray=""/>
+<circle id="cut_point_mid" cx="225" cy="280" r="7" fill="#fff" stroke="#D32F2F" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_t_top_up" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="t_top_up" x1="225" y1="200" x2="225" y2="160" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_t_top_up)"/>
+<defs><marker id="arrowhead_t_top_down" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="t_top_down" x1="225" y1="200" x2="225" y2="240" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_t_top_down)"/>
+<defs><marker id="arrowhead_t_mid_up" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="t_mid_up" x1="225" y1="280" x2="225" y2="240" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_t_mid_up)"/>
+<defs><marker id="arrowhead_t_mid_down" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="t_mid_down" x1="225" y1="280" x2="225" y2="320" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_t_mid_down)"/>
+<text id="t_top_label" x="250" y="195" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">T</text>
+<text id="t_mid_label" x="250" y="275" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">T</text>
+<rect id="equal_box" x="110" y="460" width="230" height="40" rx="8" fill="#e8f5e9" stroke="#4CAF50" stroke-width="2"/>
+<text id="equal_tension" x="225" y="484" font-size="14" fill="#2e7d32" font-style="italic" text-anchor="middle">T_{\text{top}} = T_{\text{mid}} = T_{\text{bottom}} = mg</text>
+<text id="massless_note" x="225" y="525" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">Tension is uniform — string has no</text>
+<text id="massless_note2" x="225" y="540" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">weight of its own to support.</text>
+<text id="right_title" x="675" y="100" font-size="16" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Massive String</text>
+<text id="right_subtitle" x="675" y="118" font-size="12" fill="#D32F2F" text-anchor="middle" font-weight="normal">Tension increases from bottom to top</text>
+<rect id="ceiling_right" x="570" y="130" width="210" height="18" rx="2" fill="#b0bec5" stroke="#555" stroke-width="2"/>
+<line id="hatch_r1" x1="580" y1="130" x2="570" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch_r2" x1="605" y1="130" x2="595" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch_r3" x1="630" y1="130" x2="620" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch_r4" x1="655" y1="130" x2="645" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch_r5" x1="680" y1="130" x2="670" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch_r6" x1="705" y1="130" x2="695" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch_r7" x1="730" y1="130" x2="720" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hatch_r8" x1="755" y1="130" x2="745" y2="148" stroke="#555" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="massive_string_top" x="662" y="148" width="26" height="74" rx="4" fill="#7986cb" stroke="#3949ab" stroke-width="1.5"/>
+<rect id="massive_string_mid" x="662" y="222" width="26" height="74" rx="4" fill="#9fa8da" stroke="#3949ab" stroke-width="1.5"/>
+<rect id="massive_string_bot" x="662" y="296" width="26" height="74" rx="4" fill="#c5cae9" stroke="#3949ab" stroke-width="1.5"/>
+<text id="seg_top_label" x="700" y="190" font-size="11" fill="#3949ab" text-anchor="start" font-weight="normal">Top segment</text>
+<text id="seg_mid_label" x="700" y="264" font-size="11" fill="#3949ab" text-anchor="start" font-weight="normal">Mid segment</text>
+<text id="seg_bot_label" x="700" y="338" font-size="11" fill="#3949ab" text-anchor="start" font-weight="normal">Bot segment</text>
+<rect id="block_right" x="625" y="370" width="100" height="70" rx="5" fill="#90caf9" stroke="#1565c0" stroke-width="2"/>
+<text id="block_right_label" x="675" y="410" font-size="13" fill="#1565c0" text-anchor="middle" font-weight="bold">Mass m</text>
+<defs><marker id="arrowhead_t_top_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="t_top_arrow" x1="620" y1="185" x2="620" y2="148" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_t_top_arrow)"/>
+<defs><marker id="arrowhead_t_mid_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="t_mid_arrow" x1="620" y1="259" x2="620" y2="222" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_t_mid_arrow)"/>
+<defs><marker id="arrowhead_t_bot_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="t_bot_arrow" x1="620" y1="333" x2="620" y2="296" stroke="#D32F2F" stroke-width="2" marker-end="url(#arrowhead_t_bot_arrow)"/>
+<text id="t_top_r" x="570" y="168" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">T_{\text{top}}</text>
+<text id="t_mid_r" x="570" y="242" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">T_{\text{mid}}</text>
+<text id="t_bot_r" x="570" y="316" font-size="13" fill="#D32F2F" font-style="italic" text-anchor="middle">T_{\text{bot}}</text>
+<rect id="ineq_box" x="470" y="460" width="400" height="55" rx="8" fill="#ffebee" stroke="#D32F2F" stroke-width="2"/>
+<text id="ineq_tension" x="670" y="480" font-size="14" fill="#b71c1c" font-style="italic" text-anchor="middle">T_{\text{top}} &gt; T_{\text{mid}} &gt; T_{\text{bot}} = mg</text>
+<text id="ineq_note" x="670" y="503" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">Top must support block + entire string weight</text>
+<text id="right_note1" x="675" y="535" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">Bottom only supports the block.</text>
+<text id="right_note2" x="675" y="550" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">Each higher point supports more weight.</text>
+<rect id="bottom_banner" x="60" y="578" width="780" height="44" rx="10" fill="#e8eaf6" stroke="#3949ab" stroke-width="2"/>
+<text id="bottom_text" x="450" y="596" font-size="12" fill="#1a237e" text-anchor="middle" font-weight="bold">At every cut point, the 3rd Law pair: upper segment pulls lower UP, lower segment pulls upper DOWN — equal forces!</text>
+<text id="bottom_text2" x="450" y="613" font-size="12" fill="#1a237e" text-anchor="middle" font-weight="normal">That shared magnitude at each cut is the tension at that point.</text>
+</svg>

@@ -25,6 +25,9 @@ class TestSyncModeEnum:
         assert SyncMode.IMMEDIATE == "immediate"
         assert SyncMode.ON_PLAYOUT == "on_playout"
         assert SyncMode.TERM_SYNC == "term_sync"
+        # Phase 2 (Tier A voice-visual sync). Annotation tools default to this
+        # mode so they fire at the next sentence boundary in the agent's TTS.
+        assert SyncMode.AFTER_NEXT_SENTENCE == "after_next_sentence"
 
     def test_default_on_base_instruction(self) -> None:
         """All instructions default to ON_PLAYOUT sync mode."""

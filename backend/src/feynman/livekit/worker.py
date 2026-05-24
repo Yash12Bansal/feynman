@@ -6,33 +6,62 @@ cd backend && uv run python -m feynman.livekit.worker dev
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
+import time
+from collections.abc import AsyncGenerator, AsyncIterable, Callable
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import structlog
+from feynman_teaching_kernel import plan_concept
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
-from feynman.agent.board_verifier import BoardVerifier
-from feynman.agent.concept_planner import plan_concept
-from feynman.agent.curriculum_loader import CurriculumNotFoundError, load_curriculum
+from feynman.agent.action_tag_parser import ActionTag, ActionTagParser
+from feynman.agent.board_verifier import BoardVerifier, PerceptionFeedback
+from feynman.agent.curriculum_loader import load_curriculum
+from feynman.agent.doubt_resolution import (
+    LectureDoubtSession,
+    ResolutionPlan,
+    load_chapter_by_id,
+)
+from feynman.agent.doubt_resolution.doubt_capture import capture_student_doubt
+from feynman.agent.drift_state import build_element_summary, compute_drift_state_hash
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
 from feynman.agent.prompts import TEACHING_SYSTEM_PROMPT, build_teaching_prompt
+from feynman.livekit.action_tag_dispatch import dispatch_action_tag
+from feynman.livekit.doubt_delivery import DoubtDelivery
+
+if TYPE_CHECKING:
+    from livekit import rtc
+    from livekit.agents.llm import (
+        ChatChunk,
+        ChatContext,
+        FunctionTool,
+        ModelSettings,
+    )
 from feynman.agent.scene_graph import BoundsReportPayload
 from feynman.agent.state_machine import TeachingStateMachine
+from feynman.agent.states import TeachingState
 from feynman.agent.teaching_context import TeachingContext
 from feynman.agent.tools import (
     advance_concept,
     annotate,
+    bracket,
     clear_board,
     clear_cluster,
+    draw_callout,
     draw_design_diagram,
     draw_diagram,
     draw_scene,
     highlight_diagram_part,
+    highlight_pulse,
     highlight_walk,
+    mark_doubt_step_complete,
     modify_design_diagram,
     new_page,
+    pin_label_near,
     resolve_doubt,
     scroll_board,
     set_lesson_topic,
@@ -58,6 +87,13 @@ from feynman.livekit.pipeline import create_llm, create_stt, create_tts, create_
 setup_logging(settings.log_level)
 logger = structlog.get_logger()
 
+# Phase 5a-3: periodic drift-check cadence. 30s balances detection latency
+# (caught within one student utterance window) against Haiku cost — combined
+# with the state-hash dedup in _should_run_drift_check, typical hourly call
+# count stays around 25-30 (~$0.05-0.10/hr).
+DRIFT_CHECK_INTERVAL_SECS = 30.0
+DRIFT_FEEDBACK_BUDGET_PER_CONCEPT = 1
+
 # All tools the agent can use — visual + state management
 ALL_TOOLS = [
     # show_text,
@@ -79,16 +115,150 @@ ALL_TOOLS = [
     annotate,
     highlight_diagram_part,
     highlight_walk,
+    # Slide annotation overlays (diagram awareness)
+    pin_label_near,
+    draw_callout,
+    bracket,
+    highlight_pulse,
     clear_board,
     clear_cluster,
     teach_pause,
     advance_concept,
     start_doubt_branch,
     resolve_doubt,
+    mark_doubt_step_complete,
     switch_board,
     scroll_board,
     set_lesson_topic,
 ]
+
+
+async def strip_action_tags(
+    text: AsyncIterable[str],
+    on_tag: Callable[[ActionTag], None],
+) -> AsyncGenerator[str]:
+    """Strip inline action tags from a streaming text iterable.
+
+    Yields TTS-bound chunks with action tags removed. Each parsed tag is
+    handed to ``on_tag`` synchronously (the worker schedules an async
+    dispatch task there). Orphan tag fragments at stream end are dropped
+    by ``ActionTagParser.finalize``.
+    """
+    parser = ActionTagParser()
+    async for chunk in text:
+        clean, tags = parser.feed(chunk)
+        for tag in tags:
+            on_tag(tag)
+        if clean:
+            yield clean
+    tail = parser.finalize()
+    if tail:
+        yield tail
+
+
+def drain_perception_feedback(
+    teaching_ctx: TeachingContext,
+    chat_ctx: ChatContext,
+) -> int:
+    """Drain Phase 5a-1 perception-feedback queue into ``chat_ctx``.
+
+    Appends each ``PerceptionFeedback`` as a single ``role="user"`` note
+    using ``[PERCEPTION_FEEDBACK]`` as the system-signal prefix the prompt
+    teaches the LLM to recognize. Returns the number of feedbacks drained
+    so the caller can log it.
+    """
+    queue = teaching_ctx.perception_feedback_queue
+    if not queue:
+        return 0
+    count = len(queue)
+    for fb in queue:
+        chat_ctx.add_message(role="user", content=fb.as_chat_note())
+    queue.clear()
+    logger.info(
+        "perception_feedback.injected",
+        count=count,
+        concept=teaching_ctx.current_concept_index,
+    )
+    return count
+
+
+# ── Phase 5a-3: periodic drift check helpers ──────────────────
+
+
+def _should_run_drift_check(tc: TeachingContext) -> bool:
+    """Cheap pre-flight before spending a Haiku call on a drift check.
+
+    Audits each skip reason so the session summary can attribute Haiku-call
+    misses correctly (state-hash dedup vs no diagrams vs doubt branch etc.).
+    """
+    if tc.board_verifier is None:
+        return False
+    if tc.state_machine.depth > 1:
+        tc.audit.record("drift_check", "skipped_doubt_branch", "")
+        return False
+    if tc.current_concept is None:
+        tc.audit.record("drift_check", "skipped_no_concept", "")
+        return False
+    design_ids = list(tc.board_manager.active_board.state._design_specs.keys())
+    if not design_ids:
+        tc.audit.record("drift_check", "skipped_no_diagrams", "")
+        return False
+    used = tc.drift_feedback_budget_used.get(tc.current_concept_index, 0)
+    if used >= DRIFT_FEEDBACK_BUDGET_PER_CONCEPT:
+        tc.audit.record("drift_check", "skipped_budget", "")
+        return False
+    state_hash = compute_drift_state_hash(tc.current_concept_index, design_ids, tc.diagram_version)
+    if state_hash == tc.last_drift_check_hash:
+        tc.audit.record("drift_check", "skipped_unchanged", state_hash)
+        return False
+    return True
+
+
+async def _run_drift_check(tc: TeachingContext) -> None:
+    """Run one drift check against the current active-board state.
+
+    Snapshots concept context + element summary before the screenshot await
+    so a mid-flight concept advance can't corrupt the prompt. The on_feedback
+    closure re-checks ``current_concept_index`` at fire time as a stale guard.
+    """
+    concept = tc.current_concept
+    if concept is None:
+        return  # belt-and-suspenders; _should_run_drift_check already gated this
+    concept_index = tc.current_concept_index
+    concept_title = concept.title
+    concept_description = getattr(concept, "description", "") or ""
+    total_concepts = tc.lesson_plan.total_concepts if tc.lesson_plan else 1
+    design_ids = list(tc.board_manager.active_board.state._design_specs.keys())
+    state_hash = compute_drift_state_hash(concept_index, design_ids, tc.diagram_version)
+    element_summary = build_element_summary(
+        design_ids, tc.original_diagram_claims, tc.diagram_version
+    )
+
+    def _on_feedback(fb: PerceptionFeedback, _result: Any) -> None:
+        # Stale-guard: the concept may have advanced while vision was running.
+        if tc.current_concept_index != concept_index:
+            tc.audit.record("drift_check", "feedback_stale", "")
+            return
+        used = tc.drift_feedback_budget_used.get(concept_index, 0)
+        if used >= DRIFT_FEEDBACK_BUDGET_PER_CONCEPT:
+            tc.audit.record("drift_check", "feedback_budget_full", "")
+            return
+        tc.perception_feedback_queue.append(fb)
+        tc.drift_feedback_budget_used[concept_index] = used + 1
+
+    result = await tc.board_verifier.request_drift_check(
+        concept_index=concept_index,
+        concept_title=concept_title,
+        concept_description=concept_description,
+        total_concepts=total_concepts,
+        element_summary=element_summary,
+        state_hash=state_hash,
+        on_feedback=_on_feedback,
+    )
+    # Only commit the dedup hash on a successful result. On timeout/exception
+    # result is None and the next tick retries against the same board state.
+    if result is not None:
+        tc.last_drift_check_hash = state_hash
 
 
 class FeynmanAgent(Agent):
@@ -109,11 +279,93 @@ class FeynmanAgent(Agent):
             tools=ALL_TOOLS,
         )
 
-    async def on_enter(self) -> None:
-        logger.info("agent.entered_room", topic=self._topic)
+    async def tts_node(
+        self,
+        text: AsyncIterable[str],
+        model_settings: ModelSettings,
+    ) -> AsyncGenerator[rtc.AudioFrame]:
+        """Intercept the text stream pre-TTS to strip inline action tags.
 
-        # Load curriculum from Neo4j — no fallbacks
-        if self._topic:
+        Phase 4 of the diagram-awareness re-architecture: the LLM emits
+        self-closing tags inside narration (``<highlight target="x"/>``)
+        as a lightweight alternative to pointing-tool calls. This override
+        feeds each chunk through :class:`ActionTagParser`, dispatches the
+        parsed tags as visual instructions (fire-and-forget), and yields
+        only the cleaned text to TTS.
+
+        Because ``AgentSession`` is created with
+        ``use_tts_aligned_transcript=True``, the user-facing transcription
+        automatically mirrors the cleaned TTS text — no separate
+        ``transcription_node`` override is required.
+        """
+        session = self.session
+
+        def schedule(tag: ActionTag) -> None:
+            asyncio.create_task(  # noqa: RUF006
+                dispatch_action_tag(session, tag),
+                name="action_tag_dispatch",
+            )
+
+        cleaned = strip_action_tags(text, schedule)
+        async for frame in Agent.default.tts_node(self, cleaned, model_settings):
+            yield frame
+
+    async def llm_node(
+        self,
+        chat_ctx: ChatContext,
+        tools: list[FunctionTool],
+        model_settings: ModelSettings,
+    ) -> AsyncGenerator[ChatChunk | str]:
+        """Drain perception-feedback queue into chat_ctx before the LLM call.
+
+        Phase 5a-1: background vision verification (per-annotation) enqueues
+        :class:`PerceptionFeedback` on the teaching context when an annotation
+        misses. Just before the next LLM turn fires, we append each feedback
+        as a synthetic ``role="user"`` note prefixed with
+        ``[PERCEPTION_FEEDBACK]`` — the agent's prompt teaches it to interpret
+        the prefix as a system signal, acknowledge briefly, and re-point with
+        the suggested target via an inline action tag.
+
+        Mutating ``chat_ctx`` here persists because livekit-agents' LLM
+        pipeline uses the same underlying ``session.history`` object the
+        next turn will read from.
+        """
+        drain_perception_feedback(self._teaching_ctx, chat_ctx)
+        async for chunk in Agent.default.llm_node(self, chat_ctx, tools, model_settings):
+            yield chunk
+
+    async def _periodic_drift_check(self) -> None:
+        """Phase 5a-3: every 30s, ask vision if the board still fits the lesson.
+
+        Long-running background task — survives until the session shuts down
+        (cancelled in the ``finally`` block around ``session.start``). One bad
+        check never kills the loop; only ``CancelledError`` propagates out.
+        """
+        tc = self._teaching_ctx
+        while True:
+            try:
+                await asyncio.sleep(DRIFT_CHECK_INTERVAL_SECS)
+                if not _should_run_drift_check(tc):
+                    continue
+                await _run_drift_check(tc)
+            except asyncio.CancelledError:
+                logger.info("drift_check.cancelled")
+                raise
+            except Exception:
+                logger.warning("drift_check.failed", exc_info=True)
+                # Don't break — one bad check shouldn't kill the loop.
+
+    async def on_enter(self) -> None:
+        logger.info(
+            "agent.entered_room",
+            topic=self._topic,
+            use_neo4j_curriculum=settings.use_neo4j_curriculum,
+        )
+
+        # Curriculum is loaded only when the Neo4j-backed lesson graph is
+        # enabled. With `USE_NEO4J_CURRICULUM=false` we skip the load entirely
+        # and run in free-form mode (no plan, no pre-gens, no checklist).
+        if self._topic and settings.use_neo4j_curriculum:
             # Load curriculum from Neo4j. Raises CurriculumNotFoundError if not found.
             curriculum = await load_curriculum(
                 self._topic, self._subject.value if self._subject else None
@@ -168,6 +420,7 @@ class FeynmanAgent(Agent):
                     curriculum,
                     plan,
                     audit=self._teaching_ctx.audit,
+                    api_key=settings.anthropic_api_key,
                 )
                 if plan0:
                     self._teaching_ctx.concept_plans[0] = plan0
@@ -183,6 +436,7 @@ class FeynmanAgent(Agent):
                             plan,
                             audit=self._teaching_ctx.audit,
                             prev_plan=self._teaching_ctx.concept_plans.get(0),
+                            api_key=settings.anthropic_api_key,
                         )
                         if plan1:
                             self._teaching_ctx.concept_plans[1] = plan1
@@ -221,6 +475,14 @@ class FeynmanAgent(Agent):
             # Now: CurriculumNotFoundError propagates — session fails with clear error.
             # --- END COMMENTED OUT ---
 
+        # Phase 5a-3: periodic drift check runs in BOTH curriculum and
+        # free-form modes — _should_run_drift_check skips when there's no
+        # active concept, so the loop is a no-op until teaching begins.
+        self._drift_check_task = asyncio.create_task(
+            self._periodic_drift_check(),
+            name="periodic_drift_check",
+        )
+
         # Update instructions with lesson context
         prompt = build_teaching_prompt(
             self._teaching_ctx.lesson_plan,
@@ -236,6 +498,14 @@ class FeynmanAgent(Agent):
                 f"Tell them today's topic is '{plan.topic}' and briefly share the objective: "
                 f"'{plan.objective}'. Keep it enthusiastic — two or three sentences max. "
                 f"Use the show_text tool to display a welcome message with today's topic."
+            )
+        elif self._topic:
+            # Free-form mode but the user passed a topic — let the agent know it
+            # and teach without a Neo4j-backed plan.
+            greeting_instructions = (
+                f"Greet the class warmly. Introduce yourself as Feynman, their AI teacher. "
+                f"Tell them today's topic is '{self._topic}' and that you'll guide them "
+                f"through it interactively. Keep it enthusiastic — two or three sentences max."
             )
         else:
             greeting_instructions = (
@@ -259,6 +529,278 @@ def _parse_room_metadata(ctx: JobContext) -> dict:
         return {}
 
 
+_DOUBT_TOPIC = "doubt_signal"
+
+
+async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
+    """Lecture-mode worker loop.
+
+    The precomputed lecture plays from the frontend; the worker stays in the
+    room as a silent participant. When the Ask Feynman button fires a
+    `doubt_intent` over the data channel, we capture the student's audio,
+    run the (Phase 3 stub) classifier, and emit a `doubt_captured`
+    acknowledgement so the frontend can flip to its "thinking" indicator.
+
+    Phase 4 routes captured doubts through the full classifier → planner
+    → diagram-matcher chain. Phase 5 will pick up the produced
+    `ResolutionPlan` and deliver it as live voice + visuals.
+    """
+    # Lazy-construct the STT instance; if no doubt is ever raised we don't
+    # pay for the Deepgram client setup.
+    stt_instance = None
+    # Hold strong refs to in-flight doubt tasks so the GC doesn't drop them.
+    pending_tasks: set[asyncio.Task[None]] = set()
+
+    # Hydrate the chapter context once for the lifetime of the session. If
+    # this fails, the room stays alive so the precompute playback continues,
+    # but doubts can't be resolved (and we publish a clear failure on each).
+    doubt_session: LectureDoubtSession | None = None
+    try:
+        chapter_context = await load_chapter_by_id(chapter_id)
+        if chapter_context is not None:
+            doubt_session = LectureDoubtSession(chapter_context=chapter_context)
+            logger.info(
+                "worker.lecture_session_ready",
+                chapter_id=chapter_id,
+                topics=len(chapter_context.topics),
+                diagrams=len(chapter_context.diagrams),
+            )
+        else:
+            logger.error(
+                "worker.chapter_context_missing",
+                chapter_id=chapter_id,
+            )
+    except Exception as exc:
+        logger.exception("worker.chapter_load_failed", chapter_id=chapter_id, error=str(exc))
+
+    # Phase 5: outbound TTS audio track for live doubt-resolution delivery.
+    # Constructed once; the AudioSource stays published for the session
+    # lifetime so consecutive doubts don't pay re-publish latency.
+    doubt_delivery = DoubtDelivery(tts=create_tts())
+    if doubt_session is not None:
+        try:
+            await doubt_delivery.start(ctx.room)
+        except Exception:
+            logger.exception("worker.doubt_delivery_start_failed")
+
+    # Tracks the most recent doubt so `start_over` can re-resolve with
+    # `different_angle=True` carrying the prior framing as context.
+    last_doubt_state: dict[str, str] = {"text": "", "summary": "", "topic_id": ""}
+
+    async def _resolve_and_deliver(
+        *,
+        doubt_text: str,
+        topic_id: str | None,
+        cursor: int | None,
+        different_angle: bool,
+        prior_resolution_summary: str,
+    ) -> ResolutionPlan | None:
+        """Run the pipeline + deliver the result. Returns the plan or None."""
+        if doubt_session is None:
+            await _publish_doubt(
+                ctx,
+                {"type": "doubt_resolution_failed", "reason": "chapter_context_unavailable"},
+            )
+            return None
+        t0 = time.monotonic()  # Phase 6: latency clock starts when we begin work.
+        plan = await doubt_session.resolve(
+            doubt_text=doubt_text,
+            current_topic_id=topic_id,
+            cursor=cursor,
+            different_angle=different_angle,
+            prior_resolution_summary=prior_resolution_summary,
+        )
+        if plan is None:
+            await _publish_doubt(
+                ctx, {"type": "doubt_resolution_failed", "reason": "planner_failed"}
+            )
+            return None
+
+        # Remember this doubt so `start_over` can re-resolve it.
+        last_doubt_state["text"] = doubt_text
+        last_doubt_state["summary"] = " | ".join(beat.narration_text[:80] for beat in plan.beats)
+        last_doubt_state["topic_id"] = topic_id or ""
+
+        await _publish_doubt(
+            ctx,
+            {
+                "type": "resolution_ready",
+                "beats": len(plan.beats),
+                "matched_diagram_ids": [
+                    b.target_diagram_id for b in plan.beats if b.target_diagram_id
+                ],
+            },
+        )
+
+        async def _publish(payload: dict[str, Any]) -> None:
+            await _publish_doubt(ctx, payload)
+
+        def _on_first_frame() -> None:
+            ms = int((time.monotonic() - t0) * 1000)
+            logger.info("phase6.time_to_first_voice_ms", ms=ms)
+
+        if doubt_delivery.is_started:
+            try:
+                await doubt_delivery.deliver_resolution(
+                    plan=plan,
+                    chapter_context=doubt_session.chapter_context,
+                    publish_data=_publish,
+                    on_first_frame=_on_first_frame,
+                )
+            except Exception:
+                logger.exception("worker.doubt_delivery_failed")
+
+        await _publish_doubt(
+            ctx,
+            {
+                "type": "satisfaction_prompt",
+                "options": _SATISFACTION_OPTIONS,
+            },
+        )
+        return plan
+
+    async def _capture_then_resolve(intent: dict[str, Any]) -> None:
+        """STT → publish doubt_captured → resolve & deliver."""
+        nonlocal stt_instance
+        if stt_instance is None:
+            stt_instance = create_stt()
+        captured = await capture_student_doubt(ctx, stt=stt_instance)
+        if captured is None:
+            await _publish_doubt(ctx, {"type": "doubt_capture_failed", "reason": "no_transcript"})
+            return
+        await _publish_doubt(
+            ctx,
+            {
+                "type": "doubt_captured",
+                "text": captured.text,
+                "duration_ms": captured.duration_ms,
+            },
+        )
+        await _resolve_and_deliver(
+            doubt_text=captured.text,
+            topic_id=intent.get("topic_id"),
+            cursor=intent.get("cursor"),
+            different_angle=False,
+            prior_resolution_summary="",
+        )
+
+    async def _handle_doubt_intent(intent: dict[str, Any]) -> None:
+        logger.info(
+            "doubt.intent_received",
+            chapter_id=chapter_id,
+            cursor=intent.get("cursor"),
+            topic_id=intent.get("topic_id"),
+        )
+        await _capture_then_resolve(intent)
+
+    async def _handle_satisfaction_choice(payload: dict[str, Any]) -> None:
+        choice = payload.get("option", "")
+        logger.info("doubt.satisfaction_choice", option=choice)
+
+        if choice == "crystal_clear":
+            t0 = time.monotonic()  # Phase 6: time-to-resume from choice receipt.
+            if doubt_delivery.is_started:
+                await doubt_delivery.speak("Picking up where we left off.")
+            await _publish_doubt(ctx, {"type": "lecture_resume"})
+            logger.info(
+                "phase6.time_to_resume_ms",
+                ms=int((time.monotonic() - t0) * 1000),
+            )
+            return
+
+        if choice == "counter_doubt":
+            await _publish_doubt(ctx, {"type": "doubt_capture_ready"})
+            await _capture_then_resolve({"topic_id": last_doubt_state["topic_id"] or None})
+            return
+
+        if choice == "somewhat_cleared":
+            if doubt_delivery.is_started:
+                await doubt_delivery.speak("Tell me what specifically is still unclear.")
+            await _publish_doubt(ctx, {"type": "doubt_capture_ready"})
+            await _capture_then_resolve({"topic_id": last_doubt_state["topic_id"] or None})
+            return
+
+        if choice == "start_over":
+            if not last_doubt_state["text"]:
+                logger.warning("doubt.start_over_without_history")
+                await _publish_doubt(ctx, {"type": "lecture_resume"})
+                return
+            # Drop the just-rejected attempt from history so the matcher
+            # doesn't double-penalise its diagrams as "already shown".
+            if doubt_session is not None and doubt_session.prior_doubts_in_session:
+                doubt_session.prior_doubts_in_session.pop()
+            await _resolve_and_deliver(
+                doubt_text=last_doubt_state["text"],
+                topic_id=last_doubt_state["topic_id"] or None,
+                cursor=None,
+                different_angle=True,
+                prior_resolution_summary=last_doubt_state["summary"],
+            )
+            return
+
+        logger.warning("doubt.unknown_satisfaction_choice", option=choice)
+
+    @ctx.room.on("data_received")
+    def _on_data_received(packet: DataPacket) -> None:
+        if packet.topic != _DOUBT_TOPIC:
+            return
+        try:
+            payload = json.loads(packet.data)
+        except (json.JSONDecodeError, TypeError):
+            logger.warning("doubt.invalid_payload", raw=packet.data)
+            return
+        msg_type = payload.get("type")
+        if msg_type == "doubt_intent":
+            task = asyncio.create_task(_handle_doubt_intent(payload))
+        elif msg_type == "satisfaction_choice":
+            task = asyncio.create_task(_handle_satisfaction_choice(payload))
+        else:
+            return
+        pending_tasks.add(task)
+        task.add_done_callback(pending_tasks.discard)
+
+    # Idle in the room until shutdown; handlers run as background tasks
+    # above. The Event never resolves — the LiveKit framework cancels this
+    # coroutine when the room closes.
+    try:
+        await asyncio.Event().wait()
+    finally:
+        await doubt_delivery.stop(ctx.room)
+
+
+_SATISFACTION_OPTIONS: list[dict[str, str]] = [
+    {
+        "key": "crystal_clear",
+        "label": "Crystal clear",
+        "description": "Let's keep going.",
+    },
+    {
+        "key": "counter_doubt",
+        "label": "Have a counter-doubt",
+        "description": "I want to ask another question.",
+    },
+    {
+        "key": "somewhat_cleared",
+        "label": "Somewhat cleared",
+        "description": "Some parts are still fuzzy.",
+    },
+    {
+        "key": "start_over",
+        "label": "Start over",
+        "description": "Try a different angle.",
+    },
+]
+
+
+async def _publish_doubt(ctx: JobContext, payload: dict[str, Any]) -> None:
+    """Publish a doubt-signal payload back to the frontend over the data channel."""
+    await ctx.room.local_participant.publish_data(
+        json.dumps(payload).encode(),
+        reliable=True,
+        topic=_DOUBT_TOPIC,
+    )
+
+
 server = AgentServer(
     ws_url=settings.livekit_url,
     api_key=settings.livekit_api_key,
@@ -273,6 +815,22 @@ async def entrypoint(ctx: JobContext) -> None:
 
     # Parse room metadata for lesson configuration
     meta = _parse_room_metadata(ctx)
+
+    # Lecture playback mode: precomputed lecture is driven by the frontend
+    # client-side; the agent stays connected to the room but silent except
+    # when the Ask Feynman button fires a `doubt_intent` data-channel
+    # message. Phase 3 wires capture-only STT; Phase 4 adds classifier +
+    # planner; Phase 5 adds the live voice + visual resolution delivery.
+    lecture_chapter_id = meta.get("lecture_chapter_id")
+    if lecture_chapter_id:
+        logger.info(
+            "worker.lecture_playback_mode",
+            room_name=ctx.room.name,
+            chapter_id=lecture_chapter_id,
+        )
+        await _run_lecture_mode(ctx, chapter_id=lecture_chapter_id)
+        return
+
     topic = meta.get("topic", "")
     subject_str = meta.get("subject")
     subject = Subject(subject_str) if subject_str else None
@@ -347,13 +905,45 @@ async def entrypoint(ctx: JobContext) -> None:
         max_tool_steps=30,
     )
 
-    await session.start(agent=agent, room=ctx.room)
-    logger.info(
-        "worker.session_started",
-        room_name=ctx.room.name,
-        topic=topic,
-        subject=subject,
-    )
+    # Voice-keyword auto-tick: every committed assistant message inside a
+    # doubt branch is forwarded to the orchestrator, which substring-matches
+    # the transcript against each pending checklist item's `keywords`.
+    @session.on("conversation_item_added")
+    def _on_conversation_item(event) -> None:
+        item = getattr(event, "item", None)
+        if item is None:
+            return
+        role = getattr(item, "role", None)
+        if role != "assistant":
+            return
+        text = getattr(item, "text_content", None)
+        if callable(text):
+            text = text()
+        if not isinstance(text, str) or not text:
+            return
+        branch = teaching_ctx.state_machine.current
+        if branch is None or branch.state != TeachingState.HANDLING_DOUBT:
+            return
+        teaching_ctx.doubt_orchestrator.on_voice_emitted(text, branch.id)
+
+    try:
+        await session.start(agent=agent, room=ctx.room)
+        logger.info(
+            "worker.session_started",
+            room_name=ctx.room.name,
+            topic=topic,
+            subject=subject,
+        )
+    finally:
+        # Phase 5a-3: the drift-check loop is the only background task that
+        # runs forever — cancel it explicitly so a session shutdown doesn't
+        # leak the asyncio task. The warm/plan/rebuild tasks are one-shot
+        # and exit naturally.
+        drift_task = getattr(agent, "_drift_check_task", None)
+        if drift_task is not None and not drift_task.done():
+            drift_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await drift_task
 
 
 if __name__ == "__main__":

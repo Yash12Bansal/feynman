@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="inertia_title" x="450" y="42" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Inertia: Same Force, Different Acceleration</text>
+<text id="inertia_subtitle" x="450" y="68" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">The same push applied to a tennis ball and a bowling ball</text>
+<line id="inertia_divider" x1="450" y1="90" x2="450" y2="580" stroke="#ddd" stroke-width="2" stroke-dasharray="6,4"/>
+<text id="inertia_left_header" x="225" y="108" font-size="16" fill="#2196F3" text-anchor="middle" font-weight="bold">Small Mass (Tennis Ball)</text>
+<text id="inertia_right_header" x="675" y="108" font-size="16" fill="#E65100" text-anchor="middle" font-weight="bold">Large Mass (Bowling Ball)</text>
+<line id="inertia_ground_left" x1="50" y1="310" x2="420" y2="310" stroke="#aaa" stroke-width="2" stroke-dasharray=""/>
+<line id="inertia_ground_right" x1="480" y1="310" x2="850" y2="310" stroke="#aaa" stroke-width="2" stroke-dasharray=""/>
+<circle id="inertia_tennis_ball" cx="200" cy="285" r="25" fill="#BBDEFB" stroke="#2196F3" stroke-width="3" stroke-dasharray=""/>
+<text id="inertia_tennis_label" x="200" y="290" font-size="15" fill="#1565C0" text-anchor="middle" font-weight="bold">m</text>
+<circle id="inertia_bowling_ball" cx="680" cy="260" r="50" fill="#FFE0B2" stroke="#E65100" stroke-width="3" stroke-dasharray=""/>
+<text id="inertia_bowling_label" x="680" y="266" font-size="16" fill="#BF360C" text-anchor="middle" font-weight="bold">5m</text>
+<defs><marker id="arrowhead_inertia_force_left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="inertia_force_left" x1="110" y1="285" x2="170" y2="285" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_inertia_force_left)"/>
+<defs><marker id="arrowhead_inertia_force_right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="inertia_force_right" x1="570" y1="260" x2="625" y2="260" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_inertia_force_right)"/>
+<text id="inertia_force_label_left" x="130" y="272" font-size="15" fill="#D32F2F" font-style="italic" text-anchor="middle">F</text>
+<text id="inertia_force_label_right" x="590" y="247" font-size="15" fill="#D32F2F" font-style="italic" text-anchor="middle">F</text>
+<defs><marker id="arrowhead_inertia_accel_left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2196F3"/></marker></defs><line id="inertia_accel_left" x1="230" y1="285" x2="380" y2="285" stroke="#2196F3" stroke-width="3" marker-end="url(#arrowhead_inertia_accel_left)"/>
+<defs><marker id="arrowhead_inertia_accel_right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#E65100"/></marker></defs><line id="inertia_accel_right" x1="735" y1="260" x2="770" y2="260" stroke="#E65100" stroke-width="3" marker-end="url(#arrowhead_inertia_accel_right)"/>
+<text id="inertia_accel_label_left" x="290" y="268" font-size="15" fill="#1565C0" font-style="italic" text-anchor="middle">a = \frac{F}{m}</text>
+<text id="inertia_accel_label_right" x="790" y="247" font-size="15" fill="#BF360C" font-style="italic" text-anchor="middle">a = \frac{F}{5m}</text>
+<text id="inertia_accel_big_left" x="225" y="355" font-size="15" fill="#1565C0" text-anchor="middle" font-weight="normal">Large acceleration</text>
+<text id="inertia_accel_big_right" x="675" y="355" font-size="15" fill="#BF360C" text-anchor="middle" font-weight="normal">Small acceleration</text>
+<text id="inertia_inertia_left" x="225" y="378" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">Low inertia — easy to move</text>
+<text id="inertia_inertia_right" x="675" y="378" font-size="14" fill="#555" text-anchor="middle" font-weight="normal">High inertia — resists motion</text>
+<rect id="inertia_box_left" x="60" y="410" width="330" height="80" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
+<rect id="inertia_box_right" x="510" y="410" width="330" height="80" rx="10" fill="#FFF3E0" stroke="#E65100" stroke-width="2"/>
+<text id="inertia_eq_left" x="225" y="445" font-size="15" fill="#1565C0" font-style="italic" text-anchor="middle">m = 1\text{ kg},\quad a = F</text>
+<text id="inertia_eq_left2" x="225" y="475" font-size="13" fill="#1565C0" text-anchor="middle" font-weight="normal">Shoots away quickly</text>
+<text id="inertia_eq_right" x="675" y="445" font-size="15" fill="#BF360C" font-style="italic" text-anchor="middle">m = 5\text{ kg},\quad a = \tfrac{F}{5}</text>
+<text id="inertia_eq_right2" x="675" y="475" font-size="13" fill="#BF360C" text-anchor="middle" font-weight="normal">Barely budges</text>
+<rect id="inertia_key_box" x="175" y="520" width="550" height="100" rx="12" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="2"/>
+<text id="inertia_key_title" x="450" y="545" font-size="15" fill="#6A1B9A" text-anchor="middle" font-weight="bold">Key Principle</text>
+<text id="inertia_key_text1" x="450" y="568" font-size="14" fill="#4A148C" text-anchor="middle" font-weight="normal">Inertia is the resistance to change in motion.</text>
+<text id="inertia_key_text2" x="450" y="590" font-size="14" fill="#4A148C" text-anchor="middle" font-weight="normal">Mass is the measure of inertia.</text>
+<text id="inertia_key_eq" x="450" y="612" font-size="15" fill="#4A148C" font-style="italic" text-anchor="middle">F = ma \implies a = \frac{F}{m}</text>
+</svg>

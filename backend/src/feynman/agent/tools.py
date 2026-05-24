@@ -19,17 +19,23 @@ if TYPE_CHECKING:
 from feynman.agent.board_graph import BoardRelation
 from feynman.agent.placement_executor import resolve_placement
 from feynman.agent.scenario_planner import detect_scenario, plan_scenario
+from feynman.agent.states import TeachingState
+from feynman.agent.tool_constraints import state_constrained
+from feynman.config import settings
 from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
+    AnnotationTarget,
     AxisConfig,
     BoardIntent,
     BoardZone,
+    BracketInstruction,
     ClearInstruction,
     DataSeries,
     DiagramEdge,
     DiagramNode,
     DiagramType,
+    DrawCalloutInstruction,
     DrawDesignDiagramInstruction,
     DrawDiagramInstruction,
     DrawSceneInstruction,
@@ -38,11 +44,13 @@ from feynman.visuals.schemas import (
     FunctionDef,
     GraphType,
     HighlightInstruction,
+    HighlightPulseInstruction,
     HighlightStyle,
     HighlightWalkInstruction,
     HighlightWalkStep,
     NewPageInstruction,
     Panel,
+    PinLabelInstruction,
     PlacementIntent,
     SceneTemplateId,
     SceneTemplateRef,
@@ -50,7 +58,6 @@ from feynman.visuals.schemas import (
     SemanticSceneElement,
     ShowEquationInstruction,
     ShowGraphInstruction,
-    ShowTextInstruction,
     SizeHint,
     SlidePendingInstruction,
     StepEquationInstruction,
@@ -94,6 +101,11 @@ INSTRUCTION_TYPE_TO_PANEL: dict[str, Panel] = {
     "draw_design_diagram": Panel.SLIDE,
     "draw_scene": Panel.SLIDE,
     "slide_pending": Panel.SLIDE,
+    # Slide annotation overlays (diagram awareness)
+    "pin_label": Panel.SLIDE,
+    "draw_callout": Panel.SLIDE,
+    "bracket": Panel.SLIDE,
+    "highlight_pulse": Panel.SLIDE,
     # Reference (targets an existing element or is a meta-operation)
     "highlight": Panel.REFERENCE,
     "highlight_walk": Panel.REFERENCE,
@@ -192,6 +204,185 @@ def _build_placement(near: str, near_side: str, size_hint: str) -> PlacementInte
     )
 
 
+def _schedule_annotation_verification(
+    ctx: RunContext,
+    *,
+    tool_name: str,
+    original_claim: str,
+    target_id: str,
+    spoken_context: str = "",
+) -> None:
+    """Phase 5a-1: fire-and-forget vision check that the annotation landed right.
+
+    No-op when no diagram is on the slide, no verifier is configured, or the
+    same ``(tool, target, concept)`` triple has already been verified. The
+    background task enqueues a :class:`PerceptionFeedback` onto
+    :attr:`TeachingContext.perception_feedback_queue` when the vision model
+    flags a low score with a usable suggestion, subject to a per-concept
+    budget of 2.
+    """
+    tc: TeachingContext = ctx.userdata
+    if tc.board_verifier is None:
+        return
+    if not tc.current_diagram_dictionary:
+        return
+    concept_index = tc.current_concept_index
+    dedup_key = (tool_name, target_id, concept_index)
+    if dedup_key in tc.annotation_verified:
+        return
+    tc.annotation_verified.add(dedup_key)
+
+    def _on_feedback(feedback: Any, result: Any) -> None:
+        # Stale-feedback guard: agent moved to a new concept before vision
+        # finished. The result is logged inside the verifier; we just drop
+        # the queue enqueue.
+        if tc.current_concept_index != concept_index:
+            return
+        used = tc.perception_feedback_budget_used.get(concept_index, 0)
+        if used >= 2:
+            tc.audit.record(
+                "annotation_verification",
+                "budget_exceeded",
+                f"concept={concept_index}, tool={tool_name}, target={target_id}",
+            )
+            return
+        tc.perception_feedback_queue.append(feedback)
+        tc.perception_feedback_budget_used[concept_index] = used + 1
+
+    asyncio.create_task(  # noqa: RUF006
+        tc.board_verifier.request_annotation_verification(
+            tool_name=tool_name,
+            original_claim=original_claim,
+            target_id=target_id,
+            spoken_context=spoken_context,
+            dictionary=tc.current_diagram_dictionary,
+            concept_index=concept_index,
+            on_feedback=_on_feedback,
+        ),
+        name="annotation_verification",
+    )
+
+
+def _make_perception_feedback_callback(
+    tc: TeachingContext,
+    concept_index: int,
+    audit_category: str,
+    audit_detail: str,
+) -> Any:
+    """Build the on_feedback closure used by the diagram verification helpers.
+
+    Stale-feedback guard + 2-per-concept budget cap. Shared between intent and
+    layout verifications so a single low-intent + low-layout combo on one
+    diagram doesn't blow the budget — they enqueue, count, and stop together.
+    """
+
+    def _on_feedback(feedback: Any, result: Any) -> None:
+        if tc.current_concept_index != concept_index:
+            return
+        used = tc.perception_feedback_budget_used.get(concept_index, 0)
+        if used >= 2:
+            tc.audit.record(
+                audit_category,
+                "budget_exceeded",
+                audit_detail,
+            )
+            return
+        tc.perception_feedback_queue.append(feedback)
+        tc.perception_feedback_budget_used[concept_index] = used + 1
+
+    return _on_feedback
+
+
+def _schedule_diagram_verification(
+    ctx: RunContext,
+    *,
+    tool_name: str,
+    element_id: str,
+    claim_text: str,
+    role_list: list[str],
+    do_intent: bool = True,
+) -> None:
+    """Phase 5a-2: fire-and-forget vision check after a diagram event.
+
+    For ``draw_design_diagram`` / ``modify_design_diagram`` (``do_intent=True``)
+    schedules BOTH a diagram-intent verification and a layout verification
+    against the same screenshot capture cycle. For ``draw_scene``
+    (``do_intent=False``) schedules layout only — scenes are assembled from
+    a component library and the layout question is the relevant one.
+
+    Each emission gets its own ``version`` (init draw is 0, each subsequent
+    modify increments) so verification re-fires per modification. A per-
+    ``(element_id, version, concept_index)`` dedup prevents accidental
+    double-schedules; the 2-per-concept feedback budget is shared with
+    annotations.
+    """
+    from feynman.agent.teaching_context import DiagramClaim
+
+    tc: TeachingContext = ctx.userdata
+    if tc.board_verifier is None:
+        return
+
+    concept_index = tc.current_concept_index
+    # Version bookkeeping — initial draw is 0, each modify increments.
+    version = tc.diagram_version.get(element_id, -1) + 1
+    tc.diagram_version[element_id] = version
+    tc.last_diagram_claims[element_id] = DiagramClaim(
+        element_id=element_id,
+        claim_text=claim_text,
+        tool_name=tool_name,
+        version=version,
+    )
+
+    dedup_key = (element_id, version, concept_index)
+
+    on_feedback = _make_perception_feedback_callback(
+        tc,
+        concept_index,
+        audit_category="diagram_verification",
+        audit_detail=(
+            f"diagram={element_id}, version={version}, tool={tool_name}, concept={concept_index}"
+        ),
+    )
+
+    if do_intent and dedup_key not in tc.diagram_intent_verified:
+        tc.diagram_intent_verified.add(dedup_key)
+        asyncio.create_task(  # noqa: RUF006
+            tc.board_verifier.request_diagram_intent_verification(
+                tool_name=tool_name,
+                original_claim=claim_text,
+                target_diagram_id=element_id,
+                diagram_version=version,
+                role_list=role_list,
+                concept_index=concept_index,
+                on_feedback=on_feedback,
+            ),
+            name="diagram_intent_verification",
+        )
+
+    if dedup_key not in tc.diagram_layout_verified:
+        tc.diagram_layout_verified.add(dedup_key)
+        board_ctx = tc.board_manager.active_board.state.summary()
+        asyncio.create_task(  # noqa: RUF006
+            tc.board_verifier.request_verification(
+                element_id=element_id,
+                concept_index=concept_index,
+                board_context=board_ctx,
+                on_feedback=on_feedback,
+                original_claim=claim_text,
+            ),
+            name="diagram_layout_verification",
+        )
+
+    logger.info(
+        "diagram_verification.scheduled",
+        tool=tool_name,
+        diagram=element_id,
+        version=version,
+        do_intent=do_intent,
+        concept=concept_index,
+    )
+
+
 async def _publish_visual(
     ctx: RunContext,
     instruction: _BaseInstruction,
@@ -271,6 +462,13 @@ async def _publish_visual(
         instruction,
         concept_title=concept.title if concept else "",
         concept_index=tc.current_concept_index if tc.lesson_plan else None,
+    )
+
+    # Auto-tick doubt-branch checklist items whose `auto_satisfied_by` lists
+    # this tool. No-op outside doubt branches or when the branch isn't tracked.
+    tc.doubt_orchestrator.on_tool_invoked(
+        instruction.type,
+        tc.state_machine.current.id,
     )
 
 
@@ -791,6 +989,9 @@ Leave empty to clear the entire board.
     await _publish_visual(ctx, instruction, wait_for_speech=False)
     if target_id:
         return f"Removed element: {target_id}"
+    # Full clear → no diagram is on the slide anymore.
+    tc: TeachingContext = ctx.userdata
+    tc.current_diagram_dictionary = {}
     return "Board cleared"
 
 
@@ -813,6 +1014,328 @@ All semantically connected elements will also be cleared.
         instruction = ClearInstruction(target_id=eid, sync_mode=SyncMode.IMMEDIATE)
         await _publish_visual(ctx, instruction, wait_for_speech=False)
     return f"Cleared cluster ({len(cluster)} elements): {', '.join(sorted(cluster))}"
+
+
+# ──────────────────────────────────────────────
+# Slide annotation tools (diagram awareness)
+#
+# Write *around* the diagram on the slide — pinned labels, callouts, brackets,
+# pulse highlights. Use these the way a real teacher uses a marker on the
+# board: mark the part being talked about. Each tool resolves
+# ``element_or_role`` against the active ``DiagramSpec.dictionary`` so the LLM
+# can refer to elements by role (``"hypotenuse"``) instead of opaque IDs.
+# ──────────────────────────────────────────────
+
+
+def _resolve_diagram_target(ctx: RunContext, element_or_role: str) -> str | None:
+    """Resolve ``element_or_role`` against the active diagram's dictionary.
+
+    Returns the resolved ``element_id`` or ``None`` when nothing matched.
+    Callers should treat ``None`` as a soft miss — Phase 1 of the diagram-
+    awareness re-architecture moved annotation positioning to the live DOM,
+    so the frontend can still resolve role/color/near_text targets that the
+    backend dictionary doesn't know about.
+    """
+    from feynman.agent.diagram_dictionary import DictionaryResolver
+
+    tc: TeachingContext = ctx.userdata
+    return DictionaryResolver(tc).resolve(element_or_role)
+
+
+def _no_diagram_error(ctx: RunContext) -> str | None:
+    """Return an error string iff there's no diagram on the slide at all.
+
+    Annotations only make sense over a rendered diagram. If no diagram has
+    been drawn, the LLM should call ``draw_design_diagram`` first.
+    """
+    tc: TeachingContext = ctx.userdata
+    directory = tc.current_diagram_dictionary or {}
+    if directory:
+        return None
+    return "No diagram on the slide yet — draw one with draw_design_diagram first."
+
+
+def _build_annotation_target(
+    ctx: RunContext, element_or_role: str
+) -> tuple[str, AnnotationTarget, bool]:
+    """Resolve ``element_or_role`` into ``(target_element_id, target, resolved)``.
+
+    - When the dictionary resolves the input → ``kind="id"`` with the
+      resolved element_id.
+    - When it doesn't → ``kind="role"`` with the raw value. The frontend
+      tries to match it against the live DOM (role lookup → DOM query) and
+      fails silently if nothing matches. This is the Phase 1 softening of
+      ``f134180``'s "fail loud" patch: the dictionary is advisory, not
+      mandatory.
+
+    The third element of the tuple is True iff the dictionary resolved the
+    handle, so callers can decide whether to log a warning.
+    """
+    resolved = _resolve_diagram_target(ctx, element_or_role)
+    if resolved is not None:
+        return resolved, AnnotationTarget(kind="id", value=resolved), True
+    return element_or_role, AnnotationTarget(kind="role", value=element_or_role), False
+
+
+def _available_handles(ctx: RunContext) -> str:
+    """Human-readable list of available roles/ids for warning log context."""
+    tc: TeachingContext = ctx.userdata
+    directory = tc.current_diagram_dictionary or {}
+    ids = list(directory.keys())
+    roles: list[str] = []
+    for meta in directory.values():
+        role = getattr(meta, "role", None)
+        if role is None and isinstance(meta, dict):
+            role = meta.get("role")
+        if isinstance(role, str) and role:
+            roles.append(role)
+    seen: set[str] = set()
+    roles_unique = [r for r in roles if not (r in seen or seen.add(r))]
+    parts = []
+    if roles_unique:
+        parts.append(f"roles={roles_unique}")
+    if ids:
+        parts.append(f"ids={ids}")
+    return " ".join(parts) if parts else "<empty>"
+
+
+@function_tool()
+async def pin_label_near(
+    ctx: RunContext,
+    element_or_role: str,
+    text: str,
+    position: str = "above",
+) -> str:
+    """Place a small text label near a diagram element with a thin connector line.
+
+    Use this for marginalia and quick identifications — a "← hypotenuse" tag
+    next to a side, or "8 m" next to a measured length. The label fades in
+    over ~300ms and stays until the diagram is replaced.
+
+    Timing: fires at the next sentence boundary in your speech (Phase 2 sync).
+    Call it inside the sentence whose end should reveal the label — typically
+    right before you say the word the label corresponds to.
+
+    Args:
+        element_or_role: Either an exact element_id from the diagram \
+(e.g. "side_AB") or a semantic role from the diagram's dictionary \
+(e.g. "hypotenuse"). Roles are preferred — they survive diagram regeneration.
+        text: Short label text. Keep it under ~30 chars; max 120.
+        position: Where to place the label relative to the element. \
+Options: "above" (default), "below", "left", "right".
+    """
+    no_diagram = _no_diagram_error(ctx)
+    if no_diagram is not None:
+        return no_diagram
+    target_id, target, resolved = _build_annotation_target(ctx, element_or_role)
+    if not resolved:
+        logger.warning(
+            "annotation.dict_miss",
+            tool="pin_label_near",
+            handle=element_or_role,
+            available=_available_handles(ctx),
+        )
+    pos: Literal["above", "below", "left", "right"] = (
+        position if position in ("above", "below", "left", "right") else "above"  # type: ignore[assignment]
+    )
+    instruction = PinLabelInstruction(
+        target_element_id=target_id,
+        target=target,
+        text=text,
+        position=pos,
+        # Phase 2: defer to next sentence boundary so the label lands as the
+        # agent finishes the relevant clause, not ~800ms before TTS catches up.
+        sync_mode=SyncMode.AFTER_NEXT_SENTENCE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    tc: TeachingContext = ctx.userdata
+    if instruction.element_id:
+        tc.active_annotations.append(instruction.element_id)
+    _schedule_annotation_verification(
+        ctx,
+        tool_name="pin_label_near",
+        original_claim=element_or_role,
+        target_id=target_id,
+        spoken_context=text,
+    )
+    return f'Pinned "{text}" {position} of {target_id}'
+
+
+@function_tool()
+async def draw_callout(
+    ctx: RunContext,
+    from_element: str,
+    text: str,
+    direction: str = "up-right",
+) -> str:
+    """Draw a speech-bubble callout from a diagram element.
+
+    Use sparingly for emphasis or short pedagogical notes — "← key insight!" or
+    "this is what we're solving for". The bubble's tail draws first (~200ms),
+    then the bubble inflates (~300ms), then the text fades in.
+
+    Timing: fires at the next sentence boundary in your speech (Phase 2 sync).
+    Call it inside the sentence whose end should reveal the callout.
+
+    Args:
+        from_element: Element ID or semantic role of the element the callout \
+points at. Roles are preferred.
+        text: Callout content. Keep it under ~80 chars; max 200.
+        direction: Which way the callout extends from the element. \
+Options: "up-right" (default), "up-left", "down-right", "down-left", "up", "down".
+    """
+    no_diagram = _no_diagram_error(ctx)
+    if no_diagram is not None:
+        return no_diagram
+    target_id, target, resolved = _build_annotation_target(ctx, from_element)
+    if not resolved:
+        logger.warning(
+            "annotation.dict_miss",
+            tool="draw_callout",
+            handle=from_element,
+            available=_available_handles(ctx),
+        )
+    valid_dirs = {"up", "down", "up-left", "up-right", "down-left", "down-right"}
+    direction_value: Literal["up", "down", "up-left", "up-right", "down-left", "down-right"] = (
+        direction if direction in valid_dirs else "up-right"
+    )  # type: ignore[assignment]
+    instruction = DrawCalloutInstruction(
+        target_element_id=target_id,
+        target=target,
+        text=text,
+        direction=direction_value,
+        # Phase 2: defer to next sentence boundary; see PinLabel comment above.
+        sync_mode=SyncMode.AFTER_NEXT_SENTENCE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    tc: TeachingContext = ctx.userdata
+    if instruction.element_id:
+        tc.active_annotations.append(instruction.element_id)
+    _schedule_annotation_verification(
+        ctx,
+        tool_name="draw_callout",
+        original_claim=from_element,
+        target_id=target_id,
+        spoken_context=text,
+    )
+    return f"Callout '{text[:40]}' on {target_id}"
+
+
+@function_tool()
+async def bracket(
+    ctx: RunContext,
+    element_a: str,
+    element_b: str,
+    label: str,
+    side: str = "above",
+) -> str:
+    """Draw a curly bracket spanning two diagram elements with a centered label.
+
+    Use this to show a relationship between two parts — "right triangle"
+    spanning hypotenuse and adjacent, or "this is what we're measuring" across
+    two sides. The bracket draws (~400ms), then the label fades in.
+
+    Timing: fires at the next sentence boundary in your speech (Phase 2 sync).
+    Call it inside the sentence whose end should reveal the bracket.
+
+    Args:
+        element_a: Element ID or role of the first element.
+        element_b: Element ID or role of the second element.
+        label: Text centered on the bracket. Max 80 chars.
+        side: Which side of the elements the bracket goes on. \
+Options: "above" (default), "below", "left", "right".
+    """
+    no_diagram = _no_diagram_error(ctx)
+    if no_diagram is not None:
+        return no_diagram
+    a_id, target_a, a_resolved = _build_annotation_target(ctx, element_a)
+    b_id, target_b, b_resolved = _build_annotation_target(ctx, element_b)
+    if not (a_resolved and b_resolved):
+        logger.warning(
+            "annotation.dict_miss",
+            tool="bracket",
+            handles=(element_a, element_b),
+            resolved=(a_resolved, b_resolved),
+            available=_available_handles(ctx),
+        )
+    side_value: Literal["above", "below", "left", "right"] = (
+        side if side in ("above", "below", "left", "right") else "above"  # type: ignore[assignment]
+    )
+    instruction = BracketInstruction(
+        element_a_id=a_id,
+        element_b_id=b_id,
+        target_a=target_a,
+        target_b=target_b,
+        label=label,
+        side=side_value,
+        # Phase 2: defer to next sentence boundary; see PinLabel comment above.
+        sync_mode=SyncMode.AFTER_NEXT_SENTENCE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    tc: TeachingContext = ctx.userdata
+    if instruction.element_id:
+        tc.active_annotations.append(instruction.element_id)
+    _schedule_annotation_verification(
+        ctx,
+        tool_name="bracket",
+        original_claim=f"{element_a},{element_b}",
+        target_id=f"{a_id},{b_id}",
+        spoken_context=label,
+    )
+    return f"Bracketed {a_id}↔{b_id} ({label})"
+
+
+@function_tool()
+async def highlight_pulse(
+    ctx: RunContext,
+    element_or_role: str,
+    duration_ms: int = 1200,
+    color_token: str = "--sb-neon",
+) -> str:
+    """Pulse a single diagram element with one short glow cycle.
+
+    Simpler than ``highlight_walk`` when you only need to spotlight one element
+    while saying its name. Timing: fires at the next sentence boundary in your
+    speech (Phase 2 sync) — call it INSIDE the sentence whose end should
+    reveal the pulse, like a teacher tapping the board as they finish naming
+    the part.
+
+    Args:
+        element_or_role: Element ID or semantic role of the element to pulse. \
+Roles are preferred.
+        duration_ms: Total pulse duration in ms. Default 1200; clamped 400-3000.
+        color_token: CSS variable for the glow color. Default "--sb-neon".
+    """
+    no_diagram = _no_diagram_error(ctx)
+    if no_diagram is not None:
+        return no_diagram
+    target_id, target, resolved = _build_annotation_target(ctx, element_or_role)
+    if not resolved:
+        logger.warning(
+            "annotation.dict_miss",
+            tool="highlight_pulse",
+            handle=element_or_role,
+            available=_available_handles(ctx),
+        )
+    instruction = HighlightPulseInstruction(
+        target_element_id=target_id,
+        target=target,
+        duration_ms=duration_ms,
+        color_token=color_token,
+        # Phase 2: defer to next sentence boundary; see PinLabel comment above.
+        sync_mode=SyncMode.AFTER_NEXT_SENTENCE,
+    )
+    await _publish_visual(ctx, instruction, wait_for_speech=False)
+    tc: TeachingContext = ctx.userdata
+    if target_id not in tc.active_highlights:
+        tc.active_highlights.append(target_id)
+    _schedule_annotation_verification(
+        ctx,
+        tool_name="highlight_pulse",
+        original_claim=element_or_role,
+        target_id=target_id,
+    )
+    return f"Pulsed {target_id} ({duration_ms}ms)"
 
 
 # ──────────────────────────────────────────────
@@ -1040,6 +1563,7 @@ async def draw_design_diagram(
     near: str = "",
     near_side: str = "",
     size_hint: str = "",
+    mode: str = "auto",
 ) -> str:
     """Draw a detailed, precise SVG diagram using the AI design agent.
 
@@ -1067,8 +1591,19 @@ The system computes exact position. Prefer this over zone.
 "below", "above", "left_of".
         size_hint: Expected size: "small", "medium" (default), "large". \
 Helps the system check fit before placing.
+        mode: Diagram generation path. **"auto" (default and recommended for almost every call)** — \
+the backend picks "direct" or "python" from the prompt's geometric signals; you don't need to think \
+about it. **"direct"** explicitly emits JSON — slightly faster for stock diagrams when you already \
+know geometry doesn't matter; the LLM may estimate angles. **"python"** explicitly runs through \
+the canvas_dsl sandbox so geometry computes exactly — pick this when you know the diagram needs \
+precise parametric positions, perpendiculars, tangents, intersections, or specific angles, AND the \
+prompt's natural-language doesn't make that obvious to the auto-heuristic.
     """
-    from feynman.agent.design_bridge import generate_design_diagram
+    from feynman.agent.design_bridge import (
+        _dispatch_mode,
+        generate_design_diagram,
+        generate_via_python,
+    )
 
     tc: TeachingContext = ctx.userdata
 
@@ -1097,16 +1632,32 @@ Helps the system check fit before placing.
                 SlidePendingInstruction(title=caption_title),
                 wait_for_speech=False,
             )
-            spec = await generate_design_diagram(prompt, model="sonnet")
+            # Phase 3-4: `mode="auto"` runs the backend keyword heuristic.
+            # Explicit `mode="python"` / `mode="direct"` bypass the heuristic
+            # so the LLM can override when the prompt is ambiguous.
+            resolved_mode = _dispatch_mode(prompt) if mode == "auto" else mode
+            if resolved_mode == "python":
+                spec = await generate_via_python(prompt, model="sonnet")
+                logger.info(
+                    "draw_design_diagram.python_path",
+                    concept=tc.current_concept_index,
+                    prompt=prompt[:60],
+                    requested_mode=mode,
+                )
+            else:
+                spec = await generate_design_diagram(prompt, model="sonnet")
             logger.info(
                 "draw_design_diagram.cache_miss",
                 concept=tc.current_concept_index,
                 prompt=prompt[:60],
+                mode=mode,
+                resolved_mode=resolved_mode,
             )
             tc.audit.record(
                 "anticipation",
                 "cache_miss",
-                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}'",
+                f"concept={tc.current_concept_index}, prompt='{prompt[:60]}', mode='{mode}', "
+                f"resolved='{resolved_mode}'",
             )
     except Exception:
         logger.exception("draw_design_diagram.generation_failed", prompt=prompt[:100])
@@ -1132,6 +1683,15 @@ Helps the system check fit before placing.
     if instruction.element_id:
         tc.board_manager.store_design_spec(instruction.element_id, spec)
 
+    # Diagram awareness: expose the spec's dictionary so the teaching agent
+    # (and DictionaryResolver) can refer to elements by role. Rebuild the
+    # system prompt now so the "## Diagram on Slide" section lists the new
+    # roles for the LLM's NEXT turn — without this, the LLM keeps the stale
+    # (empty) dictionary and the annotation tools resolve nothing.
+    tc.current_diagram_dictionary = dict(spec.get("dictionary") or {})
+    if tc.current_diagram_dictionary:
+        await _update_agent_prompt(ctx)
+
     # Declare semantic relationship.
     if relates_to and instruction.element_id:
         _declare_relation(
@@ -1155,28 +1715,42 @@ Helps the system check fit before placing.
     sub_ids = [el.get("id") for el in spec.get("elements", []) if el.get("id")]
     eid = instruction.element_id  # e.g. "design-1"
 
-    # Background visual verification (at most once per concept).
-    if tc.board_verifier and not tc._verified_this_concept:
-        board_ctx = tc.board_manager.active_board.state.summary()
-        _verify_task = asyncio.create_task(  # noqa: RUF006
-            tc.board_verifier.request_verification(
-                element_id=eid,
-                concept_index=tc.current_concept_index,
-                board_context=board_ctx,
-            )
-        )
-        tc._verified_this_concept = True
-        logger.info(
-            "visual_verification.fired",
-            element_id=eid,
-            concept=tc.current_concept_index,
-        )
+    # Phase 5a-3: retain the FIRST draw prompt for this element_id so the
+    # periodic drift check has a stable cumulative-claim anchor regardless of
+    # how many modify_design_diagram calls follow. The if-guard means a
+    # rare element_id collision never overwrites the original.
+    if eid not in tc.original_diagram_claims:
+        tc.original_diagram_claims[eid] = prompt
+
+    # Phase 5a-2: schedule intent + layout verification against the rendered
+    # diagram. Replaces the single-shot _verified_this_concept guard; each
+    # subsequent modify_design_diagram gets its own version + verification.
+    role_list = [
+        getattr(meta, "role", None) or (meta.get("role") if isinstance(meta, dict) else None) or ""
+        for meta in (spec.get("dictionary") or {}).values()
+    ]
+    _schedule_diagram_verification(
+        ctx,
+        tool_name="draw_design_diagram",
+        element_id=eid,
+        claim_text=prompt,
+        role_list=[r for r in role_list if r],
+    )
 
     result = f'Drew design diagram (element_id: "{eid}"): {title or prompt[:80]}'
     if sub_ids:
         result += (
             f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
             f'\nUse highlight_walk(target_id="{eid}", ...) with these IDs as sub_element_id.'
+        )
+    if tc.current_diagram_dictionary:
+        # Echo the roles so the LLM can reference them by name in the SAME
+        # turn (annotation tools called immediately after, before the prompt
+        # rebuild reaches the next turn).
+        roles = sorted(tc.current_diagram_dictionary.keys())
+        result += (
+            f"\nDiagram roles available for pin_label_near / draw_callout / "
+            f"bracket / highlight_pulse: {', '.join(roles)}"
         )
     return result
 
@@ -1263,6 +1837,13 @@ to keep it in place.
     # Update the stored spec with the modified version.
     tc.board_manager.store_design_spec(target_id, modified_spec)
 
+    # Diagram awareness: refresh dictionary to match the new spec + rebuild
+    # the system prompt so the "## Diagram on Slide" section reflects any
+    # added/removed roles for subsequent annotation tool calls.
+    tc.current_diagram_dictionary = dict(modified_spec.get("dictionary") or {})
+    if tc.current_diagram_dictionary:
+        await _update_agent_prompt(ctx)
+
     logger.info(
         "modify_design_diagram.complete",
         target_id=target_id,
@@ -1291,11 +1872,32 @@ to keep it in place.
     # Collect sub-element IDs.
     sub_ids = [el.get("id") for el in modified_spec.get("elements", []) if el.get("id")]
 
+    # Phase 5a-2: schedule intent + layout verification of the modification.
+    # The modification text is the agent's claim; vision checks whether it
+    # actually landed on the board.
+    role_list = [
+        getattr(meta, "role", None) or (meta.get("role") if isinstance(meta, dict) else None) or ""
+        for meta in (modified_spec.get("dictionary") or {}).values()
+    ]
+    _schedule_diagram_verification(
+        ctx,
+        tool_name="modify_design_diagram",
+        element_id=target_id,
+        claim_text=modification,
+        role_list=[r for r in role_list if r],
+    )
+
     result = f'Modified design diagram (element_id: "{target_id}"): {modification[:80]}'
     if sub_ids:
         result += (
             f"\nHighlightable sub-element IDs: {', '.join(sub_ids)}"
             f'\nUse highlight_walk(target_id="{target_id}", ...) with these IDs.'
+        )
+    if tc.current_diagram_dictionary:
+        roles = sorted(tc.current_diagram_dictionary.keys())
+        result += (
+            f"\nDiagram roles available for pin_label_near / draw_callout / "
+            f"bracket / highlight_pulse: {', '.join(roles)}"
         )
     return result
 
@@ -1367,8 +1969,6 @@ The system computes exact position. Prefer this over zone.
         size_hint: Expected size: "small", "medium" (default), "large". \
 Helps the system check fit before placing.
     """
-    tc: TeachingContext = ctx.userdata
-
     # Parse semantic elements — graceful on malformed JSON.
     elements: list[dict] = []
     if elements_json:
@@ -1406,22 +2006,17 @@ Helps the system check fit before placing.
         duration_s = (800 + len(validated_elements) * 150) / 1000.0
         await asyncio.sleep(duration_s)
 
-        # Background visual verification (at most once per concept).
-        if tc.board_verifier and not tc._verified_this_concept:
-            eid = instruction.element_id
-            board_ctx = tc.board_manager.active_board.state.summary()
-            _verify_task = asyncio.create_task(  # noqa: RUF006
-                tc.board_verifier.request_verification(
-                    element_id=eid,
-                    concept_index=tc.current_concept_index,
-                    board_context=board_ctx,
-                )
-            )
-            tc._verified_this_concept = True
-            logger.info(
-                "visual_verification.fired",
-                element_id=eid,
-                concept=tc.current_concept_index,
+        # Phase 5a-2: layout-only verification (scenes are assembled from a
+        # deterministic component library, so intent matching is less useful
+        # than for design-agent diagrams).
+        if instruction.element_id:
+            _schedule_diagram_verification(
+                ctx,
+                tool_name="draw_scene",
+                element_id=instruction.element_id,
+                claim_text=title or description or scene_type,
+                role_list=[],
+                do_intent=False,
             )
 
         label = title or description or scene_type
@@ -1468,22 +2063,15 @@ Helps the system check fit before placing.
     duration_s = _SCENE_DURATION_MS.get(template_id, 1000) / 1000.0
     await asyncio.sleep(duration_s)
 
-    # Background visual verification (at most once per concept).
-    if tc.board_verifier and not tc._verified_this_concept:
-        eid = instruction.element_id
-        board_ctx = tc.board_manager.active_board.state.summary()
-        _verify_task = asyncio.create_task(  # noqa: RUF006
-            tc.board_verifier.request_verification(
-                element_id=eid,
-                concept_index=tc.current_concept_index,
-                board_context=board_ctx,
-            )
-        )
-        tc._verified_this_concept = True
-        logger.info(
-            "visual_verification.fired",
-            element_id=eid,
-            concept=tc.current_concept_index,
+    # Phase 5a-2: layout-only verification (see semantic path above).
+    if instruction.element_id:
+        _schedule_diagram_verification(
+            ctx,
+            tool_name="draw_scene",
+            element_id=instruction.element_id,
+            claim_text=title or description or template_id,
+            role_list=[],
+            do_intent=False,
         )
 
     label = title or description or template_id
@@ -1520,6 +2108,12 @@ async def _update_agent_prompt(ctx: RunContext) -> None:
 
 
 @function_tool()
+@state_constrained(
+    forbidden_states={TeachingState.HANDLING_DOUBT},
+    error_template=(
+        "Cannot advance the lesson while inside a doubt branch — call resolve_doubt first."
+    ),
+)
 async def advance_concept(ctx: RunContext) -> str:
     """Signal that you've finished teaching the current concept and are ready to move on.
 
@@ -1533,8 +2127,20 @@ async def advance_concept(ctx: RunContext) -> str:
 
     next_concept = tc.advance()
 
-    # Reset verification guard for the new concept.
-    tc._verified_this_concept = False
+    # Phase 5a-1: any unconsumed perception feedback was for the previous
+    # concept's diagram + annotations — drop it. New concept gets a fresh
+    # budget (the per-concept counter dict is keyed by concept_index).
+    tc.perception_feedback_queue.clear()
+    # Phase 5a-2: the diagram-intent / layout-verification dedup sets are also
+    # per-concept — clear so the new concept can re-verify any diagrams that
+    # carry over (the version counters persist; only the verified flags reset).
+    tc.diagram_intent_verified.clear()
+    tc.diagram_layout_verified.clear()
+    # Phase 5a-3: invalidate the drift state hash so the next periodic tick
+    # runs a fresh check against the new concept (rather than skipping based
+    # on the old concept's hash). The budget dict is concept_index-keyed and
+    # naturally falls away; no clear needed.
+    tc.last_drift_check_hash = None
 
     if next_concept is not None:
         # Create a new board for the next concept.
@@ -1575,7 +2181,7 @@ async def advance_concept(ctx: RunContext) -> str:
         # but if the teacher advanced fast or planning failed, handle it here.
         # Each plan receives the previous plan for narrative continuity.
         if tc.curriculum and tc.lesson_plan:
-            from feynman.agent.concept_planner import plan_concept
+            from feynman_teaching_kernel import plan_concept
 
             async def _ensure_plans() -> None:
                 for idx in (new_index, new_index + 1):
@@ -1587,6 +2193,7 @@ async def advance_concept(ctx: RunContext) -> str:
                             board_summary=tc.board_manager.summary(),
                             audit=tc.audit,
                             prev_plan=tc.concept_plans.get(idx - 1),
+                            api_key=settings.anthropic_api_key,
                         )
                         if result:
                             tc.concept_plans[idx] = result
@@ -1634,6 +2241,12 @@ async def advance_concept(ctx: RunContext) -> str:
 
 
 @function_tool()
+@state_constrained(
+    forbidden_states={TeachingState.HANDLING_DOUBT},
+    error_template=(
+        "Cannot start a nested doubt — resolve the current one first (no nested doubts in v0)."
+    ),
+)
 async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     """A student has a doubt — branch off to address it without losing your place.
 
@@ -1642,11 +2255,41 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     """
     tc: TeachingContext = ctx.userdata
 
+    # Capture the parent branch id BEFORE the push — orchestrator's snapshot
+    # needs it, and `tc.state_machine.current` becomes the new doubt branch
+    # the moment `push_branch` returns.
+    parent_branch_id = tc.state_machine.current.id
+
     branch = await tc.state_machine.push_branch(concept=related_concept)
 
     # Push a new board for the doubt — current board goes on stack.
     new_board = tc.board_manager.push_board(f"Doubt: {related_concept}", branch.id)
     await _publish_switch_board(ctx, new_board.id, new_board.label, BoardIntent.NEW)
+
+    # Snapshot parent state and register the doubt branch with the orchestrator.
+    # Checklist starts empty here; the async `_plan_doubt` below populates it
+    # once the planning agent has produced a checklist.
+    #
+    # Callbacks fire from the watchdog: soft-nudge rebuilds the prompt so the
+    # new flag surfaces inside the checklist section; force-resolve performs
+    # the same pop/restore as `resolve_doubt` but bypasses the checklist gate.
+    async def _on_soft_nudge(_branch) -> None:
+        await _update_agent_prompt(ctx)
+
+    async def _on_force_resolve(branch_to_resolve) -> None:
+        await _force_resolve_doubt(ctx, branch_to_resolve)
+
+    await tc.doubt_orchestrator.on_push(
+        branch,
+        related_concept,
+        parent_branch_id=parent_branch_id,
+        on_soft_nudge=_on_soft_nudge,
+        force_resolve=_on_force_resolve,
+    )
+    # Doubt board starts visually blank — the parent's overlays were captured
+    # in the snapshot and will be replayed on resume.
+    tc.active_highlights.clear()
+    tc.active_annotations.clear()
 
     # Fire background visual generation for the doubt.
     parent = tc.current_concept
@@ -1659,9 +2302,10 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
         )
     )
 
-    # Fire background doubt planning.
+    # Fire background doubt planning. Once the plan lands, push its checklist
+    # into the orchestrator so resolution gating reflects the real plan.
     if tc.curriculum:
-        from feynman.agent.concept_planner import plan_doubt
+        from feynman_teaching_kernel import plan_doubt
 
         async def _plan_doubt() -> None:
             result = await plan_doubt(
@@ -1670,9 +2314,19 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
                 board_summary=board_summary,
                 curriculum=tc.curriculum,
                 audit=tc.audit,
+                api_key=settings.anthropic_api_key,
             )
             if result:
                 tc.doubt_plan = result
+                state = tc.doubt_orchestrator.get_state(branch.id)
+                if state is not None and result.resolution_checklist:
+                    state.checklist = list(result.resolution_checklist)
+                    branch.checklist = state.checklist
+                    logger.info(
+                        "doubt.checklist_loaded",
+                        branch_id=str(branch.id),
+                        items=len(state.checklist),
+                    )
                 await _update_agent_prompt(ctx)
 
         asyncio.create_task(_plan_doubt())  # noqa: RUF006
@@ -1692,17 +2346,18 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     )
 
 
-@function_tool()
-async def resolve_doubt(ctx: RunContext) -> str:
-    """The doubt has been addressed — return to the main lesson flow.
+async def _perform_doubt_resolve(ctx: RunContext, *, forced: bool) -> str | None:
+    """Pop the current doubt branch + run the orchestrator's auto-restore.
 
-    Call this after you've fully answered the student's question and
-    are ready to continue where you left off.
+    Shared between the LLM-driven `resolve_doubt` (forced=False, gated by
+    the checklist) and the watchdog-driven `_force_resolve_doubt`
+    (forced=True, bypasses the gate). Returns the user-facing summary
+    string, or None if no doubt branch is active.
     """
     tc: TeachingContext = ctx.userdata
 
     if tc.state_machine.depth <= 1:
-        return "Not in a doubt branch — already on the main lesson flow."
+        return None
 
     # Pop board stack before popping branch — return to parent board.
     tc.board_manager.pop_board()
@@ -1712,6 +2367,40 @@ async def resolve_doubt(ctx: RunContext) -> str:
     popped = await tc.state_machine.pop_branch()
     tc.anticipation.clear_doubt_cache()
     tc.doubt_plan = None
+    # Diagram awareness: parent board's diagram (if any) needs its own
+    # dictionary; the doubt-branch dictionary no longer applies.
+    tc.current_diagram_dictionary = {}
+
+    # Auto-restore parent state via the orchestrator: re-fire highlight pulses
+    # for every captured target and surface the verbatim (or forced fallback)
+    # return cue. No LLM call required — both side effects run through callbacks.
+    async def _replay_pulse(instr: _BaseInstruction) -> None:
+        await _publish_visual(ctx, instr, wait_for_speech=False)
+
+    async def _say_return_cue(text: str) -> None:
+        say_fn = getattr(ctx.session, "say", None)
+        if say_fn is not None:
+            try:
+                result = say_fn(text, allow_interruptions=False)
+                if asyncio.iscoroutine(result):
+                    await result
+                return
+            except TypeError:
+                # Older signature without `allow_interruptions`; retry plain.
+                result = say_fn(text)
+                if asyncio.iscoroutine(result):
+                    await result
+                return
+        # Fallback: instruct the LLM to emit it verbatim.
+        ctx.session.generate_reply(instructions=f'Say exactly this and nothing else: "{text}"')
+
+    await tc.doubt_orchestrator.on_pop(
+        popped,
+        publish_visual=_replay_pulse,
+        say=_say_return_cue,
+        forced=forced,
+    )
+
     await _update_agent_prompt(ctx)
 
     current = tc.current_concept
@@ -1722,6 +2411,7 @@ async def resolve_doubt(ctx: RunContext) -> str:
         session_id=str(tc.session_id),
         resolved_concept=popped.concept,
         depth=tc.state_machine.depth,
+        forced=forced,
     )
     logger.info(
         "session_audit.doubt_resolved",
@@ -1730,7 +2420,79 @@ async def resolve_doubt(ctx: RunContext) -> str:
     return f"Doubt about '{popped.concept}' resolved. {continue_msg}"
 
 
+async def _force_resolve_doubt(ctx: RunContext, branch) -> None:
+    """Watchdog-driven force-resolve. Skips the checklist gate, fires the
+    forced fallback voice cue, and runs the same pop/restore as `resolve_doubt`.
+
+    `branch` is the BranchContext the orchestrator captured at push time.
+    Defensive: if the doubt has already been resolved (e.g. LLM beat us to it
+    by a hair), `_perform_doubt_resolve` no-ops.
+    """
+    logger.warning(
+        "doubt.force_resolve_executing",
+        branch_id=str(branch.id),
+        concept=branch.concept,
+    )
+    await _perform_doubt_resolve(ctx, forced=True)
+
+
 @function_tool()
+async def resolve_doubt(ctx: RunContext) -> str:
+    """The doubt has been addressed — return to the main lesson flow.
+
+    Call this after you've fully answered the student's question and
+    are ready to continue where you left off.
+    """
+    from feynman.common.exceptions import ToolConstraintError
+
+    tc: TeachingContext = ctx.userdata
+
+    if tc.state_machine.depth <= 1:
+        return "Not in a doubt branch — already on the main lesson flow."
+
+    # Gate on the resolution checklist BEFORE we touch any state. The orchestrator
+    # returns a clear message listing pending items so the LLM can either address
+    # them or invoke mark_doubt_step_complete to override.
+    current_branch = tc.state_machine.current
+    allowed, reason = tc.doubt_orchestrator.is_resolution_allowed(current_branch.id)
+    if not allowed:
+        raise ToolConstraintError(reason)
+
+    result = await _perform_doubt_resolve(ctx, forced=False)
+    return result or "Not in a doubt branch — already on the main lesson flow."
+
+
+@function_tool()
+async def mark_doubt_step_complete(ctx: RunContext, step_index: int) -> str:
+    """Manually tick a resolution-checklist item that auto-tick missed.
+
+    Use this only when you've actually addressed a checklist item but no
+    auto-tick fired (e.g., the answer was purely verbal with no matching
+    tool call). Calling this on items the agent hasn't actually addressed
+    defeats the purpose of the gate — be honest with yourself.
+
+    Args:
+        step_index: 0-based index into the active doubt's resolution checklist.
+    """
+    from feynman.common.exceptions import ToolConstraintError
+
+    tc: TeachingContext = ctx.userdata
+    if tc.state_machine.depth <= 1:
+        raise ToolConstraintError("Not in a doubt branch — no checklist to tick.")
+    branch_id = tc.state_machine.current.id
+    tc.doubt_orchestrator.mark_step_complete(branch_id, step_index)
+    state = tc.doubt_orchestrator.get_state(branch_id)
+    item = state.checklist[step_index] if state else None
+    return f"Marked checklist item {step_index} done" + (f": {item.description}" if item else ".")
+
+
+@function_tool()
+@state_constrained(
+    forbidden_states={TeachingState.HANDLING_DOUBT},
+    error_template=(
+        "Cannot switch boards while inside a doubt branch — resolve the current doubt first."
+    ),
+)
 async def switch_board(ctx: RunContext, board_id: str, intent: str = "reference") -> str:
     """Switch to a different board to show previously drawn content.
 
@@ -1854,6 +2616,7 @@ async def set_lesson_topic(
     from feynman.agent.curriculum_loader import load_curriculum
     from feynman.agent.lesson_plan import lesson_plan_from_curriculum
     from feynman.common.types import Subject
+    from feynman.config import settings
 
     tc: TeachingContext = ctx.userdata
 
@@ -1872,6 +2635,17 @@ async def set_lesson_topic(
         f"topic='{topic}', subject={subject or 'auto'}, grade={grade_level or 'auto'}",
         source="spoken_request",
     )
+
+    # Free-form mode: skip Neo4j entirely, no plan, no pre-gens. The agent
+    # teaches conversationally using the topic name only.
+    if not settings.use_neo4j_curriculum:
+        logger.info("set_lesson_topic.free_form_mode", topic=topic)
+        await _update_agent_prompt(ctx)
+        return (
+            f"Activated free-form teaching for: {topic}. "
+            f"No curriculum graph loaded (USE_NEO4J_CURRICULUM=false) — "
+            f"teach interactively from your own knowledge."
+        )
 
     # Load curriculum from Neo4j — no fallbacks.
     # Raises CurriculumNotFoundError if topic not in Neo4j.
@@ -1927,7 +2701,7 @@ async def set_lesson_topic(
         "set_lesson_topic.ready",
         topic=plan.topic,
         num_concepts=plan.total_concepts,
-        source="graph" if graph else "runtime",
+        source="curriculum",
     )
 
     # Return summary for the agent to narrate.

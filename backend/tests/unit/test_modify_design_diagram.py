@@ -197,6 +197,9 @@ def _make_mock_ctx(board_manager: BoardManager | None = None) -> MagicMock:
     userdata.lesson_plan = None
     userdata.anticipation = MagicMock()
     userdata.anticipation.match = MagicMock(return_value=None)
+    # Phase 5a-2: short-circuit the diagram-verification scheduler — these
+    # tests don't exercise the perception loop.
+    userdata.board_verifier = None
     ctx.userdata = userdata
     return ctx
 
@@ -221,9 +224,7 @@ class TestModifyDesignDiagramTool:
         bm = ctx.userdata.board_manager
 
         # Pre-store a spec as if draw_design_diagram was called.
-        instr = DrawDesignDiagramInstruction(
-            title="FBD", spec=SAMPLE_SPEC, element_id="design-1"
-        )
+        instr = DrawDesignDiagramInstruction(title="FBD", spec=SAMPLE_SPEC, element_id="design-1")
         bm.record(instr)
         bm.store_design_spec("design-1", SAMPLE_SPEC)
 
@@ -249,9 +250,7 @@ class TestModifyDesignDiagramTool:
         ctx = _make_mock_ctx()
         bm = ctx.userdata.board_manager
 
-        instr = DrawDesignDiagramInstruction(
-            title="FBD", spec=SAMPLE_SPEC, element_id="design-1"
-        )
+        instr = DrawDesignDiagramInstruction(title="FBD", spec=SAMPLE_SPEC, element_id="design-1")
         bm.record(instr)
         bm.store_design_spec("design-1", SAMPLE_SPEC)
 
@@ -260,9 +259,7 @@ class TestModifyDesignDiagramTool:
             new_callable=AsyncMock,
             return_value=MODIFIED_SPEC,
         ):
-            await modify_design_diagram(
-                ctx, target_id="design-1", modification="Add force"
-            )
+            await modify_design_diagram(ctx, target_id="design-1", modification="Add force")
 
             # Check that publish_data was called with JSON containing the same element_id.
             publish_call = ctx.session.room_io.room.local_participant.publish_data
@@ -279,9 +276,7 @@ class TestModifyDesignDiagramTool:
         ctx = _make_mock_ctx()
         bm = ctx.userdata.board_manager
 
-        instr = DrawDesignDiagramInstruction(
-            title="FBD", spec=SAMPLE_SPEC, element_id="design-1"
-        )
+        instr = DrawDesignDiagramInstruction(title="FBD", spec=SAMPLE_SPEC, element_id="design-1")
         bm.record(instr)
         bm.store_design_spec("design-1", SAMPLE_SPEC)
 
@@ -290,9 +285,7 @@ class TestModifyDesignDiagramTool:
             new_callable=AsyncMock,
             return_value=MODIFIED_SPEC,
         ):
-            await modify_design_diagram(
-                ctx, target_id="design-1", modification="Add force"
-            )
+            await modify_design_diagram(ctx, target_id="design-1", modification="Add force")
 
             # The stored spec should now be the modified one.
             assert bm.get_design_spec("design-1") is MODIFIED_SPEC
@@ -305,9 +298,7 @@ class TestModifyDesignDiagramTool:
         bm = ctx.userdata.board_manager
         audit = ctx.userdata.audit
 
-        instr = DrawDesignDiagramInstruction(
-            title="FBD", spec=SAMPLE_SPEC, element_id="design-1"
-        )
+        instr = DrawDesignDiagramInstruction(title="FBD", spec=SAMPLE_SPEC, element_id="design-1")
         bm.record(instr)
         bm.store_design_spec("design-1", SAMPLE_SPEC)
 
@@ -316,9 +307,7 @@ class TestModifyDesignDiagramTool:
             new_callable=AsyncMock,
             return_value=MODIFIED_SPEC,
         ):
-            await modify_design_diagram(
-                ctx, target_id="design-1", modification="Add force"
-            )
+            await modify_design_diagram(ctx, target_id="design-1", modification="Add force")
 
             assert audit.count("modify_diagram", "modified") == 1
 
@@ -329,9 +318,7 @@ class TestModifyDesignDiagramTool:
         ctx = _make_mock_ctx()
         bm = ctx.userdata.board_manager
 
-        instr = DrawDesignDiagramInstruction(
-            title="FBD", spec=SAMPLE_SPEC, element_id="design-1"
-        )
+        instr = DrawDesignDiagramInstruction(title="FBD", spec=SAMPLE_SPEC, element_id="design-1")
         bm.record(instr)
         bm.store_design_spec("design-1", SAMPLE_SPEC)
 
@@ -355,9 +342,7 @@ class TestModifyDesignDiagramTool:
         ctx = _make_mock_ctx()
         bm = ctx.userdata.board_manager
 
-        instr = DrawDesignDiagramInstruction(
-            title="FBD", spec=SAMPLE_SPEC, element_id="design-1"
-        )
+        instr = DrawDesignDiagramInstruction(title="FBD", spec=SAMPLE_SPEC, element_id="design-1")
         bm.record(instr)
         bm.store_design_spec("design-1", SAMPLE_SPEC)
 
@@ -420,7 +405,6 @@ class TestModifyPreservesPosition:
         ctx = _make_mock_ctx()
         bm = ctx.userdata.board_manager
         ctx.userdata.board_verifier = None
-        ctx.userdata._verified_this_concept = False
 
         # Simulate draw_design_diagram having placed design-1 with bounds.
         original_spec = {"title": "Forces", "width": 400, "height": 300, "elements": [{"id": "e1"}]}
@@ -440,14 +424,21 @@ class TestModifyPreservesPosition:
         board_state.spatial_solver.update_occupied("design-1", Rect(200, 150, 400, 300))
 
         # Modify the diagram.
-        modified_spec = {"title": "Forces v2", "width": 500, "height": 400, "elements": [{"id": "e1"}, {"id": "e2"}]}
+        modified_spec = {
+            "title": "Forces v2",
+            "width": 500,
+            "height": 400,
+            "elements": [{"id": "e1"}, {"id": "e2"}],
+        }
         with patch(
             "feynman.agent.design_bridge.modify_design_diagram_spec",
             new_callable=AsyncMock,
             return_value=modified_spec,
         ):
             result = await modify_design_diagram(
-                ctx, target_id="design-1", modification="add friction vector",
+                ctx,
+                target_id="design-1",
+                modification="add friction vector",
             )
 
         assert "design-1" in result
@@ -455,6 +446,7 @@ class TestModifyPreservesPosition:
         published_calls = ctx.session.room_io.room.local_participant.publish_data.call_args_list
         assert len(published_calls) >= 1
         import json
+
         last_payload = json.loads(published_calls[-1][0][0])
         assert last_payload["position_x"] == 200.0
         assert last_payload["position_y"] == 150.0

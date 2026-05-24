@@ -6,12 +6,31 @@ from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID
 
+from feynman_teaching_kernel import ConceptTeachingPlan
+
 from feynman.agent.anticipation import AnticipationEngine
 from feynman.agent.board import BoardManager
-from feynman.agent.concept_planner import ConceptTeachingPlan
+from feynman.agent.board_verifier import PerceptionFeedback
+from feynman.agent.doubt_orchestrator import DoubtOrchestrator
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
 from feynman.agent.session_audit import SessionAudit
 from feynman.agent.state_machine import TeachingStateMachine
+
+
+@dataclass(frozen=True)
+class DiagramClaim:
+    """The agent's stated intent for a diagram event, frozen at schedule time.
+
+    Without this snapshot the verification path has nothing to compare the
+    rendered screen against — :class:`DiagramSpec` retains only the design
+    agent's derived ``title``/``description`` after generation, never the
+    original ``prompt`` or ``modification`` string the agent passed in.
+    """
+
+    element_id: str
+    claim_text: str  # prompt for draw_design_diagram, modification for modify_design_diagram
+    tool_name: str  # "draw_design_diagram" | "modify_design_diagram"
+    version: int  # 0 for the initial draw; increments per modify
 
 
 @dataclass
@@ -30,12 +49,52 @@ class TeachingContext:
     board_manager: BoardManager = field(default_factory=BoardManager)
     audit: SessionAudit = field(default_factory=SessionAudit)
     anticipation: AnticipationEngine = field(init=False)
+    doubt_orchestrator: DoubtOrchestrator = field(init=False)
     curriculum: Any | None = None  # CurriculumData from curriculum_loader (Neo4j)
     board_verifier: Any | None = None  # BoardVerifier (set by worker.py at session start)
-    _verified_this_concept: bool = field(default=False, init=False, repr=False)
+    # Phase 5a-1 perception loop: queue drained by FeynmanAgent.llm_node into
+    # chat_ctx before each LLM turn. Budget caps enqueues per concept (2) to
+    # prevent retry spirals. Dedup set prevents the same emission from being
+    # verified twice. Phase 5a-2 reuses this same queue + budget for diagram
+    # feedback (annotations and diagrams share one cap).
+    perception_feedback_queue: list[PerceptionFeedback] = field(default_factory=list)
+    perception_feedback_budget_used: dict[int, int] = field(default_factory=dict)
+    annotation_verified: set[tuple[str, str, int]] = field(default_factory=set)
+    # Phase 5a-2 diagram-awareness verification — replaces the legacy single-shot
+    # ``_verified_this_concept`` flag. Each modification gets its own version
+    # so verification runs after every diagram event, not just the first.
+    last_diagram_claims: dict[str, DiagramClaim] = field(default_factory=dict)
+    diagram_version: dict[str, int] = field(default_factory=dict)
+    diagram_intent_verified: set[tuple[str, int, int]] = field(default_factory=set)
+    diagram_layout_verified: set[tuple[str, int, int]] = field(default_factory=set)
+    # Phase 5a-3 periodic drift check: the FIRST claim ever made for an element
+    # via draw_design_diagram is retained here; modifications never overwrite.
+    # Used by cumulative-claim verification so we can compare original intent
+    # vs current board state regardless of modification chain depth.
+    original_diagram_claims: dict[str, str] = field(default_factory=dict)
+    # State hash of (concept_index, sorted element_ids, versions) at the time
+    # of the last successful drift check. If the next tick finds the same
+    # hash, the Haiku call is skipped (audited as drift_check.skipped_unchanged).
+    last_drift_check_hash: str | None = None
+    # Per-concept budget for drift feedback (independent of the 5a-1/5a-2
+    # 2-per-concept budget). Default cap is 1 — drift is informational and
+    # we don't want it crowding the corrective channel.
+    drift_feedback_budget_used: dict[int, int] = field(default_factory=dict)
     # Planning agent: pre-computed teaching plans per concept index.
     concept_plans: dict[int, ConceptTeachingPlan] = field(default_factory=dict)
     doubt_plan: ConceptTeachingPlan | None = None
+    # Diagram awareness: dictionary of the diagram currently on the slide,
+    # populated from the ``DiagramSpec.dictionary`` field at draw-time and
+    # cleared on ``pop_board``. Empty dict means no diagram is active.
+    current_diagram_dictionary: dict[str, Any] = field(default_factory=dict)
+    # Live overlay tracking — populated as the 4 annotation tools fire on the
+    # active slide; consumed by the doubt orchestrator at push time so the
+    # snapshot can replay them on resume. Cleared on board swap.
+    active_highlights: list[str] = field(default_factory=list)
+    active_annotations: list[str] = field(default_factory=list)
+    # Reserved for prompt-side context restoration on auto-resume. The doubt
+    # orchestrator snapshots this; populating deterministically lands in 2B.
+    last_beat_index: int = 0
     # --- COMMENTED OUT: Old ConceptGraph field. Replaced by curriculum. ---
     # concept_graph: Any | None = None  # ConceptGraph from data_pre_compute (optional)
     # _graph_node_map: dict[int, str] | None = field(default=None, init=False, repr=False)
@@ -43,6 +102,7 @@ class TeachingContext:
 
     def __post_init__(self) -> None:
         self.anticipation = AnticipationEngine(audit=self.audit)
+        self.doubt_orchestrator = DoubtOrchestrator(self)
 
     @property
     def current_plan(self) -> ConceptTeachingPlan | None:
@@ -107,6 +167,10 @@ class TeachingContext:
         self.curriculum = None
         self.concept_plans = {}
         self.doubt_plan = None
+        # Phase 5a-3: drift state is per-topic; clear on topic reset.
+        self.original_diagram_claims.clear()
+        self.last_drift_check_hash = None
+        self.drift_feedback_budget_used.clear()
 
     @property
     def current_curriculum_concept(self) -> Any | None:

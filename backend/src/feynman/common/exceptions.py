@@ -15,3 +15,12 @@ class SessionAlreadyActiveError(FeynmanError):
 
 class StudentNotFoundError(FeynmanError):
     """Raised when a student is not found."""
+
+
+class ToolConstraintError(FeynmanError):
+    """Raised when an LLM tool call is rejected by orchestrator policy.
+
+    The agent surfaces the message back to the LLM as a normal tool error so
+    it can correct course (e.g. tick remaining checklist items, exit a doubt
+    branch before advancing the lesson).
+    """

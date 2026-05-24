@@ -28,9 +28,7 @@ def _key_or_none(key: str) -> str | None:
 def create_stt() -> stt.STT:
     if settings.deepgram_api_key:
         logger.info("pipeline.stt", provider="deepgram", model="nova-3")
-        return deepgram.STT(
-            model="nova-3", language="en", api_key=settings.deepgram_api_key
-        )
+        return deepgram.STT(model="nova-3", language="en", api_key=settings.deepgram_api_key)
 
     logger.info("pipeline.stt", provider="openai", model="gpt-4o-mini-transcribe")
     kwargs: dict = {"model": "gpt-4o-mini-transcribe", "language": "en"}

@@ -343,17 +343,25 @@ class TestTeachingReference:
         plan = _make_plan()
         ctx = _make_ctx(plan=plan)
         # Mock a graph node with a rich summary
-        _mock = type("N", (), {
-            "summary": "A detailed explanation of quadratic equations including "
-                       "the discriminant b²-4ac, vertex form, and factoring.",
-            "node_id": "n1",
-            "topic_name": "Concept 1",
-        })()
+        _mock = type(
+            "N",
+            (),
+            {
+                "summary": "A detailed explanation of quadratic equations including "
+                "the discriminant b²-4ac, vertex form, and factoring.",
+                "node_id": "n1",
+                "topic_name": "Concept 1",
+            },
+        )()
         ctx._graph_node_map = {0: "n1"}
-        ctx.concept_graph = type("G", (), {
-            "nodes": {"n1": _mock},
-            "get_related_edges": lambda self, nid: [],
-        })()
+        ctx.concept_graph = type(
+            "G",
+            (),
+            {
+                "nodes": {"n1": _mock},
+                "get_related_edges": lambda self, nid: [],
+            },
+        )()
         prompt = build_teaching_prompt(plan, ctx)
         assert "Teaching reference" in prompt
         assert "discriminant" in prompt
@@ -367,22 +375,30 @@ class TestTeachingReference:
     def test_summary_truncated_at_800(self):
         plan = _make_plan()
         ctx = _make_ctx(plan=plan)
-        _mock = type("N", (), {
-            "summary": "x" * 1000,
-            "node_id": "n1",
-            "topic_name": "Concept 1",
-        })()
+        _mock = type(
+            "N",
+            (),
+            {
+                "summary": "x" * 1000,
+                "node_id": "n1",
+                "topic_name": "Concept 1",
+            },
+        )()
         ctx._graph_node_map = {0: "n1"}
-        ctx.concept_graph = type("G", (), {
-            "nodes": {"n1": _mock},
-            "get_related_edges": lambda self, nid: [],
-        })()
+        ctx.concept_graph = type(
+            "G",
+            (),
+            {
+                "nodes": {"n1": _mock},
+                "get_related_edges": lambda self, nid: [],
+            },
+        )()
         prompt = build_teaching_prompt(plan, ctx)
         assert "Teaching reference" in prompt
         # Summary should be truncated — not all 1000 x's.
         # Allow a few extra from surrounding prompt text that contains 'x'.
         ref_start = prompt.index("Teaching reference")
-        ref_section = prompt[ref_start:ref_start + 1200]
+        ref_section = prompt[ref_start : ref_start + 1200]
         assert ref_section.count("x") <= 810
 
 
@@ -499,7 +515,6 @@ class TestScrollInstructions:
         assert "**Board is filling up**" not in prompt
 
     def test_viewport_position_shown_when_scrolled(self):
-
         ctx = _make_ctx(plan=None)
         # Scroll to tile (1, 0)
         ctx.board_manager.active_board.state.scroll_to_tile(1, 0)
@@ -598,9 +613,7 @@ class TestBoardStateCameraAndTiles:
         ctx = _make_ctx(plan=None)
         state = ctx.board_manager.active_board.state
         state.scroll_to_tile(2, 3)
-        ctx.board_manager.record(
-            ShowTextInstruction(text="x", element_id="text-1")
-        )
+        ctx.board_manager.record(ShowTextInstruction(text="x", element_id="text-1"))
         assert state.element_tile("text-1") == (2, 3)
         assert state.element_tile("nonexistent") is None
 
@@ -681,6 +694,67 @@ class TestBoardRelationshipsInstructions:
         assert "illustrates" in BOARD_RELATIONSHIPS_INSTRUCTIONS
         assert "derives_from" in BOARD_RELATIONSHIPS_INSTRUCTIONS
         assert "compares_with" in BOARD_RELATIONSHIPS_INSTRUCTIONS
+
+
+class TestDiagramDictionarySection:
+    """Phase 1A: diagram dictionary appears in prompt when slide is active."""
+
+    def test_section_absent_when_no_diagram(self):
+        ctx = _make_ctx(plan=None)
+        # No diagram on slide → no dictionary section header.
+        # (The string "Diagram on Slide" appears in the awareness reference doc
+        # as cross-reference text, so we look for the section header form.)
+        prompt = build_teaching_prompt(None, ctx)
+        assert "## Diagram on Slide" not in prompt
+        assert "Available roles you can highlight" not in prompt
+
+    def test_section_renders_when_dictionary_set(self):
+        ctx = _make_ctx(plan=None)
+        ctx.current_diagram_dictionary = {
+            "side_AB": {
+                "role": "hypotenuse",
+                "semantic": "the ladder, 10 m",
+                "position": "diagonal",
+                "spatial_relations": ["from:vertex_A", "to:vertex_B", "longest_side"],
+            },
+            "side_BC": {
+                "role": "opposite",
+                "semantic": "the wall",
+                "position": "right",
+                "spatial_relations": ["from:vertex_B", "to:vertex_C", "vertical"],
+            },
+        }
+        prompt = build_teaching_prompt(None, ctx)
+        assert "Diagram on Slide" in prompt
+        assert "hypotenuse" in prompt
+        assert "the ladder, 10 m" in prompt
+        assert "opposite" in prompt
+        assert "side_AB" in prompt
+        # Phase 0: position, bounds, and spatial_relations are no longer
+        # rendered into the prompt. The LLM reasons over {id, role, semantic}.
+        assert "longest_side" not in prompt
+        assert "diagonal" not in prompt
+        assert "Spatial relationships" not in prompt
+
+    def test_prefer_roles_instruction_present(self):
+        ctx = _make_ctx(plan=None)
+        ctx.current_diagram_dictionary = {
+            "side_AB": {"role": "hypotenuse", "semantic": "ladder", "position": "diagonal"},
+        }
+        prompt = build_teaching_prompt(None, ctx)
+        assert "Prefer roles over raw IDs" in prompt
+
+    def test_diagram_awareness_reference_doc_present(self):
+        """The DIAGRAM_AWARENESS_INSTRUCTIONS reference doc is included."""
+        from feynman.agent.prompts import DIAGRAM_AWARENESS_INSTRUCTIONS
+
+        ctx = _make_ctx(plan=None)
+        prompt = build_teaching_prompt(None, ctx)
+        assert DIAGRAM_AWARENESS_INSTRUCTIONS in prompt
+        assert "pin_label_near" in prompt
+        assert "highlight_pulse" in prompt
+        assert "draw_callout" in prompt
+        assert "bracket" in prompt
 
 
 class TestHighlightTimingInstructions:

@@ -18,7 +18,6 @@ import pytest
 from feynman.agent.board import BoardManager
 from feynman.agent.session_audit import SessionAudit
 
-
 SAMPLE_SPEC: dict = {
     "title": "Free Body Diagram",
     "description": "Forces on a 5kg block",
@@ -45,15 +44,16 @@ def _make_mock_ctx(
     userdata.current_concept_index = 0
     userdata.lesson_plan = None
     userdata.anticipation = MagicMock()
-    userdata.anticipation.match = MagicMock(
-        return_value=SAMPLE_SPEC if cache_hit else None
-    )
+    userdata.anticipation.match = MagicMock(return_value=SAMPLE_SPEC if cache_hit else None)
     if concept_title is not None:
         concept = MagicMock()
         concept.title = concept_title
         userdata.current_concept = concept
     else:
         userdata.current_concept = None
+    # Phase 5a-2: short-circuit the diagram-verification scheduler — these
+    # tests don't exercise the perception loop.
+    userdata.board_verifier = None
     ctx.userdata = userdata
     return ctx
 

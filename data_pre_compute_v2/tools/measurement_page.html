@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Notebook Block Measurement Page (Phase 3)</title>
+  <!--
+    This page is used by lecture_pipeline_v2's MeasurementService (Playwright
+    headless) to measure the rendered height of every notebook block before
+    it's placed on a page. Editing this file invalidates the measurement
+    cache (the file content is hashed into the cache key).
+
+    Sync target: frontend/src/engine/whiteboard/split/SplitBoard.css
+    Synced: 2026-05-23
+  -->
+
+  <!-- Fonts. Frontend declares "Inter", "JetBrains Mono", "Crimson Pro" but
+       Vite/index.html doesn't currently load them — system fallback is used.
+       For deterministic measurement we load them here AND the frontend
+       index.html will load the same in Step 8. Until then, measurements may
+       drift ~3-5% from preview render. Tolerable for Phase 3 first pass. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Crimson+Pro:wght@400;500&display=block"
+    rel="stylesheet"
+  />
+
+  <!-- KaTeX 0.16.33 — matches frontend/package.json. No SRI: this page is
+       loaded via file:// by Playwright; the user already trusts their own
+       repo, and SRI on a versioned jsdelivr URL adds no real security. -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.33/dist/katex.min.css"
+    crossorigin="anonymous"
+  />
+  <script
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.33/dist/katex.min.js"
+    crossorigin="anonymous"
+  ></script>
+
+  <style>
+    /* ───────────────────────────────────────────────────────────
+       Notebook block CSS — extracted from
+       frontend/src/engine/whiteboard/split/SplitBoard.css lines
+       430–706 verbatim. Only the rules that affect block height
+       are included. Animations are forcibly disabled so
+       getBoundingClientRect returns the final layout immediately.
+       ─────────────────────────────────────────────────────────── */
+
+    :root {
+      --sb-ink: #e8e8ee;
+      --sb-ink-muted: rgba(232, 232, 238, 0.55);
+      --sb-ink-faint: rgba(232, 232, 238, 0.25);
+      --sb-neon: #7fd4ff;
+      --sb-answer: #9effc9;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: #0a0a0f;
+      color: var(--sb-ink);
+    }
+
+    /* Disable all animations + transitions so first frame == final frame. */
+    *, *::before, *::after {
+      animation-duration: 0s !important;
+      animation-delay: 0s !important;
+      transition-duration: 0s !important;
+      transition-delay: 0s !important;
+    }
+
+    /* The notebook body context. We don't measure the wrapper itself —
+       we mount each block into a fresh wrapper at a known width and
+       read the block's own getBoundingClientRect. The wrapper's padding
+       + flex column do NOT affect single-block height since the block's
+       size is intrinsic. */
+    .sb-notebook-body {
+      position: absolute;
+      visibility: hidden;
+      top: 0;
+      left: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sb-entry {
+      position: relative;
+      color: var(--sb-ink);
+    }
+
+    .sb-entry--indent-1 { padding-left: 24px; }
+    .sb-entry--indent-2 { padding-left: 48px; }
+    .sb-entry--indent-3 { padding-left: 72px; }
+
+    .sb-entry--section {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--sb-ink);
+      margin: 6px 0 4px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .sb-entry--section::before {
+      content: "§";
+      color: var(--sb-neon);
+      font-weight: 500;
+      font-family: "Crimson Pro", Georgia, serif;
+      font-size: 22px;
+    }
+
+    .sb-entry--text {
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--sb-ink);
+    }
+
+    .sb-entry--key-point {
+      font-size: 16px;
+      line-height: 1.5;
+      padding: 10px 14px;
+      border-left: 2px solid var(--sb-neon);
+      background: rgba(127, 212, 255, 0.04);
+      color: var(--sb-ink);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .sb-entry--step {
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--sb-ink);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .sb-entry--step .sb-step-num {
+      color: var(--sb-ink-faint);
+      font-family: "JetBrains Mono", "SF Mono", monospace;
+      font-size: 12px;
+      min-width: 22px;
+    }
+
+    .sb-entry--equation {
+      font-size: 22px;
+      margin: 4px 0;
+      color: var(--sb-ink);
+      display: flex;
+      align-items: baseline;
+    }
+    .sb-entry--equation .katex {
+      font-size: 1em;
+    }
+
+    .sb-entry--answer {
+      font-size: 22px;
+      margin-top: 10px;
+      padding: 14px 20px;
+      border-radius: 6px;
+      color: var(--sb-answer);
+      background: rgba(158, 255, 201, 0.04);
+      align-self: flex-start;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    "use strict";
+
+    const ALLOWED_TYPES = new Set([
+      "SECTION", "EQUATION", "STEP", "KEY", "TEXT", "ANSWER",
+    ]);
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = String(str ?? "");
+      return div.innerHTML;
+    }
+
+    function ready() {
+      // KaTeX is loaded with `defer`, so wait for it before declaring ready.
+      return typeof window.katex !== "undefined";
+    }
+
+    function buildBlock(type, content, attrs) {
+      const block = document.createElement("div");
+      const indent = Number(attrs?.indent ?? 0);
+      const indentClass = indent > 0 && indent <= 3 ? ` sb-entry--indent-${indent}` : "";
+
+      switch (type) {
+        case "SECTION":
+          block.className = `sb-entry sb-entry--section${indentClass}`;
+          block.innerHTML = `<span>${escapeHtml(content)}</span>`;
+          break;
+        case "TEXT":
+          block.className = `sb-entry sb-entry--text${indentClass}`;
+          block.textContent = String(content ?? "");
+          break;
+        case "KEY":
+          block.className = `sb-entry sb-entry--key-point${indentClass}`;
+          block.textContent = String(content ?? "");
+          break;
+        case "STEP": {
+          block.className = `sb-entry sb-entry--step${indentClass}`;
+          const stepNum = attrs?.number;
+          const numSpan = stepNum !== undefined && stepNum !== null
+            ? `<span class="sb-step-num">(${escapeHtml(stepNum)})</span>`
+            : "";
+          block.innerHTML = `${numSpan}<span>${escapeHtml(content)}</span>`;
+          break;
+        }
+        case "EQUATION": {
+          block.className = `sb-entry sb-entry--equation${indentClass}`;
+          const host = document.createElement("div");
+          try {
+            window.katex.render(String(content ?? ""), host, {
+              throwOnError: false,
+              displayMode: false,
+              output: "html",
+            });
+          } catch (e) {
+            host.textContent = String(content ?? "");
+          }
+          block.appendChild(host);
+          break;
+        }
+        case "ANSWER": {
+          block.className = `sb-entry sb-entry--answer${indentClass}`;
+          // Answer can be either latex (rendered via katex) or plain text.
+          // The pre-compute side currently emits plain text only.
+          block.textContent = String(content ?? "");
+          break;
+        }
+        default:
+          throw new Error(`Unknown block type: ${type}`);
+      }
+      return block;
+    }
+
+    /**
+     * Measure a notebook block at the given width. Returns the rendered
+     * dimensions in CSS pixels.
+     *
+     * Contract:
+     *   args = { type, content, attrs, width }
+     *   returns { width, height }
+     */
+    window.measureBlock = function(args) {
+      const { type, content, attrs, width } = args;
+      if (!ALLOWED_TYPES.has(type)) {
+        throw new Error(`Unknown block type: ${type}`);
+      }
+      if (typeof width !== "number" || width <= 0) {
+        throw new Error(`Invalid width: ${width}`);
+      }
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "sb-notebook-body";
+      wrapper.style.width = `${width}px`;
+      const block = buildBlock(type, content, attrs || {});
+      // Force the block to consume the available width inside the wrapper
+      // (the actual notebook body sets gap+padding; individual blocks
+      // inherit width via flex column default of stretch). For width-
+      // sensitive measurement we constrain explicitly:
+      block.style.width = `${width}px`;
+      block.style.boxSizing = "border-box";
+      wrapper.appendChild(block);
+      document.body.appendChild(wrapper);
+
+      // Force a layout flush before reading dimensions.
+      // eslint-disable-next-line no-unused-expressions
+      block.offsetHeight;
+      const rect = block.getBoundingClientRect();
+      const result = {
+        width: rect.width,
+        height: rect.height,
+      };
+      document.body.removeChild(wrapper);
+      return result;
+    };
+
+    // Signal readiness for Playwright's wait_for_function check.
+    window.__measurementReady = ready;
+  </script>
+</body>
+</html>

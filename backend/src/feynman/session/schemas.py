@@ -24,6 +24,11 @@ class SessionCreate(BaseModel):
     subject: Subject | None = None
     topic: str = ""
     grade_level: str = ""
+    # When set, the session is bound to a precomputed lecture chapter and the
+    # frontend lands in immersive LectureViewer mode. The agent worker stays
+    # connected to the room but silent; doubts are handled by the doubt-
+    # resolution pipeline (Phase 3+).
+    lecture_chapter_id: str | None = None
 
 
 class SessionInfo(BaseModel):
@@ -47,3 +52,6 @@ class CreateSessionResponse(BaseModel):
     token: str
     livekit_url: str
     room_name: str
+    # Echoed back so the frontend can render the immersive LectureViewer when
+    # the caller supplied a chapter id.
+    lecture_chapter_id: str | None = None

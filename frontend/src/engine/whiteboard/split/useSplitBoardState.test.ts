@@ -11,10 +11,14 @@ import { renderHook } from "@testing-library/react";
 import { useSplitBoardState } from "./useSplitBoardState";
 import type {
   AnnotateInstruction,
+  BracketInstruction,
+  DrawCalloutInstruction,
   DrawDesignDiagramInstruction,
   DrawDiagramInstruction,
   HighlightInstruction,
+  HighlightPulseInstruction,
   NewPageInstruction,
+  PinLabelInstruction,
   ShowEquationInstruction,
   ShowGraphInstruction,
   ShowTextInstruction,
@@ -138,6 +142,64 @@ function newPage(carry_forward_ids?: readonly string[]): NewPageInstruction {
   return instr;
 }
 
+// ── Phase 1B helpers: slide annotation instruction builders ──
+
+function pinLabel(
+  target_element_id: string,
+  text: string,
+  extra: Partial<PinLabelInstruction> = {},
+): PinLabelInstruction {
+  return {
+    type: "pin_label",
+    target_element_id,
+    text,
+    panel: "slide",
+    ...extra,
+  };
+}
+
+function callout(
+  target_element_id: string,
+  text: string,
+  extra: Partial<DrawCalloutInstruction> = {},
+): DrawCalloutInstruction {
+  return {
+    type: "draw_callout",
+    target_element_id,
+    text,
+    panel: "slide",
+    ...extra,
+  };
+}
+
+function bracketInstr(
+  element_a_id: string,
+  element_b_id: string,
+  label: string,
+  extra: Partial<BracketInstruction> = {},
+): BracketInstruction {
+  return {
+    type: "bracket",
+    element_a_id,
+    element_b_id,
+    label,
+    panel: "slide",
+    ...extra,
+  };
+}
+
+function pulse(
+  target_element_id: string,
+  extra: Partial<HighlightPulseInstruction> = {},
+): HighlightPulseInstruction {
+  return {
+    type: "highlight_pulse",
+    target_element_id,
+    panel: "slide",
+    ...extra,
+  };
+}
+
 describe("useSplitBoardState", () => {
   it("returns empty slide + notebook when no instructions", () => {
     const { result } = renderHook(() => useSplitBoardState([]));
@@ -176,10 +238,10 @@ describe("useSplitBoardState", () => {
   });
 
   it("expands step_equation with title into section_header + N step equations", () => {
-    const s = stepEq(
-      [{ latex: "a" }, { latex: "b" }, { latex: "c" }],
-      { title: "Solve", element_id: "s1" },
-    );
+    const s = stepEq([{ latex: "a" }, { latex: "b" }, { latex: "c" }], {
+      title: "Solve",
+      element_id: "s1",
+    });
     const { result } = renderHook(() => useSplitBoardState([s]));
     const entries = result.current.notebook.page.entries;
     expect(entries).toHaveLength(4);
@@ -459,5 +521,41 @@ describe("useSplitBoardState", () => {
     );
     expect(result.current.notebook.page.pageNum).toBe(2);
     expect(result.current.notebook.page.entries).toHaveLength(0);
+  });
+
+  // ── Phase 1B: slide annotation lifecycle ────────────────
+
+  it("collects annotations after a draw_design_diagram and clears them on swap", () => {
+    const diag1 = designDiagram("d1");
+    const pin = pinLabel("side_AB", "8m", { position: "above" });
+    const br = bracketInstr("side_AB", "side_BC", "right triangle");
+    const diag2 = designDiagram("d2");
+    const lateCallout = callout("vertex_A", "this angle");
+
+    // After diagram + 2 annotations: liveInstruction is diag1, annotations 2.
+    const r1 = renderHook(() => useSplitBoardState([diag1, pin, br]));
+    expect(r1.result.current.slide.liveInstruction).toBe(diag1);
+    expect(r1.result.current.slide.annotations).toHaveLength(2);
+    expect(r1.result.current.slide.annotations?.[0].type).toBe("pin_label");
+    expect(r1.result.current.slide.annotations?.[1].type).toBe("bracket");
+
+    // After a fresh diagram, prior annotations are anchored to a stale
+    // diagram — they must drop. New annotations after the new diagram persist.
+    const r2 = renderHook(() =>
+      useSplitBoardState([diag1, pin, br, diag2, lateCallout]),
+    );
+    expect(r2.result.current.slide.liveInstruction).toBe(diag2);
+    expect(r2.result.current.slide.annotations).toHaveLength(1);
+    expect(r2.result.current.slide.annotations?.[0].type).toBe("draw_callout");
+
+    // Swap with no new annotations → empty annotations list.
+    const r3 = renderHook(() => useSplitBoardState([diag1, pin, br, diag2]));
+    expect(r3.result.current.slide.annotations).toHaveLength(0);
+  });
+
+  it("drops annotations that arrive before any diagram (nothing to anchor to)", () => {
+    const orphan = pulse("ghost-id");
+    const { result } = renderHook(() => useSplitBoardState([orphan]));
+    expect(result.current.slide.status).toBe("empty");
   });
 });

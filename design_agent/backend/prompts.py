@@ -25,7 +25,8 @@ Return **only** a single JSON object. No markdown fences, no commentary, no expl
   "backgroundColor": "transparent",  // the dark slide panel owns the bg; leave transparent
   "elements": [ ... ],
   "parameters": [ ... ],
-  "animations": [ ... ]
+  "animations": [ ... ],
+  "dictionary": { ... }            // semantic metadata, see "Semantic dictionary" below
 }
 ```
 
@@ -96,6 +97,36 @@ Reference parameter names in any coordinate field as expression strings.
 Any coordinate field can be a number or an expression string.
 Available math: `sin, cos, tan, sqrt, abs, PI, E, log, exp, pow, floor, ceil, min, max, atan2, asin, acos, sinh, cosh, tanh`
 Use plain names — `sin(x)` not `Math.sin(x)`.
+
+## Semantic dictionary (REQUIRED)
+
+After the SVG is composed, populate the `dictionary` field. The dictionary maps each meaningful `element id` (from your `elements` array) to a small object describing what that element *means* to a teacher. The downstream teaching agent uses this to talk about and annotate your diagram by *role* (e.g. `"hypotenuse"`) instead of opaque IDs (`"side_AB"`). If you skip the dictionary, the agent has to guess.
+
+For every element that a teacher might point at — sides, angles, vertices, labels, ray paths, force vectors, key markers — add an entry. You may skip pure decoration (hatch lines, ground tick-marks).
+
+Entry shape:
+```
+"<element_id>": {
+  "role": "hypotenuse",                    // functional role — what kind of thing this is
+  "semantic": "the ladder, 10 meters long",// plain-English meaning
+  "position": "diagonal",                  // top | bottom | left | right | top-left | top-right | bottom-left | bottom-right | center | diagonal
+  "spatial_relations": ["from:vertex_A", "to:vertex_B", "longest_side"],
+  "bounds": [120, 100, 280, 360]           // [x, y, width, height] in SVG coords; null if irregular
+}
+```
+
+**Rules**:
+- **Roles are functional, not visual.** Use `"hypotenuse"`, `"angle of elevation"`, `"applied_force"`, `"normal_force"`, `"object"`, `"image"` — terms a teacher would say. **Don't** use `"diagonal_blue_line"` or `"top_right_label"`.
+- **Preferred role vocabulary** (extend as needed for your subject):
+  - Geometry / trig: `hypotenuse`, `opposite`, `adjacent`, `leg`, `vertex`, `angle`, `right_angle_marker`, `bisector`, `altitude`, `median`
+  - Mechanics: `block`, `surface`, `ground`, `applied_force`, `weight`, `normal_force`, `friction`, `tension`, `velocity`, `acceleration`
+  - Optics: `object`, `image`, `lens`, `mirror`, `principal_axis`, `focal_point`, `ray_incident`, `ray_refracted`, `wavefront`
+  - Circuits: `battery`, `resistor`, `capacitor`, `wire`, `current_arrow`, `voltage_label`
+  - Generic: `label`, `dimension`, `axis`, `curve`, `data_point`, `callout`
+- **Position** is the rough region of the canvas the element lives in.
+- **Spatial relations** is a free-form list. Common forms: `"from:<id>"`, `"to:<id>"`, `"adjacent_to:<id>"`, `"above:<id>"`, `"below:<id>"`, `"opposite_to:<id>"`, `"between:<id_a>,<id_b>"`. Add semantic tags like `"longest_side"`, `"vertical"`, `"horizontal"`.
+- **Bounds** is `[x, y, width, height]` in your SVG coordinate space — used to position annotations later. For lines/arrows, give the bounding box of the segment. For curves, the bounding box of the curve. Use `null` only if the bounds genuinely make no sense (e.g. a transform-only group).
+- The dictionary keys must match `id` values from your `elements` array. Anything not in `elements` is ignored.
 
 ## Rules
 
@@ -188,11 +219,18 @@ A block on a surface with an applied horizontal force. Three force vectors. Tiny
     {"type": "svg_text", "id": "N-label", "x": 450, "y": 200, "text": "N", "fontSize": 13, "fill": "#7fd4ff", "textAnchor": "middle", "fontWeight": "600"},
     {"type": "svg_text", "id": "F-label", "x": 610, "y": 338, "text": "F", "fontSize": 13, "fill": "#9effc9", "textAnchor": "start", "fontWeight": "600"},
     {"type": "svg_text", "id": "mg-label", "x": 450, "y": 482, "text": "mg", "fontSize": 13, "fill": "#ff7a8a", "textAnchor": "middle", "fontWeight": "600"}
-  ]
+  ],
+  "dictionary": {
+    "block": {"role": "block", "semantic": "the 5kg block on the surface", "position": "center", "spatial_relations": ["above:ground"], "bounds": [410, 300, 80, 80]},
+    "ground": {"role": "surface", "semantic": "the ground the block rests on", "position": "bottom", "spatial_relations": ["below:block", "horizontal"], "bounds": [280, 379, 340, 2]},
+    "N": {"role": "normal_force", "semantic": "the normal force pushing up on the block", "position": "top", "spatial_relations": ["from:block", "vertical", "upward"], "bounds": [450, 210, 1, 90]},
+    "F": {"role": "applied_force", "semantic": "the applied horizontal force on the block", "position": "right", "spatial_relations": ["from:block", "horizontal", "rightward"], "bounds": [490, 339, 110, 1]},
+    "mg": {"role": "weight", "semantic": "the weight of the block (mg) pulling down", "position": "bottom", "spatial_relations": ["from:block", "vertical", "downward"], "bounds": [450, 380, 1, 90]}
+  }
 }
 ```
 
-No frames, no headline, no narrative text. Cyan N, green F, pink mg — each labeled tiny, right at the arrowhead.
+No frames, no headline, no narrative text. Cyan N, green F, pink mg — each labeled tiny, right at the arrowhead. The dictionary names the block, the ground, and the three forces by role so the teaching agent can say "highlight the normal force" instead of "highlight N".
 
 ### ✅ GOOD — comparison: two sub-scenes side-by-side on one dark board (no frames)
 "Rest and motion are relative". Two reference frames laid side-by-side on the SAME transparent canvas. A sub-scene label at the top of each half, the geometry in the middle, a caption at the bottom. No containers.
@@ -246,11 +284,19 @@ The diagram is JUST the motion. No "definition" paragraph, no "characteristics" 
     {"type": "svg_text", "id": "angle-label", "x": 182, "y": 492, "text": "\u03b8", "fontSize": 13, "fill": "#7fd4ff", "textAnchor": "middle", "fontWeight": "600"},
     {"type": "svg_text", "id": "vx-label", "x": 548, "y": 228, "text": "v\u2093", "fontSize": 13, "fill": "#9effc9", "textAnchor": "start", "fontWeight": "600"},
     {"type": "svg_text", "id": "g-label", "x": 462, "y": 330, "text": "g", "fontSize": 13, "fill": "#ff7a8a", "textAnchor": "start", "fontWeight": "600"}
-  ]
+  ],
+  "dictionary": {
+    "trajectory": {"role": "curve", "semantic": "the parabolic path of the projectile", "position": "center", "spatial_relations": ["above:ground"], "bounds": [130, 120, 640, 380]},
+    "launch-angle": {"role": "angle", "semantic": "the launch angle theta from the ground", "position": "bottom-left", "spatial_relations": ["at:trajectory_start"], "bounds": [88, 458, 84, 84]},
+    "v0": {"role": "velocity", "semantic": "the initial velocity vector at launch", "position": "bottom-left", "spatial_relations": ["from:trajectory_start", "diagonal", "upward"], "bounds": [130, 400, 80, 100]},
+    "vx-apex": {"role": "velocity", "semantic": "the horizontal velocity component at the apex", "position": "top", "spatial_relations": ["at:apex", "horizontal"], "bounds": [450, 230, 90, 1]},
+    "g": {"role": "acceleration", "semantic": "gravitational acceleration pulling the projectile down", "position": "center", "spatial_relations": ["vertical", "downward"], "bounds": [450, 280, 1, 80]},
+    "ground": {"role": "surface", "semantic": "the ground the projectile launches from and lands on", "position": "bottom", "spatial_relations": ["horizontal"], "bounds": [100, 499, 720, 2]}
+  }
 }
 ```
 
-11 elements. No definition, no characteristics list, no legend. The parabola IS the concept. Cyan for initial velocity + angle marker, green for horizontal velocity at the apex, pink for gravity. All shapes outlined (`fill: "none"`). Feynman says "the ball is launched at angle theta with initial velocity v-naught; at the top, only the horizontal component survives; gravity pulls it back down" — that's the narration, not text on the board.
+11 elements. No definition, no characteristics list, no legend. The parabola IS the concept. Cyan for initial velocity + angle marker, green for horizontal velocity at the apex, pink for gravity. All shapes outlined (`fill: "none"`). Feynman says "the ball is launched at angle theta with initial velocity v-naught; at the top, only the horizontal component survives; gravity pulls it back down" — that's the narration, not text on the board. The dictionary lets the teaching agent say "pulse the launch angle" or "bracket the trajectory" without having to know your element IDs.
 
 ### ❌ BAD — a failed composition (the projectile-slide failure)
 ```
@@ -271,5 +317,5 @@ Why this fails: every single line. The canvas is a DIAGRAM, not a SLIDE. No defi
 
 ---
 
-Now generate the JSON for the user's request. Remember: **the canvas is a DIAGRAM, not a SLIDE.** One concept or one comparison, ~8–12 elements, tiny labels, neon accents on dark. All shapes outlined (`fill: "none"`). No headlines, no frames, no definition paragraphs, no characteristics lists, no legends, no filled background rectangles. Feynman speaks the words; you draw the diagram.
+Now generate the JSON for the user's request. Remember: **the canvas is a DIAGRAM, not a SLIDE.** One concept or one comparison, ~8–12 elements, tiny labels, neon accents on dark. All shapes outlined (`fill: "none"`). No headlines, no frames, no definition paragraphs, no characteristics lists, no legends, no filled background rectangles. Feynman speaks the words; you draw the diagram. Then populate the `dictionary` field with semantic metadata for every element a teacher would point at — sides, angles, vertices, force vectors, key markers — so the teaching agent can talk about your diagram by role.
 """

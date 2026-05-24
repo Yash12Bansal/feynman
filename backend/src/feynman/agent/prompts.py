@@ -8,8 +8,9 @@ if TYPE_CHECKING:
     from feynman.agent.lesson_plan import LessonPlan
     from feynman.agent.teaching_context import TeachingContext
 
+from feynman_teaching_kernel import format_plan_for_prompt
+
 from feynman.agent.board_snapshot import generate_board_context
-from feynman.agent.concept_planner import format_plan_for_prompt
 from feynman.agent.notebook import reconstruct as reconstruct_notebook
 from feynman.agent.notebook import render_prompt_section as render_notebook_section
 
@@ -335,6 +336,22 @@ arrows, color coding, and KaTeX math expressions.
 3. The return value tells you the diagram's `element_id` (e.g., "design-1") and lists \
 all available **sub-element IDs** you can highlight.
 
+### Choosing the generation mode (almost always: leave it on auto)
+
+`draw_design_diagram` takes an optional `mode` argument with three values:
+
+- **`mode="auto"` (default — use this 99% of the time)**: the backend inspects your prompt and \
+picks `direct` or `python` for you based on geometric keywords. You don't need to think about it.
+- **`mode="direct"`** (explicit override, rarely needed): force the JSON-emit path. Slightly faster \
+on simple diagrams when you know geometry doesn't have to be exact (the LLM may estimate angles).
+- **`mode="python"`** (explicit override, rarely needed): force the Python-DSL sandbox path so \
+geometry computes exactly. Pick this **only** when you know precision matters AND your prompt's \
+natural-language doesn't make that obvious to the auto-heuristic (no words like "perpendicular," \
+"tangent to," "exact angle," "intersection," "parallel to," etc.).
+
+When in doubt, leave `mode` unset (defaults to `auto`). The heuristic handles the common cases; \
+overrides are for edge cases the heuristic misses.
+
 ### Highlighting parts of a design diagram (CRITICAL — use this!)
 
 After drawing a design diagram, use `highlight_diagram_part` to point at specific parts \
@@ -516,6 +533,337 @@ Available relations: "illustrates", "derives_from", "compares_with", "supports",
 
 Check the Board State section above for current element IDs before using relates_to.
 """
+
+DIAGRAM_AWARENESS_INSTRUCTIONS = """\
+
+## Annotating the Slide Diagram
+
+When a diagram is on the slide, you can write *around* it using four annotation \
+tools that render as an overlay on the slide panel. Use them like a teacher's \
+marker — mark the part you're talking about, then talk.
+
+- **pin_label_near(element_or_role, text, position)** — small text label near \
+an element with a thin connector line. For "← hypotenuse", "8 m", quick tags. \
+Max 120 chars, position: above/below/left/right.
+- **draw_callout(from_element, text, direction)** — speech-bubble callout from \
+an element. Use sparingly for emphasis ("← key insight!"). Max 200 chars.
+- **bracket(element_a, element_b, label, side)** — curly brace spanning two \
+elements with a centered label. For "right triangle" across hypotenuse + adjacent. \
+Max 80 chars on label.
+- **highlight_pulse(element_or_role, duration_ms, color_token)** — single \
+short glow on one element. Simpler than highlight_walk when you just want to \
+point at one thing while saying its name. Default 1200ms; clamp 400-3000ms.
+
+### Prefer roles over raw IDs
+
+Every diagram on the slide carries a semantic dictionary (see "Diagram on Slide" \
+below when present). It maps element IDs to *roles* — `"hypotenuse"`, \
+`"applied_force"`, `"object"`. **Use roles, not IDs**, when calling these four \
+tools: `highlight_pulse("hypotenuse")` is more readable than \
+`highlight_pulse("side_AB")` and survives diagram regeneration. The system \
+resolves the role to the right element id at publish time. Raw IDs still work \
+as an escape hatch when no role fits.
+
+### When to use which
+
+- Single element, brief tap → `highlight_pulse`
+- Single element with text → `pin_label_near`
+- Single element with emphasis text → `draw_callout`
+- Span between two elements → `bracket`
+- Walk through several elements as you talk → `highlight_walk` (existing)
+- Free-form mark on the board → `annotate` (existing)
+
+## Inline action tags (pointing only)
+
+For the four annotation operations above, you have a faster alternative: \
+**inline action tags** embedded directly in your spoken sentence. These are \
+self-closing XML-style tags that the system parses out of your narration \
+before TTS speaks it, then fires as visual annotations synced to the next \
+sentence boundary — exactly like the tool-call version, but without breaking \
+the streaming voice.
+
+Use tags for **ephemeral pointing** as you speak. Use tool calls for \
+**state-changing operations** (drawing a new diagram, modifying it, \
+switching boards, starting a doubt branch). Pointing flows with voice. \
+State changes are validated round-trips.
+
+### Grammar (five verbs)
+
+All tags are self-closing (note the trailing `/>`). All attribute values \
+must be quoted with `"` or `'`. Whitespace is tolerant.
+
+- `<highlight target="ROLE"/>` — sustained glow on one element (~1.5s).
+- `<pulse target="ROLE"/>` — quick attention-grab pulse (~0.8s).
+- `<callout from="ROLE" text="TEXT" direction="up-right"/>` — speech bubble.
+- `<bracket between="ROLE_A,ROLE_B" label="TEXT" side="above"/>` — curly \
+brace spanning two elements.
+- `<pin near="ROLE" label="TEXT" position="above"/>` — small text label \
+with a thin connector.
+
+`ROLE` is a semantic role from the Diagram on Slide section (e.g. \
+`hypotenuse`, `weight`, `normal_force`, `f_right`) or a raw element id. \
+Roles preferred — they survive diagram regeneration.
+
+### Worked examples
+
+**Right triangle, naming the parts:**
+
+> Here is the right triangle. The longest side, opposite the right angle, \
+is the <highlight target="hypotenuse"/> hypotenuse. The side touching the \
+angle of interest is the <highlight target="adjacent"/> adjacent leg, and \
+the one across from it is the <highlight target="opposite"/> opposite leg.
+
+**Free-body diagram, walking through forces:**
+
+> Three forces act on this block. Gravity pulls down — that's \
+<pulse target="weight"/> the weight. The floor pushes back up with \
+<pulse target="normal_force"/> the normal force. And if I push it \
+sideways, I add <pulse target="applied_force"/> an applied force.
+
+**Convex lens, naming focal points:**
+
+> Parallel rays converge at <pin near="f_right" label="F"/> the right focal \
+point, F. Reverse the rays and they converge at \
+<pin near="f_left" label="F-prime"/> the left focal point, F prime.
+
+### Don't
+
+- **Don't** put tags inside tool-call JSON arguments. Tags only live in \
+narration text.
+- **Don't** invent new verbs (`<wave target="x"/>` is stripped silently \
+and you get no visual — only the five verbs above are recognized).
+- **Don't** forget the closing `/>`. `<highlight target="x">` (no slash) \
+is malformed — also silently stripped.
+- **Don't** use tags for state-changing operations. To draw a new diagram \
+or change one, call `draw_design_diagram` / `modify_design_diagram` as a tool.
+
+### Which to choose — inline tag or tool call?
+
+- Pointing operations during a flowing explanation → **inline tags** (faster, \
+no streaming interruption).
+- Pointing in response to a student question where you need to think \
+("let me show you…") → **tool call** is fine; both work.
+- Anything that creates or modifies state → **tool call only**.
+
+## Vision feedback — when you mis-pointed
+
+A background vision model continuously checks whether your highlights, pins, \
+callouts, and brackets actually landed on the elements you claimed. If it \
+catches a miss, you will see a synthesized user-role message in your next \
+turn's context that begins with the literal token `[PERCEPTION_FEEDBACK]`:
+
+```
+[PERCEPTION_FEEDBACK] Your previous highlight_pulse on 'hypotenuse' missed \
+(score 2/5). Issue: the highlight landed on the right-angle marker, not the \
+long slanted side. Suggested target: side_AB. Re-point now: \
+<highlight target="side_AB"/>
+```
+
+This is **not** something the student said. It is a system signal from a \
+self-correction loop.
+
+When you see `[PERCEPTION_FEEDBACK]`:
+
+1. **Acknowledge briefly** — "let me re-point that" or "actually, here it is" \
+— so the student understands the correction is intentional, not a bug.
+2. **Re-point** using the suggested target via the inline action tag (preferred — \
+no streaming interruption) or the matching tool call.
+3. **Continue** the lesson. Do not stop or apologize at length — perception \
+feedback is a routine self-correction loop, not a failure.
+
+Do NOT:
+
+- Re-emit the same `target` value that was just flagged — vision suggested a \
+different one for a reason.
+- Re-point more than twice for the same concept — if a second attempt also \
+misses, narrate around it ("you can see roughly here…") and move on.
+- Treat `[PERCEPTION_FEEDBACK]` as user dialogue — never reply to it as if the \
+student wrote it. The student is unaware of these notes.
+- Pause the lesson to discuss the miss. The correction rides the next sentence.
+
+## Vision feedback — when your diagram missed the claim
+
+The same vision loop also checks whether the diagram you just drew or modified \
+actually matches what you said you were drawing. When it doesn't, the \
+`[PERCEPTION_FEEDBACK]` note takes a different shape — it names the diagram \
+tool and pre-bakes a `modify_design_diagram` call ready to fire:
+
+```
+[PERCEPTION_FEEDBACK] Your previous draw_design_diagram missed (score 1/5). \
+Claim: "free body diagram of a block on a ramp". Issue: the ramp is missing. \
+Fix it now: modify_design_diagram(target_id="design-1", \
+modification="Add an inclined ramp under the block at 30°")
+```
+
+When you see this for a diagram:
+
+1. **Acknowledge briefly** — "let me fix that" or "actually, let me adjust" — \
+so the student understands the correction is intentional.
+2. **Call `modify_design_diagram`** with the suggested target_id and \
+modification. You may adapt the modification text if you have a clearer \
+phrasing — the key is to address the issue, not copy verbatim.
+3. **Continue** the lesson. The modification triggers re-verification \
+automatically; you don't need to confirm.
+
+Do NOT:
+
+- Call `draw_design_diagram` from scratch — `modify_design_diagram` is faster \
+(~1-3s vs 5-15s) and preserves the diagram's identity for subsequent \
+annotations.
+- Retry the same modification more than twice for the same concept — if vision \
+keeps flagging it, acknowledge verbally ("the ramp here is rough but you can \
+see the idea") and move on.
+- Ignore the feedback — vision identified a real gap that the student will \
+notice eventually if you don't address it.
+
+## Vision feedback — periodic drift checks
+
+Every ~30 seconds, a background process compares what's currently on the \
+board to what you're teaching right now. When it detects drift, the \
+`[PERCEPTION_FEEDBACK]` note takes a third shape — naming the concept and a \
+`drift_kind` of either `concept_fit` or `cumulative_integrity`:
+
+```
+[PERCEPTION_FEEDBACK] Drift detected during concept 'Right-triangle \
+trigonometry'. Kind: concept_fit. design-1 is still on screen but doesn't \
+fit this concept. Suggested: Erase or repurpose design-1 — it no longer fits \
+the current concept
+```
+
+Or for cumulative drift across a modification chain:
+
+```
+[PERCEPTION_FEEDBACK] Drift detected during concept 'Free body diagrams'. \
+Kind: cumulative_integrity. design-2 was originally a free body diagram of \
+a block on a 30° ramp but the ramp has been edited away. \
+Suggested: modify_design_diagram(target_id="design-2", \
+modification="Restore the inclined ramp at 30°")
+```
+
+When you see a drift feedback:
+
+1. **Acknowledge briefly** — "let me clean up the board" or "actually, the \
+ramp should still be there" — so the student knows the change is intentional, \
+not glitchy.
+2. **Act on the suggestion:**
+   - `cumulative_integrity` → call `modify_design_diagram` with the suggestion.
+   - `concept_fit` → either `modify_design_diagram` to repurpose the diagram \
+for the new concept, or `clear_board(target_id="design-X")` to remove it. Do \
+NOT leave stale diagrams unaddressed.
+3. **Continue** the lesson. Drift is detected ONCE per concept (a separate \
+budget from the annotation/diagram-intent channel), so you won't see repeated \
+drift feedback for the same issue.
+
+Do NOT:
+
+- Treat drift feedback as a question to answer verbally. It's a directive to \
+act, not a topic to discuss with the student.
+- Ignore `concept_fit` drift — leaving stale diagrams on screen breaks the \
+narrative flow. The student associates what's visible with what you're \
+saying.
+- Re-call `draw_design_diagram` from scratch when `modify_design_diagram` \
+would preserve the diagram identity.
+"""
+
+
+def _render_doubt_checklist_section(teaching_ctx: TeachingContext) -> str:
+    """Render the active doubt branch's resolution checklist for the LLM.
+
+    Returns the empty string when not in a doubt branch or when the active
+    branch has no checklist (e.g., the planning agent hasn't produced one
+    yet, or `plan_doubt` was never called).
+    """
+    from feynman.agent.states import TeachingState
+
+    branch = teaching_ctx.state_machine.current
+    if branch.state != TeachingState.HANDLING_DOUBT:
+        return ""
+    items = list(branch.checklist or [])
+    if not items:
+        return ""
+
+    state = teaching_ctx.doubt_orchestrator.get_state(branch.id)
+    soft_nudge = bool(state and state.soft_nudge_fired)
+
+    lines: list[str] = ["\n## Resolution Checklist\n"]
+    lines.append(
+        "Before calling `resolve_doubt`, every item below must be `done`. "
+        "Items auto-tick when you call the listed tools or use the listed "
+        "keywords in your speech; if you addressed an item without either, "
+        "call `mark_doubt_step_complete(step_index)`.\n\n"
+    )
+    for i, item in enumerate(items):
+        marker = "[x]" if item.status == "done" else "[ ]"
+        triggers_parts: list[str] = []
+        if item.auto_satisfied_by:
+            triggers_parts.append(f"tools: {', '.join(item.auto_satisfied_by)}")
+        if item.keywords:
+            triggers_parts.append(f"keywords: {', '.join(item.keywords)}")
+        triggers = f" (auto-ticks on — {' | '.join(triggers_parts)})" if triggers_parts else ""
+        lines.append(f"{i}. {marker} {item.description}{triggers}\n")
+    lines.append("\nThe orchestrator will block `resolve_doubt` until every item is `[x]`.\n")
+
+    if soft_nudge:
+        lines.append(
+            "\n**System nudge**: This doubt has been running over 60 seconds. "
+            "Wrap up and call `resolve_doubt` soon — the orchestrator will "
+            "force a return if you don't.\n"
+        )
+
+    return "".join(lines)
+
+
+def _render_diagram_dictionary_section(teaching_ctx: TeachingContext) -> str:
+    """Render the active slide's diagram dictionary as a prompt section.
+
+    Returns the empty string when no diagram is on the slide.
+    """
+    directory = getattr(teaching_ctx, "current_diagram_dictionary", None) or {}
+    if not directory:
+        return ""
+
+    lines: list[str] = ["\n## Diagram on Slide\n"]
+
+    # Render only {id, role, semantic} per element. Bounds, position, and
+    # spatial_relations are deliberately omitted — the LLM reasons about
+    # WHAT is on the board (roles) and tools/perception resolve WHERE.
+    role_lines: list[str] = []
+    raw_ids: list[str] = []
+
+    for element_id, meta in directory.items():
+        # Support both dict and Pydantic-instance shapes.
+        get = (
+            (lambda key, default=None, m=meta: getattr(m, key, default))
+            if not isinstance(meta, dict)
+            else (lambda key, default=None, m=meta: m.get(key, default))
+        )
+        role = get("role")
+        semantic = get("semantic", "")
+
+        raw_ids.append(element_id)
+        if role:
+            role_text = f"- {role}"
+            if semantic:
+                role_text += f": {semantic}"
+            role_lines.append(role_text)
+
+    if role_lines:
+        lines.append("Available roles you can highlight or annotate:\n")
+        lines.extend(line + "\n" for line in role_lines)
+        lines.append("\n")
+
+    lines.append(
+        "Use these roles in highlight_pulse, pin_label_near, draw_callout, "
+        "bracket. You can also use the raw element_ids if needed: "
+        f"{', '.join(raw_ids[:20])}.\n"
+    )
+    lines.append(
+        "\n**Prefer roles over raw IDs** when calling annotation tools — "
+        "roles are more readable and survive diagram regeneration.\n"
+    )
+
+    return "".join(lines)
+
 
 STATE_TOOL_INSTRUCTIONS = """\
 
@@ -768,6 +1116,7 @@ def build_teaching_prompt(
         SCENE_INSTRUCTIONS,
         PLACEMENT_INSTRUCTIONS,
         BOARD_RELATIONSHIPS_INSTRUCTIONS,
+        DIAGRAM_AWARENESS_INSTRUCTIONS,
     ]
 
     parts = [
@@ -777,6 +1126,14 @@ def build_teaching_prompt(
 
     # Board state section — always included (applies in both modes).
     parts.append(_build_board_state_section(teaching_ctx))
+
+    # Diagram dictionary section — appears only when a diagram is on the slide.
+    # Tells the agent what's there and what roles are available for annotation.
+    parts.append(_render_diagram_dictionary_section(teaching_ctx))
+
+    # Doubt-branch resolution checklist — appears only inside an active doubt
+    # branch. The orchestrator blocks `resolve_doubt` until every item ticks.
+    parts.append(_render_doubt_checklist_section(teaching_ctx))
 
     # Notebook state section (Phase 5b) — reconstructed live from audit so the
     # agent sees what it has already written and can reason across turns.

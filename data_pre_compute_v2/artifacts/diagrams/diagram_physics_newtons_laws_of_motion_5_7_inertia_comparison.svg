@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="ic_title" x="450" y="42" font-size="22" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Inertia: Same Force, Different Mass</text>
+<rect id="ic_top_panel" x="40" y="65" width="820" height="255" rx="12" fill="#f0f7ff" stroke="#4682b4" stroke-width="2"/>
+<text id="ic_top_label" x="450" y="92" font-size="16" fill="#4682b4" text-anchor="middle" font-weight="bold">Tennis Ball  (small mass)</text>
+<circle id="ic_tennis_ball" cx="180" cy="185" r="28" fill="#c8e6c9" stroke="#388e3c" stroke-width="3" stroke-dasharray=""/>
+<text id="ic_tennis_label" x="180" y="191" font-size="15" fill="#1b5e20" text-anchor="middle" font-weight="bold">m</text>
+<defs><marker id="arrowhead_ic_tennis_force" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="ic_tennis_force" x1="80" y1="185" x2="148" y2="185" stroke="#D32F2F" stroke-width="4" marker-end="url(#arrowhead_ic_tennis_force)"/>
+<text id="ic_tennis_force_label" x="112" y="172" font-size="15" fill="#D32F2F" text-anchor="middle" font-weight="bold">F</text>
+<defs><marker id="arrowhead_ic_tennis_accel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="ic_tennis_accel" x1="212" y1="185" x2="560" y2="185" stroke="#FF9800" stroke-width="5" marker-end="url(#arrowhead_ic_tennis_accel)"/>
+<text id="ic_tennis_accel_label" x="390" y="170" font-size="15" fill="#e65100" text-anchor="middle" font-weight="bold">Large acceleration</text>
+<text id="ic_tennis_eq" x="650" y="182" font-size="16" fill="#e65100" font-style="italic" text-anchor="middle">a = \frac{F}{m} \Rightarrow \text{BIG}</text>
+<text id="ic_tennis_inertia" x="180" y="240" font-size="14" fill="#388e3c" text-anchor="middle" font-weight="normal">Low inertia</text>
+<rect id="ic_bottom_panel" x="40" y="345" width="820" height="255" rx="12" fill="#fff8f0" stroke="#FF9800" stroke-width="2"/>
+<text id="ic_bottom_label" x="450" y="372" font-size="16" fill="#e65100" text-anchor="middle" font-weight="bold">Bowling Ball  (large mass)</text>
+<circle id="ic_bowling_ball" cx="180" cy="465" r="52" fill="#d1c4e9" stroke="#512da8" stroke-width="3" stroke-dasharray=""/>
+<text id="ic_bowling_label" x="180" y="471" font-size="18" fill="#311b92" text-anchor="middle" font-weight="bold">M</text>
+<defs><marker id="arrowhead_ic_bowling_force" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="ic_bowling_force" x1="80" y1="465" x2="124" y2="465" stroke="#D32F2F" stroke-width="4" marker-end="url(#arrowhead_ic_bowling_force)"/>
+<text id="ic_bowling_force_label" x="100" y="452" font-size="15" fill="#D32F2F" text-anchor="middle" font-weight="bold">F</text>
+<defs><marker id="arrowhead_ic_bowling_accel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="ic_bowling_accel" x1="236" y1="465" x2="340" y2="465" stroke="#FF9800" stroke-width="5" marker-end="url(#arrowhead_ic_bowling_accel)"/>
+<text id="ic_bowling_accel_label" x="390" y="450" font-size="15" fill="#e65100" text-anchor="middle" font-weight="bold">Small acceleration</text>
+<text id="ic_bowling_eq" x="640" y="462" font-size="16" fill="#e65100" font-style="italic" text-anchor="middle">a = \frac{F}{M} \Rightarrow \text{SMALL}</text>
+<text id="ic_bowling_inertia" x="180" y="535" font-size="14" fill="#512da8" text-anchor="middle" font-weight="normal">High inertia</text>
+<text id="ic_same_force_note" x="112" y="320" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="normal">Same force F</text>
+<line id="ic_divider" x1="40" y1="330" x2="860" y2="330" stroke="#cccccc" stroke-width="1" stroke-dasharray="6,4"/>
+<rect id="ic_key_box" x="290" y="608" width="320" height="32" rx="8" fill="#e8eaf6" stroke="#3949ab" stroke-width="1.5"/>
+<text id="ic_key_text" x="450" y="629" font-size="13" fill="#1a237e" text-anchor="middle" font-weight="bold">More mass  =  More inertia  =  Less acceleration</text>
+</svg>

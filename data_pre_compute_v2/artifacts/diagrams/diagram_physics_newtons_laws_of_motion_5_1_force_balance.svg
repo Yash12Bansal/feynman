@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="680" viewBox="0 0 900 680">
+<rect x="0" y="0" width="900" height="680" fill="#f8f9fa"/>
+<rect id="fb_bg" x="0" y="0" width="900" height="680" rx="0" fill="#f8f9fa" stroke="none" stroke-width="0"/>
+<text id="fb_title" x="450" y="42" font-size="26" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Newton&#x27;s First Law of Motion</text>
+<text id="fb_subtitle" x="450" y="68" font-size="15" fill="#444" text-anchor="middle" font-weight="normal">Zero net force  →  zero acceleration  →  constant velocity (or at rest)</text>
+<line id="fb_divider_top" x1="40" y1="82" x2="860" y2="82" stroke="#ccc" stroke-width="1.5" stroke-dasharray=""/>
+<text id="fb_scenario1_title" x="150" y="110" font-size="16" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Scenario 1: Book on a Desk</text>
+<rect id="fb_desk" x="60" y="290" width="180" height="18" rx="3" fill="#a0785a" stroke="#7a5a3a" stroke-width="2"/>
+<rect id="fb_book" x="95" y="252" width="110" height="38" rx="4" fill="#4a90d9" stroke="#2c6fad" stroke-width="2"/>
+<text id="fb_book_label" x="150" y="276" font-size="13" fill="#fff" text-anchor="middle" font-weight="bold">Book</text>
+<defs><marker id="arrowhead_fb_gravity1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="fb_gravity1" x1="150" y1="252" x2="150" y2="185" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_fb_gravity1)"/>
+<text id="fb_gravity1_label" x="150" y="175" font-size="12" fill="#4CAF50" text-anchor="middle" font-weight="bold">Normal Force N</text>
+<defs><marker id="arrowhead_fb_normal1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e53935"/></marker></defs><line id="fb_normal1" x1="150" y1="290" x2="150" y2="357" stroke="#e53935" stroke-width="3" marker-end="url(#arrowhead_fb_normal1)"/>
+<text id="fb_normal1_label" x="150" y="375" font-size="12" fill="#e53935" text-anchor="middle" font-weight="bold">Weight W = mg</text>
+<text id="fb_s1_eq" x="150" y="415" font-size="13" fill="#555" text-anchor="middle" font-weight="normal">a = 0</text>
+<text id="fb_s1_latex" x="150" y="440" font-size="13" fill="#333" font-style="italic" text-anchor="middle">N - W = 0 \Rightarrow N = W</text>
+<rect id="fb_s1_box" x="48" y="92" width="204" height="370" rx="10" fill="#eef4fb" stroke="#4a90d9" stroke-width="1.5"/>
+<text id="fb_scenario2_title" x="450" y="110" font-size="16" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Scenario 2: Hockey Puck on Ice</text>
+<rect id="fb_ice" x="310" y="295" width="280" height="14" rx="2" fill="#b3d9f7" stroke="#7ab8e8" stroke-width="1.5"/>
+<text id="fb_ice_label" x="450" y="323" font-size="11" fill="#5a9ec9" text-anchor="middle" font-weight="normal">Frictionless Ice</text>
+<ellipse id="fb_puck" cx="450" cy="278" rx="38" ry="17" fill="#333" stroke="#111" stroke-width="2"/>
+<text id="fb_puck_label" x="450" y="283" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold">Puck</text>
+<defs><marker id="arrowhead_fb_puck_motion" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="fb_puck_motion" x1="500" y1="278" x2="570" y2="278" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_fb_puck_motion)"/>
+<text id="fb_puck_v_label" x="535" y="265" font-size="12" fill="#FF9800" text-anchor="middle" font-weight="bold">v = constant</text>
+<defs><marker id="arrowhead_fb_puck_N" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="fb_puck_N" x1="450" y1="261" x2="450" y2="195" stroke="#4CAF50" stroke-width="3" marker-end="url(#arrowhead_fb_puck_N)"/>
+<text id="fb_puck_N_label" x="450" y="185" font-size="12" fill="#4CAF50" text-anchor="middle" font-weight="bold">Normal N</text>
+<defs><marker id="arrowhead_fb_puck_W" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e53935"/></marker></defs><line id="fb_puck_W" x1="450" y1="295" x2="450" y2="361" stroke="#e53935" stroke-width="3" marker-end="url(#arrowhead_fb_puck_W)"/>
+<text id="fb_puck_W_label" x="450" y="378" font-size="12" fill="#e53935" text-anchor="middle" font-weight="bold">Weight W</text>
+<text id="fb_puck_friction" x="390" y="278" font-size="12" fill="#888" text-anchor="middle" font-weight="normal">f ≈ 0</text>
+<text id="fb_s2_note" x="450" y="415" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">No net force → no change in speed</text>
+<text id="fb_s2_latex" x="450" y="440" font-size="13" fill="#333" font-style="italic" text-anchor="middle">\sum F = 0 \Rightarrow a = 0</text>
+<rect id="fb_s2_box" x="308" y="92" width="284" height="370" rx="10" fill="#f0faf0" stroke="#4CAF50" stroke-width="1.5"/>
+<text id="fb_scenario3_title" x="750" y="110" font-size="16" fill="#1a1a2e" text-anchor="middle" font-weight="bold">Scenario 3: Hanging Ball</text>
+<rect id="fb_ceiling" x="660" y="130" width="180" height="16" rx="3" fill="#888" stroke="#555" stroke-width="2"/>
+<line id="fb_string" x1="750" y1="146" x2="750" y2="240" stroke="#555" stroke-width="3" stroke-dasharray=""/>
+<circle id="fb_ball" cx="750" cy="270" r="32" fill="#9c27b0" stroke="#6a0080" stroke-width="2" stroke-dasharray=""/>
+<text id="fb_ball_label" x="750" y="275" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold">m = 0.5 kg</text>
+<defs><marker id="arrowhead_fb_tension" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="fb_tension" x1="750" y1="238" x2="750" y2="170" stroke="#FF9800" stroke-width="3" marker-end="url(#arrowhead_fb_tension)"/>
+<text id="fb_tension_label" x="800" y="200" font-size="12" fill="#FF9800" text-anchor="start" font-weight="bold">T = 4.9 N</text>
+<defs><marker id="arrowhead_fb_ball_weight" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e53935"/></marker></defs><line id="fb_ball_weight" x1="750" y1="302" x2="750" y2="370" stroke="#e53935" stroke-width="3" marker-end="url(#arrowhead_fb_ball_weight)"/>
+<text id="fb_ball_weight_label" x="800" y="345" font-size="12" fill="#e53935" text-anchor="start" font-weight="bold">W = 4.9 N</text>
+<text id="fb_s3_note" x="750" y="415" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">Ball at rest → forces cancel</text>
+<text id="fb_s3_latex" x="750" y="440" font-size="13" fill="#333" font-style="italic" text-anchor="middle">T - mg = 0 \Rightarrow T = mg</text>
+<rect id="fb_s3_box" x="648" y="92" width="204" height="370" rx="10" fill="#fdf4ff" stroke="#9c27b0" stroke-width="1.5"/>
+<rect id="fb_law_banner" x="48" y="480" width="804" height="60" rx="10" fill="#1a1a2e" stroke="none" stroke-width="0"/>
+<text id="fb_law_text1" x="450" y="504" font-size="15" fill="#fff" text-anchor="middle" font-weight="bold">Newton&#x27;s First Law:</text>
+<text id="fb_law_text2" x="450" y="528" font-size="13" fill="#ccc" text-anchor="middle" font-weight="normal">An object remains at rest or moves at constant velocity unless acted upon by a net external force.</text>
+<rect id="fb_legend_bg" x="48" y="556" width="804" height="50" rx="8" fill="#fff" stroke="#ddd" stroke-width="1"/>
+<text id="fb_legend_title" x="100" y="578" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">Legend:</text>
+<line id="fb_leg1_line" x1="140" y1="575" x2="170" y2="575" stroke="#4CAF50" stroke-width="3" stroke-dasharray=""/>
+<text id="fb_leg1_label" x="240" y="579" font-size="12" fill="#4CAF50" text-anchor="middle" font-weight="normal">Normal / Tension (up)</text>
+<line id="fb_leg2_line" x1="340" y1="575" x2="370" y2="575" stroke="#e53935" stroke-width="3" stroke-dasharray=""/>
+<text id="fb_leg2_label" x="430" y="579" font-size="12" fill="#e53935" text-anchor="middle" font-weight="normal">Weight (down)</text>
+<line id="fb_leg3_line" x1="510" y1="575" x2="540" y2="575" stroke="#FF9800" stroke-width="3" stroke-dasharray=""/>
+<text id="fb_leg3_label" x="620" y="579" font-size="12" fill="#FF9800" text-anchor="middle" font-weight="normal">Velocity / Tension</text>
+<text id="fb_leg4_label" x="770" y="579" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">All arrows equal in length → balanced</text>
+</svg>

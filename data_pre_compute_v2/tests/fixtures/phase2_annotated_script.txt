@@ -1,0 +1,13 @@
+<<SHOW_DIAGRAM:d_triangle>>
+Look at this triangle. It has three sides and three angles. <<PIN:hypotenuse|text=hypotenuse|id=pin-1>> This slanted side is called the hypotenuse, and it's always opposite the right angle. The two shorter sides are the legs.
+<<BRACKET:opposite_side,adjacent_side|label=legs|side=below|id=brk-1>>
+<<PAUSE:short>>
+<<WRITE_KEY:The hypotenuse is always opposite the right angle.|id=key-1>>
+Now, the angle we care about is here. <<PIN:theta_angle|text=theta|position=below|id=pin-2>> As theta changes, the ratio of these two legs changes too. <<HIGHLIGHT:opposite_side>>
+<<HIGHLIGHT:adjacent_side|duration=1500>>
+This relationship is the heart of trigonometry. <<PULSE:theta_angle>>
+<<WRITE_EQUATION:\\tan(\\theta) = \\frac{\\text{opposite}}{\\text{adjacent}}|id=eq-1>>
+<<CLEAR_ANNOTATIONS>>
+With the labels out of the way, let's compute a specific case. <<PIN:hypotenuse|text=5 units|id=pin-3>> Suppose the hypotenuse is 5 units long.
+<<WRITE_STEP:Given: hypotenuse = 5, theta = 30 degrees|id=step-1>>
+<<WRITE_ANSWER:opposite ≈ 2.5 units|id=ans-1>>

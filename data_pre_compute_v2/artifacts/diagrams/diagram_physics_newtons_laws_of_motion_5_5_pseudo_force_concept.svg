@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#ffffff"/>
+<text id="title" x="450" y="38" font-size="21" fill="#1a1a2e" text-anchor="middle" font-weight="bold">The Pseudo Force: A Correction for Accelerating Frames</text>
+<rect id="rule_box" x="180" y="58" width="540" height="90" rx="10" fill="#1a1a2e" stroke="#1a1a2e" stroke-width="2"/>
+<text id="rule_text1" x="450" y="85" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="normal">If a frame accelerates at  a₀,  introduce a pseudo force on every object:</text>
+<text id="rule_formula" x="450" y="128" font-size="20" fill="#FFD700" font-style="italic" text-anchor="middle">\vec{F}_{\text{pseudo}} = -m\,\vec{a}_0</text>
+<text id="rule_note" x="450" y="142" font-size="12" fill="#aaa" text-anchor="middle" font-weight="normal">Opposite to the frame&#x27;s acceleration  —  not a real force!</text>
+<rect id="ground_panel" x="30" y="168" width="370" height="450" rx="10" fill="#f0f7ff" stroke="#4682b4" stroke-width="2"/>
+<rect id="elev_panel" x="500" y="168" width="370" height="450" rx="10" fill="#f3fff0" stroke="#388E3C" stroke-width="2"/>
+<text id="ground_title" x="215" y="196" font-size="14" fill="#1565C0" text-anchor="middle" font-weight="bold">Ground Frame (Inertial)</text>
+<text id="elev_title" x="685" y="196" font-size="14" fill="#2E7D32" text-anchor="middle" font-weight="bold">Elevator Frame (Non-Inertial)</text>
+<rect id="g_elevator" x="130" y="220" width="170" height="220" rx="4" fill="#ddeeff" stroke="#1565C0" stroke-width="3"/>
+<line id="g_cable" x1="215" y1="168" x2="215" y2="220" stroke="#555" stroke-width="4" stroke-dasharray=""/>
+<rect id="g_person" x="185" y="340" width="60" height="90" rx="6" fill="#FF9800" stroke="#E65100" stroke-width="2"/>
+<circle id="g_head" cx="215" cy="330" r="18" fill="#FF9800" stroke="#E65100" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_g_accel_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="g_accel_arrow" x1="320" y1="360" x2="320" y2="260" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_g_accel_arrow)"/>
+<text id="g_accel_label" x="348" y="315" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">a_0 \uparrow</text>
+<text id="g_accel_text" x="348" y="335" font-size="11" fill="#D32F2F" text-anchor="start" font-weight="normal">elevator</text>
+<defs><marker id="arrowhead_g_normal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4682b4"/></marker></defs><line id="g_normal" x1="215" y1="430" x2="215" y2="340" stroke="#4682b4" stroke-width="2.5" marker-end="url(#arrowhead_g_normal)"/>
+<defs><marker id="arrowhead_g_weight" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="g_weight" x1="215" y1="430" x2="215" y2="500" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_g_weight)"/>
+<text id="g_normal_label" x="238" y="378" font-size="15" fill="#4682b4" font-style="italic" text-anchor="middle">N</text>
+<text id="g_weight_label" x="238" y="490" font-size="15" fill="#4CAF50" font-style="italic" text-anchor="middle">mg</text>
+<rect id="g_eq_box" x="50" y="460" width="330" height="140" rx="8" fill="#e8f4fd" stroke="#4682b4" stroke-width="1.5"/>
+<text id="g_eq_title" x="215" y="480" font-size="13" fill="#1565C0" text-anchor="middle" font-weight="bold">Newton&#x27;s 2nd Law (ground):</text>
+<text id="g_eq1" x="215" y="510" font-size="15" fill="#333" font-style="italic" text-anchor="middle">N - mg = ma_0</text>
+<text id="g_eq2" x="215" y="540" font-size="15" fill="#1565C0" font-style="italic" text-anchor="middle">N = m(g + a_0)</text>
+<text id="g_eq3" x="215" y="568" font-size="13" fill="#1565C0" text-anchor="middle" font-weight="bold">N &gt; mg  →  you feel heavier!</text>
+<text id="g_no_pseudo" x="215" y="592" font-size="11" fill="#888" text-anchor="middle" font-weight="normal">(No pseudo force needed here)</text>
+<rect id="e_elevator" x="600" y="220" width="170" height="220" rx="4" fill="#ddffd8" stroke="#388E3C" stroke-width="3"/>
+<line id="e_cable" x1="685" y1="168" x2="685" y2="220" stroke="#555" stroke-width="4" stroke-dasharray=""/>
+<rect id="e_person" x="655" y="340" width="60" height="90" rx="6" fill="#FF9800" stroke="#E65100" stroke-width="2"/>
+<circle id="e_head" cx="685" cy="330" r="18" fill="#FF9800" stroke="#E65100" stroke-width="2" stroke-dasharray=""/>
+<text id="e_still_label" x="685" y="245" font-size="12" fill="#2E7D32" text-anchor="middle" font-weight="bold">Person is STILL</text>
+<text id="e_still_label2" x="685" y="260" font-size="12" fill="#2E7D32" text-anchor="middle" font-weight="normal">in this frame</text>
+<defs><marker id="arrowhead_e_normal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4682b4"/></marker></defs><line id="e_normal" x1="685" y1="430" x2="685" y2="340" stroke="#4682b4" stroke-width="2.5" marker-end="url(#arrowhead_e_normal)"/>
+<defs><marker id="arrowhead_e_weight" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="e_weight" x1="685" y1="430" x2="685" y2="500" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_e_weight)"/>
+<defs><marker id="arrowhead_e_pseudo" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="e_pseudo" x1="685" y1="430" x2="685" y2="510" stroke="#D32F2F" stroke-width="3" marker-end="url(#arrowhead_e_pseudo)"/>
+<text id="e_normal_label" x="708" y="378" font-size="15" fill="#4682b4" font-style="italic" text-anchor="middle">N</text>
+<text id="e_weight_label" x="660" y="478" font-size="15" fill="#4CAF50" font-style="italic" text-anchor="middle">mg</text>
+<text id="e_pseudo_label" x="720" y="510" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">ma_0</text>
+<text id="e_pseudo_tag" x="740" y="526" font-size="10" fill="#D32F2F" text-anchor="start" font-weight="bold">PSEUDO</text>
+<rect id="e_eq_box" x="520" y="460" width="330" height="140" rx="8" fill="#e8fde8" stroke="#388E3C" stroke-width="1.5"/>
+<text id="e_eq_title" x="685" y="480" font-size="13" fill="#2E7D32" text-anchor="middle" font-weight="bold">Newton&#x27;s 2nd Law (elevator):</text>
+<text id="e_eq1" x="685" y="510" font-size="15" fill="#333" font-style="italic" text-anchor="middle">N - mg - ma_0 = 0</text>
+<text id="e_eq2" x="685" y="540" font-size="15" fill="#2E7D32" font-style="italic" text-anchor="middle">N = m(g + a_0)</text>
+<text id="e_eq3" x="685" y="568" font-size="13" fill="#2E7D32" text-anchor="middle" font-weight="bold">Same answer! Pseudo force works.</text>
+<text id="e_no_pseudo" x="685" y="592" font-size="11" fill="#888" text-anchor="middle" font-weight="normal">(Pseudo force patches Newton&#x27;s law)</text>
+<line id="center_divider" x1="450" y1="168" x2="450" y2="618" stroke="#ccc" stroke-width="1.5" stroke-dasharray="6,4"/>
+</svg>

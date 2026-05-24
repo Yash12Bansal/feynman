@@ -15,6 +15,13 @@ interface SplitBoardProps {
   readonly notebook: NotebookState;
   readonly mode?: PanelMode;
   readonly notebookTitle?: string;
+  /**
+   * "preview" pins the board to fixed 1600×900 dimensions and absolute
+   * child sizes so it matches the Phase 3 precompute layout pipeline's
+   * measured placements byte-for-byte. The default "responsive" mode is
+   * the live agent path (flex-fractional).
+   */
+  readonly viewport?: "responsive" | "preview";
 }
 
 export function SplitBoard({
@@ -22,9 +29,12 @@ export function SplitBoard({
   notebook,
   mode = "split",
   notebookTitle,
+  viewport = "responsive",
 }: SplitBoardProps) {
+  const className =
+    viewport === "preview" ? "sb-root sb-root--preview" : "sb-root";
   return (
-    <div className="sb-root" data-mode={mode}>
+    <div className={className} data-mode={mode}>
       <SlidePanel state={slide} />
       <Notebook state={notebook} title={notebookTitle} />
     </div>

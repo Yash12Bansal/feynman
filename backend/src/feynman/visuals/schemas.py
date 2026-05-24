@@ -17,7 +17,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # ──────────────────────────────────────────────
 # Shared enums
@@ -80,6 +80,12 @@ class SyncMode(StrEnum):
     IMMEDIATE = "immediate"
     ON_PLAYOUT = "on_playout"
     TERM_SYNC = "term_sync"
+    # Phase 2 (voice-visual sync, Tier A): defer the instruction until the
+    # next sentence boundary in the agent's TTS playout. Used by overlay
+    # annotations so a "highlight the hypotenuse" call lands as the agent
+    # finishes saying the word, not ~800ms before TTS catches up. Frontend
+    # honors this via a sentence-boundary queue in `useVisualChannel`.
+    AFTER_NEXT_SENTENCE = "after_next_sentence"
 
 
 class BoardIntent(StrEnum):
@@ -593,3 +599,120 @@ class NewPageInstruction(_BaseInstruction):
 
     type: Literal["new_page"] = "new_page"
     carry_forward_ids: list[str] = Field(default_factory=list)
+
+
+# ──────────────────────────────────────────────
+# Slide annotation tools (diagram awareness)
+#
+# These four instruction types render as an overlay layer above the slide's
+# diagram SVG. The teaching agent uses them to write *around* a diagram —
+# pinned labels, callouts, brackets spanning two elements, single-element
+# pulse highlights. Targeted by `element_id` resolved from a diagram-dictionary
+# role on the backend before publish.
+# ──────────────────────────────────────────────
+
+
+class AnnotationTarget(BaseModel):
+    """Multi-kind target for annotation tools (Phase 1).
+
+    The legacy single-string handle (``target_element_id``) only resolves
+    against pre-baked diagram-dictionary roles/ids. Real teaching needs
+    wider vocabulary: "the red line", "next to '60°'", arbitrary data-attr
+    queries. This model carries the kind alongside the value so the
+    frontend can pick the right resolution strategy against the live DOM.
+
+    Kinds:
+        - id         — exact ``data-design-element="value"`` match.
+        - role       — dictionary lookup by role, then DOM by resolved id.
+        - color      — ``[stroke="value"]`` or ``[fill="value"]`` match.
+        - near_text  — ``<text>`` whose content contains ``value`` (substring).
+        - data_attr  — arbitrary ``[data-{attr}="value"]`` (escape hatch).
+
+    For ``data_attr`` the attribute name lives in ``attr``; for every other
+    kind ``attr`` is ignored.
+    """
+
+    kind: Literal["id", "role", "color", "near_text", "data_attr"] = "id"
+    value: str
+    attr: str | None = None
+
+
+class PinLabelInstruction(_BaseInstruction):
+    """Place a small text label near a diagram element with a thin connector.
+
+    ``panel`` is stamped to ``Panel.SLIDE`` by ``_stamp_panel`` at publish time
+    via ``INSTRUCTION_TYPE_TO_PANEL`` — the model leaves it ``None`` so that
+    the same stamping contract holds for every instruction type.
+    """
+
+    type: Literal["pin_label"] = "pin_label"
+    target_element_id: str
+    target: AnnotationTarget | None = None
+    text: str = Field(..., max_length=120)
+    position: Literal["above", "below", "left", "right"] = "above"
+
+    @field_validator("target", mode="before")
+    @classmethod
+    def _normalize_target(cls, v: object) -> object:
+        return _normalize_annotation_target(v)
+
+
+class DrawCalloutInstruction(_BaseInstruction):
+    """Speech-bubble callout from a specific diagram element."""
+
+    type: Literal["draw_callout"] = "draw_callout"
+    target_element_id: str
+    target: AnnotationTarget | None = None
+    text: str = Field(..., max_length=200)
+    direction: Literal[
+        "up",
+        "down",
+        "up-left",
+        "up-right",
+        "down-left",
+        "down-right",
+    ] = "up-right"
+
+    @field_validator("target", mode="before")
+    @classmethod
+    def _normalize_target(cls, v: object) -> object:
+        return _normalize_annotation_target(v)
+
+
+class BracketInstruction(_BaseInstruction):
+    """Curly-brace bracket spanning two diagram elements with a centered label."""
+
+    type: Literal["bracket"] = "bracket"
+    element_a_id: str
+    element_b_id: str
+    target_a: AnnotationTarget | None = None
+    target_b: AnnotationTarget | None = None
+    label: str = Field(..., max_length=80)
+    side: Literal["above", "below", "left", "right"] = "above"
+
+    @field_validator("target_a", "target_b", mode="before")
+    @classmethod
+    def _normalize_target(cls, v: object) -> object:
+        return _normalize_annotation_target(v)
+
+
+class HighlightPulseInstruction(_BaseInstruction):
+    """Single-element pulse highlight — one short glow cycle."""
+
+    type: Literal["highlight_pulse"] = "highlight_pulse"
+    target_element_id: str
+    target: AnnotationTarget | None = None
+    duration_ms: int = Field(1200, ge=400, le=3000)
+    color_token: str = "--sb-neon"
+
+    @field_validator("target", mode="before")
+    @classmethod
+    def _normalize_target(cls, v: object) -> object:
+        return _normalize_annotation_target(v)
+
+
+def _normalize_annotation_target(v: object) -> object:
+    """Accept bare strings as kind=id targets so callers can pass either form."""
+    if isinstance(v, str):
+        return {"kind": "id", "value": v}
+    return v

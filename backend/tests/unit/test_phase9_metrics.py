@@ -112,6 +112,9 @@ def _make_mock_ctx(board_manager: BoardManager | None = None) -> MagicMock:
     userdata.state_machine = MagicMock()
     userdata.state_machine.depth = 1
     userdata.session_id = uuid4()
+    # Phase 5a-2: short-circuit the diagram-verification scheduler — these
+    # tests don't exercise the perception loop.
+    userdata.board_verifier = None
     ctx.userdata = userdata
     return ctx
 
@@ -152,7 +155,9 @@ class TestModifyTiming:
             new_callable=AsyncMock,
             return_value=MODIFIED_SPEC,
         ):
-            await modify_design_diagram(ctx, target_id="design-1", modification="add friction vector")
+            await modify_design_diagram(
+                ctx, target_id="design-1", modification="add friction vector"
+            )
 
         events = tc.audit.events_for("modify_diagram")
         assert len(events) == 1
@@ -182,7 +187,8 @@ class TestModifyTiming:
 
         # Check that modify_design_diagram.complete was logged.
         complete_calls = [
-            c for c in mock_logger.info.call_args_list
+            c
+            for c in mock_logger.info.call_args_list
             if c.args and c.args[0] == "modify_design_diagram.complete"
         ]
         assert len(complete_calls) == 1
@@ -197,12 +203,18 @@ class TestAuditSummaryEnriched:
         """Summary dict has 'modify' key with count and avg_time."""
         audit = SessionAudit()
         audit.record(
-            "modify_diagram", "modified", "target=design-1",
-            target_id="design-1", elapsed_ms=1500.0,
+            "modify_diagram",
+            "modified",
+            "target=design-1",
+            target_id="design-1",
+            elapsed_ms=1500.0,
         )
         audit.record(
-            "modify_diagram", "modified", "target=design-2",
-            target_id="design-2", elapsed_ms=2500.0,
+            "modify_diagram",
+            "modified",
+            "target=design-2",
+            target_id="design-2",
+            elapsed_ms=2500.0,
         )
 
         summary = audit.summary()
@@ -228,10 +240,14 @@ class TestAuditSummaryEnriched:
         """summary_text() includes modify and doubt lines."""
         audit = SessionAudit()
         audit.record(
-            "anticipation", "cache_hit", "concept=0",
+            "anticipation",
+            "cache_hit",
+            "concept=0",
         )
         audit.record(
-            "modify_diagram", "modified", "target=design-1",
+            "modify_diagram",
+            "modified",
+            "target=design-1",
             elapsed_ms=1200.0,
         )
         audit.record("doubt", "background_gen_fired", "concept='forces'")
@@ -253,3 +269,56 @@ class TestAuditSummaryEnriched:
         assert summary["anticipation"] is None
         assert summary["modify"] is None
         assert summary["doubt"] is None
+        assert summary["drift"] is None
+
+
+# ── Phase 5a-3 drift summary ─────────────────────────────
+
+
+class TestDriftSummary:
+    def test_summary_includes_drift_section_when_checks_recorded(self) -> None:
+        audit = SessionAudit()
+        audit.record(
+            "drift_check",
+            "completed",
+            "concept=0, is_consistent=True, drift_kind=None, hash=h1",
+        )
+        audit.record(
+            "drift_check",
+            "completed",
+            "concept=1, is_consistent=False, drift_kind=concept_fit, hash=h2",
+        )
+        audit.record("drift_check", "skipped_unchanged", "h1")
+        audit.record("drift_check", "skipped_doubt_branch", "")
+
+        summary = audit.summary()
+        drift = summary["drift"]
+        assert drift is not None
+        assert drift["checks_run"] == 2
+        assert drift["checks_skipped"] == 2
+        assert drift["drift_detected"] == 1
+        assert drift["by_kind"]["concept_fit"] == 1
+        assert drift["by_kind"]["cumulative_integrity"] == 0
+        assert drift["by_kind"]["both"] == 0
+
+    def test_summary_text_renders_drift_line(self) -> None:
+        audit = SessionAudit()
+        audit.record(
+            "drift_check",
+            "completed",
+            "concept=0, is_consistent=False, drift_kind=cumulative_integrity, hash=h",
+        )
+        audit.record("drift_check", "skipped_unchanged", "h")
+
+        text = audit.summary_text()
+        assert "DRIFT:" in text
+        assert "1 checks run" in text
+        assert "1 skipped" in text
+        assert "cumulative_integrity=1" in text
+
+    def test_summary_drift_section_absent_when_no_events(self) -> None:
+        audit = SessionAudit()
+        audit.record("anticipation", "cache_hit", "concept=0")
+        summary = audit.summary()
+        assert summary["drift"] is None
+        assert "DRIFT:" not in audit.summary_text()

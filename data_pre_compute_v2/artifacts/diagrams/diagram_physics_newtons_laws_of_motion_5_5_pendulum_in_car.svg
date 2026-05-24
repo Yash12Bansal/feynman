@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="#f8f9fa"/>
+<rect id="pc_left_bg" x="20" y="55" width="400" height="575" rx="12" fill="#eaf4fb" stroke="#4682b4" stroke-width="2"/>
+<rect id="pc_right_bg" x="480" y="55" width="400" height="575" rx="12" fill="#fff8e1" stroke="#FF9800" stroke-width="2"/>
+<text id="pc_left_title" x="220" y="88" font-size="16" fill="#1a5276" text-anchor="middle" font-weight="bold">Road Frame (Inertial)</text>
+<text id="pc_right_title" x="680" y="88" font-size="16" fill="#7d4e00" text-anchor="middle" font-weight="bold">Car Frame (Non-Inertial)</text>
+<rect id="pc_car_left" x="60" y="110" width="320" height="160" rx="6" fill="#d6eaf8" stroke="#2e86c1" stroke-width="2"/>
+<circle id="pc_wheel1_left" cx="110" cy="275" r="16" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="pc_wheel2_left" cx="330" cy="275" r="16" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="pc_pivot_left" cx="220" cy="125" r="5" fill="#333" stroke="#333" stroke-width="1" stroke-dasharray=""/>
+<line id="pc_string_left" x1="220" y1="125" x2="258" y2="215" stroke="#555" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="pc_bob_left" cx="258" cy="215" r="16" fill="#e74c3c" stroke="#c0392b" stroke-width="2" stroke-dasharray=""/>
+<line id="pc_vertical_ref_left" x1="220" y1="125" x2="220" y2="215" stroke="#aaa" stroke-width="1.5" stroke-dasharray="5,4"/>
+<path id="pc_theta_arc_left" d="M 220.0 155.0 A 30.0 30.0 0 0 1 207.321452147779 152.1892336110995" stroke="#8e44ad" stroke-width="1.5" fill="none"/>
+<text id="pc_theta_label_left" x="237" y="158" font-size="14" fill="#8e44ad" font-style="italic" text-anchor="middle">\theta</text>
+<defs><marker id="arrowhead_pc_tension_left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="pc_tension_left" x1="258" y1="215" x2="220" y2="125" stroke="#FF9800" stroke-width="2.5" marker-end="url(#arrowhead_pc_tension_left)"/>
+<text id="pc_tension_label_left" x="222" y="168" font-size="14" fill="#FF9800" text-anchor="middle" font-weight="bold">T</text>
+<defs><marker id="arrowhead_pc_gravity_left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="pc_gravity_left" x1="258" y1="215" x2="258" y2="265" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_pc_gravity_left)"/>
+<text id="pc_gravity_label_left" x="275" y="255" font-size="14" fill="#4CAF50" font-style="italic" text-anchor="middle">mg</text>
+<defs><marker id="arrowhead_pc_net_left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="pc_net_left" x1="258" y1="215" x2="310" y2="215" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_pc_net_left)"/>
+<text id="pc_net_label_left" x="330" y="210" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">ma</text>
+<defs><marker id="arrowhead_pc_car_accel_left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2e86c1"/></marker></defs><line id="pc_car_accel_left" x1="330" y1="175" x2="395" y2="175" stroke="#2e86c1" stroke-width="3" marker-end="url(#arrowhead_pc_car_accel_left)"/>
+<text id="pc_car_accel_label_left" x="400" y="170" font-size="14" fill="#2e86c1" font-style="italic" text-anchor="middle">a</text>
+<text id="pc_left_explain1" x="220" y="310" font-size="12" fill="#333" text-anchor="middle" font-weight="normal">Bob lags behind as car accelerates.</text>
+<text id="pc_left_explain2" x="220" y="330" font-size="12" fill="#333" text-anchor="middle" font-weight="normal">Net horizontal force = ma (forward).</text>
+<rect id="pc_eq_box_left" x="45" y="350" width="360" height="110" rx="8" fill="#d5f5e3" stroke="#27ae60" stroke-width="1.5"/>
+<text id="pc_eq_title_left" x="225" y="373" font-size="13" fill="#1e8449" text-anchor="middle" font-weight="bold">Equations (Road Frame):</text>
+<text id="pc_eq1_left" x="225" y="400" font-size="14" fill="#1e8449" font-style="italic" text-anchor="middle">T\sin\theta = ma</text>
+<text id="pc_eq2_left" x="225" y="425" font-size="14" fill="#1e8449" font-style="italic" text-anchor="middle">T\cos\theta = mg</text>
+<text id="pc_eq3_left" x="225" y="450" font-size="14" fill="#1e8449" font-style="italic" text-anchor="middle">\Rightarrow \tan\theta = \frac{a}{g}</text>
+<rect id="pc_key_box_left" x="45" y="475" width="360" height="50" rx="8" fill="#d6eaf8" stroke="#2e86c1" stroke-width="1.5"/>
+<text id="pc_key_left" x="225" y="496" font-size="12" fill="#1a5276" text-anchor="middle" font-weight="normal">Bob accelerates forward with the car.</text>
+<text id="pc_key_left2" x="225" y="514" font-size="12" fill="#1a5276" text-anchor="middle" font-weight="normal">String tension provides that net force.</text>
+<rect id="pc_car_right" x="520" y="110" width="320" height="160" rx="6" fill="#fef9e7" stroke="#d4ac0d" stroke-width="2"/>
+<circle id="pc_wheel1_right" cx="570" cy="275" r="16" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="pc_wheel2_right" cx="790" cy="275" r="16" fill="#555" stroke="#333" stroke-width="2" stroke-dasharray=""/>
+<circle id="pc_pivot_right" cx="680" cy="125" r="5" fill="#333" stroke="#333" stroke-width="1" stroke-dasharray=""/>
+<line id="pc_string_right" x1="680" y1="125" x2="718" y2="215" stroke="#555" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="pc_bob_right" cx="718" cy="215" r="16" fill="#e74c3c" stroke="#c0392b" stroke-width="2" stroke-dasharray=""/>
+<line id="pc_vertical_ref_right" x1="680" y1="125" x2="680" y2="215" stroke="#aaa" stroke-width="1.5" stroke-dasharray="5,4"/>
+<path id="pc_theta_arc_right" d="M 680.0 155.0 A 30.0 30.0 0 0 1 667.321452147779 152.1892336110995" stroke="#8e44ad" stroke-width="1.5" fill="none"/>
+<text id="pc_theta_label_right" x="697" y="158" font-size="14" fill="#8e44ad" font-style="italic" text-anchor="middle">\theta</text>
+<defs><marker id="arrowhead_pc_tension_right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#FF9800"/></marker></defs><line id="pc_tension_right" x1="718" y1="215" x2="680" y2="125" stroke="#FF9800" stroke-width="2.5" marker-end="url(#arrowhead_pc_tension_right)"/>
+<text id="pc_tension_label_right" x="682" y="168" font-size="14" fill="#FF9800" text-anchor="middle" font-weight="bold">T</text>
+<defs><marker id="arrowhead_pc_gravity_right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/></marker></defs><line id="pc_gravity_right" x1="718" y1="215" x2="718" y2="265" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowhead_pc_gravity_right)"/>
+<text id="pc_gravity_label_right" x="735" y="255" font-size="14" fill="#4CAF50" font-style="italic" text-anchor="middle">mg</text>
+<defs><marker id="arrowhead_pc_pseudo_right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#D32F2F"/></marker></defs><line id="pc_pseudo_right" x1="718" y1="215" x2="658" y2="215" stroke="#D32F2F" stroke-width="2.5" marker-end="url(#arrowhead_pc_pseudo_right)"/>
+<text id="pc_pseudo_label_right" x="638" y="208" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">ma</text>
+<text id="pc_pseudo_tag_right" x="620" y="225" font-size="11" fill="#D32F2F" text-anchor="middle" font-weight="bold">(pseudo)</text>
+<text id="pc_right_explain1" x="680" y="310" font-size="12" fill="#333" text-anchor="middle" font-weight="normal">Bob appears stationary in car frame.</text>
+<text id="pc_right_explain2" x="680" y="330" font-size="12" fill="#333" text-anchor="middle" font-weight="normal">Three forces balance: T, mg, pseudo force.</text>
+<rect id="pc_eq_box_right" x="505" y="350" width="360" height="110" rx="8" fill="#fde8e8" stroke="#D32F2F" stroke-width="1.5"/>
+<text id="pc_eq_title_right" x="685" y="373" font-size="13" fill="#D32F2F" text-anchor="middle" font-weight="bold">Equations (Car Frame):</text>
+<text id="pc_eq1_right" x="685" y="400" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">T\sin\theta - ma = 0</text>
+<text id="pc_eq2_right" x="685" y="425" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">T\cos\theta - mg = 0</text>
+<text id="pc_eq3_right" x="685" y="450" font-size="14" fill="#D32F2F" font-style="italic" text-anchor="middle">\Rightarrow \tan\theta = \frac{a}{g}</text>
+<rect id="pc_key_box_right" x="505" y="475" width="360" height="50" rx="8" fill="#fef9e7" stroke="#FF9800" stroke-width="1.5"/>
+<text id="pc_key_right" x="685" y="496" font-size="12" fill="#7d4e00" text-anchor="middle" font-weight="bold">Same angle predicted by both frames!</text>
+<text id="pc_key_right2" x="685" y="514" font-size="12" fill="#7d4e00" text-anchor="middle" font-weight="normal">Pseudo force gives the correct answer.</text>
+<line id="pc_divider" x1="450" y1="55" x2="450" y2="630" stroke="#aaa" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text id="pc_same_result" x="450" y="610" font-size="14" fill="#555" text-anchor="middle" font-weight="bold">Both frames give: tan θ = a/g</text>
+</svg>

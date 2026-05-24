@@ -29,6 +29,7 @@ export function useSession() {
     sessionId: session?.session_id ?? null,
     token: session?.token ?? null,
     livekitUrl: session?.livekit_url ?? null,
+    lectureChapterId: session?.lecture_chapter_id ?? null,
     status,
     error,
     startSession,
