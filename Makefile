@@ -31,8 +31,10 @@ dev-worker:
 
 # Serves /lecture-api/chapters + /lecture-api/chapter/{id} from Neo4j on :8080.
 # Required for the LectureHomeScreen picker and LectureViewer chapter fetch.
+# Binds 0.0.0.0 so both IPv4 and IPv6 wildcards are covered (avoids the
+# IPv4-only-bind + IPv6-localhost-resolution mismatch that bit us in Phase 2).
 dev-preview-server:
-	cd data_pre_compute_v2 && poetry run python tools/preview_server.py --port 8080
+	cd data_pre_compute_v2 && poetry run python tools/preview_server.py --port 8080 --host 0.0.0.0
 
 # --- Testing ---
 test: test-backend test-frontend

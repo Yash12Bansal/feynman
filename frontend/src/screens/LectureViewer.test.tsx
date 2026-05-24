@@ -56,6 +56,6 @@ describe("LectureViewer", () => {
     );
     const { findByTestId } = render(<LectureViewer chapterId="chapter:test" />);
     const board = await waitFor(() => findByTestId("split-board"));
-    expect(board.getAttribute("data-mode")).toBe("slide_full");
+    expect(board.getAttribute("data-mode")).toBe("split");
   });
 });

@@ -63,7 +63,7 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       <SplitBoard
         slide={slide}
         notebook={notebook}
-        mode="slide_full"
+        mode="split"
         notebookTitle={chapter.title}
       />
       <audio ref={setAudioElement} preload="auto" />
