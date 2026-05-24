@@ -517,6 +517,16 @@ export interface DesignDiagramSpec {
    * overlay falls through to a no-op for that target.
    */
   dictionary?: Record<string, ElementMeta>;
+  /**
+   * Doc 18 §4.3: how the renderer should reveal this diagram's elements.
+   *  - "build_up": elements start hidden; first FOCUS on each reveals it.
+   *                Matches a teacher drawing as they talk.
+   *  - "overview": all elements visible from the start (slightly dimmed);
+   *                FOCUS spotlights the active one. Matches pointing at a
+   *                pre-drawn reference.
+   * Optional — undefined defaults to "overview" at render time.
+   */
+  presentation_mode?: "build_up" | "overview";
 }
 
 export interface DrawDesignDiagramInstruction extends BaseInstruction {

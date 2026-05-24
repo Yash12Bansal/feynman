@@ -21,6 +21,7 @@ from feynman.agent.placement_executor import resolve_placement
 from feynman.agent.scenario_planner import detect_scenario, plan_scenario
 from feynman.agent.states import TeachingState
 from feynman.agent.tool_constraints import state_constrained
+from feynman.config import settings
 from feynman.visuals.schemas import (
     AnnotateInstruction,
     AnnotationAction,
@@ -2180,7 +2181,7 @@ async def advance_concept(ctx: RunContext) -> str:
         # but if the teacher advanced fast or planning failed, handle it here.
         # Each plan receives the previous plan for narrative continuity.
         if tc.curriculum and tc.lesson_plan:
-            from feynman.agent.concept_planner import plan_concept
+            from feynman_teaching_kernel import plan_concept
 
             async def _ensure_plans() -> None:
                 for idx in (new_index, new_index + 1):
@@ -2192,6 +2193,7 @@ async def advance_concept(ctx: RunContext) -> str:
                             board_summary=tc.board_manager.summary(),
                             audit=tc.audit,
                             prev_plan=tc.concept_plans.get(idx - 1),
+                            api_key=settings.anthropic_api_key,
                         )
                         if result:
                             tc.concept_plans[idx] = result
@@ -2303,7 +2305,7 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
     # Fire background doubt planning. Once the plan lands, push its checklist
     # into the orchestrator so resolution gating reflects the real plan.
     if tc.curriculum:
-        from feynman.agent.concept_planner import plan_doubt
+        from feynman_teaching_kernel import plan_doubt
 
         async def _plan_doubt() -> None:
             result = await plan_doubt(
@@ -2312,6 +2314,7 @@ async def start_doubt_branch(ctx: RunContext, related_concept: str) -> str:
                 board_summary=board_summary,
                 curriculum=tc.curriculum,
                 audit=tc.audit,
+                api_key=settings.anthropic_api_key,
             )
             if result:
                 tc.doubt_plan = result

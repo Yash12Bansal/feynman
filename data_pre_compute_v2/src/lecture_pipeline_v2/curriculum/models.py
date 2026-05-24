@@ -11,9 +11,43 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Any, Literal, Union
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+if TYPE_CHECKING:
+    from feynman_teaching_kernel import ConceptTeachingPlan
+
+    from lecture_pipeline_v2.curriculum.beat_narration.models import BeatNarration
+    from lecture_pipeline_v2.curriculum.lecture_plan.lesson_narrator import (
+        TopicNarration,
+    )
+    from lecture_pipeline_v2.curriculum.lecture_plan.lesson_plan_models import (
+        LessonPlan,
+    )
+    from lecture_pipeline_v2.curriculum.lecture_plan.models import ChapterLecturePlan
+
+
+# ---------------------------------------------------------------------------
+# Geometry primitives (Phase 3 — precompute-lecture-overhaul)
+# ---------------------------------------------------------------------------
+
+
+class Rect(BaseModel):
+    """Axis-aligned rectangle in page coordinates (pixels)."""
+
+    x: float
+    y: float
+    width: float
+    height: float
+
+
+class Placement(BaseModel):
+    """Resolved page-coordinate placement of a notebook block or slide diagram."""
+
+    page_index: int = Field(..., ge=0)
+    rect: Rect
+    measured: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -35,6 +69,17 @@ class PauseEvent(BaseModel):
 class ShowDiagramEvent(BaseModel):
     type: Literal["show_diagram"] = "show_diagram"
     diagram_id: str
+    # Phase 3: optional. Slide placement (page-coord rect) of the diagram and
+    # per-role page-coord bounds of dictionary elements. Frontend's live-DOM
+    # resolver still works without these; they're forward-compat for a
+    # hypothetical deterministic resolver.
+    placement: Placement | None = None
+    slide_element_bounds: dict[str, Rect] | None = None
+    # Doc 18 §4.3 — mirrored from the Diagram so the frontend knows whether
+    # to start in build-up (hidden elements, reveal on focus) or overview
+    # (all visible, dim non-focused). Optional for back-compat with older
+    # manifests that didn't carry the field.
+    presentation_mode: Literal["build_up", "overview"] | None = None
 
 
 class TopicStartEvent(BaseModel):
@@ -55,6 +100,7 @@ class WriteSectionEvent(BaseModel):
     type: Literal["write_section"] = "write_section"
     id: str
     title: str
+    placement: Placement | None = None
 
 
 class WriteEquationEvent(BaseModel):
@@ -66,6 +112,7 @@ class WriteEquationEvent(BaseModel):
         description="Equations sharing an align_group line up their '=' signs.",
     )
     boxed: bool = False
+    placement: Placement | None = None
 
 
 class WriteStepEvent(BaseModel):
@@ -73,24 +120,28 @@ class WriteStepEvent(BaseModel):
     id: str
     text: str
     indent: int = Field(default=0, ge=0, le=3)
+    placement: Placement | None = None
 
 
 class WriteTextEvent(BaseModel):
     type: Literal["write_text"] = "write_text"
     id: str
     text: str
+    placement: Placement | None = None
 
 
 class WriteKeyPointEvent(BaseModel):
     type: Literal["write_key_point"] = "write_key_point"
     id: str
     text: str
+    placement: Placement | None = None
 
 
 class WriteAnswerEvent(BaseModel):
     type: Literal["write_answer"] = "write_answer"
     id: str
     text: str
+    placement: Placement | None = None
 
 
 class StrikethroughEvent(BaseModel):
@@ -99,8 +150,216 @@ class StrikethroughEvent(BaseModel):
 
 
 class NewPageEvent(BaseModel):
+    """Pre-Phase-3 marker-driven page break. Still emitted when a fragment
+    stream has no LayoutPlanner attached (e.g., standalone narrations).
+    Phase 3+ chapter narration emits PageBreakEvent instead.
+    """
+
     type: Literal["new_page"] = "new_page"
     carry_forward_ids: list[str] = Field(default_factory=list)
+
+
+class PageBreakEvent(BaseModel):
+    """Phase 3 deterministic page break — emitted by the LayoutPlanner when
+    measured notebook overflow occurs, a new diagram requires a fresh page,
+    or a writer `<<NEW_PAGE>>` marker is seen. The slide_action distinguishes
+    whether the slide stays put, swaps to a new diagram, or releases to a
+    soft placeholder during the page turn.
+    """
+
+    type: Literal["page_break"] = "page_break"
+    new_page_index: int = Field(..., ge=0)
+    slide_action: Literal["keep", "swap", "release"]
+    next_diagram_id: str | None = None
+    notebook_carry_forward_ids: list[str] = Field(default_factory=list)
+    reason: Literal["text_overflow", "new_diagram", "writer_marker"]
+
+
+# ---------------------------------------------------------------------------
+# Attention-direction events (doc 18 spotlight redesign)
+#
+# Doc-18 primitive: spotlight one role on the active diagram.
+#   FocusEvent     — spotlight `target_role`; optional inline label `text`.
+#                    Replaces previous focus on the same diagram.
+#   UnfocusEvent   — release the current focus (rarely emitted; next FOCUS
+#                    or SHOW_DIAGRAM implicitly releases).
+#   ClearAnnotationsEvent — reset spotlight state for the active diagram.
+#                    Kept as the canonical event name for back-compat with
+#                    stored manifests that used CLEAR_ANNOTATIONS; the
+#                    chunker emits one from either marker.
+#
+# Legacy events (PinEvent / CalloutEvent / BracketEvent / HighlightEvent /
+# PulseEvent) below are READ-ONLY back-compat — the writer never emits new
+# ones (the walker drops legacy fragments). They exist so older extraction
+# files load + the frontend handlers don't crash mid-transition.
+#
+# Every focus targets a role from the active diagram's `dictionary`
+# (Phase 1). The frontend resolves role → element_id via live-DOM query at
+# render time; `target_element_id` is a fallback hint from the composer.
+# ---------------------------------------------------------------------------
+
+
+class FocusEvent(BaseModel):
+    """Spotlight a single element of the active diagram.
+
+    Doc 19 §A-3: `target_element_id` is now the PREFERRED selector (stable id
+    from the diagram's dictionary). `target_role` is kept for back-compat with
+    extraction files generated before the switch — those files only carried
+    the role string. New events always populate both fields; the walker
+    resolves role → element_id from the active diagram.
+
+    `at_least_one_target` makes either field acceptable in isolation so old
+    JSON deserializes cleanly, but FocusEvent({}, diagram_id) without either
+    selector is a programmer error.
+    """
+
+    type: Literal["focus"] = "focus"
+    diagram_id: str
+    target_element_id: str | None = None
+    target_role: str | None = None
+    text: str = Field(
+        default="",
+        description="Optional 2-3 word inline label rendered near the focused element.",
+    )
+
+    @model_validator(mode="after")
+    def at_least_one_target(self) -> "FocusEvent":
+        if not self.target_element_id and not self.target_role:
+            raise ValueError(
+                "FocusEvent must specify target_element_id (preferred) or "
+                "target_role (deprecated back-compat alias)."
+            )
+        return self
+
+
+class UnfocusEvent(BaseModel):
+    type: Literal["unfocus"] = "unfocus"
+    diagram_id: str
+
+
+# --- New live-annotation primitives (doc 19 §12) ----------------------------
+#
+# These four primitives extend FOCUS into a fuller "live whiteboard" surface.
+# Phase A only defines the event shapes + walker→event mapping; Phase B builds
+# the matching frontend components. The §7 hand-build proof exercises them
+# end-to-end before Phase C wires the planner to emit them automatically.
+# ---------------------------------------------------------------------------
+
+
+class TraceEvent(BaseModel):
+    """Animate a stroke along the element's path — for trajectories / curves.
+
+    Frontend renders the element's outline as an animated dash that draws
+    from 0 → full length over `duration_ms`. Stays visible after completion.
+    """
+
+    type: Literal["trace"] = "trace"
+    diagram_id: str
+    element_id: str = Field(min_length=1)
+    duration_ms: int = Field(default=1500, ge=0)
+
+
+class MarkPointEvent(BaseModel):
+    """Drop a small marker at a (x, y) in the diagram's viewBox space.
+
+    Used for marking landing points, intersections, ad-hoc reference dots
+    that aren't part of the diagram's element dictionary.
+    """
+
+    type: Literal["mark_point"] = "mark_point"
+    diagram_id: str
+    x: float
+    y: float
+    kind: Literal["dot", "cross", "star"] = "dot"
+    label: str = ""
+
+
+class PointAtEvent(BaseModel):
+    """A finger / arrow pointing at an element from a specified side.
+
+    Lighter-weight than FOCUS — does not dim the rest of the diagram. Used
+    when the teacher wants to "tap" a previously-focused element without
+    re-spotlighting it.
+    """
+
+    type: Literal["point_at"] = "point_at"
+    diagram_id: str
+    element_id: str = Field(min_length=1)
+    from_side: Literal["top", "bottom", "left", "right"] = "left"
+
+
+class WriteMarginEvent(BaseModel):
+    """Hand-written-style note rendered in the margin next to an element.
+
+    For tiny inline annotations — e.g. an arrow with "= mg" or "ground frame"
+    written next to a curve. Less heavyweight than a full diagram element.
+    """
+
+    type: Literal["write_margin"] = "write_margin"
+    diagram_id: str
+    anchor_element_id: str = Field(min_length=1)
+    side: Literal["top", "bottom", "left", "right"] = "right"
+    text: str = Field(min_length=1)
+
+
+# --- Legacy annotation events (read-only back-compat) ------------------------
+
+
+class PinEvent(BaseModel):
+    type: Literal["pin"] = "pin"
+    diagram_id: str
+    annotation_id: str
+    target_role: str
+    target_element_id: str | None = None
+    text: str
+    position: Literal["above", "below", "left", "right"] = "above"
+
+
+class CalloutEvent(BaseModel):
+    type: Literal["callout"] = "callout"
+    diagram_id: str
+    annotation_id: str
+    target_role: str
+    target_element_id: str | None = None
+    text: str
+    direction: Literal[
+        "up", "down", "up-right", "up-left", "down-right", "down-left"
+    ] = "up-right"
+
+
+class BracketEvent(BaseModel):
+    type: Literal["bracket"] = "bracket"
+    diagram_id: str
+    annotation_id: str
+    target_role_a: str
+    target_role_b: str
+    target_element_id_a: str | None = None
+    target_element_id_b: str | None = None
+    label: str
+    side: Literal["above", "below", "left", "right"] = "above"
+
+
+class HighlightEvent(BaseModel):
+    type: Literal["highlight"] = "highlight"
+    diagram_id: str
+    target_role: str
+    target_element_id: str | None = None
+    duration_ms: int = Field(default=1500, ge=0)
+    color_token: str | None = None
+
+
+class PulseEvent(BaseModel):
+    type: Literal["pulse"] = "pulse"
+    diagram_id: str
+    target_role: str
+    target_element_id: str | None = None
+    duration_ms: int = Field(default=800, ge=0)
+    color_token: str | None = None
+
+
+class ClearAnnotationsEvent(BaseModel):
+    type: Literal["clear_annotations"] = "clear_annotations"
+    diagram_id: str
 
 
 ManifestEvent = Annotated[
@@ -117,9 +376,39 @@ ManifestEvent = Annotated[
         WriteAnswerEvent,
         StrikethroughEvent,
         NewPageEvent,
+        PageBreakEvent,
+        FocusEvent,
+        UnfocusEvent,
+        ClearAnnotationsEvent,
+        TraceEvent,
+        MarkPointEvent,
+        PointAtEvent,
+        WriteMarginEvent,
+        # Legacy back-compat (writer no longer emits):
+        PinEvent,
+        CalloutEvent,
+        BracketEvent,
+        HighlightEvent,
+        PulseEvent,
     ],
     Field(discriminator="type"),
 ]
+
+
+# ---------------------------------------------------------------------------
+# Per-page diagnostic summary (Phase 3) — attached to Chapter as `pages`.
+# Not user-facing; used for post-hoc analysis of pagination quality.
+# ---------------------------------------------------------------------------
+
+
+class PageSummary(BaseModel):
+    page_index: int = Field(..., ge=0)
+    topic_id: str
+    slide_diagram_id: str | None = None
+    notebook_block_count: int = Field(default=0, ge=0)
+    notebook_height_used_px: float = Field(default=0.0, ge=0.0)
+    notebook_height_total_px: float = Field(default=0.0, ge=0.0)
+    annotations_count: int = Field(default=0, ge=0)
 
 
 class Manifest(BaseModel):
@@ -194,6 +483,24 @@ class Diagram(BaseModel):
         description="Pre-rendered PNG (svg) or MP4 (manim); set during media phase",
     )
     linked_topic_ids: list[str] = Field(default_factory=list)
+    linked_beat_id: str = Field(
+        default="",
+        description=(
+            "Phase 4c — populated for per-beat diagrams (format: '{topic_id}_b{beat_index}'); "
+            "empty for legacy per-topic diagrams."
+        ),
+    )
+    # Doc 18 §4.3 — how the frontend should reveal this diagram's elements.
+    #   "build_up": elements start hidden; first FOCUS on each reveals it.
+    #               Matches a teacher drawing as they talk. Default for
+    #               concept-style beats (hook/big_picture/first_principles/
+    #               visual_build/misconception).
+    #   "overview": all elements visible from the start (slightly dimmed);
+    #               FOCUS spotlights the active one. Matches a teacher
+    #               pointing at a pre-drawn reference. Default for explain/
+    #               derive/example and for Phase 1 per-topic diagrams.
+    presentation_mode: Literal["build_up", "overview"] = "overview"
+    needs_review: bool = False
     version: int = 1
 
 
@@ -219,7 +526,9 @@ class Question(BaseModel):
     q_diagram_id: str | None = None
     answer: str
     answer_audio_url: str | None = None
-    options: list[str] = Field(default_factory=list, description="Empty for solved_example")
+    options: list[str] = Field(
+        default_factory=list, description="Empty for solved_example"
+    )
     type: QuestionType
     source: QuestionSource
     solution_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -279,10 +588,38 @@ class Chapter(BaseModel):
     summary: str
     page_start: int
     page_end: int
-    topic_ids: list[str] = Field(default_factory=list, description="Ordered by lecture flow")
+    topic_ids: list[str] = Field(
+        default_factory=list, description="Ordered by lecture flow"
+    )
     chapter_manifest: Manifest = Field(default_factory=Manifest)
     # Full chapter-context narration (with inline markers) the LLM produced.
     narration_text: str = ""
+    # Phase 3: per-page diagnostic summary. Populated by ManifestComposer
+    # when LayoutPlanner is active. Empty for chapters generated pre-Phase-3
+    # or via fragment streams without layout. Used for pagination quality
+    # analysis (notebook fill %, page count distribution, etc).
+    pages: list[PageSummary] = Field(default_factory=list)
+    # Phase 4b: chapter-level lecture plan (ChapterLecturePlanner output) +
+    # per-topic teaching plans (ConceptPlanner output via kernel). Sidecar
+    # artifacts — pre-Phase-4c stages don't consume them. Optional so older
+    # extractions (pre-4b) load without migration.
+    lecture_plan: "ChapterLecturePlan | None" = None
+    concept_plans: "list[ConceptTeachingPlan]" = Field(default_factory=list)
+    # Phase 4d: per-beat narrations produced by BeatNarrationWriter, trimmed
+    # to budget by LengthEnforcer. Phase 4e: feeds ScriptAssembler.
+    beat_narrations: "list[BeatNarration]" = Field(default_factory=list)
+    # Phase 4d: ScriptAssembler output (dict-form of ChapterScript dataclass —
+    # {chapter_id, segments: [{topic_id, narration_chapter, narration_standalone}]}).
+    # Stored as dict so Pydantic can serialize without coupling to the
+    # lecture_script dataclass. Pipeline Phase 8 reconstructs the dataclass.
+    assembled_chapter_script: dict[str, Any] | None = None
+    # Phase H (doc 19) — per-topic LessonPlan + prosody-applied TopicNarration
+    # produced by LessonQualityGate + LessonProsody. Empty when
+    # cfg.enrichment.use_lesson_pipeline=False (legacy path). When populated,
+    # supersedes the legacy concept_plans + beat_narrations as the source of
+    # `assembled_chapter_script`.
+    lesson_plans: "list[LessonPlan]" = Field(default_factory=list)
+    lesson_narrations: "list[TopicNarration]" = Field(default_factory=list)
     embedding: list[float] = Field(default_factory=list)
     language: str = "en"
     version: int = 1
@@ -341,3 +678,24 @@ class CurriculumExtractionResult(BaseModel):
     @classmethod
     def load(cls, path: str | Path) -> CurriculumExtractionResult:
         return cls.model_validate_json(Path(path).read_text(encoding="utf-8"))
+
+
+# Resolve Phase 4b + 4d forward references on Chapter (lecture_plan,
+# concept_plans, beat_narrations). Imported at the bottom because the
+# referenced modules import from this module transitively, so eager top-level
+# imports would create a cycle. With `from __future__ import annotations`
+# above, the field annotations are stringified until model_rebuild() resolves
+# them here.
+from feynman_teaching_kernel import ConceptTeachingPlan  # noqa: E402
+
+from lecture_pipeline_v2.curriculum.beat_narration.models import BeatNarration  # noqa: E402
+from lecture_pipeline_v2.curriculum.lecture_plan.lesson_narrator import (  # noqa: E402
+    TopicNarration,
+)
+from lecture_pipeline_v2.curriculum.lecture_plan.lesson_plan_models import (  # noqa: E402
+    LessonPlan,
+)
+from lecture_pipeline_v2.curriculum.lecture_plan.models import ChapterLecturePlan  # noqa: E402
+
+Chapter.model_rebuild()
+CurriculumExtractionResult.model_rebuild()

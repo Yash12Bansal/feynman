@@ -11,8 +11,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
-from feynman.agent.concept_planner import ConceptTeachingPlan, plan_doubt
+from feynman_teaching_kernel import ConceptTeachingPlan, plan_doubt
 
 
 def _fake_response(plan_payload: dict):
@@ -77,13 +76,14 @@ async def test_plan_doubt_produces_checklist(monkeypatch):
     fake_client = SimpleNamespace(messages=SimpleNamespace(create=AsyncMock(side_effect=_create)))
 
     with patch(
-        "feynman.agent.concept_planner.anthropic.AsyncAnthropic",
+        "feynman_teaching_kernel.planner.anthropic.AsyncAnthropic",
         return_value=fake_client,
     ):
         result = await plan_doubt(
             "why does sin = opp/hyp?",
             parent_concept="trigonometric ratios",
             board_summary="ladder triangle on slide",
+            api_key="test-key",
         )
 
     assert isinstance(result, ConceptTeachingPlan)

@@ -1,0 +1,126 @@
+{
+  "version": "2026-05-22",
+  "description": "Curated IGCSE / CBSE class 9–12 maths diagram prompts for the testbed. Grouped by topic. Each prompt aims to exercise a different generation challenge.",
+  "groups": [
+    {
+      "topic": "Trigonometry",
+      "prompts": [
+        {
+          "id": "trig_right_triangle_basic",
+          "label": "Right triangle, 30° angle, sides labelled",
+          "prompt": "Draw a right-angled triangle with the right angle at B. The angle at C is 30°. Label the sides: hypotenuse AC as 10 cm, opposite (AB) as 5 cm, adjacent (BC) as 5√3 cm. Mark the 30° angle with an arc and label. Mark the right angle at B with a small square."
+        },
+        {
+          "id": "trig_ladder_wall",
+          "label": "Ladder against wall (IGCSE 0580)",
+          "prompt": "A 5 m ladder leans against a vertical wall. The foot of the ladder is 1.4 m from the base of the wall. Draw the wall as a vertical line, the ground as a horizontal line with hatching, the ladder as a thick line from the foot to the wall. Label the ladder '5 m' along its length, the ground distance '1.4 m', and mark the angle between ladder and ground as θ."
+        },
+        {
+          "id": "trig_unit_circle",
+          "label": "Unit circle with angle θ, point P(cos θ, sin θ)",
+          "prompt": "Draw a unit circle centred at the origin on a coordinate plane. Mark a point P on the circle at angle θ ≈ 50° from the positive x-axis. Draw the radius from O to P. Drop a vertical line from P to the x-axis, label its length 'sin θ'. The x-coordinate of P is 'cos θ'. Mark the angle θ at the origin with an arc."
+        }
+      ]
+    },
+    {
+      "topic": "Coordinate Geometry & Functions",
+      "prompts": [
+        {
+          "id": "parabola_with_tangent",
+          "label": "y = x² with tangent line at x=1",
+          "prompt": "Draw the parabola y = x² on a coordinate plane (x from -3 to 3, y from -1 to 9). Draw the tangent line to the parabola at the point (1, 1). Label the parabola 'y = x²' and the tangent 'y = 2x - 1'. Mark the point of tangency with a filled dot."
+        },
+        {
+          "id": "cubic_inflection",
+          "label": "Cubic y = x³ - 3x with stationary points",
+          "prompt": "Plot y = x³ - 3x for x from -2.5 to 2.5. Mark and label the two stationary points: a local maximum at (-1, 2) and a local minimum at (1, -2). Mark the inflection point at the origin. Add horizontal dashed lines at the stationary y-values."
+        },
+        {
+          "id": "linear_system",
+          "label": "Two-line linear system, intersection marked",
+          "prompt": "Draw two straight lines on a coordinate grid: y = 2x - 1 and y = -x + 4. Mark and label the point of intersection. The intersection is at (5/3, 7/3). Label each line with its equation. Show x-axis from -1 to 5 and y-axis from -2 to 6."
+        },
+        {
+          "id": "exponential_log",
+          "label": "y = 2^x and y = log₂(x) reflected across y = x",
+          "prompt": "On the same axes, draw y = 2^x and its inverse y = log₂(x), plus the line y = x as a dashed diagonal. Make the symmetry across y = x visually clear. Label all three curves. Show x and y from -2 to 4."
+        }
+      ]
+    },
+    {
+      "topic": "Calculus",
+      "prompts": [
+        {
+          "id": "area_under_curve",
+          "label": "Area under y = x² from 0 to 2 (definite integral)",
+          "prompt": "Draw y = x² for x from -1 to 3. Shade the region between the curve and the x-axis from x=0 to x=2. Label the shaded region with '∫₀² x² dx = 8/3'. Show vertical dashed lines at x=0 and x=2."
+        },
+        {
+          "id": "tangent_secant_derivative",
+          "label": "Tangent vs secant — derivative definition",
+          "prompt": "Draw a smooth curve f(x) that increases gradually. Mark two points P (left) and Q (right) on the curve. Draw the secant line through P and Q in amber. Draw the tangent line at P in cyan. Add a curved arrow showing Q sliding toward P with a label 'as h → 0, secant → tangent'."
+        }
+      ]
+    },
+    {
+      "topic": "Geometry & Vectors",
+      "prompts": [
+        {
+          "id": "vector_addition",
+          "label": "Vector addition by triangle law",
+          "prompt": "Draw two vectors a (going right and up at about 30°, length 4) and b (going right and down at about -20°, length 3) starting from a common point. Then draw the resultant vector a + b from the same starting point to the tip of b (when b is placed at the tip of a). Use the triangle law layout. Label each vector with arrows and bold names."
+        },
+        {
+          "id": "circle_tangent_radius",
+          "label": "Tangent-radius perpendicularity",
+          "prompt": "Draw a circle with centre O. Mark a point P on the circle. Draw the radius OP. Draw the tangent line to the circle at P. Mark the right angle between the radius and the tangent with a small square. Label O, P, the radius 'r', and write 'tangent ⊥ radius' as a callout."
+        },
+        {
+          "id": "inscribed_angle",
+          "label": "Inscribed angle theorem",
+          "prompt": "Draw a circle with centre O. Mark three points A, B, C on the circle. Draw the central angle AOC (at the centre) and the inscribed angle ABC (at the circumference, subtending the same arc AC). Label the central angle '2θ' and the inscribed angle 'θ'. Use different colors for the two angles."
+        },
+        {
+          "id": "triangle_similarity",
+          "label": "Two similar triangles with corresponding sides",
+          "prompt": "Draw two triangles side by side. Triangle ABC on the left (small) and triangle DEF on the right (larger, scale factor 2). Mark corresponding angles with matching tick marks (single, double, triple). Label corresponding sides. Add a note 'AA similarity' below."
+        }
+      ]
+    },
+    {
+      "topic": "Statistics & Probability",
+      "prompts": [
+        {
+          "id": "venn_diagram_two_sets",
+          "label": "Venn diagram, P(A ∩ B)",
+          "prompt": "Draw a Venn diagram with two overlapping circles inside a rectangle (the universal set U). Label the left circle A and the right circle B. Shade the intersection A ∩ B. Add labels: P(A) = 0.4 inside the A-only region, P(B) = 0.3 inside B-only, P(A ∩ B) = 0.15 in the intersection."
+        },
+        {
+          "id": "normal_distribution",
+          "label": "Normal distribution with standard deviations",
+          "prompt": "Draw a bell curve representing the normal distribution. Mark the mean μ at the centre and the standard deviations: μ-2σ, μ-σ, μ, μ+σ, μ+2σ along the x-axis. Shade the region between μ-σ and μ+σ. Add the label '≈ 68%' above the shaded region."
+        }
+      ]
+    },
+    {
+      "topic": "Transformations",
+      "prompts": [
+        {
+          "id": "reflection_across_line",
+          "label": "Reflection of a triangle across y = x",
+          "prompt": "Draw a triangle with vertices A(1, 4), B(2, 1), C(4, 2). Draw the line y = x as a dashed diagonal. Draw the reflected triangle A'B'C' with vertices A'(4, 1), B'(1, 2), C'(2, 4). Connect each vertex to its image with a thin perpendicular line. Label both triangles."
+        }
+      ]
+    },
+    {
+      "topic": "Conic Sections",
+      "prompts": [
+        {
+          "id": "ellipse_with_foci",
+          "label": "Ellipse with foci and major/minor axes",
+          "prompt": "Draw an ellipse centred at the origin, semi-major axis a=5 (horizontal), semi-minor axis b=3 (vertical). Mark the two foci F₁ and F₂ on the x-axis (at distance c = 4 from origin). Label the semi-major axis 'a' and semi-minor 'b'. Add the relation a² = b² + c² as a footnote."
+        }
+      ]
+    }
+  ]
+}

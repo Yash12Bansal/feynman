@@ -27,8 +27,8 @@ import type {
   TextEntry,
 } from "../engine/whiteboard/split/types";
 import type {
-  DrawDesignDiagramInstruction,
   DesignDiagramSpec,
+  DrawDesignDiagramInstruction,
 } from "../types/visuals";
 
 // ---------------------------------------------------------------------------
@@ -42,26 +42,191 @@ interface ChapterListEntry {
   has_manifest: boolean;
 }
 
+type AnnotationPosition = "above" | "below" | "left" | "right";
+type CalloutDirection =
+  | "up"
+  | "down"
+  | "up-right"
+  | "up-left"
+  | "down-right"
+  | "down-left";
+type BracketSide = "above" | "below" | "left" | "right";
+
+// Phase 3 geometry primitives — stamped on placement-aware events.
+interface Rect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+interface Placement {
+  readonly page_index: number;
+  readonly rect: Rect;
+  readonly measured: boolean;
+}
+
 type ManifestEvent =
   | { type: "audio"; url: string; duration_ms: number }
   | { type: "pause"; duration_ms: number }
-  | { type: "show_diagram"; diagram_id: string }
+  | {
+      type: "show_diagram";
+      diagram_id: string;
+      placement?: Placement | null;
+      slide_element_bounds?: Record<string, Rect> | null;
+      // Doc 18 §4.3 — how the diagram should reveal. Defaults to "overview"
+      // at render time when missing (older manifests).
+      presentation_mode?: "build_up" | "overview" | null;
+    }
   | { type: "topic_start"; topic_id: string }
   // Path C notebook events — appear "as the teacher writes them"
-  | { type: "write_section"; id: string; title: string }
+  | {
+      type: "write_section";
+      id: string;
+      title: string;
+      placement?: Placement | null;
+    }
   | {
       type: "write_equation";
       id: string;
       latex: string;
       align_group?: string | null;
       boxed?: boolean;
+      placement?: Placement | null;
     }
-  | { type: "write_step"; id: string; text: string; indent?: number }
-  | { type: "write_text"; id: string; text: string }
-  | { type: "write_key_point"; id: string; text: string }
-  | { type: "write_answer"; id: string; text: string }
+  | {
+      type: "write_step";
+      id: string;
+      text: string;
+      indent?: number;
+      placement?: Placement | null;
+    }
+  | {
+      type: "write_text";
+      id: string;
+      text: string;
+      placement?: Placement | null;
+    }
+  | {
+      type: "write_key_point";
+      id: string;
+      text: string;
+      placement?: Placement | null;
+    }
+  | {
+      type: "write_answer";
+      id: string;
+      text: string;
+      placement?: Placement | null;
+    }
   | { type: "strikethrough"; target_id: string }
-  | { type: "new_page"; carry_forward_ids?: string[] };
+  | { type: "new_page"; carry_forward_ids?: string[] }
+  // Phase 3 deterministic page break — replaces the old new_page marker
+  // when the precompute layout planner is in charge. slide_action says
+  // whether the slide stays, swaps to a new diagram, or releases to empty.
+  | {
+      type: "page_break";
+      new_page_index: number;
+      slide_action: "keep" | "swap" | "release";
+      next_diagram_id?: string | null;
+      notebook_carry_forward_ids?: string[];
+      reason: "text_overflow" | "new_diagram" | "writer_marker";
+    }
+  // Phase 2 annotation events — point at parts of the active diagram while
+  // the voice is speaking. Backend uses semantic names (pin/callout/...);
+  // we translate to frontend instruction shapes (pin_label/draw_callout/...)
+  // in the handler. Frontend resolves role → live-DOM element_id at render.
+  // Doc 18 spotlight events — replace the 5-marker annotation system.
+  | {
+      type: "focus";
+      diagram_id: string;
+      // Doc 19 §A-3: target_element_id is the preferred selector. target_role
+      // stays for back-compat with extraction files generated before the
+      // switch — at least one must be present (backend FocusEvent enforces).
+      target_element_id?: string | null;
+      target_role?: string | null;
+      text?: string;
+    }
+  | {
+      type: "unfocus";
+      diagram_id: string;
+    }
+  | { type: "clear_annotations"; diagram_id: string }
+  // Doc 19 §12: live-annotation primitives that extend the spotlight surface.
+  // Each event mirrors the matching backend Pydantic model in
+  // data_pre_compute_v2/.../curriculum/models.py.
+  | {
+      type: "trace";
+      diagram_id: string;
+      element_id: string;
+      duration_ms?: number;
+    }
+  | {
+      type: "mark_point";
+      diagram_id: string;
+      x: number;
+      y: number;
+      kind?: "dot" | "cross" | "star";
+      label?: string;
+    }
+  | {
+      type: "point_at";
+      diagram_id: string;
+      element_id: string;
+      from_side?: "top" | "bottom" | "left" | "right";
+    }
+  | {
+      type: "write_margin";
+      diagram_id: string;
+      anchor_element_id: string;
+      side?: "top" | "bottom" | "left" | "right";
+      text: string;
+    }
+  // ── Legacy back-compat (back-end no longer emits; handlers no-op) ──
+  | {
+      type: "pin";
+      diagram_id: string;
+      annotation_id: string;
+      target_role: string;
+      target_element_id?: string | null;
+      text: string;
+      position?: AnnotationPosition;
+    }
+  | {
+      type: "callout";
+      diagram_id: string;
+      annotation_id: string;
+      target_role: string;
+      target_element_id?: string | null;
+      text: string;
+      direction?: CalloutDirection;
+    }
+  | {
+      type: "bracket";
+      diagram_id: string;
+      annotation_id: string;
+      target_role_a: string;
+      target_role_b: string;
+      target_element_id_a?: string | null;
+      target_element_id_b?: string | null;
+      label: string;
+      side?: BracketSide;
+    }
+  | {
+      type: "highlight";
+      diagram_id: string;
+      target_role: string;
+      target_element_id?: string | null;
+      duration_ms?: number;
+      color_token?: string | null;
+    }
+  | {
+      type: "pulse";
+      diagram_id: string;
+      target_role: string;
+      target_element_id?: string | null;
+      duration_ms?: number;
+      color_token?: string | null;
+    };
 
 interface DiagramEntry {
   url: string | null;
@@ -142,8 +307,7 @@ function ChapterListView() {
         background: "#0a0a0a",
         color: "#fafafa",
         padding: "48px 64px",
-        fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
       <h1
@@ -330,9 +494,7 @@ function PlayerView({ chapterId }: PlayerViewProps) {
     const top = currentTopicNameRef.current
       ? `  ·  ${currentTopicNameRef.current}`
       : "";
-    setProgress(
-      `${audioIdxRef.current} / ${totalAudiosRef.current}${top}`,
-    );
+    setProgress(`${audioIdxRef.current} / ${totalAudiosRef.current}${top}`);
   }, []);
 
   const playAudio = useCallback((url: string): Promise<void> => {
@@ -374,6 +536,104 @@ function PlayerView({ chapterId }: PlayerViewProps) {
     });
   }, []);
 
+  /**
+   * Doc 18 + doc 19 §A-3 spotlight setters. Focus replaces previous focus
+   * (sticky until next focus / unfocus / reset / show_diagram). Inline label
+   * clears when focus moves on if not supplied with the new focus. New events
+   * carry both element_id (preferred) and role (back-compat); we plumb both
+   * into the SlideState so the Spotlight can pick.
+   */
+  const setFocusedTarget = useCallback(
+    (elementId: string | null, role: string | null, label: string | null) => {
+      setSlide((prev) => ({
+        ...prev,
+        focusedElementId: elementId,
+        focusedRole: role,
+        inlineLabelText: label,
+      }));
+    },
+    [],
+  );
+
+  const resetSlideFocus = useCallback(() => {
+    // Doc 19 §12: clear_annotations wipes the full live-annotation surface,
+    // not just the focus. Traces, marks, pointers, and margin notes all reset
+    // so the planner can clear a layered slide in a single event.
+    setSlide((prev) => ({
+      ...prev,
+      focusedElementId: null,
+      focusedRole: null,
+      inlineLabelText: null,
+      traces: [],
+      markPoints: [],
+      pointers: [],
+      marginNotes: [],
+    }));
+  }, []);
+
+  // Doc 19 §12 appenders. Each new event pushes onto the relevant list with
+  // a monotonic React-key so re-emitting the same element_id still retriggers
+  // its animation cleanly (key changes → fresh component mount).
+  const appendTrace = useCallback((elementId: string, durationMs: number) => {
+    setSlide((prev) => {
+      const key = prev.nextAnnotationKey ?? 0;
+      return {
+        ...prev,
+        nextAnnotationKey: key + 1,
+        traces: [...(prev.traces ?? []), { key, elementId, durationMs }],
+      };
+    });
+  }, []);
+
+  const appendMarkPoint = useCallback(
+    (x: number, y: number, kind: "dot" | "cross" | "star", label: string) => {
+      setSlide((prev) => {
+        const key = prev.nextAnnotationKey ?? 0;
+        return {
+          ...prev,
+          nextAnnotationKey: key + 1,
+          markPoints: [...(prev.markPoints ?? []), { key, x, y, kind, label }],
+        };
+      });
+    },
+    [],
+  );
+
+  const appendPointer = useCallback(
+    (elementId: string, fromSide: "top" | "bottom" | "left" | "right") => {
+      setSlide((prev) => {
+        const key = prev.nextAnnotationKey ?? 0;
+        return {
+          ...prev,
+          nextAnnotationKey: key + 1,
+          pointers: [...(prev.pointers ?? []), { key, elementId, fromSide }],
+        };
+      });
+    },
+    [],
+  );
+
+  const appendMarginNote = useCallback(
+    (
+      anchorElementId: string,
+      side: "top" | "bottom" | "left" | "right",
+      text: string,
+    ) => {
+      setSlide((prev) => {
+        const key = prev.nextAnnotationKey ?? 0;
+        return {
+          ...prev,
+          nextAnnotationKey: key + 1,
+          marginNotes: [
+            ...(prev.marginNotes ?? []),
+            { key, anchorElementId, side, text },
+          ],
+        };
+      });
+    },
+    [],
+  );
+
   const handleEvent = useCallback(
     async (ev: ManifestEvent, c: ChapterPayload): Promise<void> => {
       switch (ev.type) {
@@ -402,7 +662,24 @@ function PlayerView({ chapterId }: PlayerViewProps) {
             description: d.description || d.spec.description,
             spec: d.spec,
           };
-          setSlide({ status: "ready", liveInstruction: instr });
+          // Doc 18 + 19 §12: a new diagram is a blank annotation slate.
+          // Reset focus state AND the four live-annotation lists. Presentation
+          // mode comes from the event (or falls back to the spec's declared
+          // mode at render time).
+          setSlide({
+            status: "ready",
+            liveInstruction: instr,
+            focusedElementId: null,
+            focusedRole: null,
+            inlineLabelText: null,
+            presentationMode:
+              ev.presentation_mode ?? d.spec.presentation_mode ?? "overview",
+            traces: [],
+            markPoints: [],
+            pointers: [],
+            marginNotes: [],
+            nextAnnotationKey: 0,
+          });
           return;
         }
         case "pause": {
@@ -497,9 +774,97 @@ function PlayerView({ chapterId }: PlayerViewProps) {
           setPageTurning(false);
           return;
         }
+        case "page_break": {
+          // Phase 3 deterministic page break. The slide_action determines
+          // whether the slide stays, swaps to a new diagram, or releases
+          // to a soft placeholder. The notebook ALWAYS flips and clears
+          // (carry-forward IDs preserved only if explicitly requested).
+          setPageTurning(true);
+          await sleep(PAGE_TURN_MS / 2);
+          setNotebookEntries([]);
+          setPageNum((n) => n + 1);
+          if (ev.slide_action === "swap") {
+            // Slide is about to receive a new diagram (next show_diagram
+            // event). Clear annotations and let the next show_diagram fill.
+            setSlide({ status: "loading" });
+          } else if (ev.slide_action === "release") {
+            // Soft placeholder — slide goes empty until a future
+            // show_diagram lands.
+            setSlide({ status: "empty", annotations: [] });
+          }
+          // "keep": leave slide alone; annotations on the carried slide
+          // reset is handled at composer level via PageState.
+          setPageTurning(false);
+          return;
+        }
+
+        // ─── Doc 18 spotlight events ───────────────────────────────────────
+        // FOCUS spotlights one role on the active diagram; UNFOCUS releases
+        // it; CLEAR_ANNOTATIONS resets focus state for the active diagram.
+
+        case "focus": {
+          // Doc 19 §A-3: prefer element_id (stable id from dictionary). Fall
+          // back to role for old extraction files that pre-date the switch.
+          setFocusedTarget(
+            ev.target_element_id ?? null,
+            ev.target_role ?? null,
+            ev.text?.trim() || null,
+          );
+          return;
+        }
+        case "unfocus": {
+          resetSlideFocus();
+          return;
+        }
+        case "clear_annotations": {
+          // RESET_FOCUS alias — wipe spotlight state AND every accumulated
+          // live-annotation primitive for the active diagram.
+          resetSlideFocus();
+          return;
+        }
+
+        // ─── Doc 19 §12 live-annotation events ─────────────────────────────
+        case "trace": {
+          appendTrace(ev.element_id, ev.duration_ms ?? 1500);
+          return;
+        }
+        case "mark_point": {
+          appendMarkPoint(ev.x, ev.y, ev.kind ?? "dot", ev.label ?? "");
+          return;
+        }
+        case "point_at": {
+          appendPointer(ev.element_id, ev.from_side ?? "left");
+          return;
+        }
+        case "write_margin": {
+          appendMarginNote(ev.anchor_element_id, ev.side ?? "right", ev.text);
+          return;
+        }
+
+        // ─── Legacy annotation events (back-compat no-ops) ────────────────
+        // Older extraction files emit pin / callout / bracket / highlight /
+        // pulse. Doc 18 deprecates these; the walker drops them at compose
+        // time, but stored manifests may still contain them. We ignore them
+        // here rather than crash.
+        case "pin":
+        case "callout":
+        case "bracket":
+        case "highlight":
+        case "pulse":
+          return;
       }
     },
-    [appendNotebookEntry, playAudio, updateProgress],
+    [
+      appendNotebookEntry,
+      playAudio,
+      resetSlideFocus,
+      setFocusedTarget,
+      appendTrace,
+      appendMarkPoint,
+      appendPointer,
+      appendMarginNote,
+      updateProgress,
+    ],
   );
 
   const startPlayback = useCallback(async () => {
@@ -508,10 +873,7 @@ function PlayerView({ chapterId }: PlayerViewProps) {
     setIsPlaying(true);
     setIsDone(false);
     abortRef.current = false;
-    while (
-      cursorRef.current < chapter.events.length &&
-      !abortRef.current
-    ) {
+    while (cursorRef.current < chapter.events.length && !abortRef.current) {
       const ev = chapter.events[cursorRef.current];
       await handleEvent(ev, chapter);
       cursorRef.current += 1;
@@ -603,6 +965,7 @@ function PlayerView({ chapterId }: PlayerViewProps) {
           notebook={notebookState}
           mode="split"
           notebookTitle={chapter.title}
+          viewport="preview"
         />
       </div>
       <footer
@@ -672,8 +1035,7 @@ function ScreenChrome({
         display: "flex",
         flexDirection: "column",
         padding: "24px 32px",
-        fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         overflow: "hidden",
       }}
     >

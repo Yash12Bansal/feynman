@@ -3,6 +3,7 @@ import { useSession } from "./hooks/useSession";
 import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
 import { DevHarness } from "./screens/DevHarness";
+import { DiagramGenerationTestScreen } from "./screens/DiagramGenerationTestScreen";
 import { LecturePreviewScreen } from "./screens/LecturePreviewScreen";
 import { SplitBoardPrototype } from "./screens/SplitBoardPrototype";
 import { WaitingScreen } from "./screens/WaitingScreen";
@@ -26,6 +27,11 @@ export function App() {
 
   if (hash === "#/dev/split-board") {
     return <SplitBoardPrototype />;
+  }
+
+  // Diagram-generation experimental testbed (strategy/model/options plugin lab).
+  if (hash.startsWith("#/diagram_generation_test")) {
+    return <DiagramGenerationTestScreen />;
   }
 
   // v2 precompute classroom playback. Optional ?chapter=<id> in the hash:
@@ -84,6 +90,9 @@ function MainApp() {
   }
 
   return (
-    <WaitingScreen onStart={(body) => startSession(body)} isLoading={status === "connecting"} />
+    <WaitingScreen
+      onStart={(body) => startSession(body)}
+      isLoading={status === "connecting"}
+    />
   );
 }

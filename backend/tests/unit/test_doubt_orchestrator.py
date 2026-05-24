@@ -12,11 +12,11 @@ from unittest.mock import AsyncMock
 from uuid import UUID, uuid4
 
 import pytest
+from feynman_teaching_kernel import ChecklistItem
 
 from feynman.agent.doubt_orchestrator import (
     DEFAULT_RETURN_CUE,
     FORCED_RETURN_CUE,
-    ChecklistItem,
     DoubtOrchestrator,
 )
 from feynman.agent.state_machine import BranchContext, TeachingStateMachine

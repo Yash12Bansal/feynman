@@ -20,6 +20,45 @@ tts:
   pause_short_ms: 250
   pause_long_ms: 750
 
+# Phase 3 — measured layout + pagination. The preview screen pins SplitBoard
+# to these exact pixel dimensions via `.sb-root--preview`; live agent path
+# remains responsive and ignores this block. Numbers from design doc §7.3.
+layout:
+  viewport:
+    width: 1600
+    height: 900
+  slide:
+    x: 30
+    y: 50
+    width: 900
+    height: 800
+    padding: 20
+  notebook:
+    x: 970
+    y: 50
+    width: 600
+    height: 800
+    padding: 30
+  block_spacing_px: 12
+  block_default_widths:
+    SECTION: 540
+    EQUATION: 540
+    STEP: 520
+    KEY: 540
+    TEXT: 540
+    ANSWER: 540
+  diagram:
+    max_scale: 1.0
+    fit: "contain"
+  measurement:
+    mode: "headless_browser"
+    cache_dir: "./artifacts/measurement_cache"
+    page_path: "./tools/measurement_page.html"
+    css_hash_path: "../frontend/src/engine/whiteboard/split/SplitBoard.css"
+  pagination:
+    lookahead_seconds: 20.0
+    overflow_safety_margin_px: 8.0
+
 validation:
   # Resource-constrained: one local judge. Add Claude back later if quality
   # demands it. Note: Ollama has no `qwen3.5:9b` — qwen3:8b is the closest
@@ -46,7 +85,7 @@ embedding:
   model: "sentence-transformers/all-MiniLM-L6-v2"
   dimensions: 384
   batch_size: 64
-  device: "auto"   # auto-picks mps/cuda/cpu
+  device: "auto" # auto-picks mps/cuda/cpu
 
 artifacts:
   base_dir: "./artifacts"

@@ -932,6 +932,28 @@ standard = ["email-validator (>=2.0.0)", "fastapi-cli[standard] (>=0.0.8)", "fas
 standard-no-fastapi-cloud-cli = ["email-validator (>=2.0.0)", "fastapi-cli[standard-no-fastapi-cloud-cli] (>=0.0.8)", "httpx (>=0.23.0,<1.0.0)", "jinja2 (>=3.1.5)", "pydantic-extra-types (>=2.0.0)", "pydantic-settings (>=2.0.0)", "python-multipart (>=0.0.18)", "uvicorn[standard] (>=0.12.0)"]
 
 [[package]]
+name = "feynman-teaching-kernel"
+version = "0.1.0"
+description = "Shared teaching-planner kernel (models, prompts, planner functions) used by both the real-time agent and the precompute pipeline."
+optional = false
+python-versions = ">=3.11"
+groups = ["main"]
+files = []
+develop = true
+
+[package.dependencies]
+anthropic = ">=0.40.0"
+pydantic = ">=2.5.0"
+structlog = ">=24.0.0"
+
+[package.extras]
+dev = ["pytest (>=8.0.0)", "pytest-asyncio (>=0.23.0)"]
+
+[package.source]
+type = "directory"
+url = "../feynman_teaching_kernel"
+
+[[package]]
 name = "filelock"
 version = "3.29.0"
 description = "A platform independent file lock."
@@ -3786,6 +3808,18 @@ typing-extensions = {version = ">=4.10.0", markers = "python_version < \"3.13\""
 full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
 
 [[package]]
+name = "structlog"
+version = "25.5.0"
+description = "Structured Logging for Python"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "structlog-25.5.0-py3-none-any.whl", hash = "sha256:a8453e9b9e636ec59bd9e79bbd4a72f025981b3ba0f5837aebf48f02f37a7f9f"},
+    {file = "structlog-25.5.0.tar.gz", hash = "sha256:098522a3bebed9153d4570c6d0288abf80a031dfdb2048d59a49e9dc2190fc98"},
+]
+
+[[package]]
 name = "sympy"
 version = "1.14.0"
 description = "Computer algebra system (CAS) in Python"
@@ -4430,4 +4464,4 @@ tts = ["kokoro", "numpy", "soundfile"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "892baecfaec31068a6f3fc9b52bbd2b0c2294fbab367b424a9457bd92dbb210a"
+content-hash = "bac8b17e8362fab97023f71e33d797781aad6089548d8f77d80fc49d640b7a61"

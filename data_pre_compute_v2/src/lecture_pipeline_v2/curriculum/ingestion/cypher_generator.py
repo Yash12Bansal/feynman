@@ -74,6 +74,12 @@ class CypherGenerator:
 
     @staticmethod
     def _chapter_node(c: Chapter) -> CypherStatement:
+        # Phase 3: pages is a JSON-serialized list of PageSummary (diagnostic
+        # only, never user-facing). Empty list serializes to "[]" — no schema
+        # change needed for chapters generated pre-Phase-3.
+        import json
+
+        pages_json = json.dumps([p.model_dump() for p in c.pages])
         params = {
             "chapter_id": c.chapter_id,
             "chapter_index": c.chapter_index,
@@ -84,6 +90,7 @@ class CypherGenerator:
             "topic_ids": list(c.topic_ids),
             "chapter_manifest": c.chapter_manifest.model_dump_json(),
             "narration_text": c.narration_text,
+            "pages": pages_json,
             "embedding": list(c.embedding) if c.embedding else None,
             "language": c.language,
             "version": c.version,
@@ -98,6 +105,7 @@ class CypherGenerator:
             "    n.topic_ids = $topic_ids,\n"
             "    n.chapter_manifest = $chapter_manifest,\n"
             "    n.narration_text = $narration_text,\n"
+            "    n.pages = $pages,\n"
             "    n.embedding = $embedding,\n"
             "    n.language = $language,\n"
             "    n.version = $version,\n"

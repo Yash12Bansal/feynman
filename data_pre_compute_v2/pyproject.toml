@@ -22,7 +22,11 @@ dependencies = [
     "rich (>=13.7.0)",
     "neo4j (>=5.20.0)",
     "sentence-transformers (>=3.0.0)",
+    "feynman-teaching-kernel",
 ]
+
+[tool.poetry.dependencies]
+feynman-teaching-kernel = { path = "../feynman_teaching_kernel", develop = true }
 
 [project.optional-dependencies]
 dev = [

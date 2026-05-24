@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 
 from ...llm.base import LLMProvider
 from ..models import CurriculumExtractionResult, Topic
-from .models import ValidationIssue, ValidationReport
+from .models import ValidationIssue
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +50,16 @@ class SemanticValidationReport:
 
 
 class SemanticValidator:
-    def __init__(self, llm: LLMProvider, *, sample_rate: float = 0.20, seed: int | None = None):
+    def __init__(
+        self, llm: LLMProvider, *, sample_rate: float = 0.20, seed: int | None = None
+    ):
         self.llm = llm
         self.sample_rate = sample_rate
         self._rng = random.Random(seed)
 
-    def validate(self, extraction: CurriculumExtractionResult) -> SemanticValidationReport:
+    def validate(
+        self, extraction: CurriculumExtractionResult
+    ) -> SemanticValidationReport:
         report = SemanticValidationReport()
         start = time.monotonic()
 
@@ -95,12 +99,15 @@ class SemanticValidator:
         issues = data.get("issues") or []
 
         if verdict in ("drift", "wrong"):
-            severity = "error" if verdict == "wrong" else "warning"
             level = "warning"  # all semantic issues flag, none block
-            for issue_msg in (issues or [verdict]):
-                report.issues.append(ValidationIssue(
-                    level=level, code=f"SEMANTIC_{verdict.upper()}",
-                    message=str(issue_msg), entity_id=topic.topic_id,
-                ))
+            for issue_msg in issues or [verdict]:
+                report.issues.append(
+                    ValidationIssue(
+                        level=level,
+                        code=f"SEMANTIC_{verdict.upper()}",
+                        message=str(issue_msg),
+                        entity_id=topic.topic_id,
+                    )
+                )
             topic.needs_review = True
             report.topics_flagged += 1

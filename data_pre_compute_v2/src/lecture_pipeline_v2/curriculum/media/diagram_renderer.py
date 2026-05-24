@@ -15,7 +15,6 @@ import logging
 import time
 from dataclasses import dataclass, field
 from html import escape
-from pathlib import Path
 
 from ..models import Diagram, DiagramRenderer
 from .artifact_store import ArtifactStore
@@ -52,6 +51,7 @@ class DiagramFallbackRenderer:
     def _load_cairo():
         try:
             import cairosvg
+
             return cairosvg
         except ImportError:
             logger.info("cairosvg not installed — falling back to SVG-only artifacts")
@@ -102,7 +102,8 @@ class DiagramFallbackRenderer:
             except Exception as e:
                 logger.warning(
                     "cairosvg failed for %s — falling back to SVG-only: %s",
-                    diagram.diagram_id, e,
+                    diagram.diagram_id,
+                    e,
                 )
 
         diagram.fallback_image_url = self.store.url_for(svg_path)
@@ -180,7 +181,7 @@ class DiagramFallbackRenderer:
                 f'fill="{escape(el.get("fill", "#000"))}" '
                 f'text-anchor="{escape(el.get("textAnchor", "middle"))}" '
                 f'font-weight="{escape(el.get("fontWeight", "normal"))}">'
-                f'{escape(str(el.get("text", "")))}</text>'
+                f"{escape(str(el.get('text', '')))}</text>"
             )
         if etype == "svg_arc":
             return self._arc_to_svg(el)
@@ -195,7 +196,7 @@ class DiagramFallbackRenderer:
                 f'fill="{escape(el.get("color") or "#000")}" '
                 f'font-style="italic" '
                 f'text-anchor="middle">'
-                f'{escape(str(el.get("expression", "")))}</text>'
+                f"{escape(str(el.get('expression', '')))}</text>"
             )
         if etype == "svg_group":
             children = "".join(
@@ -203,13 +204,14 @@ class DiagramFallbackRenderer:
             )
             return (
                 f'<g id="{escape(eid)}" transform="{escape(el.get("transform", ""))}">'
-                f'{children}</g>'
+                f"{children}</g>"
             )
         return ""
 
     @staticmethod
     def _arc_to_svg(el: dict) -> str:
         import math
+
         cx, cy = float(el.get("cx", 0)), float(el.get("cy", 0))
         r = float(el.get("r", 50))
         start = math.radians(float(el.get("startAngle", 0)))

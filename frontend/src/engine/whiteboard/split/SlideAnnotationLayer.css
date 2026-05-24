@@ -1,5 +1,8 @@
-/* SlideAnnotationLayer — overlay sits inside .sb-slide-stage, above the
- * diagram. Shares the diagram's viewBox so coords match exactly. */
+/* SlideAnnotationLayer — doc 18 spotlight overlay. Sits inside
+ * .sb-slide-stage, above the diagram. Shares the diagram's viewBox so
+ * coords match exactly. The legacy .sb-annot-* rules (pin connector,
+ * callout bubble, bracket path, highlight pulse) were deleted along with
+ * their components per doc 18 §3 — only the spotlight rules remain. */
 
 .sb-slide-annotations {
   position: absolute;
@@ -11,100 +14,187 @@
   overflow: visible;
 }
 
-/* ── Pin label ─────────────────────────────────────────────── */
+/* ── Spotlight (focus) ─────────────────────────────────────── */
 
-.sb-annot-pin-connector {
-  stroke: var(--sb-ink-muted, #6b7280);
-  stroke-width: 1.2;
-  stroke-linecap: round;
-  opacity: 0;
-  animation: sb-annot-fade 0.3s ease forwards;
+.sb-spotlight {
+  /* The whole spotlight group fades in/out via opacity on its children. The
+   * <g> itself doesn't transition — masks need stable geometry per frame. */
+  pointer-events: none;
 }
 
-.sb-annot-pin-text {
-  fill: var(--sb-ink, #1a1a1a);
-  font-family: "Crimson Pro", Georgia, serif;
-  font-weight: 500;
-  opacity: 0;
-  animation: sb-annot-fade 0.3s ease forwards;
-  animation-delay: 0.06s;
+.sb-spotlight-dim {
+  /* The dim overlay smoothly fades when focus arrives/leaves. The mask hole
+   * jumps to its new position; the dim opacity easing softens that jump. */
+  transition:
+    opacity 250ms ease-in-out,
+    fill 250ms ease;
 }
 
-/* ── Callout ───────────────────────────────────────────────── */
-
-.sb-annot-callout-bubble {
-  fill: rgba(255, 255, 255, 0.96);
-  stroke: var(--sb-ink, #1a1a1a);
+.sb-spotlight-ring {
+  /* Subtle accent halo around the spotlight hole — a thin glow that hints
+   * at the focused area without being a hard outline. */
+  stroke: var(--sb-neon, #7fd4ff);
   stroke-width: 1.4;
-  opacity: 0;
-  transform-origin: center;
-  animation: sb-annot-bubble-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  animation-delay: 0.18s;
+  stroke-opacity: 0.55;
+  filter: drop-shadow(0 0 6px var(--sb-neon, #7fd4ff));
+  transition:
+    stroke-opacity 250ms ease,
+    filter 250ms ease;
 }
 
-.sb-annot-callout-tail {
-  fill: var(--sb-ink, #1a1a1a);
-  stroke: var(--sb-ink, #1a1a1a);
-  stroke-width: 1.2;
-  stroke-linejoin: round;
+/* ── Inline label pill ─────────────────────────────────────── */
+
+.sb-spotlight-label {
+  /* The label fades in slightly after the spotlight settles so it doesn't
+   * compete with the eye-catch of the dim transition. */
   opacity: 0;
-  animation: sb-annot-fade 0.2s ease forwards;
+  animation: sb-spotlight-label-fade 220ms ease forwards;
+  animation-delay: 80ms;
 }
 
-.sb-annot-callout-text {
-  fill: var(--sb-ink, #1a1a1a);
+.sb-spotlight-label-pill {
+  fill: rgba(15, 17, 28, 0.92);
+  stroke: var(--sb-neon, #7fd4ff);
+  stroke-width: 1;
+  stroke-opacity: 0.7;
+  filter: drop-shadow(0 0 6px rgba(127, 212, 255, 0.4));
+}
+
+.sb-spotlight-label-text {
+  fill: #f0f4ff;
   font-family: "Crimson Pro", Georgia, serif;
   font-weight: 500;
-  opacity: 0;
-  animation: sb-annot-fade 0.2s ease forwards;
-  animation-delay: 0.4s;
-}
-
-/* ── Bracket ───────────────────────────────────────────────── */
-
-.sb-annot-bracket-path {
-  stroke: var(--sb-ink, #1a1a1a);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-  stroke-dasharray: 600;
-  stroke-dashoffset: 600;
-  animation: sb-annot-bracket-draw 0.4s cubic-bezier(0.45, 0, 0.2, 1) forwards;
-}
-
-.sb-annot-bracket-label {
-  fill: var(--sb-ink, #1a1a1a);
-  font-family: "Crimson Pro", Georgia, serif;
-  font-weight: 500;
-  opacity: 0;
-  animation: sb-annot-fade 0.2s ease forwards;
-  animation-delay: 0.4s;
-}
-
-/* ── Highlight pulse ───────────────────────────────────────── */
-
-.sb-annot-pulse {
-  fill: none;
-  stroke: var(--sb-pulse-color, var(--sb-neon, #7fd4ff));
-  stroke-width: 2.2;
-  filter: drop-shadow(0 0 6px var(--sb-pulse-color, var(--sb-neon, #7fd4ff)));
-  animation: sb-annot-pulse-cycle var(--sb-pulse-duration, 1200ms)
-    cubic-bezier(0.45, 0, 0.2, 1) 1 forwards;
+  font-style: italic;
+  letter-spacing: 0.01em;
 }
 
 /* ── Keyframes ─────────────────────────────────────────────── */
 
-@keyframes sb-annot-fade {
+@keyframes sb-spotlight-label-fade {
   to {
     opacity: 1;
   }
 }
 
-@keyframes sb-annot-bubble-pop {
+/* ── Reduced motion ─────────────────────────────────────────
+ * Both the OS-level preference and the layer's data attribute disable the
+ * spotlight transitions. The label appears instantly with no fade. */
+
+.sb-slide-annotations[data-reduced-motion="true"] .sb-spotlight-dim,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-spotlight-ring {
+  transition: none !important;
+}
+
+.sb-slide-annotations[data-reduced-motion="true"] .sb-spotlight-label {
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-spotlight-dim,
+  .sb-spotlight-ring {
+    transition: none !important;
+  }
+  .sb-spotlight-label {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ── Doc 19 §12: live-annotation primitives ─────────────────── */
+
+/* ── TraceOverlay ───────────────────────────────────────────── */
+
+.sb-trace {
+  pointer-events: none;
+}
+
+.sb-trace-stroke {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* A static large dasharray serves as both length-of-stroke (initial offset)
+   * and the fully-drawn state after the animation ends. 4000 user-space units
+   * comfortably covers any leaf shape in our typical 900×650 viewBoxes. */
+  stroke-dasharray: 4000;
+  stroke-dashoffset: 4000;
+  opacity: 0;
+  animation: sb-trace-draw var(--trace-duration, 1500ms)
+    cubic-bezier(0.45, 0, 0.2, 1) forwards;
+  /* Soft glow matches the spotlight aesthetic. */
+  filter: drop-shadow(0 0 4px rgba(127, 212, 255, 0.45));
+}
+
+/* Fallback rect (used when we couldn't clone a leaf shape) is rendered more
+ * subtly so it doesn't pretend to be the original geometry. */
+.sb-trace-stroke-fallback {
+  stroke-width: 1.6;
+  stroke-dasharray: 6 6;
+  opacity: 0;
+}
+
+@keyframes sb-trace-draw {
+  from {
+    stroke-dashoffset: 4000;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.7;
+  }
+}
+
+/* ── MarkPoint ──────────────────────────────────────────────── */
+
+.sb-mark-point {
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: sb-mark-pop 240ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.sb-mark-point-shape {
+  fill: var(--sb-neon, #7fd4ff);
+  stroke: var(--sb-neon, #7fd4ff);
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(127, 212, 255, 0.6));
+}
+
+.sb-mark-point-shape-cross,
+.sb-mark-point-shape-star {
+  fill: none;
+}
+
+.sb-mark-point-label {
+  fill: #f0f4ff;
+  font-family: "Crimson Pro", Georgia, serif;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.sb-mark-point-label-pill {
+  fill: rgba(15, 17, 28, 0.92);
+  stroke: var(--sb-neon, #7fd4ff);
+  stroke-width: 1;
+  stroke-opacity: 0.7;
+  filter: drop-shadow(0 0 6px rgba(127, 212, 255, 0.4));
+}
+
+@keyframes sb-mark-pop {
   0% {
     opacity: 0;
-    transform: scale(0.92);
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
   }
   100% {
     opacity: 1;
@@ -112,64 +202,135 @@
   }
 }
 
-@keyframes sb-annot-bracket-draw {
-  to {
-    stroke-dashoffset: 0;
+/* ── Pointer ────────────────────────────────────────────────── */
+
+.sb-pointer {
+  pointer-events: none;
+  opacity: 0;
+  animation: sb-pointer-tap 260ms cubic-bezier(0.34, 1.2, 0.5, 1) forwards;
+}
+
+.sb-pointer-shaft {
+  stroke: var(--sb-neon, #7fd4ff);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px rgba(127, 212, 255, 0.55));
+}
+
+.sb-pointer-head {
+  fill: var(--sb-neon, #7fd4ff);
+  filter: drop-shadow(0 0 5px rgba(127, 212, 255, 0.55));
+}
+
+.sb-pointer-pulse {
+  animation: sb-pointer-pulse 1800ms ease-in-out infinite;
+  animation-delay: 320ms;
+}
+
+@keyframes sb-pointer-tap {
+  0% {
+    opacity: 0;
+    transform: translate(
+      var(--pointer-bounce-x, 0px),
+      var(--pointer-bounce-y, 0px)
+    );
+  }
+  60% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0.95;
+    transform: translate(0, 0);
   }
 }
 
-@keyframes sb-annot-pulse-cycle {
+@keyframes sb-pointer-pulse {
   0%,
   100% {
-    opacity: 0;
-    stroke-width: 2.2;
+    opacity: 0.95;
   }
   50% {
-    opacity: 0.95;
-    stroke-width: 3.2;
+    opacity: 0.6;
   }
 }
 
-/* ── Reduced motion ─────────────────────────────────────────
- * Both the OS-level preference and the layer's data attribute disable the
- * entry animations. Pulse becomes a static accent — no flashing — for the
- * configured duration. CSS-only reduced-motion would only catch the OS
- * preference; the data-attribute fallback lets tests assert behaviour
- * without relying on JSDOM's matchMedia plumbing. */
+/* ── MarginNote ─────────────────────────────────────────────── */
 
-.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-pin-connector,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-pin-text,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-callout-bubble,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-callout-tail,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-callout-text,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-bracket-path,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-bracket-label {
-  animation: none !important;
-  opacity: 1 !important;
-  transform: none !important;
-  stroke-dashoffset: 0 !important;
+.sb-margin-note {
+  pointer-events: none;
+  opacity: 0;
+  animation: sb-margin-fade 280ms ease-out forwards;
 }
 
-.sb-slide-annotations[data-reduced-motion="true"] .sb-annot-pulse {
+.sb-margin-note-connector {
+  stroke: var(--sb-neon, #7fd4ff);
+  stroke-width: 1.2;
+  stroke-opacity: 0.6;
+  stroke-dasharray: 4 3;
+}
+
+.sb-margin-note-text {
+  fill: #f0f4ff;
+  font-family: "Crimson Pro", Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+@keyframes sb-margin-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.95;
+  }
+}
+
+/* ── Reduced motion overrides for the four new primitives ────
+ * Two paths (data-attr + media query) to match the spotlight pattern. */
+
+.sb-slide-annotations[data-reduced-motion="true"] .sb-trace-stroke,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-mark-point,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-pointer,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-pointer-pulse,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-margin-note {
   animation: none !important;
-  opacity: 0.7;
+}
+
+.sb-slide-annotations[data-reduced-motion="true"] .sb-trace-stroke {
+  stroke-dashoffset: 0 !important;
+  opacity: 0.7 !important;
+}
+
+.sb-slide-annotations[data-reduced-motion="true"] .sb-mark-point,
+.sb-slide-annotations[data-reduced-motion="true"] .sb-pointer {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.sb-slide-annotations[data-reduced-motion="true"] .sb-margin-note {
+  opacity: 0.95 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sb-annot-pin-connector,
-  .sb-annot-pin-text,
-  .sb-annot-callout-bubble,
-  .sb-annot-callout-tail,
-  .sb-annot-callout-text,
-  .sb-annot-bracket-path,
-  .sb-annot-bracket-label {
+  .sb-trace-stroke,
+  .sb-mark-point,
+  .sb-pointer,
+  .sb-pointer-pulse,
+  .sb-margin-note {
     animation: none !important;
+  }
+  .sb-trace-stroke {
+    stroke-dashoffset: 0 !important;
+    opacity: 0.7 !important;
+  }
+  .sb-mark-point,
+  .sb-pointer {
     opacity: 1 !important;
     transform: none !important;
-    stroke-dashoffset: 0 !important;
   }
-  .sb-annot-pulse {
-    animation: none !important;
-    opacity: 0.7;
+  .sb-margin-note {
+    opacity: 0.95 !important;
   }
 }

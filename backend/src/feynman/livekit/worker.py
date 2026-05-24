@@ -13,12 +13,12 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import structlog
+from feynman_teaching_kernel import plan_concept
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli
 from livekit.rtc import DataPacket
 
 from feynman.agent.action_tag_parser import ActionTag, ActionTagParser
 from feynman.agent.board_verifier import BoardVerifier, PerceptionFeedback
-from feynman.agent.concept_planner import plan_concept
 from feynman.agent.curriculum_loader import load_curriculum
 from feynman.agent.drift_state import build_element_summary, compute_drift_state_hash
 from feynman.agent.lesson_plan import lesson_plan_from_curriculum
@@ -412,6 +412,7 @@ class FeynmanAgent(Agent):
                     curriculum,
                     plan,
                     audit=self._teaching_ctx.audit,
+                    api_key=settings.anthropic_api_key,
                 )
                 if plan0:
                     self._teaching_ctx.concept_plans[0] = plan0
@@ -427,6 +428,7 @@ class FeynmanAgent(Agent):
                             plan,
                             audit=self._teaching_ctx.audit,
                             prev_plan=self._teaching_ctx.concept_plans.get(0),
+                            api_key=settings.anthropic_api_key,
                         )
                         if plan1:
                             self._teaching_ctx.concept_plans[1] = plan1

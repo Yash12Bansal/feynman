@@ -40,13 +40,75 @@ export interface SlideState {
    */
   readonly liveInstruction?: VisualInstruction;
   /**
-   * Slide annotation overlays (pin_label, draw_callout, bracket,
-   * highlight_pulse) that landed *after* the latest diagram instruction.
-   * Reset whenever a fresh diagram lands so stale annotations never
-   * outlive their target. Optional for backwards-compat with prototypes
-   * that hand-build a SlideState; treat missing as `[]`.
+   * Doc 19 §A-3: the stable element_id from the active diagram's dictionary.
+   * Preferred selector for the spotlight. When present, the spotlight resolves
+   * bounds by id directly and ignores `focusedRole`.
+   */
+  readonly focusedElementId?: string | null;
+  /**
+   * Doc 18 spotlight redesign: the currently focused role on the active
+   * diagram. Deprecated alias kept for back-compat with extraction files
+   * generated before the element_id switch. Null when nothing is focused.
+   */
+  readonly focusedRole?: string | null;
+  /**
+   * Optional 2-3 word inline label rendered near the focused element.
+   */
+  readonly inlineLabelText?: string | null;
+  /**
+   * Doc 18 §4.3: how the active diagram is being revealed. Defaults to
+   * "overview" when undefined.
+   */
+  readonly presentationMode?: "build_up" | "overview";
+  /**
+   * LEGACY — Phase 2 annotation overlays. Deprecated in favor of `focusedRole`
+   * (doc 18). Kept on the type for one back-compat cycle so old code paths
+   * compile; SlidePanel no longer reads it.
    */
   readonly annotations?: readonly AnnotationInstruction[];
+
+  // ── Doc 19 §12 live-annotation primitives ─────────────────────────────
+  //
+  // Each list accumulates as new events arrive. show_diagram + clear_annotations
+  // wipe all four to empty. nextAnnotationKey is a monotonic counter that
+  // hands React-keys to the appended items so re-emit of the same element
+  // retriggers its animation cleanly.
+  readonly traces?: readonly TraceState[];
+  readonly markPoints?: readonly MarkPointState[];
+  readonly pointers?: readonly PointerState[];
+  readonly marginNotes?: readonly MarginNoteState[];
+  readonly nextAnnotationKey?: number;
+}
+
+/** Doc 19 §12: stroke-draw animation along an element's geometry. */
+export interface TraceState {
+  readonly key: number;
+  readonly elementId: string;
+  readonly durationMs: number;
+}
+
+/** Doc 19 §12: dot/cross/star marker at a viewBox-space coordinate. */
+export interface MarkPointState {
+  readonly key: number;
+  readonly x: number;
+  readonly y: number;
+  readonly kind: "dot" | "cross" | "star";
+  readonly label: string;
+}
+
+/** Doc 19 §12: arrow pointing at an element from a side. */
+export interface PointerState {
+  readonly key: number;
+  readonly elementId: string;
+  readonly fromSide: "top" | "bottom" | "left" | "right";
+}
+
+/** Doc 19 §12: hand-written-style note anchored to an element's side. */
+export interface MarginNoteState {
+  readonly key: number;
+  readonly anchorElementId: string;
+  readonly side: "top" | "bottom" | "left" | "right";
+  readonly text: string;
 }
 
 export type NotebookEntryKind =

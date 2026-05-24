@@ -33,22 +33,41 @@ function liveTitleFor(instr: VisualInstruction): {
 }
 
 export function SlidePanel({ state }: SlidePanelProps) {
-  const { status, active, pendingTitle, liveInstruction, annotations } = state;
+  const {
+    status,
+    active,
+    pendingTitle,
+    liveInstruction,
+    focusedElementId,
+    focusedRole,
+    inlineLabelText,
+    presentationMode,
+    traces,
+    markPoints,
+    pointers,
+    marginNotes,
+  } = state;
 
-  // Live-DOM bounds anchor: the annotation layer queries this subtree for
-  // `[data-design-element]` and reads `getBoundingClientRect()` instead of
-  // trusting the LLM-estimated `spec.dictionary[id].bounds` (Phase 1 of
-  // the diagram-awareness re-architecture).
+  // Live-DOM bounds anchor: the spotlight layer queries this subtree for
+  // `[data-design-element]` and reads `getBoundingClientRect()`.
   const stageRef = useRef<HTMLDivElement>(null);
 
-  // Only design diagrams carry the semantic dictionary; the overlay layer is
-  // a no-op for legacy diagram types since it has nothing to anchor against.
+  // Only design diagrams carry the semantic dictionary; the spotlight is a
+  // no-op for legacy diagram types since it has nothing to anchor against.
   const designDiagram =
     status === "ready" && liveInstruction?.type === "draw_design_diagram"
       ? liveInstruction
       : null;
-  const showAnnotations =
-    designDiagram !== null && (annotations?.length ?? 0) > 0;
+  // Mount the spotlight whenever there's a design diagram with a dictionary,
+  // even if nothing is focused yet — keeps transitions clean when focus
+  // arrives mid-narration.
+  const showSpotlight =
+    designDiagram !== null && !!designDiagram.spec?.dictionary;
+
+  // Doc 18 §4.3: presentation mode comes from the SlideState (set by the
+  // event dispatcher) OR the spec's declared mode OR "overview".
+  const effectivePresentationMode =
+    presentationMode ?? designDiagram?.spec?.presentation_mode ?? "overview";
 
   const liveHeader = liveInstruction ? liveTitleFor(liveInstruction) : null;
   const headerTitle = liveHeader?.title || active?.title || pendingTitle || "";
@@ -80,12 +99,19 @@ export function SlidePanel({ state }: SlidePanelProps) {
             <InstructionSwitch instruction={liveInstruction} />
           </div>
         )}
-        {showAnnotations && designDiagram && (
+        {showSpotlight && designDiagram && (
           <SlideAnnotationLayer
             viewBox={`0 0 ${designDiagram.spec?.width ?? 900} ${designDiagram.spec?.height ?? 650}`}
             dictionary={designDiagram.spec?.dictionary}
-            annotations={annotations ?? []}
+            focusedElementId={focusedElementId}
+            focusedRole={focusedRole}
+            inlineLabelText={inlineLabelText}
+            presentationMode={effectivePresentationMode}
             stageRef={stageRef}
+            traces={traces}
+            markPoints={markPoints}
+            pointers={pointers}
+            marginNotes={marginNotes}
           />
         )}
         {status === "ready" && !liveInstruction && active && (

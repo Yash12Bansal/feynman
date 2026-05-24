@@ -8,8 +8,9 @@ if TYPE_CHECKING:
     from feynman.agent.lesson_plan import LessonPlan
     from feynman.agent.teaching_context import TeachingContext
 
+from feynman_teaching_kernel import format_plan_for_prompt
+
 from feynman.agent.board_snapshot import generate_board_context
-from feynman.agent.concept_planner import format_plan_for_prompt
 from feynman.agent.notebook import reconstruct as reconstruct_notebook
 from feynman.agent.notebook import render_prompt_section as render_notebook_section
 

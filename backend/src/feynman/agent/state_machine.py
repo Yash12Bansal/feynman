@@ -22,7 +22,9 @@ import structlog
 from feynman.agent.states import TeachingState
 
 if TYPE_CHECKING:
-    from feynman.agent.doubt_orchestrator import ChecklistItem, ReturnAnchor
+    from feynman_teaching_kernel import ChecklistItem
+
+    from feynman.agent.doubt_orchestrator import ReturnAnchor
 
 logger = structlog.get_logger()
 

@@ -6,10 +6,11 @@ from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID
 
+from feynman_teaching_kernel import ConceptTeachingPlan
+
 from feynman.agent.anticipation import AnticipationEngine
 from feynman.agent.board import BoardManager
 from feynman.agent.board_verifier import PerceptionFeedback
-from feynman.agent.concept_planner import ConceptTeachingPlan
 from feynman.agent.doubt_orchestrator import DoubtOrchestrator
 from feynman.agent.lesson_plan import ConceptNode, LessonPlan
 from feynman.agent.session_audit import SessionAudit

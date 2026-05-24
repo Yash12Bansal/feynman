@@ -33,6 +33,7 @@ class StructuralValidator:
         self._check_referential_integrity(extraction, report)
         self._check_next_chain(extraction, report)
         self._check_prereq_cycles(extraction, report)
+        self._check_diagram_dictionaries(extraction, report)
 
         if anchors_by_chapter:
             self._check_section_coverage(extraction, anchors_by_chapter, report)
@@ -61,28 +62,41 @@ class StructuralValidator:
     def _check_required_fields(self, extraction, report: ValidationReport) -> None:
         for topic in extraction.topics:
             if not topic.topic_name.strip():
-                report.add_error("EMPTY_TOPIC_NAME", f"{topic.topic_id} has empty name",
-                                 entity_id=topic.topic_id)
+                report.add_error(
+                    "EMPTY_TOPIC_NAME",
+                    f"{topic.topic_id} has empty name",
+                    entity_id=topic.topic_id,
+                )
             if not topic.our_understanding.strip():
-                report.add_warning("EMPTY_UNDERSTANDING",
-                                   f"{topic.topic_id} has empty our_understanding",
-                                   entity_id=topic.topic_id)
+                report.add_warning(
+                    "EMPTY_UNDERSTANDING",
+                    f"{topic.topic_id} has empty our_understanding",
+                    entity_id=topic.topic_id,
+                )
             if not topic.orig_book_content.strip():
-                report.add_warning("EMPTY_SOURCE",
-                                   f"{topic.topic_id} has empty orig_book_content",
-                                   entity_id=topic.topic_id)
+                report.add_warning(
+                    "EMPTY_SOURCE",
+                    f"{topic.topic_id} has empty orig_book_content",
+                    entity_id=topic.topic_id,
+                )
 
         for q in extraction.questions:
             if not q.q_text.strip() or not q.answer.strip():
-                report.add_error("INCOMPLETE_QUESTION",
-                                 f"{q.question_id} missing q_text or answer",
-                                 entity_id=q.question_id)
+                report.add_error(
+                    "INCOMPLETE_QUESTION",
+                    f"{q.question_id} missing q_text or answer",
+                    entity_id=q.question_id,
+                )
             if q.type.value == "mcq" and len(q.options) < 2:
-                report.add_error("MCQ_FEW_OPTIONS",
-                                 f"{q.question_id} MCQ has <2 options",
-                                 entity_id=q.question_id)
+                report.add_error(
+                    "MCQ_FEW_OPTIONS",
+                    f"{q.question_id} MCQ has <2 options",
+                    entity_id=q.question_id,
+                )
 
-    def _check_referential_integrity(self, extraction, report: ValidationReport) -> None:
+    def _check_referential_integrity(
+        self, extraction, report: ValidationReport
+    ) -> None:
         chapter_ids = {c.chapter_id for c in extraction.chapters}
         topic_ids = {t.topic_id for t in extraction.topics}
         diagram_ids = {d.diagram_id for d in extraction.diagrams}
@@ -90,35 +104,47 @@ class StructuralValidator:
 
         for topic in extraction.topics:
             if topic.chapter_id not in chapter_ids:
-                report.add_error("DANGLING_CHAPTER_REF",
-                                 f"{topic.topic_id} points to missing chapter {topic.chapter_id}",
-                                 entity_id=topic.topic_id)
+                report.add_error(
+                    "DANGLING_CHAPTER_REF",
+                    f"{topic.topic_id} points to missing chapter {topic.chapter_id}",
+                    entity_id=topic.topic_id,
+                )
             if topic.next_topic_id and topic.next_topic_id not in topic_ids:
-                report.add_error("DANGLING_NEXT",
-                                 f"{topic.topic_id} next_topic_id missing: {topic.next_topic_id}",
-                                 entity_id=topic.topic_id)
+                report.add_error(
+                    "DANGLING_NEXT",
+                    f"{topic.topic_id} next_topic_id missing: {topic.next_topic_id}",
+                    entity_id=topic.topic_id,
+                )
             for pid in topic.prereq_topic_ids:
                 if pid not in topic_ids:
-                    report.add_error("DANGLING_PREREQ",
-                                     f"{topic.topic_id} prereq missing: {pid}",
-                                     entity_id=topic.topic_id)
+                    report.add_error(
+                        "DANGLING_PREREQ",
+                        f"{topic.topic_id} prereq missing: {pid}",
+                        entity_id=topic.topic_id,
+                    )
             for did in topic.has_diagram_ids:
                 if did not in diagram_ids:
-                    report.add_error("DANGLING_DIAGRAM",
-                                     f"{topic.topic_id} diagram missing: {did}",
-                                     entity_id=topic.topic_id)
+                    report.add_error(
+                        "DANGLING_DIAGRAM",
+                        f"{topic.topic_id} diagram missing: {did}",
+                        entity_id=topic.topic_id,
+                    )
             for qid in topic.has_question_ids:
                 if qid not in question_ids:
-                    report.add_error("DANGLING_QUESTION",
-                                     f"{topic.topic_id} question missing: {qid}",
-                                     entity_id=topic.topic_id)
+                    report.add_error(
+                        "DANGLING_QUESTION",
+                        f"{topic.topic_id} question missing: {qid}",
+                        entity_id=topic.topic_id,
+                    )
 
         for chapter in extraction.chapters:
             for tid in chapter.topic_ids:
                 if tid not in topic_ids:
-                    report.add_error("DANGLING_CHAPTER_TOPIC",
-                                     f"{chapter.chapter_id} topic missing: {tid}",
-                                     entity_id=chapter.chapter_id)
+                    report.add_error(
+                        "DANGLING_CHAPTER_TOPIC",
+                        f"{chapter.chapter_id} topic missing: {tid}",
+                        entity_id=chapter.chapter_id,
+                    )
 
     def _check_next_chain(self, extraction, report: ValidationReport) -> None:
         by_chapter: dict[str, list] = defaultdict(list)
@@ -170,6 +196,23 @@ class StructuralValidator:
                         f"Circular prereq chain: {' → '.join(cycle)}",
                     )
                     return
+
+    def _check_diagram_dictionaries(self, extraction, report: ValidationReport) -> None:
+        # Phase 1 (precompute-lecture-overhaul): every SVG Diagram should have
+        # a non-empty `dictionary` so the teaching agent can address elements
+        # by role. Manim diagrams are exempt (different renderer contract).
+        for diagram in extraction.diagrams:
+            if getattr(diagram.renderer, "value", diagram.renderer) == "manim":
+                continue
+            spec = diagram.render_data if isinstance(diagram.render_data, dict) else {}
+            dictionary = spec.get("dictionary")
+            if not isinstance(dictionary, dict) or len(dictionary) < 1:
+                report.add_warning(
+                    "DIAGRAM_MISSING_DICTIONARY",
+                    f"{diagram.diagram_id} has no semantic dictionary "
+                    f"(role-based addressing unavailable)",
+                    entity_id=diagram.diagram_id,
+                )
 
     def _check_section_coverage(
         self,

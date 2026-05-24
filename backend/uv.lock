@@ -507,6 +507,7 @@ dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
     { name = "fastapi" },
+    { name = "feynman-teaching-kernel" },
     { name = "livekit-agents" },
     { name = "livekit-plugins-anthropic" },
     { name = "livekit-plugins-cartesia" },
@@ -541,6 +542,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "fakeredis", marker = "extra == 'dev'", specifier = ">=2.26.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "feynman-teaching-kernel", editable = "../feynman_teaching_kernel" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.0" },
     { name = "livekit-agents", specifier = ">=1.0.0" },
     { name = "livekit-plugins-anthropic", specifier = ">=1.0.0" },
@@ -562,6 +564,26 @@ requires-dist = [
     { name = "structlog", specifier = ">=24.0.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.0" },
     { name = "websockets", specifier = ">=14.0" },
+]
+provides-extras = ["dev"]
+
+[[package]]
+name = "feynman-teaching-kernel"
+version = "0.1.0"
+source = { editable = "../feynman_teaching_kernel" }
+dependencies = [
+    { name = "anthropic" },
+    { name = "pydantic" },
+    { name = "structlog" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anthropic", specifier = ">=0.40.0" },
+    { name = "pydantic", specifier = ">=2.5.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
+    { name = "structlog", specifier = ">=24.0.0" },
 ]
 provides-extras = ["dev"]
 

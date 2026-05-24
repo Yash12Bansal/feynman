@@ -41,7 +41,13 @@ dependencies = [
 
     # WebSocket
     "websockets>=14.0",
+
+    # Shared teaching kernel (path dep — see [tool.uv.sources] below)
+    "feynman-teaching-kernel",
 ]
+
+[tool.uv.sources]
+feynman-teaching-kernel = { path = "../feynman_teaching_kernel", editable = true }
 
 [project.optional-dependencies]
 dev = [

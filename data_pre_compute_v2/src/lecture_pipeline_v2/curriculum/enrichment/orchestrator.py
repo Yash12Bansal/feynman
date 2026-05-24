@@ -56,21 +56,43 @@ class EnrichmentOrchestrator:
         topics: list[Topic],
         existing_diagram_ids: set[str] | None = None,
         existing_question_ids: set[str] | None = None,
+        *,
+        skip_diagrams: bool = False,
     ) -> tuple[list[Diagram], list[Question], EnrichmentReport]:
+        """Run per-topic enrichment (diagrams + questions).
+
+        `skip_diagrams=True` bypasses the legacy `DiagramGenerator` entirely
+        and returns an empty diagrams list. Used by doc-19 (Phase H) where
+        `LessonDiagramGenerator` owns diagram production downstream and the
+        legacy enrichment would just pollute `extraction.diagrams` with
+        dead per-topic diagrams that no manifest event references.
+        """
         start = time.monotonic()
 
-        diagrams_task = self.diagram_gen.generate_for_topics(topics, existing_diagram_ids)
-        questions_task = self.question_gen.generate_for_topics(topics, existing_question_ids)
-
-        (diagrams, diag_report), (questions, q_report) = await asyncio.gather(
-            diagrams_task, questions_task,
+        questions_task = self.question_gen.generate_for_topics(
+            topics, existing_question_ids
         )
+
+        if skip_diagrams:
+            diagrams: list[Diagram] = []
+            diag_report = DiagramGenerationReport()
+            questions, q_report = await questions_task
+        else:
+            diagrams_task = self.diagram_gen.generate_for_topics(
+                topics, existing_diagram_ids
+            )
+            (diagrams, diag_report), (questions, q_report) = await asyncio.gather(
+                diagrams_task,
+                questions_task,
+            )
 
         self._wire_topic_refs(topics, diagrams, questions)
 
         elapsed = time.monotonic() - start
         report = EnrichmentReport(
-            diagrams=diag_report, questions=q_report, elapsed_seconds=elapsed,
+            diagrams=diag_report,
+            questions=q_report,
+            elapsed_seconds=elapsed,
         )
         logger.info(report.summary())
         return diagrams, questions, report

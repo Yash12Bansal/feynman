@@ -46,6 +46,42 @@
   --sb-divider: rgba(255, 255, 255, 0.06);
 }
 
+/* Phase 3 preview mode — pins SplitBoard to fixed dimensions matching the
+   precompute LayoutConfig (viewport 1600×900, slide 900×800, notebook
+   600×800, gap 100). The preview screen passes viewport="preview" so that
+   measurements made by MeasurementService line up with rendered geometry
+   byte-for-byte. Live agent path uses the default (responsive flex). */
+.sb-root--preview {
+  width: 1600px;
+  height: 900px;
+  margin: 0 auto;
+  /* Override flex fractions: with fixed pixel widths, set slide/notebook
+     to flex-basis directly and ignore growth. */
+  --sb-slide-frac: 0;
+  --sb-notebook-frac: 0;
+}
+.sb-root--preview .sb-slide {
+  flex: 0 0 900px;
+  width: 900px;
+}
+.sb-root--preview .sb-notebook {
+  flex: 0 0 600px;
+  width: 600px;
+}
+.sb-root--preview .sb-notebook-body {
+  /* Inner content area = 540px (600 - 30*2 horizontal padding), matching
+     LayoutConfig.notebook.padding=30 and block_default_widths.*=540. */
+  padding: 30px;
+  gap: 12px;
+}
+
+/* When the precompute pipeline stamps placement.rect on a notebook event,
+   the entry renders absolutely-positioned rather than in flow. */
+.sb-entry--placed {
+  position: absolute !important;
+  box-sizing: border-box;
+}
+
 /* ── Slide panel ─────────────────────────────────────────────── */
 
 .sb-slide {
@@ -75,11 +111,7 @@
   inset: 0;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.018) 1px,
-      transparent 1px
-    );
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -216,9 +248,10 @@
   animation: sb-fill-fade 0.4s ease forwards;
   animation-delay: calc(
     min(
-      calc(var(--sb-stroke-order, 0) * 180ms),
-      var(--sb-stroke-max-delay, 3600ms)
-    ) + 700ms
+        calc(var(--sb-stroke-order, 0) * 180ms),
+        var(--sb-stroke-max-delay, 3600ms)
+      ) +
+      700ms
   );
 }
 
@@ -233,9 +266,10 @@
   animation: sb-fill-fade 0.3s ease forwards;
   animation-delay: calc(
     min(
-      calc(var(--sb-stroke-order, 0) * 180ms),
-      var(--sb-stroke-max-delay, 3600ms)
-    ) + 850ms
+        calc(var(--sb-stroke-order, 0) * 180ms),
+        var(--sb-stroke-max-delay, 3600ms)
+      ) +
+      850ms
   );
 }
 
@@ -821,9 +855,10 @@
   animation: sb-fill-fade 0.4s ease forwards;
   animation-delay: calc(
     min(
-      calc(var(--sb-stroke-order, 0) * 180ms),
-      var(--sb-stroke-max-delay, 3600ms)
-    ) + 700ms
+        calc(var(--sb-stroke-order, 0) * 180ms),
+        var(--sb-stroke-max-delay, 3600ms)
+      ) +
+      700ms
   );
 }
 
@@ -832,7 +867,11 @@
    (the pedagogical textbook feel). */
 .sb-slide-live .design-diagram-content svg text,
 .sb-slide-live .design-diagram-content .katex {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .sb-slide-live .design-diagram-content svg .dd-frame-title,

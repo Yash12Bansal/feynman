@@ -28,10 +28,11 @@ import contextlib
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
+from feynman_teaching_kernel import ChecklistItem
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
@@ -50,21 +51,6 @@ FORCED_RETURN_CUE = "Let's circle back to that next time — we still have groun
 # so they don't sleep for real minutes.
 DEFAULT_SOFT_NUDGE_AFTER_S = 60.0
 DEFAULT_FORCE_RESOLVE_AFTER_S = 120.0
-
-
-class ChecklistItem(BaseModel):
-    """One requirement the agent must satisfy before `resolve_doubt` is allowed.
-
-    Items auto-tick when a tool listed in `auto_satisfied_by` is invoked, when
-    a keyword in `keywords` appears in the agent's emitted voice, or via the
-    explicit `mark_doubt_step_complete(step_index)` tool when the agent knows
-    it has addressed the requirement but no auto-trigger fired.
-    """
-
-    description: str = Field(..., min_length=1, max_length=240)
-    status: Literal["pending", "done"] = "pending"
-    auto_satisfied_by: list[str] = Field(default_factory=list)
-    keywords: list[str] = Field(default_factory=list)
 
 
 class ReturnAnchor(BaseModel):

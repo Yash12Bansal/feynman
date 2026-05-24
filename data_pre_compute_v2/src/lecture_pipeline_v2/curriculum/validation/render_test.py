@@ -16,17 +16,17 @@ logger = logging.getLogger(__name__)
 
 
 REQUIRED_FIELDS_BY_ELEMENT_TYPE = {
-    "svg_line":    ["x1", "y1", "x2", "y2"],
-    "svg_rect":    ["x", "y", "width", "height"],
-    "svg_circle":  ["cx", "cy", "r"],
+    "svg_line": ["x1", "y1", "x2", "y2"],
+    "svg_rect": ["x", "y", "width", "height"],
+    "svg_circle": ["cx", "cy", "r"],
     "svg_ellipse": ["cx", "cy", "rx", "ry"],
-    "svg_path":    ["d"],
-    "svg_text":    ["x", "y", "text"],
-    "svg_arc":     ["cx", "cy", "r", "startAngle", "endAngle"],
-    "svg_arrow":   ["x1", "y1", "x2", "y2"],
-    "svg_latex":   ["x", "y", "expression"],
-    "svg_group":   ["elements"],
-    "graph":       ["x", "y", "width", "height"],
+    "svg_path": ["d"],
+    "svg_text": ["x", "y", "text"],
+    "svg_arc": ["cx", "cy", "r", "startAngle", "endAngle"],
+    "svg_arrow": ["x1", "y1", "x2", "y2"],
+    "svg_latex": ["x", "y", "expression"],
+    "svg_group": ["elements"],
+    "graph": ["x", "y", "width", "height"],
 }
 
 
@@ -53,8 +53,11 @@ class DiagramRenderTester:
     ingested); the topic's other diagrams are unaffected.
     """
 
-    def test_all(self, diagrams: list[Diagram]) -> tuple[list[Diagram], DiagramRenderReport]:
+    def test_all(
+        self, diagrams: list[Diagram]
+    ) -> tuple[list[Diagram], DiagramRenderReport]:
         import time
+
         report = DiagramRenderReport()
         start = time.monotonic()
 
@@ -66,7 +69,9 @@ class DiagramRenderTester:
                 report.diagrams_passed += 1
                 kept.append(diagram)
             except ValueError as e:
-                logger.warning("Diagram %s failed render test: %s", diagram.diagram_id, e)
+                logger.warning(
+                    "Diagram %s failed render test: %s", diagram.diagram_id, e
+                )
                 report.failures.append((diagram.diagram_id, str(e)))
                 report.diagrams_flagged += 1
 
@@ -86,6 +91,18 @@ class DiagramRenderTester:
 
         ids: set[str] = set()
         self._validate_elements(elements, ids)
+
+        # Phase 1 (precompute-lecture-overhaul): the design_agent prompt requires
+        # a non-empty `dictionary` mapping element_id → semantic metadata.
+        # Mark legacy / mal-formed specs needs_review but keep them — the
+        # downstream pipeline still works, just without role-based addressing.
+        dictionary = spec.get("dictionary")
+        if not isinstance(dictionary, dict) or not dictionary:
+            logger.info(
+                "Diagram %s has no semantic dictionary — marking needs_review",
+                diagram.diagram_id,
+            )
+            diagram.needs_review = True
 
     def _validate_elements(self, elements: list, ids: set[str]) -> None:
         for el in elements:
