@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-backend dev-frontend dev-worker test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset migrate migrate-create
+.PHONY: setup dev dev-backend dev-frontend dev-worker dev-preview-server test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset migrate migrate-create
 
 # =============================================================================
 # Feynman — Development Commands
@@ -17,8 +17,8 @@ setup:
 
 # --- Development ---
 dev:
-	@echo "Starting backend on :8000 and frontend on :5173"
-	@make dev-backend & make dev-frontend & wait
+	@echo "Starting backend on :8000, frontend on :5173, preview server on :8080"
+	@make dev-backend & make dev-frontend & make dev-preview-server & wait
 
 dev-backend:
 	cd backend && uv run uvicorn feynman.main:app --reload --host 0.0.0.0 --port 8000
@@ -28,6 +28,11 @@ dev-frontend:
 
 dev-worker:
 	cd backend && uv run python -m feynman.livekit.worker dev
+
+# Serves /lecture-api/chapters + /lecture-api/chapter/{id} from Neo4j on :8080.
+# Required for the LectureHomeScreen picker and LectureViewer chapter fetch.
+dev-preview-server:
+	cd data_pre_compute_v2 && poetry run python tools/preview_server.py --port 8080
 
 # --- Testing ---
 test: test-backend test-frontend

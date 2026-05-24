@@ -4,6 +4,7 @@ import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
 import { DevHarness } from "./screens/DevHarness";
 import { DiagramGenerationTestScreen } from "./screens/DiagramGenerationTestScreen";
+import { LectureHomeScreen } from "./screens/LectureHomeScreen";
 import { LecturePreviewScreen } from "./screens/LecturePreviewScreen";
 import { SplitBoardPrototype } from "./screens/SplitBoardPrototype";
 import { WaitingScreen } from "./screens/WaitingScreen";
@@ -52,14 +53,31 @@ export function App() {
     return <DiagramGenerationTestScreen />;
   }
 
-  // v2 precompute classroom playback. Optional ?chapter=<id> in the hash:
+  // v2 precompute classroom playback playground. Optional ?chapter=<id>:
   //   #/lecture-preview                                  → chapter list
   //   #/lecture-preview?chapter=chapter:physics:...      → player
   if (hash.startsWith("#/lecture-preview")) {
     return <LecturePreviewScreen />;
   }
 
-  return <MainApp />;
+  // Legacy live-agent flow ("type a topic, start a class"). Parked behind a
+  // dev hash route — the consumer product entrypoint is LectureHomeScreen.
+  if (hash.startsWith("#/dev/live-teacher")) {
+    return <MainApp />;
+  }
+
+  return <MainEntry />;
+}
+
+function MainEntry() {
+  // ?lecture=<id> in the URL → MainApp auto-starts a lecture session and
+  // routes into ClassroomScreen → LectureViewer. No param → show the
+  // product front door (LectureHomeScreen).
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("lecture")) {
+    return <MainApp />;
+  }
+  return <LectureHomeScreen />;
 }
 
 function MainApp() {

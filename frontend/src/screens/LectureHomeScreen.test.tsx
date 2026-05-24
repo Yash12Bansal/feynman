@@ -1,0 +1,122 @@
+/**
+ * Tests for the chapter picker home screen.
+ *
+ * Covers the four fetch states (loading / error / empty / loaded) and the
+ * click handler that navigates into a chapter via the `?lecture=<id>` param.
+ */
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, waitFor } from "@testing-library/react";
+import { LectureHomeScreen } from "./LectureHomeScreen";
+
+const originalLocation = window.location;
+
+beforeEach(() => {
+  // Replace window.location with a stub we can inspect. The href setter is
+  // captured by a spy so we can assert what the click handler navigated to.
+  Object.defineProperty(window, "location", {
+    configurable: true,
+    writable: true,
+    value: {
+      ...originalLocation,
+      href: "http://localhost:5173/",
+      search: "",
+    },
+  });
+});
+
+afterEach(() => {
+  Object.defineProperty(window, "location", {
+    configurable: true,
+    writable: true,
+    value: originalLocation,
+  });
+  vi.restoreAllMocks();
+});
+
+describe("LectureHomeScreen", () => {
+  it("shows a loading skeleton while chapters are fetching", () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const { container } = render(<LectureHomeScreen />);
+    expect(container.querySelector("[aria-busy='true']")).toBeTruthy();
+  });
+
+  it("surfaces a fetch error with a hint about the preview server", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(
+      new Error("Failed to fetch"),
+    );
+    const { findByText } = render(<LectureHomeScreen />);
+    await findByText(/Can't reach the lecture server/i);
+    await findByText(/make dev-preview-server/i);
+  });
+
+  it("shows an empty state when no chapters are ingested", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("[]", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findByText } = render(<LectureHomeScreen />);
+    await findByText(/No lectures yet/i);
+  });
+
+  it("renders a card per chapter when chapters are returned", async () => {
+    const chapters = [
+      {
+        id: "chapter:physics:relativity",
+        title: "The Special Theory of Relativity",
+        idx: 47,
+        has_manifest: true,
+      },
+      {
+        id: "chapter:physics:newton",
+        title: "Newton's Laws of Motion",
+        idx: 5,
+        has_manifest: false,
+      },
+    ];
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(chapters), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findAllByTestId } = render(<LectureHomeScreen />);
+    const cards = await waitFor(async () => {
+      const all = await findAllByTestId("chapter-card");
+      expect(all).toHaveLength(2);
+      return all;
+    });
+    expect(cards[0].getAttribute("data-chapter-id")).toBe(
+      "chapter:physics:relativity",
+    );
+    // Ready chapter is enabled, no-audio chapter is disabled.
+    expect(cards[0]).not.toHaveProperty("disabled", true);
+    expect((cards[1] as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("navigates to ?lecture=<id> when a ready chapter is clicked", async () => {
+    const chapters = [
+      {
+        id: "chapter:physics:relativity",
+        title: "Relativity",
+        idx: 47,
+        has_manifest: true,
+      },
+    ];
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(chapters), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findByTestId } = render(<LectureHomeScreen />);
+    const card = await findByTestId("chapter-card");
+    fireEvent.click(card);
+    expect(window.location.href).toContain(
+      "lecture=chapter%3Aphysics%3Arelativity",
+    );
+  });
+});
