@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="forward-label" x="62" y="195" font-size="18" fill="#e8e8ee" text-anchor="end" font-weight="600">S =</text>
+<text id="ap-forward-row" x="100" y="195" font-size="17" fill="#9effc9" text-anchor="start" font-weight="normal">a  +  (a+d)  +  (a+2d)  +  …  +  (l−d)  +  l</text>
+<text id="backward-label" x="62" y="255" font-size="18" fill="#e8e8ee" text-anchor="end" font-weight="600">S =</text>
+<text id="ap-backward-row" x="100" y="255" font-size="17" fill="#7fd4ff" text-anchor="start" font-weight="normal">l  +  (l−d)  +  …  +  (a+2d)  +  (a+d)  +  a</text>
+<line id="divider-line" x1="68" y1="270" x2="720" y2="270" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ap-pair-brace" d="M 110 205 L 110 212 Q 110 218 116 218 L 148 218 Q 154 218 154 212 L 154 205" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="pair-brace-bottom" d="M 110 244 L 110 237 Q 110 231 116 231 L 148 231 Q 154 231 154 237 L 154 244" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="pair-sum-label" x="132" y="295" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">a + l</text>
+<text id="plus-dots-label" x="400" y="295" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">each pair sums to  a + l  (n pairs total)</text>
+<text id="ap-two-s-label" x="760" y="225" font-size="19" fill="#ff7a8a" text-anchor="middle" font-weight="700">2S = n × (a + l)</text>
+<line id="result-underline" x1="680" y1="230" x2="840" y2="230" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray="4 3"/>
+<defs><marker id="arrowhead_substitution-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.45)"/></marker></defs><line id="substitution-arrow" x1="760" y1="340" x2="760" y2="380" stroke="rgba(232,232,238,0.45)" stroke-width="1.8" marker-end="url(#arrowhead_substitution-arrow)"/>
+<text id="sub-hint-label" x="760" y="358" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">l = a+(n−1)d</text>
+<text id="last-term-substitution" x="760" y="420" font-size="21" fill="#9effc9" text-anchor="middle" font-weight="700">S = n/2 × (2a + (n−1)d)</text>
+<rect id="formula-box" x="615" y="398" width="292" height="38" rx="6" fill="none" stroke="#9effc9" stroke-width="2"/>
+<line id="section-divider" x1="640" y1="160" x2="640" y2="460" stroke="rgba(232,232,238,0.18)" stroke-width="1" stroke-dasharray="6 4"/>
+<text id="left-section-label" x="350" y="148" font-size="13" fill="rgba(232,232,238,0.45)" text-anchor="middle" font-weight="normal">Gauss pairing</text>
+<text id="right-section-label" x="760" y="148" font-size="13" fill="rgba(232,232,238,0.45)" text-anchor="middle" font-weight="normal">Result</text>
+</svg>

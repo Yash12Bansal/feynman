@@ -56,6 +56,11 @@ def ingest_book(
     chapter_name: Optional[str] = typer.Option(
         None, "--chapter", help="Chapter name substring (case-insensitive)"
     ),
+    single_chapter: Optional[str] = typer.Option(
+        None,
+        "--single-chapter",
+        help="Treat the whole PDF as one chapter with this title (bypass TOC detection)",
+    ),
     output: Optional[str] = typer.Option(
         None, "--output", "-o", help="Directory for extraction JSON"
     ),
@@ -102,6 +107,8 @@ def ingest_book(
         console.print(f"  Chapters (by index): {chapter_filter}")
     if chapter_name:
         console.print(f"  Chapter (by name): {chapter_name}")
+    if single_chapter:
+        console.print(f"  Single chapter (TOC bypassed): {single_chapter}")
     if force:
         console.print("  [yellow]--force: idempotency disabled[/yellow]")
     console.print()
@@ -119,6 +126,7 @@ def ingest_book(
             subject,
             chapters=chapter_filter,
             chapter_name=chapter_name,
+            single_chapter_title=single_chapter,
             force=force,
             skip_neo4j=skip_neo4j,
             skip_embeddings=skip_embeddings,

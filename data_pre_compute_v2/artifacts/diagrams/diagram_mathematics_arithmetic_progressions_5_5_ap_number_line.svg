@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="number-line" x1="80" y1="320" x2="820" y2="320" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="line-end-tick" x1="820" y1="310" x2="820" y2="330" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="term-a" cx="160" cy="320" r="7" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="term-a-plus-d" cx="340" cy="320" r="7" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="term-a-plus-2d" cx="520" cy="320" r="7" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="term-nth" cx="760" cy="320" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="ellipsis" x="640" y="325" font-size="20" fill="rgba(232,232,238,0.6)" text-anchor="middle" font-weight="normal">· · ·</text>
+<text id="label-a" x="160" y="362" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">a</text>
+<text id="label-a-plus-d" x="340" y="362" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">a+d</text>
+<text id="label-a-plus-2d" x="520" y="362" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">a+2d</text>
+<text id="label-nth" x="760" y="362" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">a+(n-1)d</text>
+<path id="jump-d-arrow" d="M 168 312 Q 250 240 332 312" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="jump-d-arrow-marker" d="M 327 307 L 332 312 L 323 313" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="jump-d-arrow-2" d="M 348 312 Q 430 240 512 312" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="jump-d-arrow-2-marker" d="M 507 307 L 512 312 L 503 313" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="jump-d-label" x="250" y="228" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">+d</text>
+<text id="jump-d-label-2" x="430" y="228" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">+d</text>
+<path id="sum-bracket" d="M 160 420 L 160 440 L 760 440 L 760 420" stroke="#9effc9" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="sum-label" x="460" y="475" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">S_n</text>
+<path id="term-a-tick" d="M 160 310 L 160 330" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<path id="term-d-tick" d="M 340 310 L 340 330" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<path id="term-2d-tick" d="M 520 310 L 520 330" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<path id="term-nth-tick" d="M 760 310 L 760 330" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+</svg>

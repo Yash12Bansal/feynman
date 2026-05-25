@@ -21,13 +21,21 @@ artifacts/measurement_cache/
 out/*
 out_phase*/
 
-# Canonical test fixture: H.C. Verma chapter 5. Committed so a teammate can
-# do `lecture-pipeline-v2 load-extraction out/extraction.json` and have a
-# working graph + playable audio without re-running ingestion.
+# Canonical test fixtures. Committed so a teammate can do
+# `lecture-pipeline-v2 load-extraction <path>` and have a working graph +
+# playable audio without re-running ingestion.
+#
+# H.C. Verma physics chapter 5 (Newton's Laws of Motion):
 !artifacts/audio/chapter_physics_newtons_laws_of_motion/
 !artifacts/diagrams/diagram_physics_newtons_laws_of_motion_*.png
 !artifacts/diagrams/diagram_physics_newtons_laws_of_motion_*.svg
 !out/extraction.json
+#
+# NCERT Class-10 Mathematics chapter on Arithmetic Progressions:
+!artifacts/audio/chapter_mathematics_arithmetic_progressions/
+!artifacts/diagrams/diagram_mathematics_arithmetic_progressions_*.png
+!artifacts/diagrams/diagram_mathematics_arithmetic_progressions_*.svg
+!out/extraction_mathematics_arithmetic_progressions.json
 
 # local configs
 .env

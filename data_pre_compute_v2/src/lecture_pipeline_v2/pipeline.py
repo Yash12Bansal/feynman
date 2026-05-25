@@ -144,6 +144,7 @@ class CurriculumPipelineV2:
         *,
         chapters: list[int] | None = None,
         chapter_name: str | None = None,
+        single_chapter_title: str | None = None,
         force: bool = False,
         skip_neo4j: bool = False,
         skip_embeddings: bool = False,
@@ -163,7 +164,20 @@ class CurriculumPipelineV2:
         # --- Phase 1: parse PDF + TOC ---
         notify("parse", "Parsing PDF...")
         pdf_content = self.pdf_parser.parse(Path(pdf_path))
-        all_detected = self.toc_extractor.extract_chapters(pdf_content)
+        if single_chapter_title:
+            # Standalone-chapter PDF: skip TOC detection entirely and treat
+            # the whole document as one chapter with the caller-supplied
+            # title. Used for NCERT-style per-chapter PDFs and any other
+            # single-chapter document where TOC parsing can't help.
+            synthetic = PdfChapter(
+                title=single_chapter_title,
+                level=1,
+                start_page=1,
+                end_page=pdf_content.total_pages,
+            )
+            all_detected = [synthetic]
+        else:
+            all_detected = self.toc_extractor.extract_chapters(pdf_content)
         # Preserve each chapter's ORIGINAL position before filtering so that
         # Chapter.chapter_index in Neo4j always matches the book's TOC.
         indexed_chapters = list(enumerate(all_detected, 1))
