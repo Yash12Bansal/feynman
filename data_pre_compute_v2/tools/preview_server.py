@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -26,6 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from neo4j import AsyncGraphDatabase
 
 from lecture_pipeline_v2.config import PipelineConfig
+from lecture_pipeline_v2.tts.chunker import TextFragment, split_script
 
 cfg = PipelineConfig.load()
 artifacts_base = Path(cfg.artifacts.base_dir).resolve()
@@ -36,6 +38,66 @@ app = FastAPI(title="Lecture Player")
 # when both servers are running simultaneously behind the Vite dev proxy.
 app.mount("/lecture-artifacts", StaticFiles(directory=str(artifacts_base)), name="artifacts")
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
+_TOPIC_START_RE = re.compile(r"<<TOPIC_START:([^>]+)>>")
+
+
+def _chunk_narration_by_topic(narration_text: str) -> dict[str, list[str]]:
+    """Re-chunk Chapter.narration_text into {topic_id: [text fragments]}.
+
+    The audio_pipeline at ingest time chunked the SAME narration string and
+    rendered one MP3 per TextFragment per topic, in order. Re-running the
+    same chunker on the same string gives us the same fragments back. We
+    pair each fragment with its corresponding AudioEvent at request time so
+    the frontend can render a live transcript without re-ingesting.
+    """
+    if not narration_text:
+        return {}
+    matches = list(_TOPIC_START_RE.finditer(narration_text))
+    if not matches:
+        return {}
+    out: dict[str, list[str]] = {}
+    for i, m in enumerate(matches):
+        tid = m.group(1).strip()
+        start = m.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(narration_text)
+        segment = narration_text[start:end]
+        try:
+            fragments = split_script(segment)
+        except Exception:
+            # Defensive: if the chunker rejects the segment for any reason,
+            # leave no transcript for this topic rather than failing the API.
+            continue
+        out[tid] = [
+            f.text.strip() for f in fragments if isinstance(f, TextFragment) and f.text.strip()
+        ]
+    return out
+
+
+def _attach_transcript(
+    events: list[dict], texts_by_topic: dict[str, list[str]]
+) -> list[dict]:
+    """Walk manifest events; attach `.text` to each AudioEvent from the
+    matching topic's re-chunked text fragments, in order.
+    """
+    if not texts_by_topic:
+        return events
+    current_topic: str | None = None
+    text_idx = 0
+    out: list[dict] = []
+    for ev in events:
+        ev_type = ev.get("type")
+        if ev_type == "topic_start":
+            current_topic = ev.get("topic_id")
+            text_idx = 0
+        elif ev_type == "audio" and current_topic:
+            texts = texts_by_topic.get(current_topic, [])
+            if 0 <= text_idx < len(texts):
+                ev = {**ev, "text": texts[text_idx]}
+                text_idx += 1
+        out.append(ev)
+    return out
 
 
 def rewrite_url(url: str | None) -> str | None:
@@ -89,7 +151,8 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
                 "MATCH (c:Chapter {chapter_id: $id}) "
                 "RETURN c.title AS title, c.chapter_index AS idx, "
                 "       c.chapter_manifest AS manifest, "
-                "       c.board_snapshots AS board_snapshots",
+                "       c.board_snapshots AS board_snapshots, "
+                "       c.narration_text AS narration_text",
                 {"id": chapter_id},
             )
             record = await result.single()
@@ -156,8 +219,13 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
     finally:
         await driver.close()
 
+    # Live transcript: re-chunk narration_text and attach `text` to each
+    # AudioEvent so the frontend can render the currently-spoken sentence.
+    texts_by_topic = _chunk_narration_by_topic(record["narration_text"] or "")
+    events_with_text = _attach_transcript(events, texts_by_topic)
+
     rewritten_events = []
-    for ev in events:
+    for ev in events_with_text:
         if ev.get("type") == "audio":
             rewritten_events.append({**ev, "url": rewrite_url(ev["url"])})
         else:
