@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground-line" x1="100" y1="480" x2="800" y2="480" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 120 480 L 110 494 M 160 480 L 150 494 M 200 480 L 190 494 M 240 480 L 230 494 M 280 480 L 270 494 M 320 480 L 310 494 M 360 480 L 350 494 M 400 480 L 390 494 M 440 480 L 430 494 M 480 480 L 470 494 M 520 480 L 510 494 M 560 480 L 550 494 M 600 480 L 590 494 M 640 480 L 630 494 M 680 480 L 670 494 M 720 480 L 710 494 M 760 480 L 750 494 M 800 480 L 790 494" stroke="rgba(232,232,238,0.3)" stroke-width="1" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_arrow-5ms" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="arrow-5ms" x1="180" y1="360" x2="580" y2="360" stroke="#9effc9" stroke-width="3" marker-end="url(#arrowhead_arrow-5ms)"/>
+<circle id="tail-dot" cx="180" cy="360" r="5" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="arrow-tail-label" x="180" y="398" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">tail</text>
+<line id="tail-tick" x1="180" y1="368" x2="180" y2="388" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<text id="arrow-head-label" x="580" y="398" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">head</text>
+<line id="head-tick" x1="580" y1="368" x2="580" y2="388" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<text id="label-5ms" x="380" y="330" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">5\,\text{m/s}</text>
+<defs><marker id="arrowhead_arrow-3ms-up" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="arrow-3ms-up" x1="720" y1="460" x2="720" y2="220" stroke="#ff7a8a" stroke-width="3" marker-end="url(#arrowhead_arrow-3ms-up)"/>
+<text id="label-3ms" x="738" y="340" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">3\,\text{m/s}</text>
+<line id="length-bracket-left" x1="180" y1="310" x2="180" y2="295" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="length-bracket-right" x1="580" y1="310" x2="580" y2="295" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="length-bracket-span" x1="180" y1="302" x2="580" y2="302" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text id="length-label" x="380" y="290" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">length ∝ magnitude</text>
+</svg>

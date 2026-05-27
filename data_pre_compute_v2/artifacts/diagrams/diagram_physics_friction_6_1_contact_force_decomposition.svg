@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="surface-line" x1="200" y1="400" x2="700" y2="400" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<path id="surface-hatch" d="M 210 400 L 200 415 M 240 400 L 230 415 M 270 400 L 260 415 M 300 400 L 290 415 M 330 400 L 320 415 M 360 400 L 350 415 M 390 400 L 380 415 M 420 400 L 410 415 M 450 400 L 440 415 M 480 400 L 470 415 M 510 400 L 500 415 M 540 400 L 530 415 M 570 400 L 560 415 M 600 400 L 590 415 M 630 400 L 620 415 M 660 400 L 650 415 M 690 400 L 680 415" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="block" x="410" y="330" width="80" height="70" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<defs><marker id="arrowhead_normal-force-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="normal-force-vector" x1="450" y1="400" x2="450" y2="230" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_normal-force-vector)"/>
+<defs><marker id="arrowhead_friction-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="friction-vector" x1="450" y1="400" x2="290" y2="400" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_friction-vector)"/>
+<defs><marker id="arrowhead_contact-force-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="contact-force-vector" x1="450" y1="400" x2="290" y2="230" stroke="#ff7a8a" stroke-width="3" marker-end="url(#arrowhead_contact-force-vector)"/>
+<path id="angle-theta" d="M 450.0 354.0 A 46.0 46.0 0 0 1 417.47308806541884 367.47308806541884" stroke="#ff7a8a" stroke-width="1.8" fill="none"/>
+<path id="right-angle-marker" d="M 450 386 L 436 386 L 436 400" stroke="#e8e8ee" stroke-width="1.6" fill="none" stroke-dasharray=""/>
+<line id="dashed-vertical" x1="450" y1="230" x2="290" y2="230" stroke="rgba(232,232,238,0.3)" stroke-width="1.2" stroke-dasharray="5,5"/>
+<line id="dashed-horizontal" x1="290" y1="230" x2="290" y2="400" stroke="rgba(232,232,238,0.3)" stroke-width="1.2" stroke-dasharray="5,5"/>
+<text id="normal-label" x="462" y="224" font-size="14" fill="#7fd4ff" text-anchor="start" font-weight="600">N</text>
+<text id="friction-label" x="283" y="394" font-size="14" fill="#9effc9" text-anchor="end" font-weight="600">f</text>
+<text id="contact-label" x="278" y="224" font-size="14" fill="#ff7a8a" text-anchor="end" font-weight="600">F</text>
+<text id="theta-label" x="420" y="365" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">\theta</text>
+</svg>

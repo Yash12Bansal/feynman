@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="horizontal-base" x1="120" y1="510" x2="780" y2="510" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 130 510 L 118 524 M 160 510 L 148 524 M 190 510 L 178 524 M 220 510 L 208 524 M 250 510 L 238 524 M 280 510 L 268 524 M 310 510 L 298 524 M 340 510 L 328 524 M 370 510 L 358 524 M 400 510 L 388 524 M 430 510 L 418 524 M 460 510 L 448 524 M 490 510 L 478 524 M 520 510 L 508 524 M 550 510 L 538 524 M 580 510 L 568 524 M 610 510 L 598 524 M 640 510 L 628 524 M 670 510 L 658 524 M 700 510 L 688 524 M 730 510 L 718 524 M 760 510 L 748 524" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<path id="incline-surface" d="M 160 510 L 640 190 L 660 223 L 180 543 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="angle-arc" d="M 205.2882106690529 480.58949210918854 A 54.0 54.0 0 0 1 214.0 510.0" stroke="#7fd4ff" stroke-width="1.8" fill="none"/>
+<text id="angle-label" x="228" y="503" font-size="15" fill="#7fd4ff" text-anchor="middle" font-weight="600">θ</text>
+<rect id="block-on-incline" x="348" y="298" width="58" height="58" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<defs><marker id="arrowhead_weight-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="weight-vector" x1="377" y1="327" x2="377" y2="470" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_weight-vector)"/>
+<text id="weight-label" x="392" y="482" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">mg</text>
+<defs><marker id="arrowhead_normal-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="normal-vector" x1="377" y1="327" x2="295" y2="194" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_normal-vector)"/>
+<text id="normal-label" x="283" y="182" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">N</text>
+<defs><marker id="arrowhead_friction-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="friction-vector" x1="377" y1="327" x2="500" y2="238" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_friction-vector)"/>
+<text id="friction-label" x="514" y="230" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">f</text>
+<defs><marker id="arrowhead_parallel-component" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="parallel-component" x1="377" y1="327" x2="254" y2="416" stroke="#ff7a8a" stroke-width="2" marker-end="url(#arrowhead_parallel-component)"/>
+<text id="parallel-label" x="228" y="440" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="normal">mg sinθ</text>
+<defs><marker id="arrowhead_perp-component" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="perp-component" x1="377" y1="327" x2="456" y2="460" stroke="#ff7a8a" stroke-width="2" marker-end="url(#arrowhead_perp-component)"/>
+<text id="perp-label" x="476" y="474" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="normal">mg cosθ</text>
+<path id="right-angle-marker" d="M 422 396 L 436 374 L 456 387" stroke="rgba(232,232,238,0.5)" stroke-width="1.4" fill="none" stroke-dasharray=""/>
+<path id="component-dashed-corner" d="M 377 470 L 254 416" stroke="rgba(232,232,238,0.25)" stroke-width="1.2" fill="none" stroke-dasharray="3,6"/>
+<path id="component-dashed-corner2" d="M 377 470 L 456 460" stroke="rgba(232,232,238,0.25)" stroke-width="1.2" fill="none" stroke-dasharray="3,6"/>
+</svg>

@@ -11,31 +11,14 @@ htmlcov/
 dist/
 build/
 
-# pipeline outputs — ignore contents (not the directory itself, so we can
-# selectively un-ignore canonical test fixtures below)
-artifacts/audio/*
-artifacts/diagrams/*
-artifacts/animations/*
-artifacts/runs/*
+# Pipeline outputs — chapter audio + diagrams + extraction JSON are
+# committed so teammates can `lecture-pipeline-v2 load-extraction <path>`
+# without re-running ingestion. Heavier ephemeral artifacts (animations,
+# runs, measurement cache, phase-checkpoint outputs) stay ignored.
+artifacts/animations/
+artifacts/runs/
 artifacts/measurement_cache/
-out/*
 out_phase*/
-
-# Canonical test fixtures. Committed so a teammate can do
-# `lecture-pipeline-v2 load-extraction <path>` and have a working graph +
-# playable audio without re-running ingestion.
-#
-# H.C. Verma physics chapter 5 (Newton's Laws of Motion):
-!artifacts/audio/chapter_physics_newtons_laws_of_motion/
-!artifacts/diagrams/diagram_physics_newtons_laws_of_motion_*.png
-!artifacts/diagrams/diagram_physics_newtons_laws_of_motion_*.svg
-!out/extraction.json
-#
-# NCERT Class-10 Mathematics chapter on Arithmetic Progressions:
-!artifacts/audio/chapter_mathematics_arithmetic_progressions/
-!artifacts/diagrams/diagram_mathematics_arithmetic_progressions_*.png
-!artifacts/diagrams/diagram_mathematics_arithmetic_progressions_*.svg
-!out/extraction_mathematics_arithmetic_progressions.json
 
 # local configs
 .env

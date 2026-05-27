@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="upward-vertical" x1="450" y1="130" x2="450" y2="320" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray="4,4"/>
+<circle id="pendulum-circle" cx="450" cy="310" r="180" fill="none" stroke="rgba(232,232,238,0.18)" stroke-width="1" stroke-dasharray="3,6"/>
+<path id="circular-arc" d="M 450 490 A 180 180 0 0 0 273 238" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="string-OP" x1="450" y1="130" x2="273" y2="238" stroke="#7fd4ff" stroke-width="2" stroke-dasharray="6,4"/>
+<path id="angle-theta" d="M 402.0 130.0 A 48.0 48.0 0 0 1 412.1754838268773 100.44824918436841" stroke="#9effc9" stroke-width="1.8" fill="none"/>
+<text id="theta-label" x="406" y="165" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">\theta</text>
+<path id="parabolic-path" d="M 273 238 Q 320 80 450 130" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray="7,4"/>
+<circle id="suspension-point-O" cx="450" cy="130" r="6" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label-O" x="464" y="127" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">O</text>
+<circle id="point-P" cx="273" cy="238" r="5" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label-P" x="255" y="232" font-size="13" fill="#9effc9" text-anchor="end" font-weight="600">P</text>
+<defs><marker id="arrowhead_velocity-vector-P" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="velocity-vector-P" x1="273" y1="238" x2="196" y2="195" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_velocity-vector-P)"/>
+<text id="v-label" x="183" y="190" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">v</text>
+<defs><marker id="arrowhead_weight-vector-P" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="weight-vector-P" x1="273" y1="238" x2="273" y2="310" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_weight-vector-P)"/>
+<text id="mg-label" x="283" y="325" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">mg</text>
+<circle id="bottom-point" cx="450" cy="490" r="5" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_initial-velocity-v0" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="initial-velocity-v0" x1="450" y1="490" x2="560" y2="490" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_initial-velocity-v0)"/>
+<text id="v0-label" x="568" y="495" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">v_0</text>
+<line id="ceiling-line" x1="390" y1="130" x2="510" y2="130" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ceiling-hatch" d="M 398 130 L 390 142 M 414 130 L 406 142 M 430 130 L 422 142 M 446 130 L 438 142 M 462 130 L 454 142 M 478 130 L 470 142 M 494 130 L 486 142 M 510 130 L 502 142" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+</svg>

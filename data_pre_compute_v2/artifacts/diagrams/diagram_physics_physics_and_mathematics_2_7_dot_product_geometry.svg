@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="divider" x1="460" y1="60" x2="460" y2="590" stroke="rgba(232,232,238,0.18)" stroke-width="1.2" stroke-dasharray="6 6"/>
+<text id="left-scene-label" x="230" y="58" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Projection view</text>
+<text id="right-scene-label" x="680" y="58" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Perpendicular case</text>
+<defs><marker id="arrowhead_vector-a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="vector-a" x1="140" y1="390" x2="360" y2="330" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_vector-a)"/>
+<text id="vector-a-label" x="368" y="326" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">a</text>
+<defs><marker id="arrowhead_vector-b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="vector-b" x1="140" y1="390" x2="250" y2="200" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_vector-b)"/>
+<text id="vector-b-label" x="244" y="192" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">b</text>
+<path id="angle-theta" d="M 93.63556033812472 377.576685835079 A 48.0 48.0 0 0 1 113.15874063340416 350.20619651735797" stroke="#ff7a8a" stroke-width="1.8" fill="none"/>
+<text id="theta-label" x="102" y="348" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">\theta</text>
+<line id="a-direction-ext" x1="140" y1="390" x2="400" y2="320" stroke="rgba(127,212,255,0.22)" stroke-width="1.2" stroke-dasharray="4 5"/>
+<line id="projection-of-b-onto-a" x1="250" y1="200" x2="222" y2="373" stroke="rgba(232,232,238,0.65)" stroke-width="1.8" stroke-dasharray="5 4"/>
+<path id="right-angle-mark" d="M 215 362 L 224 358 L 228 368" stroke="rgba(232,232,238,0.65)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_projection-segment" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="projection-segment" x1="140" y1="390" x2="222" y2="373" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_projection-segment)"/>
+<text id="proj-label" x="174" y="416" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">b\cos\theta</text>
+<text id="dot-product-formula" x="230" y="490" font-size="14" fill="rgba(232,232,238,0.80)" font-style="italic" text-anchor="middle">\mathbf{a}\cdot\mathbf{b} = |a|\,b\cos\theta</text>
+<defs><marker id="arrowhead_perpendicular-case-a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="perpendicular-case-a" x1="560" y1="400" x2="780" y2="400" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_perpendicular-case-a)"/>
+<text id="perp-a-label" x="788" y="404" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">a</text>
+<defs><marker id="arrowhead_perpendicular-case-b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="perpendicular-case-b" x1="560" y1="400" x2="560" y2="200" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_perpendicular-case-b)"/>
+<text id="perp-b-label" x="548" y="192" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">b</text>
+<path id="perp-right-angle" d="M 560 368 L 592 368 L 592 400" stroke="rgba(232,232,238,0.65)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="perp-angle-label" x="600" y="355" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">90°</text>
+<text id="perpendicular-label" x="680" y="490" font-size="13" fill="rgba(232,232,238,0.80)" text-anchor="middle" font-weight="600">dot product = 0</text>
+</svg>

@@ -24,14 +24,21 @@ dev:
 		( sleep 3 ; make dev-preview-server ) & \
 		wait
 
+# PYTHONPATH bypass: macOS Sequoia stamps UF_HIDDEN on every file inside
+# `.venv/`, including `_editable_impl_*.pth`. CPython skips hidden .pth files
+# silently, so editable installs of `feynman` + `feynman_teaching_kernel`
+# never make it onto sys.path. Setting PYTHONPATH explicitly adds them up
+# front, before site.py runs — no flag manipulation, survives every `uv sync`.
+BACKEND_PYTHONPATH = src:../feynman_teaching_kernel/src
+
 dev-backend:
-	cd backend && uv run uvicorn feynman.main:app --reload --host 0.0.0.0 --port 8000
+	cd backend && PYTHONPATH=$(BACKEND_PYTHONPATH) uv run uvicorn feynman.main:app --reload --reload-dir src --host 0.0.0.0 --port 8000
 
 dev-frontend:
 	cd frontend && pnpm dev
 
 dev-worker:
-	cd backend && uv run python -m feynman.livekit.worker dev
+	cd backend && PYTHONPATH=$(BACKEND_PYTHONPATH) uv run python -m feynman.livekit.worker dev
 
 # Serves /lecture-api/chapters + /lecture-api/chapter/{id} from Neo4j on :8080.
 # Required for the LectureHomeScreen picker and LectureViewer chapter fetch.

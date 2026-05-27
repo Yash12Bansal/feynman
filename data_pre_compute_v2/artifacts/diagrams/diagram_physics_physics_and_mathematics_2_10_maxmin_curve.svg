@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="x-axis" x1="80" y1="500" x2="820" y2="500" stroke="rgba(232,232,238,0.6)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="y-axis" x1="120" y1="60" x2="120" y2="540" stroke="rgba(232,232,238,0.6)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.6)"/></marker></defs><line id="x-axis-arrow" x1="800" y1="500" x2="820" y2="500" stroke="rgba(232,232,238,0.6)" stroke-width="1.5" marker-end="url(#arrowhead_x-axis-arrow)"/>
+<defs><marker id="arrowhead_y-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.6)"/></marker></defs><line id="y-axis-arrow" x1="120" y1="80" x2="120" y2="60" stroke="rgba(232,232,238,0.6)" stroke-width="1.5" marker-end="url(#arrowhead_y-axis-arrow)"/>
+<text id="x-axis-label" x="830" y="504" font-size="14" fill="rgba(232,232,238,0.7)" text-anchor="start" font-weight="normal">x</text>
+<text id="y-axis-label" x="108" y="58" font-size="14" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">y</text>
+<path id="curve-y-x" d="M 150 440 C 200 430 240 200 310 170 C 370 145 410 155 460 230 C 510 305 540 370 590 390 C 640 408 680 320 730 290 C 760 275 780 280 800 295" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="point-maximum" cx="310" cy="170" r="6" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<line id="tangent-at-max" x1="230" y1="170" x2="390" y2="170" stroke="#9effc9" stroke-width="2" stroke-dasharray="6,4"/>
+<text id="label-maximum" x="310" y="152" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">maximum</text>
+<circle id="point-minimum" cx="590" cy="390" r="6" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<line id="tangent-at-min" x1="510" y1="390" x2="670" y2="390" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="6,4"/>
+<text id="label-minimum" x="590" y="415" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">minimum</text>
+<defs><marker id="arrowhead_slope-positive-region" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="slope-positive-region" x1="195" y1="360" x2="240" y2="305" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_slope-positive-region)"/>
+<text id="slope-positive-label" x="168" y="378" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="normal">slope &gt; 0</text>
+<defs><marker id="arrowhead_slope-negative-region" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="slope-negative-region" x1="430" y1="250" x2="475" y2="305" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_slope-negative-region)"/>
+<text id="slope-negative-label" x="416" y="238" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="normal">slope &lt; 0</text>
+</svg>

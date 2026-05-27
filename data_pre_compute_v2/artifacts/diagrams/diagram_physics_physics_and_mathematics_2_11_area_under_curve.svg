@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="region-pabq" d="M 180 450 L 180 210 Q 290 130 370 160 Q 450 190 510 175 Q 570 160 660 200 L 660 450 Z" stroke="none" stroke-width="0" fill="rgba(127, 212, 255, 0.12)" stroke-dasharray=""/>
+<path id="rect-bars" d="M 180 450 L 180 210 L 228 210 L 228 450 M 228 450 L 228 185 L 276 185 L 276 450 M 276 450 L 276 173 L 324 173 L 324 450 M 324 450 L 324 168 L 372 168 L 372 450 M 372 450 L 372 173 L 420 420 M 372 173 L 420 173 L 420 450 M 420 450 L 420 175 L 468 175 L 468 450 M 468 450 L 468 182 L 516 182 L 516 450 M 516 450 L 516 190 L 564 190 L 564 450 M 564 450 L 564 195 L 612 195 L 612 450 M 612 450 L 612 198 L 660 198 L 660 450" stroke="#9effc9" stroke-width="1.5" fill="rgba(158, 255, 201, 0.18)" stroke-dasharray=""/>
+<path id="curve-pq" d="M 180 210 Q 290 130 370 160 Q 450 190 510 175 Q 570 160 660 198" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="x-axis" x1="100" y1="450" x2="780" y2="450" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="y-axis" x1="120" y1="80" x2="120" y2="460" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="x-axis-arrow" x1="760" y1="450" x2="790" y2="450" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_x-axis-arrow)"/>
+<defs><marker id="arrowhead_y-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="y-axis-arrow" x1="120" y1="100" x2="120" y2="72" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_y-axis-arrow)"/>
+<line id="bound-a-tick" x1="180" y1="444" x2="180" y2="456" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="bound-b-tick" x1="660" y1="444" x2="660" y2="456" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="vert-line-a" x1="180" y1="210" x2="180" y2="450" stroke="rgba(232,232,238,0.35)" stroke-width="1.5" stroke-dasharray="5,4"/>
+<line id="vert-line-b" x1="660" y1="198" x2="660" y2="450" stroke="rgba(232,232,238,0.35)" stroke-width="1.5" stroke-dasharray="5,4"/>
+<circle id="point-p" cx="180" cy="210" r="5" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="point-q" cx="660" cy="198" r="5" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="label-p" x="162" y="202" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">P</text>
+<text id="label-q" x="676" y="192" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">Q</text>
+<text id="label-a" x="180" y="472" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="normal">a</text>
+<text id="label-b" x="660" y="472" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="normal">b</text>
+<text id="label-x" x="796" y="454" font-size="13" fill="#e8e8ee" text-anchor="start" font-weight="normal">x</text>
+<text id="label-y" x="108" y="70" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="normal">y</text>
+<line id="delta-x-line" x1="372" y1="510" x2="420" y2="510" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray=""/>
+<line id="delta-x-left-tick" x1="372" y1="504" x2="372" y2="516" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray=""/>
+<line id="delta-x-right-tick" x1="420" y1="504" x2="420" y2="516" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray=""/>
+<line id="delta-x-leader" x1="396" y1="516" x2="396" y2="530" stroke="rgba(255,122,138,0.5)" stroke-width="1.2" stroke-dasharray=""/>
+<text id="delta-x-label" x="396" y="548" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">\Delta x</text>
+<text id="fx-label" x="530" y="140" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">y = f(x)</text>
+</svg>

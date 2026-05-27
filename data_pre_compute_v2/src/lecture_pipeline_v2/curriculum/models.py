@@ -411,6 +411,80 @@ class PageSummary(BaseModel):
     annotations_count: int = Field(default=0, ge=0)
 
 
+# ---------------------------------------------------------------------------
+# Unified board state (feat/unify_boardstate).
+#
+# Authoritative "what is on the board" at end-of-page. One BoardSnapshot per
+# Chapter.pages entry at matching index. Built deterministically by the
+# manifest composer from PageState (SlideState.element_bounds + NotebookState
+# blocks); consumed by the live agent and the frontend so neither has to
+# rebuild from event walks or query the DOM to know where things are.
+# ---------------------------------------------------------------------------
+
+
+class BoardElement(BaseModel):
+    """One element placed on the board at a snapshot moment.
+
+    `kind` discriminates how to interpret the optional fields:
+      diagram          → element_id is the diagram_id; rect is its slide rect
+      diagram_element  → element_id is the stable id from the diagram's
+                         dictionary; parent_id is the diagram_id; role is the
+                         role string; semantic is the dictionary's semantic term
+      notebook_block   → element_id is the fragment_id; block_type is set
+    """
+
+    element_id: str
+    kind: Literal["diagram", "diagram_element", "notebook_block"]
+    rect: Rect
+    parent_id: str = ""
+    role: str = ""
+    block_type: str = ""
+    semantic: str = ""
+
+
+class BoardSnapshot(BaseModel):
+    page_index: int = Field(..., ge=0)
+    topic_id: str = ""
+    elements: list[BoardElement] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Concept-to-Visual Index (Idea 2).
+#
+# One row per (diagram, dictionary element). Built once at ingest from each
+# Diagram.render_data.dictionary. Persisted on the Chapter so doubt
+# resolution + future auto-FOCUS passes can do an O(N) substring scan
+# without re-parsing every diagram's full render_data. Keyed by linked_beat_id
+# so beat-anchored consumers (e.g., "what visuals are introduced in this
+# beat?") can narrow scope.
+# ---------------------------------------------------------------------------
+
+
+class VisualTermEntry(BaseModel):
+    """One indexable element on one diagram.
+
+    The pair (diagram_id, element_id) is the stable handle; (role, semantic)
+    are the searchable strings (lowercased at lookup time, not write time, to
+    keep originals readable). `linked_beat_id` carries the parent diagram's
+    beat anchor so beat-scoped lookups stay deterministic.
+    """
+
+    diagram_id: str
+    element_id: str
+    role: str = ""
+    semantic: str = ""
+    linked_beat_id: str = ""
+
+
+class ConceptVisualIndex(BaseModel):
+    """Flat list of VisualTermEntry — one per dictionary element across all
+    diagrams in the chapter. Order is stable (diagram id, then element id)
+    so the index is byte-identical across re-runs unless the diagrams change.
+    """
+
+    entries: list[VisualTermEntry] = Field(default_factory=list)
+
+
 class Manifest(BaseModel):
     """Ordered event sequence for audio + diagram playback."""
 
@@ -543,6 +617,52 @@ class Question(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Book examples — verbatim worked-out problems + quantitative inline
+# illustrations pulled straight from the textbook. The product USP is that
+# every book example becomes a beat in the lecture; the LLM never invents
+# examples that masquerade as the book's. Extended (LLM) examples are a
+# separate, additive concept — see allocator logic in lecture_plan.
+# ---------------------------------------------------------------------------
+
+
+class BookExample(BaseModel):
+    """One worked-out problem or quantitative inline illustration from the book.
+
+    The narration MUST preserve `setup_facts` (numbers + relationships) and
+    the conclusion. Character names + surface phrasing CAN be localized. Pure
+    analogies don't count — only quantitative content lives here.
+    """
+
+    verbatim_text: str = Field(
+        ...,
+        description="The example passage quoted from the textbook. Used as the "
+        "source of truth — when the narration drifts, regenerate against this.",
+    )
+    page_number: int | None = None
+    kind: Literal["worked_out", "inline"] = Field(
+        ...,
+        description="`worked_out` = numbered Example boxes with full solutions; "
+        "`inline` = quantitative illustrations woven into the prose.",
+    )
+    lesson_focus: str = Field(
+        ...,
+        min_length=1,
+        description="One sentence stating what the student should walk away "
+        "understanding. The writer uses this to anchor the narration.",
+    )
+    setup_facts: list[str] = Field(
+        default_factory=list,
+        description="Numbers and relationships that MUST appear in the narration "
+        "(e.g., 'mass = 2 kg', 'F = 10 N'). Faithfulness contract.",
+    )
+    has_derivation: bool = Field(
+        default=False,
+        description="When True, the writer renders step-by-step via "
+        "<<WRITE_STEP>> markers instead of compressing to one beat.",
+    )
+
+
 class Topic(BaseModel):
     # identity
     topic_id: str
@@ -554,7 +674,18 @@ class Topic(BaseModel):
     # source content
     orig_book_content: str = Field(..., description="Verbatim from PDF")
     our_understanding: str = Field(..., description="LLM teacher-voice explanation")
-    examples: list[str] = Field(default_factory=list)
+    examples: list[str] = Field(
+        default_factory=list,
+        description="Legacy mixed-source examples (back-compat). New extractions "
+        "populate `book_examples` separately and leave this empty.",
+    )
+
+    # USP: book coverage + LLM extension
+    book_examples: list[BookExample] = Field(
+        default_factory=list,
+        description="Examples quoted from the textbook. Every entry MUST become "
+        "a faithful beat in the lecture (allocator + writer contract).",
+    )
 
     # graph navigation
     next_topic_id: str | None = None
@@ -574,6 +705,34 @@ class Topic(BaseModel):
     needs_review: bool = False
     language: str = "en"
     version: int = 1
+
+    @property
+    def complexity_score(self) -> int:
+        """Deterministic difficulty signal: number of explicit prerequisites.
+
+        Replaces the dropped `difficulty_level` LLM rating with something
+        repeatable. Higher score → more extended examples allocated.
+        """
+        return len(self.prereq_topic_ids)
+
+    def n_extended_examples(self) -> int:
+        """How many LLM-generated extra examples to add for this topic.
+
+        The product rule (locked with user 2026-05-27):
+          - Empty book examples + ≥3 prereqs → 2 extras (the 'we win' case:
+            book skipped a hard topic, we make up for it).
+          - Empty book examples + <3 prereqs → 0 extras (respect book intent).
+          - Has book examples + 0 prereqs        → 1 extra.
+          - Has book examples + 1-2 prereqs      → 2 extras.
+          - Has book examples + ≥3 prereqs       → 3 extras.
+        """
+        if not self.book_examples:
+            return 2 if self.complexity_score >= 3 else 0
+        if self.complexity_score == 0:
+            return 1
+        if self.complexity_score <= 2:
+            return 2
+        return 3
 
 
 # ---------------------------------------------------------------------------
@@ -599,6 +758,16 @@ class Chapter(BaseModel):
     # or via fragment streams without layout. Used for pagination quality
     # analysis (notebook fill %, page count distribution, etc).
     pages: list[PageSummary] = Field(default_factory=list)
+    # Unified board state (feat/unify_boardstate). One BoardSnapshot per
+    # `pages` entry at matching index — authoritative slide + notebook layout
+    # at end-of-page. Read by the live agent and the frontend instead of
+    # rebuilding from events or DOM. Empty for pre-feature extractions.
+    board_snapshots: list[BoardSnapshot] = Field(default_factory=list)
+    # Idea 2: Concept-to-Visual Index. Flat lookup over every dictionary
+    # element on every diagram in this chapter. The doubt resolver pulls
+    # entries for the active diagram into its prompt; downstream auto-FOCUS
+    # consumers scan `semantic` for narration-mentioned terms.
+    concept_visual_index: ConceptVisualIndex = Field(default_factory=ConceptVisualIndex)
     # Phase 4b: chapter-level lecture plan (ChapterLecturePlanner output) +
     # per-topic teaching plans (ConceptPlanner output via kernel). Sidecar
     # artifacts — pre-Phase-4c stages don't consume them. Optional so older

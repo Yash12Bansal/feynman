@@ -594,6 +594,7 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         cursor: int | None,
         different_angle: bool,
         prior_resolution_summary: str,
+        board_snapshot: dict | None = None,
     ) -> ResolutionPlan | None:
         """Run the pipeline + deliver the result. Returns the plan or None."""
         if doubt_session is None:
@@ -609,6 +610,7 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
             cursor=cursor,
             different_angle=different_angle,
             prior_resolution_summary=prior_resolution_summary,
+            board_snapshot=board_snapshot,
         )
         if plan is None:
             await _publish_doubt(
@@ -676,20 +678,26 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
                 "duration_ms": captured.duration_ms,
             },
         )
+        snap = intent.get("board_snapshot")
         await _resolve_and_deliver(
             doubt_text=captured.text,
             topic_id=intent.get("topic_id"),
             cursor=intent.get("cursor"),
             different_angle=False,
             prior_resolution_summary="",
+            board_snapshot=snap if isinstance(snap, dict) else None,
         )
 
     async def _handle_doubt_intent(intent: dict[str, Any]) -> None:
+        snap = intent.get("board_snapshot")
+        snap_dict = snap if isinstance(snap, dict) else None
         logger.info(
             "doubt.intent_received",
             chapter_id=chapter_id,
             cursor=intent.get("cursor"),
             topic_id=intent.get("topic_id"),
+            snapshot_page=(snap_dict or {}).get("page_index"),
+            snapshot_elements=len((snap_dict or {}).get("elements") or []),
         )
         await _capture_then_resolve(intent)
 

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="x-axis" x1="80" y1="520" x2="820" y2="520" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="y-axis" x1="80" y1="80" x2="80" y2="520" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="x-axis-arrow" x1="810" y1="520" x2="825" y2="520" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_x-axis-arrow)"/>
+<defs><marker id="arrowhead_y-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="y-axis-arrow" x1="80" y1="90" x2="80" y2="75" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_y-axis-arrow)"/>
+<text id="x-axis-label" x="830" y="524" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">x</text>
+<text id="y-axis-label" x="68" y="72" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">y</text>
+<text id="tick-x2" x="220" y="536" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">2</text>
+<text id="tick-x6" x="450" y="536" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">6</text>
+<text id="tick-x10" x="680" y="536" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">10</text>
+<line id="tick-mark-x2" x1="220" y1="516" x2="220" y2="524" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="tick-mark-x6" x1="450" y1="516" x2="450" y2="524" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="tick-mark-x10" x1="680" y1="516" x2="680" y2="524" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<path id="curve-main" d="M 80 500 C 130 490 175 430 220 370 C 270 300 340 175 450 155 C 560 135 620 290 680 370 C 720 420 760 470 820 500" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="point-A" cx="220" cy="370" r="5" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<text id="point-A-label" x="208" y="362" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">A</text>
+<circle id="point-B" cx="280" cy="318" r="5" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<text id="point-B-label" x="292" y="312" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">B</text>
+<line id="secant-AB" x1="155" y1="435" x2="355" y2="253" stroke="#9effc9" stroke-width="2" stroke-dasharray="6,3"/>
+<text id="secant-label" x="368" y="248" font-size="10" fill="#9effc9" text-anchor="start" font-weight="normal">secant AB</text>
+<line id="tangent-at-x2" x1="140" y1="433" x2="360" y2="308" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="tangent-ac-label" x="365" y="304" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="600">AC</text>
+<line id="rise-AC" x1="300" y1="370" x2="300" y2="308" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray="4,3"/>
+<text id="rise-AC-label" x="314" y="344" font-size="10" fill="#ff7a8a" text-anchor="start" font-weight="normal">rise = 5</text>
+<line id="run-AC" x1="220" y1="370" x2="300" y2="370" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray="4,3"/>
+<text id="run-AC-label" x="260" y="386" font-size="10" fill="#ff7a8a" text-anchor="middle" font-weight="normal">run = 4</text>
+<circle id="point-x6" cx="450" cy="155" r="5" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tangent-at-x6" x1="340" y1="155" x2="560" y2="155" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="tangent-x6-label" x="568" y="159" font-size="10" fill="#7fd4ff" text-anchor="start" font-weight="normal">slope = 0</text>
+<circle id="point-x10" cx="680" cy="370" r="5" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tangent-at-x10" x1="500" y1="308" x2="720" y2="433" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="tangent-df-label" x="726" y="438" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="600">DF</text>
+<line id="rise-DF" x1="620" y1="370" x2="620" y2="432" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray="4,3"/>
+<text id="rise-DF-label" x="634" y="406" font-size="10" fill="#ff7a8a" text-anchor="start" font-weight="normal">rise = -5</text>
+<line id="run-DF" x1="620" y1="432" x2="680" y2="432" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray="4,3"/>
+<text id="run-DF-label" x="650" y="448" font-size="10" fill="#ff7a8a" text-anchor="middle" font-weight="normal">run = 4</text>
+</svg>

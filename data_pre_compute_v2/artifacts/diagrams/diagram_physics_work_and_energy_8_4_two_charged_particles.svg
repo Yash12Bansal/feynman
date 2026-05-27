@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis-line" x1="100" y1="325" x2="800" y2="325" stroke="rgba(232,232,238,0.25)" stroke-width="1.2" stroke-dasharray="4 6"/>
+<circle id="particle-A" cx="220" cy="325" r="28" fill="#ff7a8a" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label-A-letter" x="220" y="330" font-size="14" fill="#0a0a0a" text-anchor="middle" font-weight="700">A</text>
+<text id="label-A-charge" x="220" y="278" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">-q</text>
+<circle id="particle-B" cx="680" cy="325" r="28" fill="#9effc9" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label-B-letter" x="680" y="330" font-size="14" fill="#0a0a0a" text-anchor="middle" font-weight="700">B</text>
+<text id="label-B-charge" x="680" y="278" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">+q</text>
+<defs><marker id="arrowhead_force-on-A" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="force-on-A" x1="256" y1="305" x2="370" y2="305" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_force-on-A)"/>
+<text id="force-on-A-label" x="310" y="285" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">F_{AB}</text>
+<defs><marker id="arrowhead_force-on-B" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="force-on-B" x1="644" y1="305" x2="530" y2="305" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_force-on-B)"/>
+<text id="force-on-B-label" x="580" y="285" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">F_{BA}</text>
+<defs><marker id="arrowhead_displacement-A" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="displacement-A" x1="220" y1="390" x2="340" y2="390" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_displacement-A)"/>
+<text id="displacement-A-label" x="278" y="415" font-size="13" fill="#e8e8ee" font-style="italic" text-anchor="middle">d_A</text>
+<defs><marker id="arrowhead_displacement-B" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="displacement-B" x1="680" y1="390" x2="560" y2="390" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_displacement-B)"/>
+<text id="displacement-B-label" x="618" y="415" font-size="13" fill="#e8e8ee" font-style="italic" text-anchor="middle">d_B</text>
+<text id="work-label-A" x="155" y="460" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">W_{AB} &gt; 0</text>
+<text id="work-label-B" x="615" y="460" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">W_{BA} &gt; 0</text>
+<line id="separation-line" x1="248" y1="345" x2="652" y2="345" stroke="rgba(232,232,238,0.3)" stroke-width="1" stroke-dasharray="2 5"/>
+<text id="separation-label" x="450" y="362" font-size="12" fill="rgba(232,232,238,0.5)" font-style="italic" text-anchor="middle">r</text>
+</svg>

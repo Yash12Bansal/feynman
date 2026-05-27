@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="baseline" x1="180" y1="480" x2="720" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="ke-initial-bar" x="220" y="340" width="110" height="140" rx="3" fill="none" stroke="#7fd4ff" stroke-width="3"/>
+<rect id="work-bar" x="395" y="260" width="110" height="220" rx="3" fill="none" stroke="#9effc9" stroke-width="3"/>
+<rect id="ke-final-bar" x="570" y="120" width="110" height="360" rx="3" fill="none" stroke="#ff7a8a" stroke-width="3"/>
+<line id="ke1-height-guide" x1="220" y1="340" x2="570" y2="340" stroke="rgba(127,212,255,0.25)" stroke-width="1" stroke-dasharray="5,5"/>
+<line id="work-top-guide" x1="395" y1="260" x2="570" y2="260" stroke="rgba(158,255,201,0.25)" stroke-width="1" stroke-dasharray="5,5"/>
+<line id="ke2-top-guide" x1="220" y1="120" x2="570" y2="120" stroke="rgba(255,122,138,0.2)" stroke-width="1" stroke-dasharray="5,5"/>
+<text id="ke1-label" x="275" y="510" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">KE_1</text>
+<text id="work-label" x="450" y="510" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">W</text>
+<text id="ke2-label" x="625" y="510" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">KE_2</text>
+<text id="work-sublabel" x="450" y="528" font-size="10" fill="rgba(158,255,201,0.75)" text-anchor="middle" font-weight="normal">net work</text>
+<line id="bracket-left-vertical" x1="220" y1="105" x2="220" y2="90" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="bracket-top" x1="220" y1="90" x2="505" y2="90" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="bracket-right-vertical" x1="505" y1="105" x2="505" y2="90" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_equals-annotation" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="equals-annotation" x1="505" y1="90" x2="625" y2="90" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_equals-annotation)"/>
+<text id="equation-label" x="565" y="75" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">W = KE_2 - KE_1</text>
+<text id="plus-sign" x="378" y="484" font-size="18" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">+</text>
+<text id="equals-sign" x="553" y="484" font-size="18" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">=</text>
+<line id="ke1-height-brace" x1="200" y1="340" x2="200" y2="480" stroke="rgba(127,212,255,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="ke2-full-brace" x1="700" y1="120" x2="700" y2="480" stroke="rgba(255,122,138,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+</svg>

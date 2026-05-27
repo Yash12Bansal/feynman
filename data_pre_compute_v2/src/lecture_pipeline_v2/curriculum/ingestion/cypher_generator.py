@@ -80,6 +80,13 @@ class CypherGenerator:
         import json
 
         pages_json = json.dumps([p.model_dump() for p in c.pages])
+        board_snapshots_json = json.dumps(
+            [s.model_dump() for s in c.board_snapshots]
+        )
+        # Idea 2: flat list of VisualTermEntry — JSON string for now (matches
+        # the pages/board_snapshots pattern; promote to nodes/edges only when
+        # a consumer needs graph traversal over visual terms).
+        concept_visual_index_json = json.dumps(c.concept_visual_index.model_dump())
         params = {
             "chapter_id": c.chapter_id,
             "chapter_index": c.chapter_index,
@@ -91,6 +98,8 @@ class CypherGenerator:
             "chapter_manifest": c.chapter_manifest.model_dump_json(),
             "narration_text": c.narration_text,
             "pages": pages_json,
+            "board_snapshots": board_snapshots_json,
+            "concept_visual_index": concept_visual_index_json,
             "embedding": list(c.embedding) if c.embedding else None,
             "language": c.language,
             "version": c.version,
@@ -106,6 +115,8 @@ class CypherGenerator:
             "    n.chapter_manifest = $chapter_manifest,\n"
             "    n.narration_text = $narration_text,\n"
             "    n.pages = $pages,\n"
+            "    n.board_snapshots = $board_snapshots,\n"
+            "    n.concept_visual_index = $concept_visual_index,\n"
             "    n.embedding = $embedding,\n"
             "    n.language = $language,\n"
             "    n.version = $version,\n"
@@ -115,6 +126,10 @@ class CypherGenerator:
 
     @staticmethod
     def _topic_node(t: Topic) -> CypherStatement:
+        # Book examples + complexity score: JSON-string for now (matches the
+        # board_snapshots / concept_visual_index pattern). Promote to nodes
+        # only when a consumer needs graph traversal over examples.
+        book_examples_json = json.dumps([be.model_dump() for be in t.book_examples])
         params = {
             "topic_id": t.topic_id,
             "chapter_id": t.chapter_id,
@@ -124,6 +139,9 @@ class CypherGenerator:
             "orig_book_content": t.orig_book_content,
             "our_understanding": t.our_understanding,
             "examples": list(t.examples),
+            "book_examples": book_examples_json,
+            "complexity_score": t.complexity_score,
+            "n_extended_examples": t.n_extended_examples(),
             "next_topic_id": t.next_topic_id,
             "prereq_topic_ids": list(t.prereq_topic_ids),
             "has_diagram_ids": list(t.has_diagram_ids),
@@ -144,6 +162,9 @@ class CypherGenerator:
             "    n.orig_book_content = $orig_book_content,\n"
             "    n.our_understanding = $our_understanding,\n"
             "    n.examples = $examples,\n"
+            "    n.book_examples = $book_examples,\n"
+            "    n.complexity_score = $complexity_score,\n"
+            "    n.n_extended_examples = $n_extended_examples,\n"
             "    n.next_topic_id = $next_topic_id,\n"
             "    n.prereq_topic_ids = $prereq_topic_ids,\n"
             "    n.has_diagram_ids = $has_diagram_ids,\n"

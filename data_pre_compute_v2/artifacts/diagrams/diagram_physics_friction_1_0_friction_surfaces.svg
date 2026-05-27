@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="left-scene-label" x="225" y="60" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Wood on Wood</text>
+<text id="right-scene-label" x="675" y="60" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Wood on Metal</text>
+<rect id="wood-block" x="165" y="270" width="120" height="70" rx="3" fill="none" stroke="#c8a96e" stroke-width="2.5"/>
+<path id="wood-block-grain" d="M 175 290 Q 215 285 255 290 M 175 308 Q 215 303 255 308 M 175 326 Q 215 321 255 326" stroke="rgba(200, 169, 110, 0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_wood-block-motion" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="wood-block-motion" x1="285" y1="305" x2="345" y2="305" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_wood-block-motion)"/>
+<text id="wood-block-motion-label" x="350" y="301" font-size="10" fill="#ff7a8a" text-anchor="start" font-weight="normal">slide</text>
+<rect id="wood-surface" x="80" y="340" width="290" height="50" rx="3" fill="none" stroke="#c8a96e" stroke-width="2.5"/>
+<path id="wood-surface-grain" d="M 90 355 Q 155 350 220 355 Q 285 360 360 355 M 90 368 Q 155 363 220 368 Q 285 373 360 368" stroke="rgba(200, 169, 110, 0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<text id="wood-surface-label-text" x="225" y="412" font-size="11" fill="#c8a96e" text-anchor="middle" font-weight="normal">Wood</text>
+<line id="ground-left" x1="80" y1="390" x2="370" y2="390" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray=""/>
+<path id="hatch-left" d="M 90 390 L 82 404 M 110 390 L 102 404 M 130 390 L 122 404 M 150 390 L 142 404 M 170 390 L 162 404 M 190 390 L 182 404 M 210 390 L 202 404 M 230 390 L 222 404 M 250 390 L 242 404 M 270 390 L 262 404 M 290 390 L 282 404 M 310 390 L 302 404 M 330 390 L 322 404 M 350 390 L 342 404 M 368 390 L 360 404" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<text id="wood-wood-label" x="225" y="460" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">\mu = 0.35</text>
+<rect id="wood-block-right" x="615" y="270" width="120" height="70" rx="3" fill="none" stroke="#c8a96e" stroke-width="2.5"/>
+<path id="wood-block-right-grain" d="M 625 290 Q 665 285 705 290 M 625 308 Q 665 303 705 308 M 625 326 Q 665 321 705 326" stroke="rgba(200, 169, 110, 0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_wood-block-right-motion" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="wood-block-right-motion" x1="735" y1="305" x2="795" y2="305" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_wood-block-right-motion)"/>
+<text id="wood-block-right-motion-label" x="800" y="301" font-size="10" fill="#ff7a8a" text-anchor="start" font-weight="normal">slide</text>
+<rect id="metal-surface" x="530" y="340" width="290" height="50" rx="2" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<path id="metal-surface-sheen" d="M 540 352 L 810 352 M 540 363 L 810 363 M 540 374 L 810 374" stroke="rgba(127, 212, 255, 0.3)" stroke-width="1" fill="none" stroke-dasharray=""/>
+<text id="metal-surface-label-text" x="675" y="412" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">Metal</text>
+<line id="ground-right" x1="530" y1="390" x2="820" y2="390" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray=""/>
+<path id="hatch-right" d="M 540 390 L 532 404 M 560 390 L 552 404 M 580 390 L 572 404 M 600 390 L 592 404 M 620 390 L 612 404 M 640 390 L 632 404 M 660 390 L 652 404 M 680 390 L 672 404 M 700 390 L 692 404 M 720 390 L 712 404 M 740 390 L 732 404 M 760 390 L 752 404 M 780 390 L 772 404 M 800 390 L 792 404 M 818 390 L 810 404" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<text id="wood-metal-label" x="675" y="460" font-size="18" fill="#7fd4ff" font-style="italic" text-anchor="middle">\mu &lt; 0.35</text>
+<line id="divider" x1="450" y1="90" x2="450" y2="530" stroke="rgba(232,232,238,0.2)" stroke-width="1" stroke-dasharray="6 5"/>
+<text id="lower-friction-caption" x="675" y="520" font-size="11" fill="rgba(232,232,238,0.5)" text-anchor="middle" font-weight="normal">smoother contact → less grip</text>
+<text id="higher-friction-caption" x="225" y="520" font-size="11" fill="rgba(232,232,238,0.5)" text-anchor="middle" font-weight="normal">rough contact → more grip</text>
+</svg>

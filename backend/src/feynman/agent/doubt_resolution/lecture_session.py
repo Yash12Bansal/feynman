@@ -49,6 +49,7 @@ class LectureDoubtSession:
         cursor: int | None = None,
         different_angle: bool = False,
         prior_resolution_summary: str = "",
+        board_snapshot: dict | None = None,
     ) -> ResolutionPlan | None:
         """Run the full classify → plan → match pipeline for one doubt.
 
@@ -83,6 +84,7 @@ class LectureDoubtSession:
             prior_doubts=self.prior_doubts_in_session,
             different_angle=different_angle,
             prior_resolution_summary=prior_resolution_summary,
+            board_snapshot=board_snapshot,
         )
         if plan is None:
             logger.error("lecture_session.planner_failed", cursor=cursor)

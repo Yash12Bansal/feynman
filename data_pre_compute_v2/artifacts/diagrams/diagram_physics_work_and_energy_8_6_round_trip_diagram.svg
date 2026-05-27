@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="surface-main" x1="80" y1="310" x2="620" y2="310" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="surface-hatch" d="M 90 310 L 82 324 M 120 310 L 112 324 M 150 310 L 142 324 M 180 310 L 172 324 M 210 310 L 202 324 M 240 310 L 232 324 M 270 310 L 262 324 M 300 310 L 292 324 M 330 310 L 322 324 M 360 310 L 352 324 M 390 310 L 382 324 M 420 310 L 412 324 M 450 310 L 442 324 M 480 310 L 472 324 M 510 310 L 502 324 M 540 310 L 532 324 M 570 310 L 562 324 M 600 310 L 592 324" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="block-start" x="90" y="270" width="50" height="40" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="block-start-label" x="115" y="256" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="600">Start / End</text>
+<rect id="block-mid" x="560" y="270" width="50" height="40" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="block-mid-label" x="585" y="256" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="600">Turnaround</text>
+<defs><marker id="arrowhead_motion-right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.35)"/></marker></defs><line id="motion-right" x1="155" y1="290" x2="545" y2="290" stroke="rgba(232,232,238,0.35)" stroke-width="1.5" marker-end="url(#arrowhead_motion-right)"/>
+<defs><marker id="arrowhead_friction-right-leg" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="friction-right-leg" x1="430" y1="338" x2="230" y2="338" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_friction-right-leg)"/>
+<text id="friction-right-label" x="330" y="354" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">Friction ←</text>
+<text id="friction-right-work" x="330" y="372" font-size="11" fill="#ff7a8a" font-style="italic" text-anchor="middle">-\mu mgl</text>
+<defs><marker id="arrowhead_friction-left-leg" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="friction-left-leg" x1="200" y1="360" x2="400" y2="360" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_friction-left-leg)"/>
+<text id="friction-left-label" x="300" y="376" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">Friction →</text>
+<text id="friction-left-work" x="300" y="394" font-size="11" fill="#ff7a8a" font-style="italic" text-anchor="middle">-\mu mgl</text>
+<defs><marker id="arrowhead_motion-left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.35)"/></marker></defs><line id="motion-left" x1="545" y1="305" x2="155" y2="305" stroke="rgba(232,232,238,0.35)" stroke-width="1.5" marker-end="url(#arrowhead_motion-left)"/>
+<text id="total-work-label" x="350" y="425" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">\textbf{Total work} = -2\mu mgl</text>
+<rect id="total-work-highlight" x="195" y="408" width="310" height="28" rx="5" fill="none" stroke="#9effc9" stroke-width="1.5"/>
+<line id="inset-divider" x1="650" y1="80" x2="650" y2="590" stroke="rgba(232,232,238,0.2)" stroke-width="1" stroke-dasharray="4 4"/>
+<line id="spring-surface" x1="665" y1="400" x2="880" y2="400" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="spring-hatch" d="M 675 400 L 667 414 M 700 400 L 692 414 M 725 400 L 717 414 M 750 400 L 742 414 M 775 400 L 767 414 M 800 400 L 792 414 M 825 400 L 817 414 M 850 400 L 842 414 M 875 400 L 867 414" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="spring-wall" x1="665" y1="360" x2="665" y2="405" stroke="#e8e8ee" stroke-width="3" stroke-dasharray=""/>
+<path id="spring-coil" d="M 665 382 L 672 374 L 685 390 L 698 374 L 711 390 L 724 374 L 737 390 L 750 382" stroke="#7fd4ff" stroke-width="2" fill="none" stroke-dasharray=""/>
+<rect id="spring-block" x="750" y="360" width="44" height="40" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="point-A" x1="772" y1="330" x2="772" y2="405" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text id="point-A-label" x="772" y="322" font-size="10" fill="#7fd4ff" text-anchor="middle" font-weight="normal">A (equilibrium)</text>
+<defs><marker id="arrowhead_velocity-arrows" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="velocity-arrows" x1="772" y1="346" x2="820" y2="346" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_velocity-arrows)"/>
+<text id="v0-label" x="823" y="344" font-size="10" fill="#9effc9" text-anchor="start" font-weight="normal">v₀ (first pass)</text>
+<defs><marker id="arrowhead_v1-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="v1-arrow" x1="772" y1="358" x2="803" y2="358" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_v1-arrow)"/>
+<text id="v1-label" x="806" y="356" font-size="10" fill="#9effc9" text-anchor="start" font-weight="normal">v₁ &lt; v₀ (second pass)</text>
+<text id="inset-title" x="772" y="120" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">Spring Example</text>
+<text id="outward-label" x="350" y="240" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">→ outward leg</text>
+<text id="return-label" x="350" y="222" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">← return leg</text>
+</svg>

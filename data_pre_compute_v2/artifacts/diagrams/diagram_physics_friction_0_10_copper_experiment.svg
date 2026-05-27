@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="vacuum-chamber" x="120" y="80" width="660" height="480" rx="8" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<text id="vacuum-label" x="450" y="72" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Near-vacuum</text>
+<line id="surface-line" x1="180" y1="420" x2="720" y2="420" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="surface-hatch" d="M 190 420 L 182 434 M 220 420 L 212 434 M 250 420 L 242 434 M 280 420 L 272 434 M 310 420 L 302 434 M 340 420 L 332 434 M 370 420 L 362 434 M 400 420 L 392 434 M 430 420 L 422 434 M 460 420 L 452 434 M 490 420 L 482 434 M 520 420 L 512 434 M 550 420 L 542 434 M 580 420 L 572 434 M 610 420 L 602 434 M 640 420 L 632 434 M 670 420 L 662 434 M 700 420 L 692 434" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="copper-block-left" x="268" y="290" width="130" height="130" rx="3" fill="none" stroke="#e8a030" stroke-width="2.5"/>
+<text id="copper-left-label" x="333" y="278" font-size="11" fill="#e8a030" text-anchor="middle" font-weight="600">Pure Cu</text>
+<rect id="copper-block-right" x="502" y="290" width="130" height="130" rx="3" fill="none" stroke="#e8a030" stroke-width="2.5"/>
+<text id="copper-right-label" x="567" y="278" font-size="11" fill="#e8a030" text-anchor="middle" font-weight="600">Pure Cu</text>
+<path id="contact-zone" d="M 398 292 L 398 418" stroke="#9effc9" stroke-width="5" fill="none" stroke-dasharray=""/>
+<path id="contact-glow" d="M 398 292 L 398 418" stroke="rgba(158,255,201,0.25)" stroke-width="14" fill="none" stroke-dasharray=""/>
+<rect id="oxide-layer-left" x="390" y="290" width="8" height="130" rx="1" fill="none" stroke="#ff7a8a" stroke-width="2"/>
+<text id="oxide-left-label" x="376" y="344" font-size="10" fill="#ff7a8a" text-anchor="end" font-weight="normal">Oxide layer</text>
+<rect id="oxide-layer-right" x="502" y="290" width="8" height="130" rx="1" fill="none" stroke="#ff7a8a" stroke-width="2"/>
+<text id="oxide-right-label" x="524" y="344" font-size="10" fill="#ff7a8a" text-anchor="start" font-weight="normal">Oxide layer</text>
+<defs><marker id="arrowhead_press-arrow-left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="press-arrow-left" x1="220" y1="355" x2="266" y2="355" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_press-arrow-left)"/>
+<defs><marker id="arrowhead_press-arrow-right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="press-arrow-right" x1="680" y1="355" x2="634" y2="355" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_press-arrow-right)"/>
+<text id="press-label-left" x="215" y="350" font-size="12" fill="#9effc9" text-anchor="end" font-weight="600">F</text>
+<text id="press-label-right" x="685" y="350" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">F</text>
+<defs><marker id="arrowhead_air-inlet-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="air-inlet-arrow" x1="450" y1="560" x2="450" y2="510" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_air-inlet-arrow)"/>
+<text id="air-inlet-label" x="450" y="576" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">A little air let in</text>
+<text id="friction-coeff-label-high" x="390" y="200" font-size="22" fill="#ff7a8a" font-style="italic" text-anchor="middle">\mu \gg 1</text>
+<text id="friction-coeff-label-normal" x="340" y="200" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">\mu \rightarrow \text{normal}</text>
+<text id="cold-weld-note" x="450" y="466" font-size="10" fill="rgba(232,232,238,0.5)" text-anchor="middle" font-weight="normal">atomic contact → cold weld</text>
+</svg>

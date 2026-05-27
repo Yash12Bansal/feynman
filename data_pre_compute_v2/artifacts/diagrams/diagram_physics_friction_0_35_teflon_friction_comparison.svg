@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="label-normal" x="225" y="55" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Normal Surface</text>
+<text id="label-teflon" x="675" y="55" font-size="14" fill="#9effc9" text-anchor="middle" font-weight="600">Teflon Surface</text>
+<path id="normal-surface-profile" d="M 60 420 L 80 390 L 100 415 L 118 375 L 140 405 L 158 360 L 180 395 L 200 350 L 222 385 L 242 345 L 262 380 L 280 355 L 300 385 L 318 362 L 338 390 L 358 368 L 378 400 L 390 420" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="normal-surface-fill-guide" d="M 60 420 L 80 390 L 100 415 L 118 375 L 140 405 L 158 360 L 180 395 L 200 350 L 222 385 L 242 345 L 262 380 L 280 355 L 300 385 L 318 362 L 338 390 L 358 368 L 378 400 L 390 420 L 390 460 L 60 460 Z" stroke="none" stroke-width="0" fill="rgba(232,232,238,0.07)" stroke-dasharray=""/>
+<line id="normal-base" x1="60" y1="460" x2="390" y2="460" stroke="rgba(232,232,238,0.35)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="teflon-surface-profile" d="M 510 415 Q 540 412 570 414 Q 600 416 630 413 Q 660 411 690 413 Q 720 415 750 412 Q 780 410 810 413 L 840 415" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="teflon-surface-fill-guide" d="M 510 415 Q 540 412 570 414 Q 600 416 630 413 Q 660 411 690 413 Q 720 415 750 412 Q 780 410 810 413 L 840 415 L 840 460 L 510 460 Z" stroke="none" stroke-width="0" fill="rgba(158,255,201,0.06)" stroke-dasharray=""/>
+<line id="teflon-base" x1="510" y1="460" x2="840" y2="460" stroke="rgba(158,255,201,0.35)" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="sliding-block-normal" x="178" y="295" width="68" height="52" rx="3" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<defs><marker id="arrowhead_friction-arrow-normal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="friction-arrow-normal" x1="178" y1="321" x2="100" y2="321" stroke="#ff7a8a" stroke-width="3" marker-end="url(#arrowhead_friction-arrow-normal)"/>
+<defs><marker id="arrowhead_motion-arrow-normal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="motion-arrow-normal" x1="246" y1="321" x2="310" y2="321" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_motion-arrow-normal)"/>
+<text id="friction-label-normal" x="93" y="314" font-size="13" fill="#ff7a8a" text-anchor="end" font-weight="600">f</text>
+<text id="motion-label-normal" x="318" y="314" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">v</text>
+<rect id="sliding-block-teflon" x="641" y="358" width="68" height="52" rx="3" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<defs><marker id="arrowhead_friction-arrow-teflon" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="friction-arrow-teflon" x1="641" y1="384" x2="613" y2="384" stroke="#ff7a8a" stroke-width="2" marker-end="url(#arrowhead_friction-arrow-teflon)"/>
+<defs><marker id="arrowhead_motion-arrow-teflon" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="motion-arrow-teflon" x1="709" y1="384" x2="773" y2="384" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_motion-arrow-teflon)"/>
+<text id="friction-label-teflon" x="606" y="377" font-size="11" fill="#ff7a8a" text-anchor="end" font-weight="600">f</text>
+<text id="motion-label-teflon" x="781" y="377" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">v</text>
+<text id="mu-label-normal" x="225" y="510" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">\mu \approx 0.5\text{–}0.8</text>
+<text id="mu-label-teflon" x="675" y="510" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">\mu \approx 0.04</text>
+<line id="divider" x1="450" y1="40" x2="450" y2="580" stroke="rgba(232,232,238,0.15)" stroke-width="1" stroke-dasharray="6 5"/>
+<text id="peaks-annotation" x="225" y="240" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">peaks &amp; valleys</text>
+<line id="peaks-pointer" x1="225" y1="248" x2="215" y2="330" stroke="rgba(232,232,238,0.3)" stroke-width="1" stroke-dasharray="3 3"/>
+<text id="smooth-annotation" x="675" y="370" font-size="10" fill="rgba(158,255,201,0.6)" text-anchor="middle" font-weight="normal">atomically smooth</text>
+</svg>

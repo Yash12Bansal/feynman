@@ -48,7 +48,9 @@ from ...tts.chunker import (
     UnfocusFragment,
     WriteMarginFragment,
 )
-from ..models import PageSummary
+from ..models import BoardElement, BoardSnapshot, PageSummary
+from ..models import Rect as PydRect
+from . import geometry as geo
 from .policies.layout import LayoutPlanner, NOTEBOOK_FRAGMENT_KINDS, PageState
 
 logger = logging.getLogger(__name__)
@@ -58,6 +60,10 @@ logger = logging.getLogger(__name__)
 # lengths. Kokoro hits ~12 chars/sec (~83 ms/char). Off by a constant factor
 # across all chapters — fine for layout look-ahead.
 WPM_CHARS_PER_MS = 1 / 83.0
+
+
+def _to_pyd_rect(r: geo.Rect) -> PydRect:
+    return PydRect(x=r.x, y=r.y, width=r.width, height=r.height)
 
 
 # ---------------------------------------------------------------------------
@@ -115,6 +121,10 @@ class ComposerReport:
     # Phase 3: one PageSummary per page closed. Walker appends at every
     # page-break boundary and at the end of `walk()`.
     pages: list[PageSummary] = field(default_factory=list)
+    # feat/unify_boardstate: authoritative BoardSnapshot per closed page,
+    # parallel-indexed with `pages`. Frontend + live agent read this instead
+    # of rebuilding state from event walks or DOM queries.
+    board_snapshots: list[BoardSnapshot] = field(default_factory=list)
     # Phase 3: count of PageBreakFragments emitted (subset of pages — a
     # single-page chapter has 1 page but 0 breaks).
     page_breaks: int = 0
@@ -217,6 +227,7 @@ class Walker:
         if not nb.blocks and slide.diagram_id is None:
             return
         self.report.pages.append(self._page_summary())
+        self.report.board_snapshots.append(self._board_snapshot())
 
     # ------------------------------------------------------------------
     # Look-ahead timing precomputation
@@ -306,6 +317,82 @@ class Walker:
             annotations_count=slide.annotations_count,
         )
 
+    def _board_snapshot(self) -> BoardSnapshot:
+        """Capture authoritative board state at end-of-page.
+
+        Pairs 1:1 with _page_summary() — called at the same trigger points.
+        Slide diagram + its dictionary-resolved element bounds + notebook
+        blocks become BoardElements that the live agent and frontend can
+        query without rebuilding from events.
+        """
+        assert self._page_state is not None
+        slide = self._page_state.slide
+        nb = self._page_state.notebook
+        elements: list[BoardElement] = []
+
+        if slide.diagram_id is not None:
+            if slide.placed_rect is not None:
+                elements.append(BoardElement(
+                    element_id=slide.diagram_id,
+                    kind="diagram",
+                    rect=_to_pyd_rect(slide.placed_rect),
+                ))
+            role_to_meta = self._diagram_role_index(slide.diagram_id)
+            for role, rect in slide.element_bounds.items():
+                meta = role_to_meta.get(role, {})
+                elements.append(BoardElement(
+                    element_id=meta.get("element_id", role),
+                    kind="diagram_element",
+                    rect=_to_pyd_rect(rect),
+                    parent_id=slide.diagram_id,
+                    role=role,
+                    semantic=meta.get("semantic", ""),
+                ))
+
+        for bp in nb.blocks:
+            elements.append(BoardElement(
+                element_id=bp.fragment_id,
+                kind="notebook_block",
+                rect=_to_pyd_rect(bp.rect),
+                block_type=bp.block_type,
+            ))
+
+        return BoardSnapshot(
+            page_index=self._page_state.page_index,
+            topic_id=self._page_state.topic_id,
+            elements=elements,
+        )
+
+    def _diagram_role_index(self, diagram_id: str) -> dict[str, dict[str, str]]:
+        """role → {element_id, semantic} from the diagram's dictionary.
+
+        Dictionary is keyed by element_id with `role` + `semantic` inside; we
+        invert that mapping so SlideState.element_bounds (keyed by role) can
+        resolve the stable element_id and semantic term for the snapshot.
+        """
+        diagram = self._diagrams_by_id.get(diagram_id)
+        if diagram is None:
+            return {}
+        rd = getattr(diagram, "render_data", None)
+        if not isinstance(rd, dict):
+            return {}
+        dictionary = rd.get("dictionary")
+        if not isinstance(dictionary, dict):
+            return {}
+        idx: dict[str, dict[str, str]] = {}
+        for el_id, entry in dictionary.items():
+            if not isinstance(entry, dict):
+                continue
+            role = entry.get("role")
+            if not isinstance(role, str) or role in idx:
+                continue
+            semantic = entry.get("semantic", "")
+            idx[role] = {
+                "element_id": el_id,
+                "semantic": semantic if isinstance(semantic, str) else "",
+            }
+        return idx
+
     def _audio_time_at(self, idx: int) -> float:
         if 0 <= idx < len(self._fragment_timings):
             return self._fragment_timings[idx]
@@ -382,6 +469,7 @@ class Walker:
         # for new_diagram trigger we know it's THIS fragment's id. Override.
         carry_ids = self._layout.select_carry_forward_ids(self._page_state)
         self.report.pages.append(self._page_summary())
+        self.report.board_snapshots.append(self._board_snapshot())
         break_frag = PageBreakFragment(
             kind="page_break",
             new_page_index=self._page_state.page_index + 1,
@@ -484,6 +572,7 @@ class Walker:
         )
         carry_ids = self._layout.select_carry_forward_ids(self._page_state)
         self.report.pages.append(self._page_summary())
+        self.report.board_snapshots.append(self._board_snapshot())
         break_frag = PageBreakFragment(
             kind="page_break",
             new_page_index=self._page_state.page_index + 1,
@@ -555,6 +644,7 @@ class Walker:
             else self._layout.select_carry_forward_ids(self._page_state)
         )
         self.report.pages.append(self._page_summary())
+        self.report.board_snapshots.append(self._board_snapshot())
         break_frag = PageBreakFragment(
             kind="page_break",
             new_page_index=self._page_state.page_index + 1,

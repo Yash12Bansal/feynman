@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="road-surface" x1="60" y1="480" x2="840" y2="480" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<path id="road-hatch" d="M 75 480 L 65 495 M 115 480 L 105 495 M 155 480 L 145 495 M 195 480 L 185 495 M 235 480 L 225 495 M 275 480 L 265 495 M 315 480 L 305 495 M 355 480 L 345 495 M 395 480 L 385 495 M 435 480 L 425 495 M 475 480 L 465 495 M 515 480 L 505 495 M 555 480 L 545 495 M 595 480 L 585 495 M 635 480 L 625 495 M 675 480 L 665 495 M 715 480 L 705 495 M 755 480 L 745 495 M 795 480 L 785 495 M 835 480 L 825 495" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="wheeled-box" x="180" y="390" width="480" height="90" rx="4" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<circle id="wheel-left" cx="260" cy="480" r="18" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="wheel-right" cx="580" cy="480" r="18" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<rect id="small-block" x="230" y="310" width="100" height="80" rx="3" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<defs><marker id="arrowhead_box-velocity-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="box-velocity-arrow" x1="300" y1="350" x2="580" y2="350" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_box-velocity-arrow)"/>
+<text id="box-velocity-label" x="440" y="338" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="600">Box velocity (larger)</text>
+<defs><marker id="arrowhead_block-velocity-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="block-velocity-arrow" x1="240" y1="278" x2="390" y2="278" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_block-velocity-arrow)"/>
+<text id="block-velocity-label" x="315" y="265" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">Block velocity (smaller)</text>
+<defs><marker id="arrowhead_block-friction-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="block-friction-arrow" x1="250" y1="400" x2="370" y2="400" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_block-friction-arrow)"/>
+<text id="block-friction-label" x="310" y="418" font-size="10" fill="#ff7a8a" text-anchor="middle" font-weight="600">Friction on block → RIGHT</text>
+<defs><marker id="arrowhead_box-friction-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="box-friction-arrow" x1="370" y1="420" x2="250" y2="420" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_box-friction-arrow)"/>
+<text id="box-friction-label" x="310" y="438" font-size="10" fill="#ff7a8a" text-anchor="middle" font-weight="600">Friction on box ← LEFT</text>
+<defs><marker id="arrowhead_relative-velocity-label" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.7)"/></marker></defs><line id="relative-velocity-label" x1="340" y1="300" x2="225" y2="300" stroke="rgba(232,232,238,0.7)" stroke-width="1.8" marker-end="url(#arrowhead_relative-velocity-label)"/>
+<text id="relative-velocity-text" x="283" y="318" font-size="10" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">Block&#x27;s velocity relative to box: LEFT</text>
+<text id="box-label" x="590" y="440" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="normal">Wheeled Box</text>
+<text id="block-label" x="342" y="356" font-size="11" fill="#9effc9" text-anchor="start" font-weight="normal">Block</text>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground-level" x1="180" y1="520" x2="720" y2="520" stroke="#7fd4ff" stroke-width="2" stroke-dasharray="8 5"/>
+<text id="ground-level-label" x="450" y="542" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">reference level  (PE = 0)</text>
+<path id="ground-hatch" d="M 190 520 L 180 534 M 220 520 L 210 534 M 250 520 L 240 534 M 280 520 L 270 534 M 310 520 L 300 534 M 340 520 L 330 534 M 370 520 L 360 534 M 400 520 L 390 534 M 430 520 L 420 534 M 460 520 L 450 534 M 490 520 L 480 534 M 520 520 L 510 534 M 550 520 L 540 534 M 580 520 L 570 534 M 610 520 L 600 534 M 640 520 L 630 534 M 670 520 L 660 534 M 700 520 L 690 534" stroke="rgba(232,232,238,0.4)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="block-low" x="412" y="478" width="56" height="42" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="block-high" x="412" y="200" width="56" height="42" rx="3" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<path id="height-arrow" d="M 390 478 L 390 242" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="height-arrow-top-head" d="M 383 248 L 390 234 L 397 248" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="height-arrow-bot-head" d="M 383 472 L 390 486 L 397 472" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="height-label" x="375" y="364" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">h</text>
+<defs><marker id="arrowhead_gravity-force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="gravity-force-arrow" x1="440" y1="242" x2="440" y2="310" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_gravity-force-arrow)"/>
+<text id="gravity-label" x="455" y="295" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">mg</text>
+<defs><marker id="arrowhead_lift-force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="lift-force-arrow" x1="440" y1="200" x2="440" y2="132" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_lift-force-arrow)"/>
+<text id="lift-label" x="455" y="155" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">F</text>
+<text id="pe-label" x="540" y="218" font-size="12" fill="#9effc9" text-anchor="start" font-weight="normal">PE = mgh stored here</text>
+<line id="pe-callout-line" x1="468" y1="221" x2="536" y2="218" stroke="rgba(158,255,201,0.45)" stroke-width="1.2" stroke-dasharray="4 3"/>
+</svg>

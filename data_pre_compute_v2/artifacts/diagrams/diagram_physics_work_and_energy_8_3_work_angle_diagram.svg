@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground" x1="160" y1="420" x2="620" y2="420" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 170 420 L 160 435 M 200 420 L 190 435 M 230 420 L 220 435 M 260 420 L 250 435 M 290 420 L 280 435 M 320 420 L 310 435 M 350 420 L 340 435 M 380 420 L 370 435 M 410 420 L 400 435 M 440 420 L 430 435 M 470 420 L 460 435 M 500 420 L 490 435 M 530 420 L 520 435 M 560 420 L 550 435 M 590 420 L 580 435 M 610 420 L 600 435" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="object" x="200" y="370" width="56" height="50" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<defs><marker id="arrowhead_displacement-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="displacement-vector" x1="228" y1="395" x2="580" y2="395" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_displacement-vector)"/>
+<text id="displacement-label" x="590" y="392" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">r</text>
+<defs><marker id="arrowhead_force-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="force-vector" x1="228" y1="395" x2="420" y2="215" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_force-vector)"/>
+<text id="force-label" x="428" y="208" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">F</text>
+<path id="angle-arc" d="M 266.03039248419685 359.5360852767501 A 52.0 52.0 0 0 1 280.0 395.0" stroke="#7fd4ff" stroke-width="1.8" fill="none"/>
+<text id="angle-label" x="295" y="382" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">θ</text>
+<defs><marker id="arrowhead_force-component" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="force-component" x1="228" y1="395" x2="420" y2="395" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_force-component)"/>
+<text id="force-component-label" x="430" y="412" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">F\cos\theta</text>
+<line id="projection-drop" x1="420" y1="215" x2="420" y2="395" stroke="rgba(232,232,238,0.28)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<defs><marker id="arrowhead_perp-force-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="perp-force-vector" x1="680" y1="440" x2="680" y2="245" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_perp-force-vector)"/>
+<defs><marker id="arrowhead_perp-displacement-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="perp-displacement-vector" x1="680" y1="440" x2="830" y2="440" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_perp-displacement-vector)"/>
+<path id="perp-angle-arc" d="M 680.0 398.0 A 42.0 42.0 0 0 1 722.0 440.0" stroke="#ff7a8a" stroke-width="1.5" fill="none"/>
+<text id="zero-work-label" x="730" y="292" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">θ = 90°, W = 0</text>
+<text id="work-formula" x="310" y="540" font-size="15" fill="#e8e8ee" font-style="italic" text-anchor="middle">W = F\cos\theta \cdot r</text>
+</svg>

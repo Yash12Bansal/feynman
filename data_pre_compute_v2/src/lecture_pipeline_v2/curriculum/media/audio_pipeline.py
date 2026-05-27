@@ -53,6 +53,7 @@ from ...tts.chunker import (
     WriteMarginFragment,
     split_script,
 )
+from ..ingestion.visual_term_index import build_concept_visual_index
 from ..lecture_script.models import ChapterScript
 from ..manifest_composer import ManifestComposer, MeasurementService
 from ..models import (
@@ -288,6 +289,18 @@ class AudioPipeline:
             report.chapters_with_chapter_audio += 1
         # Phase 3: persist per-page diagnostic summaries onto the Chapter.
         chapter.pages = list(composer.last_report.pages)
+        # feat/unify_boardstate: authoritative board snapshots (1:1 with pages).
+        chapter.board_snapshots = list(composer.last_report.board_snapshots)
+        # Idea 2: Concept-to-Visual Index. Built from this chapter's diagrams
+        # (filtered by topic-id intersection — a diagram belongs to the
+        # chapter iff it links to at least one of its topics). Rebuilt every
+        # regen-audio so it stays aligned with the diagrams as they evolve.
+        chapter_topic_ids = set(chapter.topic_ids)
+        chapter_diagrams = [
+            d for d in diagrams_by_id.values()
+            if chapter_topic_ids.intersection(d.linked_topic_ids)
+        ]
+        chapter.concept_visual_index = build_concept_visual_index(chapter_diagrams)
 
         # Phase 2+3 telemetry — one composer summary line per chapter.
         logger.info(

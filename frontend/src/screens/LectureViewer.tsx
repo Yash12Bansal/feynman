@@ -23,6 +23,7 @@ import {
 } from "../components/SatisfactionPrompt";
 import {
   useExtractionPlayback,
+  type BoardSnapshot,
   type ChapterPayload,
   type DoubtBeatAnnotation,
 } from "../hooks/useExtractionPlayback";
@@ -38,6 +39,11 @@ interface DoubtIntentPayload {
   readonly chapter_id: string;
   readonly cursor: number;
   readonly topic_id: string | null;
+  // feat/unify_boardstate consumer: authoritative "what is on the board"
+  // at the moment the doubt was raised. The backend uses this to scope the
+  // resolution prompt instead of guessing from the chapter context alone.
+  // Null for chapters ingested before snapshots existed.
+  readonly board_snapshot: BoardSnapshot | null;
 }
 
 interface DoubtCapturedPayload {
@@ -115,6 +121,7 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     setAudioElement,
     cursor,
     currentTopicId,
+    currentSnapshot,
     pause,
     play,
     applyDoubtBeat,
@@ -265,6 +272,7 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       chapter_id: chapterId,
       cursor,
       topic_id: currentTopicId,
+      board_snapshot: currentSnapshot,
     };
     const payload = new TextEncoder().encode(JSON.stringify(intent));
     room.localParticipant
@@ -283,6 +291,7 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     chapterId,
     cursor,
     currentTopicId,
+    currentSnapshot,
   ]);
 
   const onErrorRetry = useCallback(() => {

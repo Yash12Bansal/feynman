@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="label-triangle" x="225" y="52" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Triangle rule</text>
+<text id="label-parallelogram" x="675" y="52" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Parallelogram rule</text>
+<line id="divider" x1="450" y1="80" x2="450" y2="580" stroke="rgba(232,232,238,0.18)" stroke-width="1.2" stroke-dasharray="6 5"/>
+<defs><marker id="arrowhead_vector-a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="vector-a" x1="100" y1="310" x2="300" y2="310" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_vector-a)"/>
+<text id="vector-a-label" x="198" y="298" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">a</text>
+<defs><marker id="arrowhead_vector-b-triangle" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="vector-b-triangle" x1="300" y1="310" x2="380" y2="170" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_vector-b-triangle)"/>
+<text id="vector-b-triangle-label" x="352" y="234" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">b</text>
+<defs><marker id="arrowhead_resultant-triangle" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="resultant-triangle" x1="100" y1="310" x2="380" y2="170" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_resultant-triangle)"/>
+<text id="resultant-triangle-label" x="226" y="264" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">a+b</text>
+<defs><marker id="arrowhead_vector-a-parallel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="vector-a-parallel" x1="520" y1="420" x2="720" y2="420" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_vector-a-parallel)"/>
+<text id="vector-a-parallel-label" x="618" y="408" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">a</text>
+<defs><marker id="arrowhead_vector-b-parallel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="vector-b-parallel" x1="520" y1="420" x2="600" y2="280" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_vector-b-parallel)"/>
+<text id="vector-b-parallel-label" x="546" y="346" font-size="13" fill="#9effc9" text-anchor="end" font-weight="600">b</text>
+<path id="parallelogram-shape" d="M 720 420 L 800 280 M 600 280 L 800 280" stroke="rgba(232,232,238,0.55)" stroke-width="1.8" fill="none" stroke-dasharray="7 5"/>
+<defs><marker id="arrowhead_diagonal-resultant" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="diagonal-resultant" x1="520" y1="420" x2="800" y2="280" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_diagonal-resultant)"/>
+<text id="diagonal-resultant-label" x="676" y="336" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">a+b</text>
+<circle id="origin-triangle" cx="100" cy="310" r="4" fill="none" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<circle id="origin-parallel" cx="520" cy="420" r="4" fill="none" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+</svg>

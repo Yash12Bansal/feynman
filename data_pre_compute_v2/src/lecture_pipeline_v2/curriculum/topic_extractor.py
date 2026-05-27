@@ -19,10 +19,55 @@ from dataclasses import dataclass, field
 from ..llm.base import LLMProvider
 from .anchors.models import ExtractionAnchors, SectionAnchor
 from .id_generator import generate_chapter_uid, generate_topic_uid
-from .models import BookSkeleton, Topic
+from .models import BookExample, BookSkeleton, Topic
 from .prompts import build_topic_user_prompt, get_topic_system_prompt
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_book_examples(raw: object) -> list[BookExample]:
+    """Coerce the LLM's `book_examples` array into typed BookExample rows.
+
+    Defensive: drop malformed entries (with a warning) rather than failing the
+    whole topic. A missing `verbatim_text` or unknown `kind` makes an entry
+    unusable — keep the rest. Bias toward salvage; coverage validator will
+    surface real gaps later.
+    """
+    if not isinstance(raw, list):
+        return []
+    out: list[BookExample] = []
+    for i, entry in enumerate(raw):
+        if not isinstance(entry, dict):
+            logger.debug("book_examples[%d] not a dict, skipping", i)
+            continue
+        verbatim = str(entry.get("verbatim_text") or "").strip()
+        kind = entry.get("kind")
+        lesson_focus = str(entry.get("lesson_focus") or "").strip()
+        if not verbatim or kind not in ("worked_out", "inline") or not lesson_focus:
+            logger.warning(
+                "book_examples[%d] missing required fields "
+                "(verbatim_text/kind/lesson_focus); skipping",
+                i,
+            )
+            continue
+        setup_facts_raw = entry.get("setup_facts") or []
+        setup_facts = (
+            [str(f).strip() for f in setup_facts_raw if str(f).strip()]
+            if isinstance(setup_facts_raw, list)
+            else []
+        )
+        page_number = entry.get("page_number")
+        out.append(
+            BookExample(
+                verbatim_text=verbatim,
+                page_number=int(page_number) if isinstance(page_number, int) else None,
+                kind=kind,
+                lesson_focus=lesson_focus,
+                setup_facts=setup_facts,
+                has_derivation=bool(entry.get("has_derivation", False)),
+            )
+        )
+    return out
 
 
 @dataclass
@@ -160,7 +205,7 @@ class TopicExtractor:
                 )
 
             try:
-                our_understanding, examples = self._enrich_section(
+                our_understanding, examples, book_examples = self._enrich_section(
                     skeleton, chapter_title, section, section_text,
                 )
             except Exception as e:
@@ -181,6 +226,7 @@ class TopicExtractor:
                 orig_book_content=section_text,
                 our_understanding=our_understanding,
                 examples=examples,
+                book_examples=book_examples,
                 next_topic_id=next_id,
             )
             topics.append(topic)
@@ -199,7 +245,7 @@ class TopicExtractor:
         chapter_title: str,
         section: SectionAnchor,
         section_text: str,
-    ) -> tuple[str, list[str]]:
+    ) -> tuple[str, list[str], list[BookExample]]:
         system_prompt = get_topic_system_prompt()
         user_prompt = build_topic_user_prompt(
             book_skeleton=skeleton,
@@ -228,9 +274,10 @@ class TopicExtractor:
                 if not isinstance(examples_raw, list):
                     raise ValueError("'examples' must be a list")
                 examples = [str(e).strip() for e in examples_raw if str(e).strip()]
+                book_examples = _parse_book_examples(data.get("book_examples") or [])
                 if not our_understanding:
                     raise ValueError("'our_understanding' is empty")
-                return our_understanding, examples
+                return our_understanding, examples, book_examples
             except (json.JSONDecodeError, ValueError) as e:
                 last_error = e
                 logger.warning(

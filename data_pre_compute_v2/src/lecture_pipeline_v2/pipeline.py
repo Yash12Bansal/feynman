@@ -385,10 +385,30 @@ class CurriculumPipelineV2:
                         lecture_plans,
                         diagrams_by_topic_for_plan,
                     )
+                    # Book-coverage USP post-pass: enforce the example
+                    # allocation rule per topic. The kernel ConceptTeachingPlan
+                    # doesn't carry topic_id, but plans come back in the same
+                    # order as `lecture_plan.concept_sequence` (a list of
+                    # topic_ids), so we zip them. Pure function — zero LLM cost.
+                    from .curriculum.lecture_plan.example_allocator import (
+                        allocate_example_beats,
+                    )
                     for ch in chapter_nodes:
-                        ch.concept_plans = concept_plans_by_chapter.get(
-                            ch.chapter_id, []
-                        )
+                        plans = concept_plans_by_chapter.get(ch.chapter_id, [])
+                        lp = lecture_plans.get(ch.chapter_id)
+                        topic_lookup = {
+                            t.topic_id: t
+                            for t in topics_by_chapter_for_plan.get(ch.chapter_id, [])
+                        }
+                        sequence = lp.concept_sequence if lp else []
+                        reallocated: list[ConceptTeachingPlan] = []
+                        for plan, topic_id in zip(plans, sequence, strict=False):
+                            topic = topic_lookup.get(topic_id)
+                            if topic is None:
+                                reallocated.append(plan)
+                                continue
+                            reallocated.append(allocate_example_beats(plan, topic))
+                        ch.concept_plans = reallocated
 
                 # --- Phase 7c + 7d: per-beat diagrams + DiagramQA (NEW Phase 4c) ---
                 # Per-beat DiagramSpecGenerator iterates each Chapter.concept_plans,
@@ -459,6 +479,26 @@ class CurriculumPipelineV2:
                         )
                         ch.beat_narrations = narrations
                         logger.info(bn_report.summary())
+
+                    # Book-coverage validator (soft-warn v1). Logs structured
+                    # gaps for any Topic.book_examples that didn't land in a
+                    # faithful book-source beat. Promote to hard-fail once we
+                    # have signal on real ingests.
+                    from .curriculum.validation.example_coverage import (
+                        validate_example_coverage,
+                    )
+                    for ch in chapter_nodes:
+                        if not ch.beat_narrations:
+                            continue
+                        ch_topics = topics_by_chapter_for_plan.get(ch.chapter_id, [])
+                        narrations_by_topic: dict[str, list] = {}
+                        for n in ch.beat_narrations:
+                            narrations_by_topic.setdefault(n.topic_id, []).append(n)
+                        cov = validate_example_coverage(ch_topics, narrations_by_topic)
+                        logger.info(
+                            "example_coverage chapter=%s: %s",
+                            ch.chapter_id, cov.summary(),
+                        )
 
                     if le_cfg.enabled:
                         notify(

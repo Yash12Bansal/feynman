@@ -166,6 +166,10 @@ class TopicMeta(BaseModel):
     topic_name: str
     section_number: str = ""
     summary: str = ""
+    # Idea 3 — adjacency list used by `prereq_walker.walk_prereqs` to BFS
+    # backward through the curriculum graph. List of topic_ids the current
+    # topic strictly depends on. Empty for foundational topics.
+    prereq_topic_ids: list[str] = Field(default_factory=list)
 
 
 class DiagramData(BaseModel):
@@ -183,6 +187,17 @@ class DiagramData(BaseModel):
     linked_topic_ids: list[str] = Field(default_factory=list)
 
 
+# Idea 2 — mirror of v2's VisualTermEntry, duck-typed across the project
+# boundary. We accept whatever extra fields the v2 schema adds and only
+# require the four we actually consume.
+class VisualTermEntry(BaseModel):
+    diagram_id: str
+    element_id: str
+    role: str = ""
+    semantic: str = ""
+    linked_beat_id: str = ""
+
+
 class ChapterContext(BaseModel):
     """Hydrated chapter snapshot for one lecture session."""
 
@@ -190,6 +205,7 @@ class ChapterContext(BaseModel):
     title: str = ""
     topics: dict[str, TopicMeta] = Field(default_factory=dict)
     diagrams: dict[str, DiagramData] = Field(default_factory=dict)
+    visual_index: list[VisualTermEntry] = Field(default_factory=list)
 
     def topic(self, topic_id: str | None) -> TopicMeta | None:
         if topic_id is None:

@@ -294,6 +294,8 @@ class BeatNarrationWriter:
                     text="",
                     target_duration_seconds=beat.target_duration_seconds,
                     needs_review=True,
+                    example_source=beat.example_source,
+                    book_example_ref=beat.book_example_ref,
                 )
 
     async def _write_one_impl(
@@ -323,6 +325,17 @@ class BeatNarrationWriter:
         active_diagram_spec = active_diagram.render_data if active_diagram else None
         active_diagram_id = active_diagram.diagram_id if active_diagram else None
 
+        # Resolve the BookExample if this beat carries a book-source reference.
+        # Tolerate out-of-bounds (shouldn't happen — allocator owns the index —
+        # but if topics change between plan + write we degrade to "no anchor").
+        book_example_obj = None
+        if (
+            beat.example_source == "book"
+            and beat.book_example_ref is not None
+            and 0 <= beat.book_example_ref < len(topic.book_examples)
+        ):
+            book_example_obj = topic.book_examples[beat.book_example_ref]
+
         user_prompt = build_beat_user_prompt(
             beat=beat,
             beat_index=beat_index,
@@ -335,6 +348,7 @@ class BeatNarrationWriter:
             target_seconds=target_seconds,
             target_words=target_words,
             prior_beat_texts=prior_beat_texts,
+            book_example=book_example_obj,
         )
 
         try:
@@ -352,6 +366,8 @@ class BeatNarrationWriter:
                 text="",
                 target_duration_seconds=target_seconds,
                 needs_review=True,
+                example_source=beat.example_source,
+                book_example_ref=beat.book_example_ref,
             )
 
         if not text:
@@ -363,6 +379,8 @@ class BeatNarrationWriter:
                 text="",
                 target_duration_seconds=target_seconds,
                 needs_review=True,
+                example_source=beat.example_source,
+                book_example_ref=beat.book_example_ref,
             )
 
         estimated = _estimate_seconds(text, self.config.target_wps)
@@ -381,6 +399,8 @@ class BeatNarrationWriter:
             estimated_duration_seconds=estimated,
             audio_targets=_extract_audio_targets(text),
             needs_review=needs_review,
+            example_source=beat.example_source,
+            book_example_ref=beat.book_example_ref,
         )
 
     def _resolve_active_diagram(

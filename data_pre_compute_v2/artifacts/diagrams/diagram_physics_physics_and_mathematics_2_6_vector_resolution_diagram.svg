@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="x-axis" x1="180" y1="400" x2="720" y2="400" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="x-axis-arrow" x1="700" y1="400" x2="730" y2="400" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_x-axis-arrow)"/>
+<text id="x-axis-label" x="745" y="404" font-size="14" fill="#e8e8ee" text-anchor="start" font-weight="600">X</text>
+<line id="y-axis" x1="280" y1="560" x2="280" y2="100" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_y-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="y-axis-arrow" x1="280" y1="120" x2="280" y2="90" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_y-axis-arrow)"/>
+<text id="y-axis-label" x="280" y="78" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Y</text>
+<circle id="origin-o" cx="280" cy="400" r="5" fill="#e8e8ee" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="origin-o-label" x="262" y="418" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">O</text>
+<defs><marker id="arrowhead_vector-oa" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="vector-oa" x1="280" y1="400" x2="580" y2="148" stroke="#e8e8ee" stroke-width="3" marker-end="url(#arrowhead_vector-oa)"/>
+<text id="vector-oa-label" x="450" y="252" font-size="14" fill="#e8e8ee" text-anchor="start" font-weight="700">a</text>
+<circle id="point-a" cx="580" cy="148" r="5" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="point-a-label" x="594" y="142" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">A</text>
+<line id="perp-ab" x1="580" y1="148" x2="580" y2="400" stroke="rgba(232,232,238,0.55)" stroke-width="1.8" stroke-dasharray="6,5"/>
+<line id="perp-ac" x1="580" y1="148" x2="280" y2="148" stroke="rgba(232,232,238,0.55)" stroke-width="1.8" stroke-dasharray="6,5"/>
+<circle id="point-b" cx="580" cy="400" r="5" fill="#9effc9" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="point-b-label" x="580" y="420" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<circle id="point-c" cx="280" cy="148" r="5" fill="#ff7a8a" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<text id="point-c-label" x="260" y="152" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">C</text>
+<defs><marker id="arrowhead_component-ob" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="component-ob" x1="280" y1="400" x2="580" y2="400" stroke="#9effc9" stroke-width="3" marker-end="url(#arrowhead_component-ob)"/>
+<text id="component-ob-label" x="425" y="432" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">a\cos\alpha</text>
+<defs><marker id="arrowhead_component-oc" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="component-oc" x1="280" y1="400" x2="280" y2="148" stroke="#ff7a8a" stroke-width="3" marker-end="url(#arrowhead_component-oc)"/>
+<text id="component-oc-label" x="200" y="278" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">a\cos\beta</text>
+<path id="angle-alpha" d="M 319.83431104218687 366.57504429629995 A 52.0 52.0 0 0 1 332.0 400.0" stroke="#7fd4ff" stroke-width="1.8" fill="none"/>
+<text id="angle-alpha-label" x="352" y="388" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">\alpha</text>
+<path id="angle-beta" d="M 280.0 330.0 A 70.0 70.0 0 0 1 333.6231110183285 355.00486732194224" stroke="#ff7a8a" stroke-width="1.8" fill="none"/>
+<text id="angle-beta-label" x="296" y="332" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">\beta</text>
+<path id="right-angle-b" d="M 580 388 L 568 388 L 568 400" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<path id="right-angle-c" d="M 280 160 L 292 160 L 292 148" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+</svg>

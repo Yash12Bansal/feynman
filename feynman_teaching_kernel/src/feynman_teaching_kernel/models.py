@@ -84,6 +84,21 @@ class TeachingBeat(BaseModel):
         description="What to watch for from students (confusion signals, questions)",
     )
 
+    # Book-coverage USP (2026-05-27). Set ONLY when beat_type == "example".
+    # Drives the BeatNarrationWriter's faithfulness / creativity branch.
+    example_source: Literal["book", "extended"] | None = Field(
+        default=None,
+        description="`book` = faithful render of a textbook example (numbers + "
+        "relationships preserved). `extended` = LLM-invented real-world "
+        "example to strengthen coverage. None = not an example beat.",
+    )
+    book_example_ref: int | None = Field(
+        default=None,
+        description="Index into Topic.book_examples — populated when "
+        "example_source='book' so the writer can look up the verbatim text + "
+        "setup_facts. None for non-book beats.",
+    )
+
 
 class ChecklistItem(BaseModel):
     """One requirement the agent must satisfy before `resolve_doubt` is allowed.

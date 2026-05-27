@@ -23,6 +23,7 @@ from feynman.agent.doubt_resolution.models import (
     ChapterContext,
     DiagramData,
     TopicMeta,
+    VisualTermEntry,
 )
 from feynman.config import settings
 
@@ -34,18 +35,21 @@ MATCH (c:Chapter {chapter_id: $chapter_id})
 OPTIONAL MATCH (c)-[:CONTAINS]->(t:Topic)
 OPTIONAL MATCH (t)-[:HAS_DIAGRAM]->(d:Diagram)
 RETURN
-    c.chapter_id AS chapter_id,
-    c.title      AS title,
+    c.chapter_id           AS chapter_id,
+    c.title                AS title,
+    c.concept_visual_index AS visual_index,
     collect(DISTINCT {
-        topic_id:       t.topic_id,
-        topic_name:     t.topic_name,
-        section_number: t.section_number,
-        summary:        t.our_understanding
+        topic_id:           t.topic_id,
+        topic_name:         t.topic_name,
+        section_number:     t.section_number,
+        summary:            t.our_understanding,
+        prereq_topic_ids:   t.prereq_topic_ids
     }) AS topics,
     collect(DISTINCT {
         diagram_id:        d.diagram_id,
         description:       d.description,
         dictionary:        d.dictionary,
+        render_data:       d.render_data,
         linked_topic_ids:  d.linked_topic_ids
     }) AS diagrams
 """
@@ -62,6 +66,52 @@ def _parse_dictionary(value: Any) -> dict[str, dict[str, Any]]:
             return {}
         return parsed if isinstance(parsed, dict) else {}
     return {}
+
+
+def _dictionary_with_render_data_fallback(raw: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Read `d.dictionary` if present; otherwise dig into `render_data.dictionary`.
+
+    The v2 cypher_generator writes the full diagram spec into `render_data`
+    as a JSON string and never sets the bare `dictionary` property. This
+    fallback bridges the contract drift so the doubt resolver gets a real
+    dictionary either way.
+    """
+    direct = _parse_dictionary(raw.get("dictionary"))
+    if direct:
+        return direct
+    render_data_raw = raw.get("render_data")
+    render_data: dict[str, Any] = {}
+    if isinstance(render_data_raw, dict):
+        render_data = render_data_raw
+    elif isinstance(render_data_raw, str) and render_data_raw.strip():
+        try:
+            parsed = json.loads(render_data_raw)
+        except json.JSONDecodeError:
+            parsed = None
+        if isinstance(parsed, dict):
+            render_data = parsed
+    nested = render_data.get("dictionary")
+    return nested if isinstance(nested, dict) else {}
+
+
+def _parse_visual_index(value: Any) -> list[dict[str, Any]]:
+    """Concept-to-visual index — JSON string with `{entries: [...]}` shape."""
+    if value is None:
+        return []
+    raw: dict[str, Any] | None = None
+    if isinstance(value, dict):
+        raw = value
+    elif isinstance(value, str) and value.strip():
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return []
+        if isinstance(parsed, dict):
+            raw = parsed
+    if not isinstance(raw, dict):
+        return []
+    entries = raw.get("entries")
+    return entries if isinstance(entries, list) else []
 
 
 async def load_chapter_by_id(chapter_id: str) -> ChapterContext | None:
@@ -92,6 +142,7 @@ async def load_chapter_by_id(chapter_id: str) -> ChapterContext | None:
             topic_name=raw.get("topic_name") or tid,
             section_number=raw.get("section_number") or "",
             summary=raw.get("summary") or "",
+            prereq_topic_ids=list(raw.get("prereq_topic_ids") or []),
         )
 
     diagrams: dict[str, DiagramData] = {}
@@ -102,21 +153,35 @@ async def load_chapter_by_id(chapter_id: str) -> ChapterContext | None:
         diagrams[did] = DiagramData(
             diagram_id=did,
             description=raw.get("description") or "",
-            dictionary=_parse_dictionary(raw.get("dictionary")),
+            dictionary=_dictionary_with_render_data_fallback(raw),
             linked_topic_ids=list(raw.get("linked_topic_ids") or []),
         )
+
+    visual_index = [
+        VisualTermEntry(
+            diagram_id=e.get("diagram_id", ""),
+            element_id=e.get("element_id", ""),
+            role=e.get("role", "") or "",
+            semantic=e.get("semantic", "") or "",
+            linked_beat_id=e.get("linked_beat_id", "") or "",
+        )
+        for e in _parse_visual_index(record.get("visual_index"))
+        if e.get("diagram_id") and e.get("element_id")
+    ]
 
     ctx = ChapterContext(
         chapter_id=record["chapter_id"],
         title=record["title"] or "",
         topics=topics,
         diagrams=diagrams,
+        visual_index=visual_index,
     )
     logger.info(
         "chapter_loader.loaded",
         chapter_id=chapter_id,
         topics=len(topics),
         diagrams=len(diagrams),
+        visual_index_entries=len(visual_index),
     )
     return ctx
 
@@ -149,6 +214,7 @@ def chapter_context_from_extraction(
             topic_name=t.get("topic_name") or tid,
             section_number=t.get("section_number") or "",
             summary=t.get("our_understanding") or "",
+            prereq_topic_ids=list(t.get("prereq_topic_ids") or []),
         )
 
     diagrams: dict[str, DiagramData] = {}
@@ -163,13 +229,27 @@ def chapter_context_from_extraction(
         diagrams[did] = DiagramData(
             diagram_id=did,
             description=d.get("description") or "",
-            dictionary=_parse_dictionary(d.get("dictionary")),
+            dictionary=_dictionary_with_render_data_fallback(d),
             linked_topic_ids=list(linked),
         )
+
+    raw_index = (chapter.get("concept_visual_index") or {}).get("entries") or []
+    visual_index = [
+        VisualTermEntry(
+            diagram_id=e.get("diagram_id", ""),
+            element_id=e.get("element_id", ""),
+            role=e.get("role", "") or "",
+            semantic=e.get("semantic", "") or "",
+            linked_beat_id=e.get("linked_beat_id", "") or "",
+        )
+        for e in raw_index
+        if isinstance(e, dict) and e.get("diagram_id") and e.get("element_id")
+    ]
 
     return ChapterContext(
         chapter_id=chapter_id,
         title=chapter.get("title") or "",
         topics=topics,
         diagrams=diagrams,
+        visual_index=visual_index,
     )

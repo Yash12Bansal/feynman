@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="wall" x="80" y="220" width="40" height="210" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<path id="wall-hatch" d="M 80 230 L 60 250 M 80 255 L 60 275 M 80 280 L 60 300 M 80 305 L 60 325 M 80 330 L 60 350 M 80 355 L 60 375 M 80 380 L 60 400 M 80 405 L 60 425" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<path id="spring-coil" d="M 120 325 L 150 325 L 163 295 L 189 355 L 215 295 L 241 355 L 267 295 L 293 355 L 319 295 L 345 355 L 371 295 L 397 355 L 410 325 L 440 325" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<rect id="block" x="440" y="290" width="70" height="70" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="natural-length-marker" x1="440" y1="240" x2="440" y2="410" stroke="rgba(232,232,238,0.55)" stroke-width="1.8" stroke-dasharray="7,5"/>
+<text id="natural-length-label" x="440" y="228" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">natural length</text>
+<defs><marker id="arrowhead_displacement-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="displacement-arrow" x1="440" y1="450" x2="510" y2="450" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_displacement-arrow)"/>
+<text id="displacement-label" x="475" y="476" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">x</text>
+<defs><marker id="arrowhead_force-arrow-block" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="force-arrow-block" x1="510" y1="325" x2="630" y2="325" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_force-arrow-block)"/>
+<text id="force-label" x="640" y="320" font-size="14" fill="#ff7a8a" font-style="italic" text-anchor="middle">F = kx</text>
+<line id="ground-line" x1="80" y1="430" x2="700" y2="430" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 100 430 L 88 444 M 130 430 L 118 444 M 160 430 L 148 444 M 190 430 L 178 444 M 220 430 L 208 444 M 250 430 L 238 444 M 280 430 L 268 444 M 310 430 L 298 444 M 340 430 L 328 444 M 370 430 L 358 444 M 400 430 L 388 444 M 430 430 L 418 444 M 460 430 L 448 444 M 490 430 L 478 444 M 520 430 L 508 444 M 550 430 L 538 444" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="displacement-bracket-left" x1="440" y1="438" x2="440" y2="462" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="displacement-bracket-right" x1="510" y1="438" x2="510" y2="462" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+</svg>

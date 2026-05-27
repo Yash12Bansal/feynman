@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="tyre-rubber" x="200" y="160" width="500" height="110" rx="8" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<path id="tyre-tread" d="M 230 270 L 230 290 M 270 270 L 270 295 M 310 270 L 310 290 M 350 270 L 350 295 M 390 270 L 390 290 M 430 270 L 430 295 M 470 270 L 470 290 M 510 270 L 510 295 M 550 270 L 550 290 M 590 270 L 590 295 M 630 270 L 630 290 M 665 270 L 665 290" stroke="#e8e8ee" stroke-width="3" fill="none" stroke-dasharray=""/>
+<text id="tyre-label" x="450" y="222" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">Tyre rubber</text>
+<rect id="water-film" x="200" y="296" width="500" height="28" rx="0" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<path id="water-ripple" d="M 220 310 Q 250 303 280 310 Q 310 317 340 310 Q 370 303 400 310 Q 430 317 460 310 Q 490 303 520 310 Q 550 317 580 310 Q 610 303 640 310 Q 670 317 690 310" stroke="#7fd4ff" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="water-label" x="140" y="314" font-size="12" fill="#7fd4ff" text-anchor="end" font-weight="normal">Water film</text>
+<rect id="concrete-road" x="200" y="324" width="500" height="100" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<path id="road-texture" d="M 215 340 L 225 352 M 245 335 L 255 348 M 275 342 L 283 354 M 305 337 L 315 350 M 335 343 L 343 355 M 365 338 L 373 351 M 395 344 L 403 356 M 425 336 L 433 349 M 455 341 L 463 353 M 485 337 L 493 350 M 515 343 L 523 355 M 545 338 L 553 351 M 575 344 L 583 356 M 605 340 L 613 352 M 635 336 L 643 349 M 665 342 L 673 354" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="road-label" x="450" y="400" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">Concrete road</text>
+<defs><marker id="arrowhead_motion-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="motion-arrow" x1="450" y1="120" x2="620" y2="120" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_motion-arrow)"/>
+<text id="motion-label" x="535" y="110" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="normal">Motion</text>
+<defs><marker id="arrowhead_friction-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="friction-arrow" x1="450" y1="500" x2="340" y2="500" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_friction-arrow)"/>
+<text id="friction-label" x="450" y="490" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="normal">Friction force (reduced)</text>
+<text id="mu-label" x="620" y="305" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">\mu = 0.40 \text{ (wet)}</text>
+<path id="mu-callout-line" d="M 618 302 L 720 296 L 720 310" stroke="rgba(127,212,255,0.5)" stroke-width="1" fill="none" stroke-dasharray="4 3"/>
+<defs><marker id="arrowhead_separation-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="separation-arrow" x1="760" y1="272" x2="760" y2="295" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_separation-arrow)"/>
+<defs><marker id="arrowhead_separation-arrow-down" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="separation-arrow-down" x1="760" y1="352" x2="760" y2="326" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_separation-arrow-down)"/>
+<text id="gap-label" x="800" y="313" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">gap</text>
+</svg>

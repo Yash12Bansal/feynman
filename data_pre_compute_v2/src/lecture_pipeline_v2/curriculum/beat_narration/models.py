@@ -14,6 +14,8 @@ Layout:
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -39,3 +41,8 @@ class BeatNarration(BaseModel):
         description="Marker IDs referenced (eq-1, key-2, ...) — telemetry only",
     )
     needs_review: bool = False
+    # Book-coverage USP: source of the example beat (mirror of TeachingBeat
+    # fields). Set ONLY when beat_type == "example". Used by the coverage
+    # validator to confirm every Topic.book_examples produced a beat.
+    example_source: Literal["book", "extended"] | None = None
+    book_example_ref: int | None = None

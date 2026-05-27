@@ -217,6 +217,25 @@ export interface TopicEntry {
   section: string;
 }
 
+// Unified board state (feat/unify_boardstate). Authoritative slide +
+// notebook layout at end-of-page, produced by the precompute composer.
+// Consumers read this instead of querying the DOM.
+export interface BoardElement {
+  readonly element_id: string;
+  readonly kind: "diagram" | "diagram_element" | "notebook_block";
+  readonly rect: Rect;
+  readonly parent_id?: string;
+  readonly role?: string;
+  readonly block_type?: string;
+  readonly semantic?: string;
+}
+
+export interface BoardSnapshot {
+  readonly page_index: number;
+  readonly topic_id: string;
+  readonly elements: readonly BoardElement[];
+}
+
 export interface ChapterPayload {
   chapter_id: string;
   title: string;
@@ -224,6 +243,9 @@ export interface ChapterPayload {
   events: ManifestEvent[];
   diagrams: Record<string, DiagramEntry>;
   topics: Record<string, TopicEntry>;
+  // Parallel-indexed with the Chapter's `pages` array; empty for chapters
+  // ingested before the unified-board-state feature shipped.
+  board_snapshots?: readonly BoardSnapshot[];
 }
 
 // ---------------------------------------------------------------------------
@@ -256,6 +278,11 @@ export interface UseExtractionPlaybackResult {
   readonly audioProgress: { current: number; total: number };
   readonly slide: SlideState;
   readonly notebook: NotebookState;
+  // Authoritative board state for the most-recently-closed page. Null while
+  // the lecture is on page 0 (no page has closed yet) or when the chapter
+  // was ingested before snapshots existed. Use this for "what was on the
+  // board" lookups instead of measuring the DOM.
+  readonly currentSnapshot: BoardSnapshot | null;
   readonly setAudioElement: (element: HTMLAudioElement | null) => void;
   readonly play: () => Promise<void>;
   readonly pause: () => void;
@@ -347,6 +374,12 @@ export function useExtractionPlayback(
   >([]);
   const [pageNum, setPageNum] = useState(1);
   const [pageTurning, setPageTurning] = useState(false);
+  const [currentSnapshot, setCurrentSnapshot] =
+    useState<BoardSnapshot | null>(null);
+  // Index of the next snapshot to consume on the NEXT page close. Snapshots
+  // are emitted by the composer in the same order as pages — first close
+  // consumes [0], second close [1], etc.
+  const snapshotCursorRef = useRef(0);
   const [currentTopicId, setCurrentTopicId] = useState<string | null>(null);
   const [currentTopicLabel, setCurrentTopicLabel] = useState("");
   const [currentTopicName, setCurrentTopicName] = useState<string | null>(null);
@@ -401,6 +434,8 @@ export function useExtractionPlayback(
     setNotebookEntries([]);
     setPageNum(1);
     setPageTurning(false);
+    setCurrentSnapshot(null);
+    snapshotCursorRef.current = 0;
     setCurrentTopicId(null);
     setCurrentTopicLabel("");
     setCurrentTopicName(null);
@@ -677,6 +712,17 @@ export function useExtractionPlayback(
     ],
   );
 
+  // Snapshots are emitted by the composer in 1:1 order with closed pages.
+  // Each page-close consumes the next one and exposes it as currentSnapshot.
+  const advanceSnapshot = useCallback((c: ChapterPayload) => {
+    const snaps = c.board_snapshots;
+    if (!snaps || snaps.length === 0) return;
+    const idx = snapshotCursorRef.current;
+    if (idx >= snaps.length) return;
+    snapshotCursorRef.current = idx + 1;
+    setCurrentSnapshot(snaps[idx]);
+  }, []);
+
   // Runs an event. Returns true if the event completed; false if the loop was
   // aborted mid-event (pause was called).
   const runEvent = useCallback(
@@ -715,6 +761,7 @@ export function useExtractionPlayback(
           }
           setNotebookEntries([]);
           setPageNum((n) => n + 1);
+          advanceSnapshot(c);
           setPageTurning(false);
           return true;
         }
@@ -735,6 +782,7 @@ export function useExtractionPlayback(
           } else if (ev.slide_action === "release") {
             setSlide({ status: "empty", annotations: [] });
           }
+          advanceSnapshot(c);
           setPageTurning(false);
           return true;
         }
@@ -743,7 +791,7 @@ export function useExtractionPlayback(
           return true;
       }
     },
-    [applySyncEvent, totalAudios],
+    [applySyncEvent, advanceSnapshot, totalAudios],
   );
 
   const play = useCallback(async (): Promise<void> => {
@@ -813,6 +861,7 @@ export function useExtractionPlayback(
     cursorRef.current = 0;
     audioIdxRef.current = 0;
     slideSnapshotRef.current = null;
+    snapshotCursorRef.current = 0;
     setCursorState(0);
     setCurrentTopicId(null);
     setCurrentTopicLabel("");
@@ -821,6 +870,7 @@ export function useExtractionPlayback(
     setNotebookEntries([]);
     setPageNum(1);
     setPageTurning(false);
+    setCurrentSnapshot(null);
     setAudioProgress({ current: 0, total: totalAudios });
     setStatus("idle");
   }, [totalAudios]);
@@ -936,6 +986,7 @@ export function useExtractionPlayback(
     audioProgress,
     slide,
     notebook,
+    currentSnapshot,
     setAudioElement,
     play,
     pause,

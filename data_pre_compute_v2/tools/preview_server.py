@@ -88,7 +88,8 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
             result = await session.run(
                 "MATCH (c:Chapter {chapter_id: $id}) "
                 "RETURN c.title AS title, c.chapter_index AS idx, "
-                "       c.chapter_manifest AS manifest",
+                "       c.chapter_manifest AS manifest, "
+                "       c.board_snapshots AS board_snapshots",
                 {"id": chapter_id},
             )
             record = await result.single()
@@ -102,6 +103,12 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
                 json.loads(manifest_raw) if isinstance(manifest_raw, str) else manifest_raw
             )
             events = manifest.get("events", [])
+            snapshots_raw = record["board_snapshots"]
+            board_snapshots = (
+                json.loads(snapshots_raw)
+                if isinstance(snapshots_raw, str) and snapshots_raw
+                else (snapshots_raw or [])
+            )
 
             diagram_ids = sorted({
                 e["diagram_id"] for e in events if e.get("type") == "show_diagram"
@@ -163,6 +170,7 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
         "events": rewritten_events,
         "diagrams": diagrams,
         "topics": topics,
+        "board_snapshots": board_snapshots,
     })
 
 

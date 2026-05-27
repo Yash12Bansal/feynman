@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="table-body" x="120" y="380" width="560" height="20" rx="0" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="1.5"/>
+<line id="table-left-leg" x1="140" y1="400" x2="140" y2="520" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="table-right-leg" x1="660" y1="400" x2="660" y2="520" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="plank-surface" x="140" y="330" width="520" height="50" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="plank-label" x="200" y="362" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="600">A</text>
+<rect id="table-block" x="270" y="270" width="100" height="60" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="block-label" x="320" y="307" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">B</text>
+<text id="block-weight-label" x="320" y="324" font-size="12" fill="#e8e8ee" font-style="italic" text-anchor="middle">W_1</text>
+<line id="string-horizontal" x1="370" y1="300" x2="620" y2="300" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="pulley" cx="640" cy="300" r="20" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="pulley-axle" cx="640" cy="300" r="4" fill="none" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<text id="pulley-label" x="666" y="296" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="600">P</text>
+<line id="string-vertical" x1="660" y1="300" x2="660" y2="460" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<rect id="hanger" x="625" y="460" width="70" height="80" rx="4" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<line id="hanger-hook" x1="660" y1="440" x2="660" y2="460" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="hanger-top-bar" x1="635" y1="475" x2="685" y2="475" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="hanger-label" x="660" y="502" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">H</text>
+<text id="hanger-weight-label" x="660" y="522" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">W_2</text>
+<defs><marker id="arrowhead_friction-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="friction-arrow" x1="270" y1="300" x2="170" y2="300" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_friction-arrow)"/>
+<text id="friction-label" x="160" y="286" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">f = W_2</text>
+<defs><marker id="arrowhead_tension-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="tension-arrow" x1="370" y1="300" x2="470" y2="300" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_tension-arrow)"/>
+<text id="tension-label" x="415" y="286" font-size="12" fill="#7fd4ff" font-style="italic" text-anchor="middle">T = W_2</text>
+<path id="ground-hatch" d="M 130 520 L 120 534 M 160 520 L 150 534 M 190 520 L 180 534 M 220 520 L 210 534 M 250 520 L 240 534 M 280 520 L 270 534 M 310 520 L 300 534 M 340 520 L 330 534 M 370 520 L 360 534 M 400 520 L 390 534 M 430 520 L 420 534 M 460 520 L 450 534 M 490 520 L 480 534 M 520 520 L 510 534 M 550 520 L 540 534 M 580 520 L 570 534 M 610 520 L 600 534 M 640 520 L 630 534 M 670 520 L 660 534" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="ground-line" x1="120" y1="520" x2="680" y2="520" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+</svg>

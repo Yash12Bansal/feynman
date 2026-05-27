@@ -11,10 +11,11 @@ today (the chunker is the ground truth for inline-marker shape — see
 from __future__ import annotations
 
 from feynman_teaching_kernel import ConceptTeachingPlan, TeachingBeat
+from feynman_teaching_kernel.style_guide import PRONUNCIATION_RULES
 
-from ..models import Topic
+from ..models import BookExample, Topic
 
-BEAT_NARRATION_SYSTEM_PROMPT = """You are an expert teacher writing ONE beat of a precomputed lecture.
+BEAT_NARRATION_SYSTEM_PROMPT = f"""You are an expert teacher writing ONE beat of a precomputed lecture.
 
 The student is roughly 14 years old, studying IGCSE-level Mathematics or Physics.
 Speak like a brilliant teacher at a whiteboard — warm, clear, intellectually
@@ -116,6 +117,60 @@ emit ANY of these markers.
   <<PAUSE:short>>     ~250ms pause for emphasis (after important sentences).
   <<PAUSE:long>>      ~750ms pause between major beats.
 
+# Pronunciation (the narration is read aloud by TTS — these are non-negotiable)
+
+{PRONUNCIATION_RULES}
+
+EXCEPTION: text INSIDE <<WRITE_EQUATION:...>> markers is the notebook-side
+KaTeX equation and stays in symbolic form. Pronunciation rules apply only to
+the spoken prose AROUND the markers, not the marker payloads themselves.
+
+# Example beats — book coverage vs. extended (CORE PRODUCT PROMISE)
+
+When beat_type is `example`, the user prompt will tell you which kind:
+
+## Source = "book" — render the textbook example FAITHFULLY
+The user prompt includes the verbatim book passage + a setup_facts list.
+Your job is to teach that exact example as a great teacher would.
+
+  HARD CONSTRAINTS:
+  - Every fact in setup_facts MUST appear in your narration with the SAME
+    numerical value. If setup_facts says "mass = 2 kg" you say "two kilograms",
+    not "a small mass".
+  - The conclusion / answer MUST match the book's.
+  - You MAY localize character names ("Reena" → "Aanya") and rephrase prose
+    for spoken flow. You may NOT invent new steps not in the book's solution.
+  - You may NOT skip the final answer.
+  - Do NOT pretend it's a fresh example — say "here's a problem from the
+    chapter" or similar phrasing that signals book-anchored content.
+
+  STEP-BY-STEP RENDERING (when the book example has a derivation):
+  - Show each derivation step on the notebook with <<WRITE_STEP>> markers,
+    indented if dependent on prior steps.
+  - Show the key equation/result with <<WRITE_EQUATION>> markers.
+  - Speak the reasoning between steps — students should hear the "why" of
+    each step, not just the math.
+  - End with the final answer in <<WRITE_ANSWER>> markers.
+
+## Source = "extended" — invent a FRESH real-world example
+This is your chance to strengthen coverage beyond the book using LLM
+world knowledge.
+
+  HARD CONSTRAINTS:
+  - The scenario MUST be a concrete real-world setting (delivery routes,
+    EMI payments, WiFi signal, cricket scores, climbing stairs, restaurant
+    bills — pick what naturally fits the concept).
+  - Numbers MUST be small enough to compute mentally (don't pick 4019;
+    pick 40).
+  - MUST NOT duplicate any book example's scenario from this topic. If the
+    book used a "rupees per week savings" example, you cannot use savings.
+  - Anchor explicitly in the real world during the narration ("imagine
+    you're stacking boxes in a warehouse...").
+
+The user prompt will indicate which source applies. If no example_source
+hint is given, default to a brief illustrative example following the
+extended-source rules but compress to fit target_words.
+
 # Rules (read carefully)
 
 1. **Stay within ~10% of target_words.** Word counts under 50% or over 200% of
@@ -179,6 +234,7 @@ def build_beat_user_prompt(
     target_seconds: int,
     target_words: int,
     prior_beat_texts: list[str],
+    book_example: BookExample | None = None,
 ) -> str:
     """Assemble the user prompt for one beat.
 
@@ -197,6 +253,46 @@ def build_beat_user_prompt(
     )
     if beat.speech_guidance:
         parts.append(f"## Planner speech guidance\n{beat.speech_guidance.strip()}")
+
+    # Source-aware block for example beats — drives faithful (book) vs.
+    # creative (extended) rendering per the system prompt's "Example beats"
+    # section. The allocator sets example_source on every example beat; the
+    # writer can rely on it being present.
+    if beat.beat_type == "example" and beat.example_source == "book" and book_example:
+        sf = "\n".join(f"  - {fact}" for fact in book_example.setup_facts) or "  (none specified — preserve numbers from verbatim_text below)"
+        deriv_hint = (
+            "\n\nThis example HAS a derivation. Render the steps individually "
+            "on the notebook with <<WRITE_STEP>> markers, speak the reasoning "
+            "between them, end with <<WRITE_ANSWER>>."
+            if book_example.has_derivation
+            else ""
+        )
+        parts.append(
+            "## BOOK EXAMPLE TO RENDER FAITHFULLY (source=book)\n"
+            f"lesson_focus: {book_example.lesson_focus}\n"
+            f"kind: {book_example.kind}\n"
+            f"setup_facts (these numbers/relationships MUST appear in your "
+            f"narration verbatim — see system prompt's faithfulness contract):\n"
+            f"{sf}\n\n"
+            f"verbatim text from the textbook:\n"
+            f"---\n{book_example.verbatim_text.strip()}\n---\n\n"
+            f"Cover this example. Names can be localized; numbers and conclusion "
+            f"CANNOT change.{deriv_hint}"
+        )
+    elif beat.beat_type == "example" and beat.example_source == "extended":
+        book_scenarios = (
+            "\n".join(f"  - {be.lesson_focus}" for be in topic.book_examples)
+            or "  (none — you have full creative freedom)"
+        )
+        parts.append(
+            "## EXTENDED EXAMPLE — invent fresh (source=extended)\n"
+            "Real-world anchored, NOT from the textbook. Must NOT overlap "
+            "with these book example scenarios already covered in this topic:\n"
+            f"{book_scenarios}\n\n"
+            "Pick a scenario from a different domain. Numbers small enough to "
+            "compute mentally."
+        )
+
     if beat.visual is not None:
         v = beat.visual
         zone = f" (board zone: {v.zone})" if v.zone else ""

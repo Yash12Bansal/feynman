@@ -11,7 +11,10 @@ truth so live agent + doubt planner stay consistent.
 
 from __future__ import annotations
 
-from feynman_teaching_kernel.style_guide import BANNED_OPENERS
+from feynman_teaching_kernel.style_guide import (
+    BANNED_OPENERS,
+    PRONUNCIATION_RULES,
+)
 
 _BANNED_LIST = ", ".join(f'"{o}"' for o in BANNED_OPENERS)
 
@@ -74,6 +77,8 @@ sentences) plus an optional visual intent + annotation actions.
 
 `narration_text`: what Feynman says. Plain prose, no markdown, no stage \
 directions in parentheses.
+
+{PRONUNCIATION_RULES}
 
 `visual_intent_description`: a short English description of what visual \
 would help (e.g., "a side-by-side comparison of a ball toss in two \
