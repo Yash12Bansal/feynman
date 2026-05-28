@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="flask-body" d="M 390 180 L 390 140 L 510 140 L 510 180 Q 560 180 590 220 L 620 320 Q 640 400 630 480 Q 620 560 540 580 L 360 580 Q 280 560 270 480 Q 260 400 280 320 L 310 220 Q 340 180 390 180 Z" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="liquid-fill" d="M 395 195 L 395 185 L 505 185 L 505 195 Q 550 198 578 233 L 608 330 Q 626 406 616 478 Q 607 550 535 568 L 365 568 Q 293 550 284 478 Q 274 406 292 330 L 322 233 Q 350 198 395 195 Z" stroke="rgba(127,212,255,0.18)" stroke-width="1" fill="rgba(127,212,255,0.10)" stroke-dasharray=""/>
+<rect id="piston" x="385" y="140" width="130" height="22" rx="3" fill="none" stroke="#9effc9" stroke-width="3"/>
+<defs><marker id="arrowhead_force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="force-arrow" x1="450" y1="68" x2="450" y2="138" stroke="#ff7a8a" stroke-width="3" marker-end="url(#arrowhead_force-arrow)"/>
+<text id="force-label" x="464" y="96" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">F</text>
+<text id="area-label" x="524" y="155" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">A</text>
+<text id="pressure-delta-label" x="560" y="182" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">+\tfrac{F}{A}</text>
+<line id="pressure-delta-leader" x1="518" y1="175" x2="545" y2="175" stroke="rgba(255,122,138,0.55)" stroke-width="1.2" stroke-dasharray="4,3"/>
+<circle id="point-B" cx="450" cy="430" r="6" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="point-B-text" x="440" y="450" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<text id="point-B-delta-label" x="560" y="435" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">+\tfrac{F}{A}</text>
+<line id="point-B-delta-leader" x1="458" y1="430" x2="538" y2="430" stroke="rgba(255,122,138,0.55)" stroke-width="1.2" stroke-dasharray="4,3"/>
+<line id="depth-arrow-line" x1="340" y1="162" x2="340" y2="430" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="depth-arrow" d="M 340 162 L 335 176 L 345 176 Z M 340 430 L 335 416 L 345 416 Z" stroke="rgba(232,232,238,0.75)" stroke-width="1.2" fill="rgba(232,232,238,0.75)" stroke-dasharray=""/>
+<text id="depth-label" x="322" y="302" font-size="13" fill="rgba(232,232,238,0.75)" font-style="italic" text-anchor="middle">z</text>
+<line id="piston-ref-dash" x1="340" y1="162" x2="385" y2="162" stroke="rgba(232,232,238,0.3)" stroke-width="1" stroke-dasharray="3,4"/>
+<line id="pointB-ref-dash" x1="340" y1="430" x2="444" y2="430" stroke="rgba(232,232,238,0.3)" stroke-width="1" stroke-dasharray="3,4"/>
+</svg>

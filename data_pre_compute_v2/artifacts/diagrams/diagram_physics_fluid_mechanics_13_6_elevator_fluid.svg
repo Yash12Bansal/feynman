@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="elevator-box" x="240" y="80" width="360" height="500" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="elevator-top-inner" x1="240" y1="110" x2="600" y2="110" stroke="rgba(232,232,238,0.35)" stroke-width="1" stroke-dasharray=""/>
+<rect id="beaker-outline" x="310" y="200" width="220" height="300" rx="4" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<line id="fluid-surface" x1="310" y1="230" x2="530" y2="230" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray="6 4"/>
+<rect id="fluid-cylinder" x="395" y="280" width="50" height="160" rx="2" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<line id="cylinder-top-face" x1="395" y1="280" x2="445" y2="280" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<line id="cylinder-bottom-face" x1="395" y1="440" x2="445" y2="440" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="point-A" cx="420" cy="440" r="4" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<text id="point-A-label" x="456" y="445" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">A</text>
+<circle id="point-B" cx="420" cy="280" r="4" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<text id="point-B-label" x="456" y="285" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">B</text>
+<defs><marker id="arrowhead_arrow-P1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="arrow-P1" x1="420" y1="480" x2="420" y2="445" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_arrow-P1)"/>
+<text id="arrow-P1-label" x="422" y="500" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">P_1 \cdot S</text>
+<defs><marker id="arrowhead_arrow-P2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="arrow-P2" x1="420" y1="240" x2="420" y2="275" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_arrow-P2)"/>
+<text id="arrow-P2-label" x="422" y="228" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">P_2 \cdot S</text>
+<defs><marker id="arrowhead_arrow-weight" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="arrow-weight" x1="420" y1="340" x2="420" y2="395" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_arrow-weight)"/>
+<text id="arrow-weight-label" x="432" y="375" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">mg</text>
+<line id="height-z-line" x1="360" y1="280" x2="360" y2="440" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_height-z-top" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="height-z-top" x1="360" y1="360" x2="360" y2="280" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_height-z-top)"/>
+<defs><marker id="arrowhead_height-z-bottom" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="height-z-bottom" x1="360" y1="360" x2="360" y2="440" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_height-z-bottom)"/>
+<text id="height-z" x="348" y="364" font-size="13" fill="rgba(232,232,238,0.85)" text-anchor="middle" font-weight="600">z</text>
+<line id="hz-tick-top" x1="353" y1="280" x2="367" y2="280" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="hz-tick-bottom" x1="353" y1="440" x2="367" y2="440" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_arrow-accel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="arrow-accel" x1="650" y1="480" x2="650" y2="340" stroke="#7fd4ff" stroke-width="3" marker-end="url(#arrowhead_arrow-accel)"/>
+<text id="arrow-accel-label" x="665" y="335" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">a_0</text>
+<line id="elevator-cable-left" x1="280" y1="80" x2="280" y2="60" stroke="rgba(232,232,238,0.45)" stroke-width="2" stroke-dasharray=""/>
+<line id="elevator-cable-right" x1="560" y1="80" x2="560" y2="60" stroke="rgba(232,232,238,0.45)" stroke-width="2" stroke-dasharray=""/>
+<line id="elevator-cable-center" x1="420" y1="80" x2="420" y2="50" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="cable-bar" x1="280" y1="55" x2="560" y2="55" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="elevator-label" x="420" y="590" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Elevator (accelerating upward)</text>
+</svg>

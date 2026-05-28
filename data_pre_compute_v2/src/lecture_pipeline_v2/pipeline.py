@@ -48,11 +48,14 @@ from .curriculum.ingestion.neo4j_writer import Neo4jWriter
 from .curriculum.lecture_plan.chapter_planner import ChapterLecturePlanner
 from .curriculum.lecture_plan.concept_planner import ConceptPlanner
 from .curriculum.lecture_plan.curriculum_adapter import CurriculumAdapter
+from .curriculum.lecture_plan.book_example_weaver import BookExampleWeaver
 from .curriculum.lecture_plan.lesson_diagram_generator import LessonDiagramGenerator
 from .curriculum.lecture_plan.lesson_judge import PlanJudge
 from .curriculum.lecture_plan.lesson_narrator import LessonNarrator, TopicNarration
 from .curriculum.lecture_plan.lesson_planner import LessonPlanner
 from .curriculum.lecture_plan.lesson_prosody import LessonProsody
+from .curriculum.lecture_plan.lesson_quality_gate import _diagram_id_short_to_long
+from .curriculum.validation.book_coverage import validate_book_coverage
 from .curriculum.lecture_plan.lesson_quality_gate import (
     GateReport as LessonGateReport,
     LessonQualityGate,
@@ -726,6 +729,93 @@ class CurriculumPipelineV2:
                 if d.diagram_id not in new_diagram_ids:
                     new_diagrams.append(d)
                     new_diagram_ids.add(d.diagram_id)
+
+        # BookExampleWeaver — owns the book-coverage USP. Runs AFTER the
+        # gate has produced concept-only LessonPlans; for each topic with
+        # Topic.book_examples, generates ChoreographyStep entries that
+        # solve each example faithfully and inserts them into the plan.
+        # Re-runs the narrator over the woven plans (pure function, free)
+        # so chapter.lesson_narrations reflects the new steps before the
+        # script assembler stitches everything.
+        notify(
+            "book_example_weaver",
+            "Weaving book examples into per-topic choreographies...",
+        )
+        plans_by_tid: dict[str, Any] = {
+            p.topic_id: p for p in chapter.lesson_plans
+        }
+        topics_by_tid = {t.topic_id: t for t in topics_for_chapter}
+        # All diagrams that exist for this chapter (existing + freshly minted)
+        diagrams_by_id_for_weaver = {d.diagram_id: d for d in new_diagrams}
+        weaver = BookExampleWeaver(self.config)
+        weaver_report = await weaver.weave_for_chapter(
+            chapter_lesson_plans=plans_by_tid,
+            topics_by_id=topics_by_tid,
+            diagrams_by_id=diagrams_by_id_for_weaver,
+        )
+
+        # Replace chapter.lesson_plans with woven plans in original order.
+        chapter.lesson_plans = [
+            plans_by_tid[p.topic_id]
+            for p in chapter.lesson_plans
+            if p.topic_id in plans_by_tid
+        ]
+
+        # Re-render narration ONLY for topics whose plans the weaver
+        # actually modified (i.e., any step now has is_book_example=True).
+        # Untouched topics keep the gate-produced narration — that's
+        # important because the gate's narration may carry prosody / other
+        # adjustments that a fresh render wouldn't reproduce.
+        narrations_by_tid: dict[str, Any] = {
+            n.topic_id: n for n in chapter.lesson_narrations
+        }
+        for plan in chapter.lesson_plans:
+            woven = any(
+                step.is_book_example for step in plan.choreography
+            )
+            if not woven:
+                continue
+            short_to_long = _diagram_id_short_to_long(plan, plan.topic_id)
+            try:
+                renarrated = narrator.render(
+                    topic_id=plan.topic_id,
+                    plan=plan,
+                    diagram_id_resolver=lambda s, _m=short_to_long: _m.get(s, s),
+                )
+                narrations_by_tid[plan.topic_id] = prosody.apply(renarrated)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "book_example_weaver.renarrate_failed",
+                    topic_id=plan.topic_id,
+                    error=str(exc)[:200],
+                )
+        # Rebuild lesson_narrations in plan order (preserve sequencing).
+        chapter.lesson_narrations = [
+            narrations_by_tid[p.topic_id]
+            for p in chapter.lesson_plans
+            if p.topic_id in narrations_by_tid
+        ]
+
+        # Hard structural validator + chapter-level coverage gate. Logs
+        # loudly and adds a warning to the pipeline report; doesn't abort
+        # the chapter (a partially-covered lecture is still better than
+        # none). We tighten the gate to abort once the loop is stable.
+        coverage_report = validate_book_coverage(
+            topics_for_chapter, plans_by_tid
+        )
+        logger.info(
+            "book_coverage_chapter %s: %s",
+            chapter.chapter_id,
+            coverage_report.summary(),
+        )
+        if not coverage_report.is_passing:
+            logger.error(
+                "book_coverage_chapter.below_floor "
+                "chapter=%s coverage=%.0f%% gaps=%d",
+                chapter.chapter_id,
+                coverage_report.coverage_pct * 100,
+                len(coverage_report.gaps),
+            )
 
         chapter.assembled_chapter_script = _build_chapter_script_from_narrations(
             chapter_id=chapter.chapter_id,

@@ -313,79 +313,12 @@ def _build_user_message(
             parts.append("## Visual hint (from the curriculum graph)")
             parts.append(str(concept.visual_hint))
 
-        # Book coverage — THE PRODUCT'S CORE PROMISE. Inject the book_examples
-        # the extraction phase pulled from the textbook + the n_extended
-        # quota driven by complexity_score. The system prompt's "Book
-        # coverage" section dictates how these flow into the choreography.
-        topic_obj = getattr(concept, "topic", None)
-        if topic_obj is not None:
-            book_exs = list(getattr(topic_obj, "book_examples", []) or [])
-            n_extended = (
-                topic_obj.n_extended_examples()
-                if hasattr(topic_obj, "n_extended_examples")
-                else 0
-            )
-            complexity = (
-                topic_obj.complexity_score
-                if hasattr(topic_obj, "complexity_score")
-                else 0
-            )
-            parts.append("")
-            parts.append("## Book examples — COVER EVERY ONE (faithfulness contract)")
-            if not book_exs:
-                if n_extended > 0:
-                    parts.append(
-                        f"The textbook has NO worked examples for this topic, but "
-                        f"complexity_score is {complexity} (≥3 — the topic is hard). "
-                        f"Generate {n_extended} extended real-world example(s) to "
-                        f"compensate. This is the 'we win' case — the book skipped "
-                        f"on hard material; we don't."
-                    )
-                else:
-                    parts.append(
-                        "The textbook has no worked examples for this topic, and "
-                        f"complexity_score={complexity} (<3). Respect the book's "
-                        "intent — generate ZERO extended examples. The lesson is "
-                        "purely conceptual."
-                    )
-            else:
-                for i, be in enumerate(book_exs):
-                    parts.append(
-                        f"\n### book_example[{i}] — {be.kind} — "
-                        f"focus: {be.lesson_focus}"
-                    )
-                    if be.setup_facts:
-                        parts.append(
-                            "setup_facts (these MUST appear verbatim in choreography "
-                            "narrations — names CAN be localized, numbers/answer "
-                            "CANNOT change):"
-                        )
-                        for fact in be.setup_facts:
-                            parts.append(f"  - {fact}")
-                    if be.has_derivation:
-                        parts.append(
-                            "has_derivation: True — break the example across "
-                            "MULTIPLE choreography steps. One step per derivation "
-                            "step, speaking the reasoning between them."
-                        )
-                    parts.append("verbatim_text from textbook:")
-                    parts.append(f"  {_clip(be.verbatim_text, 800)}")
-                if n_extended > 0:
-                    parts.append(
-                        f"\n### Additionally generate {n_extended} extended "
-                        f"example(s) (complexity_score={complexity}, "
-                        f"len(book_examples)={len(book_exs)})."
-                    )
-                    parts.append(
-                        "Each extended example: concrete real-world anchor "
-                        "(delivery, savings, traffic, cooking — whatever fits), "
-                        "small numbers, MUST NOT duplicate any book example scenario."
-                    )
-                else:
-                    parts.append(
-                        f"\nNo extended examples needed for this topic "
-                        f"(complexity_score={complexity})."
-                    )
+        # NOTE: book_examples are NOT injected here anymore. The
+        # BookExampleWeaver (separate stage, after this planner) owns
+        # the book-coverage USP. Your job is concept teaching only — the
+        # weaver inserts faithful example beats into the choreography
+        # afterwards. See lesson_prompts.LESSON_PLANNING_SYSTEM_PROMPT
+        # "Your scope" section for the contract.
 
     # Surrounding topics for narrative continuity.
     prev_title = ""

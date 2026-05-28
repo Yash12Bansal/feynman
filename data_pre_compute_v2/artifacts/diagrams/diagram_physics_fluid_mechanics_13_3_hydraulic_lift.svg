@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="liquid-body" d="M 200 480 L 200 340 L 280 340 L 280 420 L 580 420 L 580 340 L 700 340 L 700 480 Z" stroke="#7fd4ff" stroke-width="1.5" fill="rgba(127, 212, 255, 0.18)" stroke-dasharray=""/>
+<rect id="left-tube-wall-outer" x="190" y="310" width="100" height="190" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<rect id="right-tube-wall-outer" x="570" y="310" width="140" height="190" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<line id="bottom-connector-left" x1="190" y1="500" x2="290" y2="500" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="bottom-connector-right" x1="570" y1="500" x2="710" y2="500" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="bottom-connector-floor" x1="290" y1="500" x2="570" y2="500" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="inner-left-wall-top" x1="280" y1="310" x2="280" y2="420" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="inner-right-wall-top" x1="580" y1="310" x2="580" y2="420" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<rect id="small-piston" x="202" y="330" width="76" height="22" rx="3" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<rect id="large-piston" x="582" y="300" width="126" height="28" rx="3" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<defs><marker id="arrowhead_input-force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="input-force-arrow" x1="240" y1="220" x2="240" y2="328" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_input-force-arrow)"/>
+<defs><marker id="arrowhead_output-force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="output-force-arrow" x1="645" y1="298" x2="645" y2="120" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_output-force-arrow)"/>
+<text id="input-force-label" x="258" y="215" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">f</text>
+<text id="output-force-label" x="663" y="118" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">F</text>
+<text id="small-area-label" x="240" y="375" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="normal">area a</text>
+<text id="large-area-label" x="645" y="352" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="normal">area A</text>
+<text id="pressure-equality-label" x="430" y="470" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="normal">same pressure p</text>
+<text id="pascal-formula" x="390" y="575" font-size="15" fill="rgba(232,232,238,0.75)" font-style="italic" text-anchor="middle">\frac{f}{a} = \frac{F}{A} = p</text>
+</svg>

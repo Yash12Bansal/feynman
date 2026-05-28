@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="fluid-container" x="280" y="80" width="340" height="500" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="fluid-fill-hint" x="282" y="82" width="336" height="496" rx="2" fill="rgba(127,212,255,0.06)" stroke="none" stroke-width="0"/>
+<text id="fluid-label" x="450" y="108" font-size="11" fill="rgba(127,212,255,0.65)" text-anchor="middle" font-weight="normal">fluid</text>
+<rect id="submerged-body" x="370" y="290" width="120" height="80" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="displaced-fluid-region" x="370" y="290" width="120" height="80" rx="3" fill="none" stroke="#7fd4ff" stroke-width="1.5"/>
+<defs><marker id="arrowhead_pressure-arrow-top" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="pressure-arrow-top" x1="430" y1="258" x2="430" y2="288" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_pressure-arrow-top)"/>
+<defs><marker id="arrowhead_pressure-arrow-bottom" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="pressure-arrow-bottom" x1="430" y1="402" x2="430" y2="372" stroke="#ff7a8a" stroke-width="3" marker-end="url(#arrowhead_pressure-arrow-bottom)"/>
+<defs><marker id="arrowhead_pressure-arrows-sides" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="pressure-arrows-sides" x1="340" y1="330" x2="368" y2="330" stroke="#ff7a8a" stroke-width="2" marker-end="url(#arrowhead_pressure-arrows-sides)"/>
+<defs><marker id="arrowhead_pressure-arrow-side-right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="pressure-arrow-side-right" x1="520" y1="330" x2="492" y2="330" stroke="#ff7a8a" stroke-width="2" marker-end="url(#arrowhead_pressure-arrow-side-right)"/>
+<text id="p-top-label" x="453" y="274" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="normal">P₁</text>
+<text id="p-bottom-label" x="453" y="396" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="normal">P₂ &gt; P₁</text>
+<defs><marker id="arrowhead_buoyant-force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="buoyant-force-arrow" x1="570" y1="390" x2="570" y2="282" stroke="#9effc9" stroke-width="3" marker-end="url(#arrowhead_buoyant-force-arrow)"/>
+<text id="buoyant-label" x="584" y="278" font-size="14" fill="#9effc9" text-anchor="start" font-weight="600">B</text>
+<line id="annotation-line" x1="490" y1="330" x2="630" y2="220" stroke="rgba(127,212,255,0.4)" stroke-width="1" stroke-dasharray="3,4"/>
+<text id="weight-displaced-label" x="638" y="210" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="normal">weight of displaced fluid = mg</text>
+<line id="depth-guide" x1="255" y1="80" x2="255" y2="580" stroke="rgba(232,232,238,0.18)" stroke-width="1" stroke-dasharray="2,5"/>
+<defs><marker id="arrowhead_depth-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.3)"/></marker></defs><line id="depth-arrow" x1="255" y1="82" x2="255" y2="578" stroke="rgba(232,232,238,0.3)" stroke-width="1.5" marker-end="url(#arrowhead_depth-arrow)"/>
+<text id="depth-label" x="243" y="335" font-size="10" fill="rgba(232,232,238,0.4)" text-anchor="middle" font-weight="normal">depth</text>
+</svg>

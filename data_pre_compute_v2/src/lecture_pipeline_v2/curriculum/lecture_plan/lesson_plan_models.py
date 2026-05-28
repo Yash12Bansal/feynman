@@ -163,6 +163,13 @@ class ChoreographyStep(BaseModel):
     is_question: bool = False
     is_payoff: bool = False
     presses_crucial_fact: bool = False
+    # Book-coverage USP. Set ONLY by BookExampleWeaver for steps it generates
+    # to solve a book example faithfully. The pair (is_book_example=True,
+    # book_example_ref=i) means this step is part of solving
+    # Topic.book_examples[i]. Used by the hard structural validator to
+    # guarantee every book example becomes one or more choreography steps.
+    is_book_example: bool = False
+    book_example_ref: int | None = None
 
     @model_validator(mode="after")
     def question_xor_payoff(self) -> ChoreographyStep:

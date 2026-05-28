@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="wide-section" d="M 80 200 L 380 200 L 380 440 L 80 440 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="tube-taper" d="M 380 200 L 520 265 M 380 440 L 520 385" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="narrow-section" d="M 520 265 L 820 265 L 820 385 L 520 385 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="cross-section-A" x1="180" y1="200" x2="180" y2="440" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="cross-section-B" x1="650" y1="265" x2="650" y2="385" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<path id="cylinder-A" d="M 180 215 L 320 215 L 320 425 L 180 425 Z" stroke="#7fd4ff" stroke-width="2" fill="rgba(127,212,255,0.12)" stroke-dasharray="6,4"/>
+<line id="cylinder-A-face" x1="320" y1="215" x2="320" y2="425" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<path id="cylinder-B" d="M 650 271 L 780 271 L 780 379 L 650 379 Z" stroke="#9effc9" stroke-width="2" fill="rgba(158,255,201,0.12)" stroke-dasharray="6,4"/>
+<line id="cylinder-B-face" x1="780" y1="271" x2="780" y2="379" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_velocity-arrow-A" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="velocity-arrow-A" x1="185" y1="320" x2="315" y2="320" stroke="#7fd4ff" stroke-width="3" marker-end="url(#arrowhead_velocity-arrow-A)"/>
+<defs><marker id="arrowhead_velocity-arrow-B" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="velocity-arrow-B" x1="655" y1="325" x2="775" y2="325" stroke="#9effc9" stroke-width="3" marker-end="url(#arrowhead_velocity-arrow-B)"/>
+<text id="label-A1-section" x="230" y="185" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">A₁</text>
+<text id="label-A2-section" x="670" y="252" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">A₂</text>
+<text id="label-v1" x="250" y="308" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">v₁</text>
+<text id="label-v2" x="714" y="313" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">v₂</text>
+<text id="label-delta-t-A" x="250" y="462" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">v₁·Δt</text>
+<text id="label-delta-t-B" x="714" y="400" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="normal">v₂·Δt</text>
+<line id="dim-line-A-top" x1="180" y1="475" x2="320" y2="475" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="dim-tick-A-left" x1="180" y1="468" x2="180" y2="482" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="dim-tick-A-right" x1="320" y1="468" x2="320" y2="482" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="dim-line-B-top" x1="650" y1="413" x2="780" y2="413" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="dim-tick-B-left" x1="650" y1="406" x2="650" y2="420" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="dim-tick-B-right" x1="780" y1="406" x2="780" y2="420" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" stroke-dasharray=""/>
+<text id="continuity-equation" x="450" y="570" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">A_1 v_1 = A_2 v_2</text>
+<line id="flow-arrow-center" x1="400" y1="320" x2="515" y2="325" stroke="rgba(232,232,238,0.35)" stroke-width="1.5" stroke-dasharray="4,4"/>
+</svg>

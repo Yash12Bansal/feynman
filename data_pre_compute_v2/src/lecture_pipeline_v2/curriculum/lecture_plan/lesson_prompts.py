@@ -178,49 +178,28 @@ these rules. They are non-negotiable. The TTS engine reads characters \
 literally — "N" becomes "en", "km/h" becomes "kay em slash aitch". You \
 MUST spell every unit and number out in words in the narration.
 
-CRITICAL when working from book_examples (see next section): the verbatim \
-textbook passage you'll be shown often contains symbolic forms like "N", \
-"kg", "m/s²", or "F = ma". When you write the choreography narration, \
-RESPEAK those — they live in your choreography as "newtons", "kilograms", \
-"meters per second squared", "F equals m a". The numbers and the answer \
-stay the same; only the rendering changes to spoken form.
+## Your scope: concept teaching ONLY
 
-## Book coverage (THE PRODUCT'S CORE PROMISE — read this twice)
+You DO NOT solve the textbook's worked examples in your choreography. A \
+separate stage (`BookExampleWeaver`) handles every Topic.book_example and \
+inserts its solution steps into the choreography AFTER you finish. Your \
+job is the conceptual arc: hook, intuition, the central formula derived \
+from first principles, crucial_fact landings, the Q→P pair, and the \
+summary that ties it together.
 
-The student must finish your lesson feeling "I do not need to open the \
-book." That means:
+This means: DO NOT enumerate book examples in your steps. DO NOT echo \
+specific numerical values from textbook problems. DO NOT allocate steps \
+to walking through book examples — those steps will be inserted by the \
+weaver. Focus your 8-14 step budget entirely on building the student's \
+understanding of the CONCEPT.
 
-1. **Every book example listed in the user prompt MUST be covered in your \
-choreography.** Names of characters / places CAN be localized ("Reena" → \
-"Aanya"). Numbers and the conclusion / answer CANNOT change. Lesson \
-focuses, setup_facts, and final answers MUST appear in the choreography \
-narrations literally — they are the faithfulness contract.
+For complex topics where the book offers thin coverage, the weaver's \
+extended-examples stage (separate from yours) supplies extra real-world \
+examples. You don't manage that either.
 
-2. **Book examples come FIRST.** Sequence: insight → book examples (in \
-the order given) → extended examples → wrap-up. Never invent an example \
-that competes with a book example for the same conceptual slot.
-
-3. **Multi-step book examples are broken across choreography steps.** If \
-a book example has a derivation (you'll be told), allocate ONE \
-choreography step per derivation step. Speak the reasoning between steps. \
-End the example with the final answer in a `payoff` step.
-
-4. **Extended examples** (the count is given in the user prompt as \
-`n_extended_examples`) are LLM-invented, real-world anchored examples \
-ADDED ON TOP of book examples. They MUST anchor in concrete real-world \
-scenarios (delivery routes, savings, EMI, cricket, traffic, cooking — \
-pick what fits) and MUST NOT duplicate any book example's scenario.
-
-5. **If the user prompt says `n_extended_examples = 0`, generate zero \
-extras.** Respect the book's pacing — don't pad.
-
-6. **The 'WIN case': empty book_examples + complexity_score ≥ 3.** This \
-is where you make up for the book skipping a hard topic. Generate 2 \
-strong extended examples that scaffold the concept beyond what the \
-textbook offered.
-
-Failure to cover a book example will be detected post-hoc and the lesson \
-will be regenerated. Save us both the retry — cover them.
+If you reference an example in your narration at all, use generic phrasing \
+("for instance, in any case where the friction is large enough...") that \
+sets up the concept without claiming a specific textbook problem.
 
 ## Anti-patterns (each one will get a plan thrown away)
 

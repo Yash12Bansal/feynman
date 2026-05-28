@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="reference-level" x1="60" y1="560" x2="840" y2="560" stroke="rgba(232,232,238,0.5)" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text id="reference-level-label" x="750" y="553" font-size="11" fill="rgba(232,232,238,0.5)" text-anchor="middle" font-weight="normal">reference level</text>
+<path id="pipe-wide-section" d="M 80 300 L 80 400 L 340 400 L 340 300 Z" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="pipe-narrow-section" d="M 460 180 L 460 240 L 820 240 L 820 180 Z" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="pipe-transition" d="M 340 300 L 460 180 M 340 400 L 460 240" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="fluid-element-A" d="M 100 300 L 100 400 L 180 400 L 180 300 Z" stroke="#7fd4ff" stroke-width="2" fill="rgba(127,212,255,0.12)" stroke-dasharray=""/>
+<defs><marker id="arrowhead_delta-x1-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="delta-x1-arrow" x1="100" y1="415" x2="180" y2="415" stroke="#7fd4ff" stroke-width="1.5" marker-end="url(#arrowhead_delta-x1-arrow)"/>
+<text id="delta-x1-label" x="140" y="432" font-size="11" fill="#7fd4ff" font-style="italic" text-anchor="middle">\Delta x_1</text>
+<path id="fluid-element-B" d="M 580 180 L 580 240 L 660 240 L 660 180 Z" stroke="#9effc9" stroke-width="2" fill="rgba(158,255,201,0.12)" stroke-dasharray=""/>
+<defs><marker id="arrowhead_delta-x2-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="delta-x2-arrow" x1="580" y1="252" x2="660" y2="252" stroke="#9effc9" stroke-width="1.5" marker-end="url(#arrowhead_delta-x2-arrow)"/>
+<text id="delta-x2-label" x="620" y="268" font-size="11" fill="#9effc9" font-style="italic" text-anchor="middle">\Delta x_2</text>
+<defs><marker id="arrowhead_pressure-arrow-P1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="pressure-arrow-P1" x1="68" y1="350" x2="100" y2="350" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_pressure-arrow-P1)"/>
+<text id="P1-label" x="50" y="348" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">P_1</text>
+<defs><marker id="arrowhead_pressure-arrow-P2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="pressure-arrow-P2" x1="672" y1="210" x2="660" y2="210" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_pressure-arrow-P2)"/>
+<text id="P2-label" x="682" y="208" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">P_2</text>
+<line id="height-h1" x1="220" y1="350" x2="220" y2="560" stroke="rgba(232,232,238,0.5)" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text id="h1-label" x="230" y="460" font-size="12" fill="rgba(232,232,238,0.75)" font-style="italic" text-anchor="middle">h_1</text>
+<line id="height-h2" x1="720" y1="210" x2="720" y2="560" stroke="rgba(232,232,238,0.5)" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text id="h2-label" x="730" y="390" font-size="12" fill="rgba(232,232,238,0.75)" font-style="italic" text-anchor="middle">h_2</text>
+<text id="A1-label" x="86" y="290" font-size="12" fill="#e8e8ee" font-style="italic" text-anchor="middle">A_1</text>
+<text id="v1-label" x="280" y="345" font-size="12" fill="#7fd4ff" font-style="italic" text-anchor="middle">v_1</text>
+<defs><marker id="arrowhead_v1-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="v1-arrow" x1="210" y1="350" x2="270" y2="350" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_v1-arrow)"/>
+<text id="A2-label" x="466" y="174" font-size="12" fill="#e8e8ee" font-style="italic" text-anchor="middle">A_2</text>
+<text id="v2-label" x="800" y="207" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">v_2</text>
+<defs><marker id="arrowhead_v2-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="v2-arrow" x1="740" y1="210" x2="790" y2="210" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_v2-arrow)"/>
+</svg>

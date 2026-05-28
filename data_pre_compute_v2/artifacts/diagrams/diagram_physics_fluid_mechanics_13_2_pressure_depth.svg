@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="fluid-column" x="330" y="240" width="180" height="160" rx="0" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<line id="surface-a" x1="260" y1="400" x2="580" y2="400" stroke="#9effc9" stroke-width="2" stroke-dasharray="8,5"/>
+<line id="surface-b" x1="260" y1="240" x2="580" y2="240" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="8,5"/>
+<text id="surface-a-label" x="258" y="396" font-size="12" fill="#9effc9" text-anchor="end" font-weight="600">A</text>
+<text id="surface-a-plabel" x="258" y="412" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">P</text>
+<text id="surface-b-label" x="258" y="236" font-size="12" fill="#ff7a8a" text-anchor="end" font-weight="600">B</text>
+<text id="surface-b-plabel" x="258" y="253" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">P + dP</text>
+<defs><marker id="arrowhead_f1-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="f1-arrow" x1="420" y1="400" x2="420" y2="330" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_f1-arrow)"/>
+<text id="f1-label" x="432" y="368" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">F_1 = P \cdot \Delta S</text>
+<defs><marker id="arrowhead_f2-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="f2-arrow" x1="420" y1="240" x2="420" y2="310" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_f2-arrow)"/>
+<text id="f2-label" x="432" y="270" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">F_2 = (P+dP) \cdot \Delta S</text>
+<defs><marker id="arrowhead_weight-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="weight-arrow" x1="420" y1="295" x2="420" y2="355" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_weight-arrow)"/>
+<text id="weight-label" x="432" y="332" font-size="12" fill="#e8e8ee" font-style="italic" text-anchor="middle">W = \rho g \cdot \Delta S \cdot dz</text>
+<line id="dz-line-top" x1="525" y1="240" x2="560" y2="240" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="dz-line-bottom" x1="525" y1="400" x2="560" y2="400" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_dz-label" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="dz-label" x1="548" y1="320" x2="548" y2="240" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_dz-label)"/>
+<defs><marker id="arrowhead_dz-label-down" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="dz-label-down" x1="548" y1="320" x2="548" y2="400" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_dz-label-down)"/>
+<text id="dz-text" x="558" y="328" font-size="13" fill="rgba(232,232,238,0.85)" font-style="italic" text-anchor="middle">dz</text>
+<defs><marker id="arrowhead_depth-gradient-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="depth-gradient-arrow" x1="200" y1="300" x2="200" y2="430" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_depth-gradient-arrow)"/>
+<text id="depth-gradient-label" x="200" y="283" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="600">Pressure rises going DOWN</text>
+<text id="result-equation" x="370" y="490" font-size="16" fill="#e8e8ee" font-style="italic" text-anchor="middle">\frac{dP}{dz} = \rho g</text>
+<line id="depth-axis" x1="148" y1="190" x2="148" y2="500" stroke="rgba(232,232,238,0.25)" stroke-width="1" stroke-dasharray="4,4"/>
+<text id="depth-axis-label" x="148" y="515" font-size="12" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">z \downarrow</text>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="tank-body" x="320" y="120" width="220" height="360" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="liquid-fill" x="321" y="121" width="218" height="358" rx="2" fill="rgba(127, 212, 255, 0.08)" stroke="none" stroke-width="0"/>
+<line id="top-surface" x1="321" y1="145" x2="539" y2="145" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="point1-label" x="548" y="149" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="600">① v₁ ≈ 0</text>
+<circle id="bottom-hole" cx="320" cy="462" r="9" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="point2-label" x="320" y="490" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">②</text>
+<defs><marker id="arrowhead_v2-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="v2-arrow" x1="311" y1="462" x2="215" y2="462" stroke="#9effc9" stroke-width="3" marker-end="url(#arrowhead_v2-arrow)"/>
+<text id="v2-label" x="206" y="456" font-size="13" fill="#9effc9" text-anchor="end" font-weight="600">v₂</text>
+<defs><marker id="arrowhead_v1-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="v1-arrow" x1="430" y1="145" x2="430" y2="168" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_v1-arrow)"/>
+<text id="v1-label" x="445" y="164" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="normal">v₁ ≈ 0</text>
+<path id="height-h-arrow" d="M 290 145 L 290 462" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="height-h-arrowheads" d="M 285 152 L 290 140 L 295 152 M 285 455 L 290 467 L 295 455" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="h-label" x="276" y="308" font-size="16" fill="#ff7a8a" text-anchor="middle" font-weight="600">h</text>
+<line id="h-top-tick" x1="283" y1="145" x2="297" y2="145" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray=""/>
+<line id="h-bottom-tick" x1="283" y1="462" x2="297" y2="462" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray=""/>
+<path id="freefall-path" d="M 630 145 Q 640 303 660 462" stroke="rgba(232,232,238,0.55)" stroke-width="2" fill="none" stroke-dasharray="7 5"/>
+<circle id="ball-start" cx="630" cy="145" r="8" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_ball-drop-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="ball-drop-arrow" x1="630" y1="160" x2="630" y2="195" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_ball-drop-arrow)"/>
+<text id="freefall-label" x="668" y="305" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">free fall</text>
+<text id="freefall-eq-label" x="668" y="320" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">same h</text>
+<line id="baseline" x1="200" y1="480" x2="720" y2="480" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 215 480 L 205 493 M 240 480 L 230 493 M 265 480 L 255 493 M 290 480 L 280 493 M 315 480 L 305 493 M 340 480 L 330 493 M 365 480 L 355 493 M 390 480 L 380 493 M 415 480 L 405 493 M 440 480 L 430 493 M 465 480 L 455 493 M 490 480 L 480 493 M 515 480 L 505 493 M 540 480 L 530 493 M 565 480 L 555 493 M 590 480 L 580 493 M 615 480 L 605 493 M 640 480 L 630 493 M 665 480 L 655 493 M 690 480 L 680 493 M 715 480 L 705 493" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<text id="torricelli-eq" x="430" y="570" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">v_2 = \sqrt{2gh}</text>
+</svg>
