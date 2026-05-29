@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="hypotenuse" d="M 220 500 L 680 140" stroke="#FFD700" stroke-width="3" fill="none" stroke-dasharray=""/>
+<line id="vertical_leg" x1="220" y1="140" x2="220" y2="500" stroke="#7fd4ff" stroke-width="3" stroke-dasharray=""/>
+<line id="horizontal_leg" x1="220" y1="500" x2="680" y2="500" stroke="#9effc9" stroke-width="3" stroke-dasharray=""/>
+<path id="right_angle_marker" d="M 220 468 L 252 468 L 252 500" stroke="#e8e8ee" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<text id="hypotenuse_label" x="476" y="290" font-size="15" fill="#FFD700" text-anchor="middle" font-weight="700">E</text>
+<text id="hypotenuse_sublabel" x="476" y="308" font-size="11" fill="#FFD700" text-anchor="middle" font-weight="normal">Total Energy</text>
+<text id="vertical_label" x="148" y="325" font-size="15" fill="#7fd4ff" text-anchor="middle" font-weight="700">mc²</text>
+<text id="vertical_sublabel" x="148" y="343" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">Rest Mass Energy</text>
+<text id="horizontal_label" x="450" y="540" font-size="15" fill="#9effc9" text-anchor="middle" font-weight="700">pc</text>
+<text id="horizontal_sublabel" x="450" y="558" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="normal">Momentum Energy</text>
+<text id="pythagorean_relation" x="450" y="608" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">E^{2} = (mc^{2})^{2} + (pc)^{2}</text>
+<circle id="vertex_right_angle" cx="220" cy="500" r="3.5" fill="none" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vertex_top" cx="220" cy="140" r="3.5" fill="none" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vertex_right" cx="680" cy="500" r="3.5" fill="none" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+</svg>

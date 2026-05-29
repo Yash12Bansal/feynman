@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis" x1="80" y1="340" x2="820" y2="340" stroke="rgba(232,232,238,0.3)" stroke-width="1.5" stroke-dasharray="6 5"/>
+<line id="obs_a_body" x1="180" y1="280" x2="180" y2="330" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="obs_a_head" cx="180" cy="265" r="14" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<line id="obs_a_arm_l" x1="180" y1="295" x2="162" y2="312" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="obs_a_arm_r" x1="180" y1="295" x2="198" y2="312" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="obs_a_leg_l" x1="180" y1="330" x2="165" y2="355" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="obs_a_leg_r" x1="180" y1="330" x2="195" y2="355" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="obs_a_label" x="180" y="378" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">A</text>
+<text id="obs_a_rest_label" x="180" y="396" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">(at rest)</text>
+<rect id="capsule_body" x="520" y="272" width="110" height="58" rx="18" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<path id="capsule_nose" d="M 630 285 Q 655 301 630 315" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="obs_b_head" cx="565" cy="291" r="11" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="obs_b_body" x1="565" y1="302" x2="565" y2="325" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="obs_b_label" x="575" y="378" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<defs><marker id="arrowhead_velocity_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="velocity_arrow" x1="648" y1="301" x2="720" y2="301" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_velocity_arrow)"/>
+<text id="velocity_label" x="684" y="285" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">u = c/2</text>
+<path id="light_wave_1" d="M 220 301 Q 235 288 250 301 Q 265 314 280 301 Q 295 288 310 301 Q 325 314 340 301 Q 355 288 370 301 Q 385 314 400 301 Q 415 288 430 301 Q 445 314 460 301 Q 475 288 490 301 Q 505 314 515 301" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_light_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="light_arrow" x1="515" y1="301" x2="760" y2="301" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_light_arrow)"/>
+<text id="light_label" x="360" y="268" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">Light pulse W</text>
+<text id="light_speed_label" x="770" y="296" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">\rightarrow c</text>
+<text id="a_measures_label" x="180" y="480" font-size="11" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">measures light at c</text>
+<line id="a_tick" x1="180" y1="460" x2="180" y2="470" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="b_measures_label" x="575" y="480" font-size="11" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">also measures light at c</text>
+<line id="b_tick" x1="575" y1="460" x2="575" y2="470" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="ground_a" x1="140" y1="358" x2="220" y2="358" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground_a_hatch" d="M 148 358 L 140 370 M 162 358 L 154 370 M 176 358 L 168 370 M 190 358 L 182 370 M 204 358 L 196 370 M 218 358 L 210 370" stroke="rgba(232,232,238,0.4)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+</svg>

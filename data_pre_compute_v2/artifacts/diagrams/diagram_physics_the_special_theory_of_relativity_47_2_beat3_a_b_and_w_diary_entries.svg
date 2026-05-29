@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground" x1="60" y1="480" x2="840" y2="480" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground_hatch" d="M 70 480 L 60 494 M 100 480 L 90 494 M 130 480 L 120 494 M 160 480 L 150 494 M 190 480 L 180 494 M 220 480 L 210 494 M 250 480 L 240 494 M 280 480 L 270 494 M 310 480 L 300 494 M 340 480 L 330 494 M 370 480 L 360 494 M 400 480 L 390 494 M 430 480 L 420 494 M 460 480 L 450 494 M 490 480 L 480 494 M 520 480 L 510 494 M 550 480 L 540 494 M 580 480 L 570 494 M 610 480 L 600 494 M 640 480 L 630 494 M 670 480 L 660 494 M 700 480 L 690 494 M 730 480 L 720 494 M 760 480 L 750 494 M 790 480 L 780 494 M 820 480 L 810 494" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<circle id="A_figure" cx="160" cy="440" r="18" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<path id="A_body" d="M 160 458 L 160 478 M 145 465 L 175 465 M 160 478 L 148 495 M 160 478 L 172 495" stroke="#7fd4ff" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="A_label" x="160" y="510" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">A</text>
+<circle id="B_figure" cx="490" cy="440" r="18" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<path id="B_body" d="M 490 458 L 490 478 M 475 465 L 505 465 M 490 478 L 478 495 M 490 478 L 502 495" stroke="#9effc9" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="B_label" x="490" y="510" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<defs><marker id="arrowhead_B_velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="B_velocity" x1="515" y1="440" x2="580" y2="440" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_B_velocity)"/>
+<text id="B_vel_label" x="548" y="425" font-size="11" fill="#9effc9" font-style="italic" text-anchor="middle">u = \tfrac{c}{2}</text>
+<circle id="W_pulse" cx="760" cy="440" r="16" fill="none" stroke="#ffe066" stroke-width="2.5" stroke-dasharray=""/>
+<text id="W_label" x="760" y="445" font-size="13" fill="#ffe066" text-anchor="middle" font-weight="600">W</text>
+<defs><marker id="arrowhead_W_velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ffe066"/></marker></defs><line id="W_velocity" x1="780" y1="440" x2="830" y2="440" stroke="#ffe066" stroke-width="2.5" marker-end="url(#arrowhead_W_velocity)"/>
+<text id="W_speed_label" x="830" y="435" font-size="11" fill="#ffe066" font-style="italic" text-anchor="middle">c</text>
+<line id="dist_AW_line" x1="160" y1="395" x2="760" y2="395" stroke="rgba(127,212,255,0.5)" stroke-width="1.2" stroke-dasharray="5,4"/>
+<line id="dist_AW_tick_left" x1="160" y1="388" x2="160" y2="402" stroke="rgba(127,212,255,0.5)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="dist_AW_tick_right" x1="760" y1="388" x2="760" y2="402" stroke="rgba(127,212,255,0.5)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="dist_BW_line" x1="490" y1="370" x2="760" y2="370" stroke="rgba(158,255,201,0.5)" stroke-width="1.2" stroke-dasharray="5,4"/>
+<line id="dist_BW_tick_left" x1="490" y1="363" x2="490" y2="377" stroke="rgba(158,255,201,0.5)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="dist_BW_tick_right" x1="760" y1="363" x2="760" y2="377" stroke="rgba(158,255,201,0.5)" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="diary_A_box" x="60" y="80" width="310" height="90" rx="6" fill="none" stroke="#7fd4ff" stroke-width="1.8"/>
+<text id="diary_A_title" x="80" y="104" font-size="12" fill="#7fd4ff" text-anchor="start" font-weight="600">A&#x27;s diary</text>
+<text id="diary_A_entry" x="215" y="148" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">\text{distance to W} = ct</text>
+<rect id="diary_B_box" x="430" y="80" width="390" height="90" rx="6" fill="none" stroke="#9effc9" stroke-width="1.8"/>
+<text id="diary_B_title" x="450" y="104" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">B&#x27;s diary</text>
+<text id="diary_B_entry" x="625" y="148" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">ct - \tfrac{c}{2}t = \tfrac{ct}{2}\,?</text>
+<text id="contradiction_qmark" x="796" y="148" font-size="26" fill="#ff7a8a" text-anchor="middle" font-weight="600">?!</text>
+<line id="diary_A_connector" x1="215" y1="170" x2="215" y2="390" stroke="rgba(127,212,255,0.3)" stroke-width="1" stroke-dasharray="3,5"/>
+<line id="diary_B_connector" x1="625" y1="170" x2="625" y2="365" stroke="rgba(158,255,201,0.3)" stroke-width="1" stroke-dasharray="3,5"/>
+<text id="dist_AW_label" x="460" y="388" font-size="11" fill="rgba(127,212,255,0.85)" font-style="italic" text-anchor="middle">ct</text>
+<text id="dist_BW_label" x="625" y="362" font-size="11" fill="rgba(158,255,201,0.85)" font-style="italic" text-anchor="middle">\tfrac{ct}{2}\,?</text>
+</svg>

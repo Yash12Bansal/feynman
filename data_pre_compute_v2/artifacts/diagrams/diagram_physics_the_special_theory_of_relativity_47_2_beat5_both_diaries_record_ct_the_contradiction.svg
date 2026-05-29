@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground" x1="80" y1="430" x2="820" y2="430" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground_hatch" d="M 90 430 L 80 445 M 130 430 L 120 445 M 170 430 L 160 445 M 210 430 L 200 445 M 250 430 L 240 445 M 290 430 L 280 445 M 330 430 L 320 445 M 370 430 L 360 445 M 410 430 L 400 445 M 450 430 L 440 445 M 490 430 L 480 445 M 530 430 L 520 445 M 570 430 L 560 445 M 610 430 L 600 445 M 650 430 L 640 445 M 690 430 L 680 445 M 730 430 L 720 445 M 770 430 L 760 445 M 810 430 L 800 445" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<circle id="observer_A_body" cx="170" cy="390" r="18" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer_A_torso" x1="170" y1="408" x2="170" y2="430" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer_A_legs" x1="155" y1="430" x2="170" y2="415" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer_A_legs2" x1="185" y1="430" x2="170" y2="415" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="label_A" x="170" y="460" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">A  (at rest)</text>
+<circle id="observer_B_body" cx="680" cy="390" r="18" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="observer_B_torso" x1="680" y1="408" x2="680" y2="430" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="observer_B_legs" x1="665" y1="430" x2="680" y2="415" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="observer_B_legs2" x1="695" y1="430" x2="680" y2="415" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_velocity_arrow_B" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="velocity_arrow_B" x1="710" y1="395" x2="760" y2="395" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_velocity_arrow_B)"/>
+<text id="velocity_label_B" x="735" y="382" font-size="11" fill="#9effc9" font-style="italic" text-anchor="middle">u = c/2</text>
+<text id="label_B" x="680" y="460" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">B  (moving)</text>
+<circle id="light_pulse" cx="425" cy="430" r="10" fill="none" stroke="#ffe066" stroke-width="2.5" stroke-dasharray=""/>
+<line id="light_ray_left" x1="415" y1="420" x2="395" y2="400" stroke="#ffe066" stroke-width="1.5" stroke-dasharray="4,3"/>
+<line id="light_ray_right" x1="435" y1="420" x2="455" y2="400" stroke="#ffe066" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text id="light_label" x="425" y="418" font-size="11" fill="#ffe066" text-anchor="middle" font-weight="600">c</text>
+<path id="bubble_A_tail" d="M 170 368 L 185 310 L 175 310" stroke="#7fd4ff" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+<rect id="diary_A" x="90" y="220" width="170" height="80" rx="12" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="diary_A_title" x="175" y="244" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="600">Diary A</text>
+<text id="diary_A_value" x="175" y="278" font-size="15" fill="#ffe066" font-style="italic" text-anchor="middle">d = c \cdot t</text>
+<rect id="diary_A_highlight" x="88" y="218" width="174" height="84" rx="14" fill="none" stroke="#ffe066" stroke-width="2"/>
+<path id="bubble_B_tail" d="M 680 368 L 665 310 L 675 310" stroke="#9effc9" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+<rect id="diary_B" x="640" y="220" width="170" height="80" rx="12" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="diary_B_title" x="725" y="244" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">Diary B</text>
+<text id="diary_B_value" x="725" y="278" font-size="15" fill="#ffe066" font-style="italic" text-anchor="middle">d = c \cdot t</text>
+<rect id="diary_B_highlight" x="638" y="218" width="174" height="84" rx="14" fill="none" stroke="#ffe066" stroke-width="2"/>
+<line id="equal_connector" x1="264" y1="260" x2="636" y2="260" stroke="#ffe066" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text id="equal_sign" x="450" y="252" font-size="18" fill="#ffe066" text-anchor="middle" font-weight="600">=</text>
+<path id="question_arc" d="M 310 500 Q 425 560 540 500" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray="5,3"/>
+<text id="question_mark" x="425" y="590" font-size="28" fill="#ff7a8a" text-anchor="middle" font-weight="600">?</text>
+<text id="contradiction_line1" x="425" y="618" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="normal">Different clocks?  Different rulers?</text>
+<line id="separator" x1="450" y1="80" x2="450" y2="420" stroke="rgba(232,232,238,0.12)" stroke-width="1" stroke-dasharray="4,6"/>
+</svg>

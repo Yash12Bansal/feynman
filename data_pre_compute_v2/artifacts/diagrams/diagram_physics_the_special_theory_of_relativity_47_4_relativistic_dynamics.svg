@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="low-speed-region" x="100" y="80" width="130" height="430" rx="0" fill="rgba(127, 212, 255, 0.07)" stroke="rgba(127, 212, 255, 0.18)" stroke-width="1"/>
+<text id="newtonian-label-line1" x="165" y="104" font-size="10" fill="rgba(127, 212, 255, 0.6)" text-anchor="middle" font-weight="normal">Newtonian</text>
+<text id="newtonian-label-line2" x="165" y="118" font-size="10" fill="rgba(127, 212, 255, 0.6)" text-anchor="middle" font-weight="normal">regime</text>
+<text id="newtonian-label-gamma" x="165" y="132" font-size="10" fill="rgba(127, 212, 255, 0.6)" font-style="italic" text-anchor="middle">\gamma \approx 1</text>
+<line id="y-axis" x1="100" y1="80" x2="100" y2="510" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="momentum-axis" x1="100" y1="510" x2="820" y2="510" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="x-axis-arrow" x1="800" y1="510" x2="825" y2="510" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_x-axis-arrow)"/>
+<defs><marker id="arrowhead_y-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="y-axis-arrow" x1="100" y1="100" x2="100" y2="75" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_y-axis-arrow)"/>
+<text id="p-axis-label" x="825" y="528" font-size="12" fill="#e8e8ee" text-anchor="start" font-weight="normal">momentum p</text>
+<line id="c-asymptote" x1="100" y1="155" x2="820" y2="155" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray="8,5"/>
+<text id="c-asymptote-label" x="828" y="159" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="normal">c — cosmic speed limit</text>
+<line id="vc-axis-tick-1" x1="96" y1="155" x2="104" y2="155" stroke="#ff7a8a" stroke-width="1.2" stroke-dasharray=""/>
+<text id="vc-axis-tick-label" x="90" y="159" font-size="10" fill="#ff7a8a" text-anchor="end" font-weight="normal">1</text>
+<text id="vc-axis-label" x="88" y="340" font-size="11" fill="#9effc9" text-anchor="end" font-weight="normal">v/c</text>
+<path id="speed-curve" d="M 100 510 C 160 450 220 310 290 240 C 360 175 430 162 520 158 C 610 155.5 700 155.1 820 155.02" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="gamma-curve" d="M 100 497 C 160 493 200 487 240 474 C 280 460 310 440 340 415 C 375 385 400 355 430 320 C 460 285 490 248 520 210 C 555 165 590 130 630 100 C 660 78 690 62 720 48" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="gamma-origin-label" x="88" y="501" font-size="10" fill="#7fd4ff" text-anchor="end" font-weight="normal">1</text>
+<line id="gamma-origin-tick" x1="96" y1="497" x2="104" y2="497" stroke="#7fd4ff" stroke-width="1.2" stroke-dasharray=""/>
+<text id="gamma-label" x="656" y="115" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="600">γ (effective mass factor)</text>
+<line id="gamma-label-leader" x1="720" y1="118" x2="720" y2="50" stroke="rgba(127,212,255,0.35)" stroke-width="1" stroke-dasharray="3,3"/>
+<text id="speed-label" x="540" y="142" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">v/c (speed as fraction of light)</text>
+<line id="speed-label-leader" x1="520" y1="144" x2="520" y2="157" stroke="rgba(158,255,201,0.35)" stroke-width="1" stroke-dasharray="3,3"/>
+<text id="origin-zero" x="88" y="526" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="end" font-weight="normal">0</text>
+</svg>

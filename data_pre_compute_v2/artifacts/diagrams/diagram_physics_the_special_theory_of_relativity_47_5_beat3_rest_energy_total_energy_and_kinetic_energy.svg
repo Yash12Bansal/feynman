@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="divider" x1="450" y1="80" x2="450" y2="570" stroke="rgba(232,232,238,0.18)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<text id="label-left" x="225" y="62" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">at rest</text>
+<text id="label-right" x="675" y="62" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">moving  (v &gt; 0)</text>
+<circle id="particle-rest" cx="225" cy="175" r="28" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="particle-rest-label" x="225" y="180" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="normal">m₀</text>
+<circle id="particle-moving" cx="620" cy="175" r="28" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="particle-moving-label" x="620" y="180" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="normal">m₀</text>
+<defs><marker id="arrowhead_velocity-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="velocity-arrow" x1="658" y1="175" x2="740" y2="175" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_velocity-arrow)"/>
+<text id="velocity-label" x="748" y="171" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">v</text>
+<text id="eq-rest" x="225" y="258" font-size="22" fill="#7fd4ff" font-style="italic" text-anchor="middle">E_0 = m_0 c^2</text>
+<text id="eq-total" x="675" y="258" font-size="22" fill="#9effc9" font-style="italic" text-anchor="middle">E = \gamma m_0 c^2</text>
+<rect id="bar-rest-bg" x="145" y="310" width="160" height="34" rx="4" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<text id="bar-rest-text" x="225" y="333" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="normal">E₀  (rest)</text>
+<rect id="bar-total-rest" x="510" y="310" width="160" height="34" rx="0" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<text id="bar-total-rest-text" x="590" y="333" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="normal">E₀  (rest)</text>
+<rect id="bar-ke" x="670" y="310" width="100" height="34" rx="0" fill="none" stroke="#ff7a8a" stroke-width="2"/>
+<text id="bar-ke-text" x="720" y="333" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="normal">KE</text>
+<line id="brace-total-left" x1="510" y1="356" x2="510" y2="368" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<line id="brace-total-right" x1="770" y1="356" x2="770" y2="368" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<line id="brace-total-top" x1="510" y1="368" x2="770" y2="368" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<text id="brace-total-label" x="640" y="386" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="normal">E  (total)</text>
+<text id="eq-ke" x="450" y="470" font-size="20" fill="#ff7a8a" font-style="italic" text-anchor="middle">KE = E - E_0 = (\gamma - 1)\,m_0 c^2</text>
+<line id="ke-rule" x1="200" y1="445" x2="700" y2="445" stroke="rgba(232,232,238,0.18)" stroke-width="1" stroke-dasharray=""/>
+<text id="gamma-def" x="450" y="548" font-size="15" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">\gamma = \frac{1}{\sqrt{1 - v^2/c^2}} \geq 1</text>
+</svg>

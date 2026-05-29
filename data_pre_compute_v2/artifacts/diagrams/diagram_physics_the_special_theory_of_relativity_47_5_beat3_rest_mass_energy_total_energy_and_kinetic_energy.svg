@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="baseline" x1="180" y1="480" x2="680" y2="480" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<line id="upper_level" x1="180" y1="200" x2="680" y2="200" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="particle_rest" cx="290" cy="480" r="14" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="particle_rest_label" x="290" y="484" font-size="10" fill="#e8e8ee" text-anchor="middle" font-weight="normal">m₀</text>
+<circle id="particle_moving" cx="290" cy="200" r="14" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_velocity_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="velocity_arrow" x1="310" y1="200" x2="390" y2="200" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_velocity_arrow)"/>
+<text id="velocity_label" x="400" y="196" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">v</text>
+<text id="E0_label" x="695" y="484" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">E_0 = m_0 c^2</text>
+<text id="E_label" x="695" y="204" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">E = \gamma m_0 c^2</text>
+<path id="curly_brace" d="M 140 480 C 128 480 128 480 128 460 L 128 352 C 128 340 116 340 116 340 C 116 340 128 340 128 328 L 128 220 C 128 200 140 200 140 200" stroke="#7fd4ff" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="KE_label" x="56" y="344" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">KE = (\gamma - 1)m_0 c^2</text>
+<defs><marker id="arrowhead_gap_arrow_up" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="gap_arrow_up" x1="530" y1="460" x2="530" y2="220" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_gap_arrow_up)"/>
+<defs><marker id="arrowhead_gap_arrow_down" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="gap_arrow_down" x1="530" y1="220" x2="530" y2="460" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_gap_arrow_down)"/>
+<text id="v_to_c_hint" x="548" y="338" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">grows as v → c</text>
+<text id="rest_caption" x="290" y="514" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">at rest</text>
+<text id="moving_caption" x="290" y="172" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">moving at v</text>
+</svg>

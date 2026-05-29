@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis" x1="80" y1="300" x2="820" y2="300" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="point_A" cx="120" cy="300" r="7" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label_A" x="120" y="282" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">A</text>
+<circle id="point_B" cx="430" cy="300" r="7" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label_B" x="430" y="282" font-size="14" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<defs><marker id="arrowhead_arrow_B_motion" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="arrow_B_motion" x1="455" y1="300" x2="510" y2="300" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_arrow_B_motion)"/>
+<circle id="point_W" cx="760" cy="300" r="7" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label_W" x="760" y="282" font-size="14" fill="#ff7a8a" text-anchor="middle" font-weight="600">W</text>
+<text id="label_W_sub" x="760" y="266" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">(light)</text>
+<line id="bracket_AW_left_tick" x1="120" y1="340" x2="120" y2="360" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<line id="bracket_AW_line" x1="120" y1="350" x2="760" y2="350" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<line id="bracket_AW_right_tick" x1="760" y1="340" x2="760" y2="360" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<text id="label_dAW" x="440" y="378" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">d_{AW}</text>
+<line id="bracket_AB_left_tick" x1="120" y1="400" x2="120" y2="420" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="bracket_AB_line" x1="120" y1="410" x2="430" y2="410" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="bracket_AB_right_tick" x1="430" y1="400" x2="430" y2="420" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<text id="label_dAB" x="275" y="438" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">d_{AB}</text>
+<line id="bracket_BW_left_tick" x1="430" y1="460" x2="430" y2="480" stroke="#9effc9" stroke-width="1.8" stroke-dasharray=""/>
+<line id="bracket_BW_line" x1="430" y1="470" x2="760" y2="470" stroke="#9effc9" stroke-width="1.8" stroke-dasharray=""/>
+<line id="bracket_BW_right_tick" x1="760" y1="460" x2="760" y2="480" stroke="#9effc9" stroke-width="1.8" stroke-dasharray=""/>
+<text id="label_dBW" x="595" y="498" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">d_{BW}</text>
+<text id="equation" x="450" y="560" font-size="18" fill="rgba(232,232,238,0.75)" font-style="italic" text-anchor="middle">d_{AW} = d_{AB} + d_{BW}</text>
+<path id="cross_line1" d="M 330 540 L 570 580" stroke="#ff7a8a" stroke-width="3.5" fill="none" stroke-dasharray=""/>
+<path id="cross_line2" d="M 570 540 L 330 580" stroke="#ff7a8a" stroke-width="3.5" fill="none" stroke-dasharray=""/>
+<text id="contradiction_label" x="450" y="618" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">The numbers don&#x27;t add up!</text>
+</svg>

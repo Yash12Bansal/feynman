@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="e_wave" d="M 80 260 C 110 260 110 200 140 200 C 170 200 170 260 200 260 C 230 260 230 200 260 200 C 290 200 290 260 320 260 C 350 260 350 200 380 200 C 410 200 410 260 440 260" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="b_wave" d="M 80 380 C 110 380 110 320 140 320 C 170 320 170 380 200 380 C 230 380 230 320 260 320 C 290 320 290 380 320 380 C 350 380 350 320 380 320 C 410 320 410 380 440 380" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_propagation_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="propagation_arrow" x1="460" y1="320" x2="560" y2="320" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_propagation_arrow)"/>
+<text id="e_label" x="68" y="228" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">E</text>
+<text id="b_label" x="68" y="352" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">B</text>
+<text id="prop_label" x="510" y="308" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">c</text>
+<line id="divider" x1="590" y1="120" x2="590" y2="530" stroke="rgba(232,232,238,0.2)" stroke-width="1" stroke-dasharray="6 4"/>
+<text id="wave_eq_e" x="450" y="185" font-size="17" fill="#7fd4ff" font-style="italic" text-anchor="middle">\nabla^2 \mathbf{E} = \mu_0 \varepsilon_0 \frac{\partial^2 \mathbf{E}}{\partial t^2}</text>
+<text id="wave_eq_b" x="450" y="245" font-size="17" fill="#ff7a8a" font-style="italic" text-anchor="middle">\nabla^2 \mathbf{B} = \mu_0 \varepsilon_0 \frac{\partial^2 \mathbf{B}}{\partial t^2}</text>
+<text id="c_formula" x="720" y="255" font-size="22" fill="#9effc9" font-style="italic" text-anchor="middle">c = \frac{1}{\sqrt{\mu_0 \varepsilon_0}}</text>
+<text id="c_value" x="720" y="320" font-size="16" fill="#9effc9" font-style="italic" text-anchor="middle">\approx 3 \times 10^{8} \text{ m s}^{-1}</text>
+<text id="mu0_label" x="720" y="400" font-size="12" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">\mu_0 = 4\pi \times 10^{-7}\,\text{H m}^{-1}</text>
+<text id="eps0_label" x="720" y="430" font-size="12" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">\varepsilon_0 = 8.85 \times 10^{-12}\,\text{F m}^{-1}</text>
+<line id="underline_c" x1="620" y1="345" x2="820" y2="345" stroke="#9effc9" stroke-width="1" stroke-dasharray="4 3"/>
+<text id="frame_note" x="720" y="490" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">same in all inertial frames</text>
+</svg>

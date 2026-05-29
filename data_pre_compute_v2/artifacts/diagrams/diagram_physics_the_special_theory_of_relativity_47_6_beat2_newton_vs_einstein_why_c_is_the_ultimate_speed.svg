@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="label-newton" x="225" y="58" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Newton</text>
+<text id="label-einstein" x="675" y="58" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Einstein</text>
+<line id="divider" x1="450" y1="80" x2="450" y2="590" stroke="rgba(232,232,238,0.2)" stroke-width="1" stroke-dasharray="6,6"/>
+<line id="n-ground" x1="80" y1="420" x2="400" y2="420" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="n-hatch" d="M 90 420 L 82 434 M 120 420 L 112 434 M 150 420 L 142 434 M 180 420 L 172 434 M 210 420 L 202 434 M 240 420 L 232 434 M 270 420 L 262 434 M 300 420 L 292 434 M 330 420 L 322 434 M 360 420 L 352 434 M 390 420 L 382 434" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<circle id="n-ball" cx="200" cy="370" r="28" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_n-force" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="n-force" x1="228" y1="370" x2="340" y2="370" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_n-force)"/>
+<defs><marker id="arrowhead_n-accel" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="n-accel" x1="228" y1="340" x2="360" y2="340" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_n-accel)"/>
+<text id="n-force-label" x="348" y="368" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">F</text>
+<text id="n-accel-label" x="368" y="338" font-size="12" fill="#7fd4ff" text-anchor="start" font-weight="600">a</text>
+<text id="n-caption" x="225" y="490" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">F = ma  →  constant a</text>
+<line id="e-ground" x1="500" y1="420" x2="840" y2="420" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="e-hatch" d="M 510 420 L 502 434 M 540 420 L 532 434 M 570 420 L 562 434 M 600 420 L 592 434 M 630 420 L 622 434 M 660 420 L 652 434 M 690 420 L 682 434 M 720 420 L 712 434 M 750 420 L 742 434 M 780 420 L 772 434 M 810 420 L 802 434 M 830 420 L 822 434" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<circle id="e-ball-small" cx="560" cy="380" r="18" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="e-ball-medium" cx="660" cy="375" r="28" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="e-ball-large" cx="760" cy="368" r="42" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_e-force-small" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="e-force-small" x1="578" y1="380" x2="630" y2="380" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_e-force-small)"/>
+<defs><marker id="arrowhead_e-force-medium" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="e-force-medium" x1="688" y1="375" x2="726" y2="375" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_e-force-medium)"/>
+<defs><marker id="arrowhead_e-accel-small" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="e-accel-small" x1="578" y1="352" x2="618" y2="352" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_e-accel-small)"/>
+<defs><marker id="arrowhead_e-accel-tiny" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="e-accel-tiny" x1="688" y1="342" x2="706" y2="342" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_e-accel-tiny)"/>
+<line id="c-wall" x1="820" y1="100" x2="820" y2="580" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray="8,5"/>
+<text id="c-label" x="828" y="118" font-size="14" fill="#ff7a8a" text-anchor="start" font-weight="600">c</text>
+<text id="e-mass-label" x="730" y="310" font-size="13" fill="#e8e8ee" font-style="italic" text-anchor="middle">\gamma m \to \infty</text>
+<text id="e-accel-label" x="730" y="530" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">a \to 0</text>
+<text id="e-accel-a-label" x="622" y="350" font-size="12" fill="#7fd4ff" text-anchor="start" font-weight="600">a</text>
+<text id="e-force-f-label" x="634" y="378" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">F</text>
+<text id="n-mass-label" x="200" y="374" font-size="11" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">m</text>
+<text id="e-m1-label" x="560" y="384" font-size="10" fill="rgba(232,232,238,0.6)" text-anchor="middle" font-weight="normal">m</text>
+<text id="e-m2-label" x="660" y="379" font-size="11" fill="rgba(232,232,238,0.6)" text-anchor="middle" font-weight="normal">γm</text>
+<text id="e-m3-label" x="760" y="372" font-size="13" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">γm</text>
+<path id="motion-arrow" d="M 530 460 L 800 460" stroke="rgba(232,232,238,0.3)" stroke-width="1.2" fill="none" stroke-dasharray="4,4"/>
+<defs><marker id="arrowhead_motion-arrow-head" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.3)"/></marker></defs><line id="motion-arrow-head" x1="530" y1="460" x2="800" y2="460" stroke="rgba(232,232,238,0.3)" stroke-width="1.2" marker-end="url(#arrowhead_motion-arrow-head)"/>
+<text id="motion-label" x="665" y="478" font-size="11" fill="rgba(232,232,238,0.4)" text-anchor="middle" font-weight="normal">v →</text>
+</svg>

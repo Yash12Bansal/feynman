@@ -773,9 +773,11 @@ class Chapter(BaseModel):
     # artifacts — pre-Phase-4c stages don't consume them. Optional so older
     # extractions (pre-4b) load without migration.
     lecture_plan: "ChapterLecturePlan | None" = None
+    # TODO(DEADCODE): legacy 7b/7d field — populated only by the (removed) use_lesson_pipeline=False stack; doc-19 path uses lesson_plans/lesson_narrations. See docs/engineering/13-redundant-code-audit.md Group 3.
     concept_plans: "list[ConceptTeachingPlan]" = Field(default_factory=list)
     # Phase 4d: per-beat narrations produced by BeatNarrationWriter, trimmed
     # to budget by LengthEnforcer. Phase 4e: feeds ScriptAssembler.
+    # TODO(DEADCODE): legacy 7b/7d field — populated only by the (removed) use_lesson_pipeline=False stack; doc-19 path uses lesson_plans/lesson_narrations. See docs/engineering/13-redundant-code-audit.md Group 3.
     beat_narrations: "list[BeatNarration]" = Field(default_factory=list)
     # Phase 4d: ScriptAssembler output (dict-form of ChapterScript dataclass —
     # {chapter_id, segments: [{topic_id, narration_chapter, narration_standalone}]}).

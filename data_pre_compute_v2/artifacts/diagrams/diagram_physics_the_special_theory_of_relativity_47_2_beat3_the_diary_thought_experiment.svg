@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground" x1="60" y1="420" x2="840" y2="420" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground_hatch" d="M 70 420 L 60 435 M 110 420 L 100 435 M 150 420 L 140 435 M 190 420 L 180 435 M 230 420 L 220 435 M 270 420 L 260 435 M 310 420 L 300 435 M 350 420 L 340 435 M 390 420 L 380 435 M 430 420 L 420 435 M 470 420 L 460 435 M 510 420 L 500 435 M 550 420 L 540 435 M 590 420 L 580 435 M 630 420 L 620 435 M 670 420 L 660 435 M 710 420 L 700 435 M 750 420 L 740 435 M 790 420 L 780 435 M 830 420 L 820 435" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<circle id="observer_A_body" cx="140" cy="370" r="22" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="observer_A_torso" x1="140" y1="392" x2="140" y2="420" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="observer_A_leg_l" x1="140" y1="420" x2="120" y2="448" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="observer_A_leg_r" x1="140" y1="420" x2="160" y2="448" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label_A" x="140" y="472" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">A</text>
+<text id="label_A_rest" x="140" y="490" font-size="11" fill="rgba(127,212,255,0.65)" text-anchor="middle" font-weight="normal">(at rest)</text>
+<path id="diary_A_bubble_tail" d="M 155 348 L 175 320 L 168 310" stroke="#7fd4ff" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+<rect id="diary_A_bubble" x="60" y="230" width="130" height="76" rx="10" fill="none" stroke="#7fd4ff" stroke-width="1.5"/>
+<text id="diary_A_line1" x="125" y="256" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="600">diary:</text>
+<text id="diary_A_entry" x="125" y="285" font-size="11" fill="#7fd4ff" font-style="italic" text-anchor="middle">d_A = |x_W - x_A|</text>
+<circle id="observer_B_body" cx="430" cy="370" r="22" fill="none" stroke="#ffb347" stroke-width="2.5" stroke-dasharray=""/>
+<line id="observer_B_torso" x1="430" y1="392" x2="430" y2="420" stroke="#ffb347" stroke-width="2.5" stroke-dasharray=""/>
+<line id="observer_B_leg_l" x1="430" y1="420" x2="410" y2="448" stroke="#ffb347" stroke-width="2.5" stroke-dasharray=""/>
+<line id="observer_B_leg_r" x1="430" y1="420" x2="450" y2="448" stroke="#ffb347" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_velocity_B" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ffb347"/></marker></defs><line id="velocity_B" x1="460" y1="390" x2="560" y2="390" stroke="#ffb347" stroke-width="2.5" marker-end="url(#arrowhead_velocity_B)"/>
+<text id="label_velocity_B" x="510" y="378" font-size="12" fill="#ffb347" font-style="italic" text-anchor="middle">u = c/2</text>
+<text id="label_B" x="430" y="472" font-size="14" fill="#ffb347" text-anchor="middle" font-weight="600">B</text>
+<text id="label_B_moving" x="430" y="490" font-size="11" fill="rgba(255,179,71,0.65)" text-anchor="middle" font-weight="normal">(moving)</text>
+<path id="diary_B_bubble_tail" d="M 445 348 L 465 320 L 458 310" stroke="#ffb347" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+<rect id="diary_B_bubble" x="350" y="230" width="130" height="76" rx="10" fill="none" stroke="#ffb347" stroke-width="1.5"/>
+<text id="diary_B_line1" x="415" y="256" font-size="11" fill="#ffb347" text-anchor="middle" font-weight="600">diary:</text>
+<text id="diary_B_entry" x="415" y="285" font-size="11" fill="#ffb347" font-style="italic" text-anchor="middle">d_B = |x_W - x_B|</text>
+<circle id="light_pulse_W" cx="760" cy="390" r="18" fill="none" stroke="#ffe566" stroke-width="2.5" stroke-dasharray=""/>
+<path id="light_rays" d="M 760 366 L 760 354 M 760 414 L 760 426 M 736 390 L 724 390 M 784 390 L 796 390 M 743 373 L 735 365 M 777 407 L 785 415 M 777 373 L 785 365 M 743 407 L 735 415" stroke="#ffe566" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_velocity_W" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ffe566"/></marker></defs><line id="velocity_W" x1="784" y1="370" x2="840" y2="370" stroke="#ffe566" stroke-width="2.5" marker-end="url(#arrowhead_velocity_W)"/>
+<text id="label_velocity_W" x="848" y="368" font-size="13" fill="#ffe566" font-style="italic" text-anchor="middle">c</text>
+<text id="label_W" x="760" y="425" font-size="14" fill="#ffe566" text-anchor="middle" font-weight="600">W</text>
+<text id="label_W_light" x="760" y="443" font-size="11" fill="rgba(255,229,102,0.65)" text-anchor="middle" font-weight="normal">(light pulse)</text>
+<line id="d_A_line" x1="140" y1="530" x2="760" y2="530" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line id="d_A_tick_left" x1="140" y1="522" x2="140" y2="538" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="d_A_tick_right" x1="760" y1="522" x2="760" y2="538" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<text id="label_d_A" x="450" y="548" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">d_A</text>
+<line id="d_B_line" x1="430" y1="575" x2="760" y2="575" stroke="#ffb347" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line id="d_B_tick_left" x1="430" y1="567" x2="430" y2="583" stroke="#ffb347" stroke-width="1.5" stroke-dasharray=""/>
+<line id="d_B_tick_right" x1="760" y1="567" x2="760" y2="583" stroke="#ffb347" stroke-width="1.5" stroke-dasharray=""/>
+<text id="label_d_B" x="595" y="593" font-size="13" fill="#ffb347" font-style="italic" text-anchor="middle">d_B</text>
+</svg>

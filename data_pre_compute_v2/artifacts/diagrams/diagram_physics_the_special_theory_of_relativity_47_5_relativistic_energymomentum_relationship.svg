@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis_x" x1="120" y1="520" x2="820" y2="520" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="axis_y" x1="120" y1="520" x2="120" y2="80" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="axis_x_label" x="830" y="524" font-size="13" fill="rgba(232,232,238,0.7)" text-anchor="start" font-weight="normal">pc</text>
+<text id="axis_y_label" x="108" y="72" font-size="13" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">E</text>
+<line id="rest_energy_leg" x1="120" y1="520" x2="120" y2="220" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="momentum_leg" x1="120" y1="520" x2="560" y2="520" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<line id="total_energy_hyp" x1="120" y1="220" x2="560" y2="520" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<path id="right_angle_marker" d="M 120.0 502.0 A 18.0 18.0 0 0 1 138.0 520.0" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" fill="none"/>
+<line id="right_angle_h" x1="120" y1="502" x2="138" y2="502" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="right_angle_v" x1="138" y1="502" x2="138" y2="520" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="rest_energy_label" x="58" y="375" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">m_0 c^2</text>
+<text id="momentum_label" x="335" y="548" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">pc</text>
+<text id="total_energy_label" x="370" y="355" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">E</text>
+<text id="energy_momentum_relation" x="560" y="200" font-size="17" fill="#e8e8ee" font-style="italic" text-anchor="middle">E^2 = (m_0 c^2)^2 + (pc)^2</text>
+<circle id="vertex_origin" cx="120" cy="520" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="vertex_top" cx="120" cy="220" r="4" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="vertex_right" cx="560" cy="520" r="4" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="photon_line" x1="120" y1="520" x2="560" y2="80" stroke="rgba(255,255,140,0.7)" stroke-width="1.8" stroke-dasharray="8 5"/>
+<text id="photon_label" x="572" y="74" font-size="11" fill="rgba(255,255,140,0.85)" text-anchor="start" font-weight="normal">photon</text>
+<text id="photon_relation" x="620" y="110" font-size="13" fill="rgba(255,255,140,0.85)" font-style="italic" text-anchor="middle">E = pc</text>
+<line id="rest_mass_marker" x1="100" y1="220" x2="120" y2="220" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="classical_limit_line" x1="120" y1="220" x2="260" y2="520" stroke="rgba(158,255,201,0.35)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text id="classical_label" x="205" y="408" font-size="10" fill="rgba(158,255,201,0.55)" text-anchor="middle" font-weight="normal">classical</text>
+<text id="classical_ke" x="590" y="310" font-size="13" fill="rgba(158,255,201,0.7)" font-style="italic" text-anchor="middle">K \approx \tfrac{1}{2}m_0 v^2</text>
+<text id="classical_limit_note" x="590" y="335" font-size="10" fill="rgba(158,255,201,0.55)" text-anchor="start" font-weight="normal">v &lt;&lt; c limit</text>
+</svg>

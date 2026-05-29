@@ -141,6 +141,7 @@ class LayoutConfig(BaseModel):
     pagination: PaginationConfig = Field(default_factory=PaginationConfig)
 
 
+# TODO(DEADCODE): legacy 7c-7g config — values no longer read once the legacy stack is removed (kept as an EnrichmentConfig field default so not commented here). See docs/engineering/13-redundant-code-audit.md Group 3.
 class PerBeatDiagramsConfig(BaseModel):
     """Phase 4c — per-beat DiagramSpecGenerator config.
 
@@ -165,6 +166,7 @@ class DiagramQAConfig(BaseModel):
     min_score: int = 3
 
 
+# TODO(DEADCODE): legacy 7c-7g config — values no longer read once the legacy stack is removed (kept as an EnrichmentConfig field default so not commented here). See docs/engineering/13-redundant-code-audit.md Group 3.
 class BeatNarrationConfig(BaseModel):
     """Phase 4d — per-beat narration writer config.
 
@@ -181,6 +183,7 @@ class BeatNarrationConfig(BaseModel):
     max_target_seconds: int = 90
 
 
+# TODO(DEADCODE): legacy 7c-7g config — values no longer read once the legacy stack is removed (kept as an EnrichmentConfig field default so not commented here). See docs/engineering/13-redundant-code-audit.md Group 3.
 class LengthEnforcerConfig(BaseModel):
     """Phase 4d — deterministic chapter-length trim algorithm config.
 
@@ -195,6 +198,7 @@ class LengthEnforcerConfig(BaseModel):
     hard_ceiling: float = 1.3
 
 
+# TODO(DEADCODE): legacy 7c-7g config — values no longer read once the legacy stack is removed (kept as an EnrichmentConfig field default so not commented here). See docs/engineering/13-redundant-code-audit.md Group 3.
 class ScriptAssemblerConfig(BaseModel):
     """Phase 4d — stitches per-beat narrations into per-topic ChapterScript shape.
 

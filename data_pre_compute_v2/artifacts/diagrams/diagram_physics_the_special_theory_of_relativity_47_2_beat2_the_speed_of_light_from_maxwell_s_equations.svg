@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis_line" x1="80" y1="325" x2="820" y2="325" stroke="rgba(232,232,238,0.25)" stroke-width="1.2" stroke-dasharray="6 5"/>
+<path id="E_wave" d="M 80 325 C 120 230, 160 230, 200 325 C 240 420, 280 420, 320 325 C 360 230, 400 230, 440 325 C 480 420, 520 420, 560 325 C 600 230, 640 230, 680 325 C 720 420, 760 420, 800 325" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="B_wave" d="M 80 325 C 120 265, 160 265, 200 325 C 240 385, 280 385, 320 325 C 360 265, 400 265, 440 325 C 480 385, 520 385, 560 325 C 600 265, 640 265, 680 325 C 720 385, 760 385, 800 325" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_propagation_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="propagation_arrow" x1="820" y1="325" x2="870" y2="325" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_propagation_arrow)"/>
+<text id="E_label" x="448" y="222" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">E</text>
+<text id="B_label" x="448" y="268" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<text id="c_direction_label" x="876" y="320" font-size="13" fill="#e8e8ee" text-anchor="start" font-weight="600">c</text>
+<text id="formula_main" x="450" y="490" font-size="34" fill="#ff7a8a" font-style="italic" text-anchor="middle">c = \frac{1}{\sqrt{\mu_0 \varepsilon_0}}</text>
+<text id="formula_value" x="450" y="548" font-size="20" fill="rgba(232,232,238,0.75)" font-style="italic" text-anchor="middle">\approx 3 \times 10^{8} \text{ m/s}</text>
+<line id="separator_line" x1="280" y1="465" x2="620" y2="465" stroke="rgba(232,232,238,0.18)" stroke-width="1" stroke-dasharray=""/>
+<text id="no_frame_note" x="450" y="596" font-size="11" fill="rgba(232,232,238,0.4)" text-anchor="middle" font-weight="normal">no frame label — just c</text>
+</svg>

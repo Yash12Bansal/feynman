@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+
+<line id="c_wall" x1="760" y1="60" x2="760" y2="560" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="7,5"/>
+<text id="c_label" x="764" y="78" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">c</text>
+<line id="m0_baseline" x1="100" y1="497" x2="430" y2="497" stroke="#9effc9" stroke-width="1.5" stroke-dasharray="5,4"/>
+<text id="m0_tick" x="88" y="501" font-size="12" fill="#9effc9" text-anchor="end" font-weight="normal">m₀</text>
+<rect id="misconception_box" x="130" y="390" width="270" height="54" rx="5" fill="none" stroke="#ff7a8a" stroke-width="1.5"/>
+<text id="misconception_line1" x="265" y="412" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">✗  Rest mass m₀ does NOT change</text>
+<line id="strikethrough" x1="138" y1="412" x2="392" y2="412" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray=""/>
+<text id="misconception_line2" x="265" y="432" font-size="10" fill="rgba(255,122,138,0.7)" text-anchor="middle" font-weight="normal">internal mass is unchanged</text>
+<path id="misconception_arrow" d="M 265 444 L 265 490" stroke="#ff7a8a" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+<circle id="misconception_dot" cx="265" cy="494" r="4" fill="none" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="correction_box" x="480" y="130" width="290" height="66" rx="5" fill="none" stroke="#9effc9" stroke-width="1.5"/>
+<text id="correction_line1" x="625" y="153" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">✓  Resistance to acceleration</text>
+<text id="correction_line2" x="625" y="170" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">γm₀  →  ∞  as  v → c</text>
+<text id="correction_line3" x="625" y="186" font-size="10" fill="rgba(158,255,201,0.7)" text-anchor="middle" font-weight="normal">inertia piles up — harder to push</text>
+<path id="correction_arrow" d="M 625 196 L 700 260" stroke="#9effc9" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+<circle id="correction_dot" cx="703" cy="263" r="4" fill="none" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="label-left" x="225" y="48" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Moving Mass</text>
+<text id="label-right" x="675" y="48" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Relativistic Momentum</text>
+<rect id="frame-left" x="60" y="70" width="330" height="480" rx="0" fill="none" stroke="rgba(232,232,238,0.25)" stroke-width="1.5"/>
+<rect id="frame-right" x="510" y="70" width="330" height="480" rx="0" fill="none" stroke="rgba(232,232,238,0.25)" stroke-width="1.5"/>
+<line id="xaxis-left" x1="60" y1="550" x2="390" y2="550" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<line id="yaxis-left" x1="60" y1="70" x2="60" y2="550" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<line id="xaxis-right" x1="510" y1="550" x2="840" y2="550" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<line id="yaxis-right" x1="510" y1="70" x2="510" y2="550" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<text id="xlabel-left" x="225" y="590" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">v/c</text>
+<text id="xlabel-right" x="675" y="590" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">v/c</text>
+<text id="ylabel-left" x="20" y="305" font-size="12" fill="#7fd4ff" font-style="italic" text-anchor="middle">m/m_0</text>
+<text id="ylabel-right" x="455" y="305" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">p/(m_0 c)</text>
+<text id="x0-left" x="60" y="566" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">0</text>
+<text id="x1-left" x="390" y="566" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">1</text>
+<text id="x05-left" x="225" y="566" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">0.5</text>
+<text id="x0-right" x="510" y="566" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">0</text>
+<text id="x1-right" x="840" y="566" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">1</text>
+<text id="x05-right" x="675" y="566" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">0.5</text>
+<text id="y1-left" x="48" y="480" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="end" font-weight="normal">1</text>
+<text id="y2-left" x="48" y="390" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="end" font-weight="normal">2</text>
+<text id="y4-left" x="48" y="210" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="end" font-weight="normal">4</text>
+<text id="y1-right" x="498" y="480" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="end" font-weight="normal">1</text>
+<text id="y2-right" x="498" y="390" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="end" font-weight="normal">2</text>
+<text id="y4-right" x="498" y="210" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="end" font-weight="normal">4</text>
+<path id="newtonian-shade-left" d="M 60 480 L 60 468 L 126 462 L 60 480 Z" stroke="none" stroke-width="0" fill="rgba(127,212,255,0.08)" stroke-dasharray=""/>
+<path id="newtonian-region-left" d="M 60 480 L 126 462" stroke="rgba(127,212,255,0.3)" stroke-width="1" fill="none" stroke-dasharray="3,3"/>
+<path id="newtonian-shade-right" d="M 510 480 L 510 450 L 576 432 L 510 480 Z" stroke="none" stroke-width="0" fill="rgba(158,255,201,0.08)" stroke-dasharray=""/>
+<path id="newtonian-region-right" d="M 510 480 L 576 432" stroke="rgba(158,255,201,0.3)" stroke-width="1" fill="none" stroke-dasharray="3,3"/>
+<text id="newtonian-label-left" x="100" y="510" font-size="10" fill="rgba(127,212,255,0.6)" text-anchor="middle" font-weight="normal">Newtonian</text>
+<text id="newtonian-label-right" x="550" y="510" font-size="10" fill="rgba(158,255,201,0.6)" text-anchor="middle" font-weight="normal">Newtonian</text>
+<path id="mass-curve" d="M 60 480 C 90 479, 120 477, 150 474 C 180 471, 210 466, 240 458 C 270 448, 300 430, 330 400 C 348 380, 360 358, 372 325 C 378 308, 382 288, 385 265 C 387 245, 388 220, 389 195 C 389.5 175, 389.8 150, 390 120" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="momentum-curve" d="M 510 550 C 540 548, 570 544, 600 536 C 630 526, 660 510, 690 488 C 720 464, 750 430, 780 388 C 798 362, 810 335, 820 305 C 826 285, 830 262, 833 238 C 835 215, 836 190, 837 165 C 837.5 145, 837.8 120, 838 95" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="asymptote-left" x1="390" y1="70" x2="390" y2="550" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray="6,4"/>
+<line id="asymptote-right" x1="840" y1="70" x2="840" y2="550" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text id="c-label-left" x="390" y="62" font-size="10" fill="#ff7a8a" text-anchor="middle" font-weight="normal">c — never reached</text>
+<text id="c-label-right" x="840" y="62" font-size="10" fill="#ff7a8a" text-anchor="middle" font-weight="normal">c — never reached</text>
+<text id="infinity-label-left" x="375" y="108" font-size="14" fill="#7fd4ff" text-anchor="end" font-weight="normal">∞</text>
+<text id="infinity-label-right" x="825" y="85" font-size="14" fill="#9effc9" text-anchor="end" font-weight="normal">∞</text>
+<line id="y1-tick-left" x1="55" y1="480" x2="65" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray=""/>
+<line id="y2-tick-left" x1="55" y1="390" x2="65" y2="390" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray=""/>
+<line id="y4-tick-left" x1="55" y1="210" x2="65" y2="210" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray=""/>
+<line id="y1-tick-right" x1="505" y1="480" x2="515" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray=""/>
+<line id="y2-tick-right" x1="505" y1="390" x2="515" y2="390" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray=""/>
+<line id="y4-tick-right" x1="505" y1="210" x2="515" y2="210" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray=""/>
+</svg>

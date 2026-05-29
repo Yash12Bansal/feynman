@@ -1,53 +1,54 @@
-/**
- * @deprecated Phase 2 replaced this with VisualScene.tsx (React component tree).
- * Kept for visual reference and rollback until Phase 3 is verified.
- * Use VisualScene instead of Canvas for all new work.
- */
+// TODO(DEADCODE): file unused in active pipelines (lecture-playback / ask-feynman) — interactive live-agent rendering (parked). See docs/engineering/13-redundant-code-audit.md Group 1/2. Safe to delete.
+// /**
+//  * @deprecated Phase 2 replaced this with VisualScene.tsx (React component tree).
+//  * Kept for visual reference and rollback until Phase 3 is verified.
+//  * Use VisualScene instead of Canvas for all new work.
+//  */
 
-import { useRef, useEffect, useCallback } from "react";
-import type { VisualInstruction } from "../types/visuals";
-import { renderInstruction, resetRenderer } from "./renderer";
+// import { useRef, useEffect, useCallback } from "react";
+// import type { VisualInstruction } from "../types/visuals";
+// import { renderInstruction, resetRenderer } from "./renderer";
 
-interface CanvasProps {
-  instructions: VisualInstruction[];
-}
+// interface CanvasProps {
+//   instructions: VisualInstruction[];
+// }
 
-export function Canvas({ instructions }: CanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+// export function Canvas({ instructions }: CanvasProps) {
+//   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const redraw = useCallback((instrs: VisualInstruction[]) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+//   const redraw = useCallback((instrs: VisualInstruction[]) => {
+//     const canvas = canvasRef.current;
+//     if (!canvas) return;
+//     const ctx = canvas.getContext("2d");
+//     if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+//     const dpr = window.devicePixelRatio || 1;
+//     const rect = canvas.getBoundingClientRect();
+//     canvas.width = rect.width * dpr;
+//     canvas.height = rect.height * dpr;
+//     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    ctx.clearRect(0, 0, rect.width, rect.height);
-    resetRenderer();
-    for (const instruction of instrs) {
-      renderInstruction(ctx, instruction);
-    }
-  }, []);
+//     ctx.clearRect(0, 0, rect.width, rect.height);
+//     resetRenderer();
+//     for (const instruction of instrs) {
+//       renderInstruction(ctx, instruction);
+//     }
+//   }, []);
 
-  useEffect(() => {
-    redraw(instructions);
-  }, [instructions, redraw]);
+//   useEffect(() => {
+//     redraw(instructions);
+//   }, [instructions, redraw]);
 
-  useEffect(() => {
-    const handleResize = () => redraw(instructions);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [instructions, redraw]);
+//   useEffect(() => {
+//     const handleResize = () => redraw(instructions);
+//     window.addEventListener("resize", handleResize);
+//     return () => window.removeEventListener("resize", handleResize);
+//   }, [instructions, redraw]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: "100%", height: "100%", background: "#0a0a0a" }}
-    />
-  );
-}
+//   return (
+//     <canvas
+//       ref={canvasRef}
+//       style={{ width: "100%", height: "100%", background: "#0a0a0a" }}
+//     />
+//   );
+// }

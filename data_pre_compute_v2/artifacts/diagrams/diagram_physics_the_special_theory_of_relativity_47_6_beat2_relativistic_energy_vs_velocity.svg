@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="x-axis" x1="120" y1="520" x2="760" y2="520" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="y-axis" x1="120" y1="520" x2="120" y2="100" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="x-axis-arrow" x1="750" y1="520" x2="770" y2="520" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_x-axis-arrow)"/>
+<defs><marker id="arrowhead_y-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="y-axis-arrow" x1="120" y1="110" x2="120" y2="90" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_y-axis-arrow)"/>
+<text id="x-label" x="775" y="524" font-size="14" fill="#e8e8ee" text-anchor="start" font-weight="600">v</text>
+<text id="y-label" x="108" y="86" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">E</text>
+<text id="origin-label" x="106" y="538" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">0</text>
+<line id="asymptote" x1="620" y1="520" x2="620" y2="100" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="8,5"/>
+<path id="impossible-region" d="M 620 100 L 760 100 L 760 520 L 620 520 Z" stroke="none" stroke-width="0" fill="rgba(180,180,200,0.08)" stroke-dasharray=""/>
+<text id="impossible-label" x="692" y="310" font-size="12" fill="rgba(232,232,238,0.35)" text-anchor="middle" font-weight="normal">Impossible</text>
+<path id="energy-curve" d="M 120 490 C 200 482, 310 465, 390 440 C 450 420, 500 395, 540 360 C 570 330, 590 295, 603 255 C 610 228, 615 198, 618 160 C 619 140, 620 118, 620 100" stroke="#9effc9" stroke-width="3" fill="none" stroke-dasharray=""/>
+<text id="asymptote-label" x="624" y="540" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">c</text>
+<text id="asymptote-sublabel" x="660" y="558" font-size="11" fill="rgba(255,122,138,0.75)" text-anchor="middle" font-weight="normal">unreachable</text>
+<text id="curve-label-line1" x="430" y="270" font-size="12" fill="#9effc9" text-anchor="start" font-weight="normal">E → ∞</text>
+<text id="curve-label-line2" x="430" y="286" font-size="12" fill="#9effc9" text-anchor="start" font-weight="normal">as v → c</text>
+<line id="curve-label-pointer" x1="428" y1="278" x2="610" y2="210" stroke="rgba(158,255,201,0.35)" stroke-width="1" stroke-dasharray="4,4"/>
+<text id="energy-formula" x="200" y="180" font-size="15" fill="rgba(232,232,238,0.65)" font-style="italic" text-anchor="middle">E_k = (\gamma - 1)mc^2</text>
+</svg>

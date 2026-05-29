@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis_line" x1="80" y1="480" x2="820" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_axis_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="axis_arrow" x1="810" y1="480" x2="830" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_axis_arrow)"/>
+<line id="y_axis_line" x1="80" y1="480" x2="80" y2="100" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_y_axis_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="y_axis_arrow" x1="80" y1="110" x2="80" y2="90" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_y_axis_arrow)"/>
+<text id="x_label" x="835" y="484" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">t</text>
+<text id="y_label" x="68" y="86" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">v</text>
+<line id="newton_line" x1="80" y1="480" x2="780" y2="140" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="newton_label" x="792" y="136" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">Newton</text>
+<line id="c_line" x1="80" y1="240" x2="820" y2="240" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="10,6"/>
+<text id="c_label" x="826" y="244" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">c</text>
+<circle id="intersection_marker" cx="530" cy="240" r="6" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<path id="cross_mark_1" d="M 520 230 L 540 250" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="cross_mark_2" d="M 540 230 L 520 250" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_force_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="force_arrow" x1="160" y1="560" x2="310" y2="560" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_force_arrow)"/>
+<text id="force_label" x="235" y="548" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">F = const</text>
+<circle id="particle" cx="155" cy="560" r="10" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="contradiction_label" x="530" y="218" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="normal">never reached</text>
+<line id="tick_c" x1="74" y1="240" x2="86" y2="240" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+</svg>

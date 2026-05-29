@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="time_axis" x1="200" y1="580" x2="200" y2="60" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_time_axis_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="time_axis_arrow" x1="200" y1="80" x2="200" y2="60" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_time_axis_arrow)"/>
+<text id="time_axis_label" x="183" y="58" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">t</text>
+<line id="space_axis" x1="200" y1="580" x2="760" y2="580" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_space_axis_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="space_axis_arrow" x1="740" y1="580" x2="760" y2="580" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_space_axis_arrow)"/>
+<text id="space_axis_label" x="768" y="584" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">x</text>
+<line id="balram_worldline" x1="200" y1="580" x2="200" y2="100" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="balram_label" x="155" y="330" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">Balram</text>
+<text id="balram_sublabel" x="155" y="346" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">(stays)</text>
+<line id="ram_outbound" x1="200" y1="580" x2="520" y2="200" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<line id="ram_return" x1="520" y1="200" x2="200" y2="100" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<text id="ram_out_label" x="390" y="430" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">Ram</text>
+<text id="ram_out_sublabel" x="390" y="446" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">(outbound)</text>
+<text id="ram_ret_label" x="395" y="148" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">Ram</text>
+<text id="ram_ret_sublabel" x="395" y="164" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">(return)</text>
+<circle id="departure_event" cx="200" cy="580" r="5" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="turnaround_event" cx="520" cy="200" r="5" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="turnaround_label" x="540" y="196" font-size="10" fill="#9effc9" text-anchor="start" font-weight="normal">turnaround</text>
+<circle id="reunion_event" cx="200" cy="100" r="5" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="reunion_label" x="218" y="97" font-size="10" fill="#e8e8ee" text-anchor="start" font-weight="normal">reunion</text>
+<line id="balram_age_bracket_top" x1="175" y1="100" x2="195" y2="100" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="balram_age_bracket_bot" x1="175" y1="580" x2="195" y2="580" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="balram_age_bracket_line" x1="180" y1="100" x2="180" y2="580" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text id="balram_age_label" x="108" y="345" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">T_{\text{Balram}}</text>
+<line id="ram_age_bracket_right" x1="640" y1="580" x2="640" y2="100" stroke="#9effc9" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line id="ram_age_bracket_bot" x1="200" y1="595" x2="640" y2="595" stroke="#9effc9" stroke-width="1" stroke-dasharray="3 3"/>
+<line id="ram_age_bracket_top" x1="200" y1="85" x2="640" y2="85" stroke="#9effc9" stroke-width="1" stroke-dasharray="3 3"/>
+<line id="ram_age_bracket_top_tick" x1="640" y1="80" x2="640" y2="105" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<line id="ram_age_bracket_bot_tick" x1="635" y1="580" x2="645" y2="580" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<text id="ram_age_label" x="660" y="345" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">T_{\text{Ram}} &lt; T_{\text{Balram}}</text>
+<line id="simultaneity_line" x1="200" y1="100" x2="520" y2="100" stroke="rgba(232,232,238,0.3)" stroke-width="1" stroke-dasharray="5 4"/>
+<text id="departure_label" x="218" y="578" font-size="10" fill="#e8e8ee" text-anchor="start" font-weight="normal">departure</text>
+</svg>

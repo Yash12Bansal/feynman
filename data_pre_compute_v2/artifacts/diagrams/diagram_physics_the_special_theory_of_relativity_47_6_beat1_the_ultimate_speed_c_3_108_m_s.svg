@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis_x" x1="100" y1="480" x2="820" y2="480" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_axis_x_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="axis_x_arrow" x1="810" y1="480" x2="828" y2="480" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_axis_x_arrow)"/>
+<line id="axis_y" x1="100" y1="480" x2="100" y2="100" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_axis_y_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="axis_y_arrow" x1="100" y1="110" x2="100" y2="92" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_axis_y_arrow)"/>
+<line id="c_wall" x1="760" y1="480" x2="760" y2="100" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray="8 5"/>
+<path id="ke_curve" d="M 100 460 C 300 450 500 420 620 370 C 680 340 720 300 745 230 C 752 205 756 180 758 140" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="momentum_curve" d="M 100 465 C 300 455 500 435 640 390 C 700 365 730 330 748 270 C 754 245 757 210 759 160" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="classical_ke" d="M 100 470 C 250 460 450 440 700 390" stroke="rgba(232,232,238,0.35)" stroke-width="1.5" fill="none" stroke-dasharray="5 4"/>
+<text id="classical_label" x="706" y="385" font-size="10" fill="rgba(232,232,238,0.45)" text-anchor="start" font-weight="normal">classical</text>
+<text id="ke_label" x="630" y="362" font-size="11" fill="#9effc9" text-anchor="start" font-weight="600">K (relativistic)</text>
+<text id="momentum_label" x="655" y="405" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="600">p (relativistic)</text>
+<text id="c_label" x="760" y="88" font-size="14" fill="#ff7a8a" text-anchor="middle" font-weight="600">c</text>
+<text id="x_axis_label" x="830" y="484" font-size="13" fill="#e8e8ee" text-anchor="start" font-weight="normal">v</text>
+<text id="y_axis_label" x="88" y="88" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="normal">∞</text>
+<text id="origin_label" x="88" y="494" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">0</text>
+<circle id="dot_half_c" cx="430" cy="480" r="3" fill="none" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tick_half_c" x1="430" y1="476" x2="430" y2="484" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="half_c_label" x="430" y="500" font-size="11" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">0.5c</text>
+<line id="tick_c" x1="760" y1="476" x2="760" y2="484" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<text id="c_axis_label" x="760" y="510" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">c = 3 \times 10^8 \text{ m/s}</text>
+<text id="wall_annotation" x="772" y="300" font-size="10" fill="rgba(255,122,138,0.65)" text-anchor="start" font-weight="normal">unreachable</text>
+<defs><marker id="arrowhead_diverge_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="diverge_arrow" x1="755" y1="200" x2="755" y2="130" stroke="#ff7a8a" stroke-width="1.8" marker-end="url(#arrowhead_diverge_arrow)"/>
+<text id="diverge_label" x="735" y="220" font-size="11" fill="#ff7a8a" text-anchor="end" font-weight="600">→ ∞</text>
+<line id="shade_line_1" x1="762" y1="120" x2="820" y2="120" stroke="rgba(255,122,138,0.12)" stroke-width="60" stroke-dasharray=""/>
+<line id="shade_line_2" x1="762" y1="300" x2="820" y2="300" stroke="rgba(255,122,138,0.08)" stroke-width="360" stroke-dasharray=""/>
+</svg>

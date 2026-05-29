@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="track" x1="60" y1="420" x2="840" y2="420" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="track-hatch" d="M 80 420 L 70 435 M 130 420 L 120 435 M 180 420 L 170 435 M 230 420 L 220 435 M 280 420 L 270 435 M 330 420 L 320 435 M 380 420 L 370 435 M 430 420 L 420 435 M 480 420 L 470 435 M 530 420 L 520 435 M 580 420 L 570 435 M 630 420 L 620 435 M 680 420 L 670 435 M 730 420 L 720 435 M 780 420 L 770 435 M 830 420 L 820 435" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="train-body" x="220" y="340" width="200" height="80" rx="8" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="train-cab" x="370" y="310" width="50" height="30" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<circle id="wheel-left" cx="270" cy="422" r="14" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="wheel-right" cx="380" cy="422" r="14" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_train-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="train-velocity" x1="420" y1="375" x2="560" y2="375" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_train-velocity)"/>
+<text id="train-velocity-label" x="565" y="372" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">v_{\text{train}} = 0.5c</text>
+<defs><marker id="arrowhead_light-ray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ffee55"/></marker></defs><line id="light-ray" x1="422" y1="355" x2="760" y2="280" stroke="#ffee55" stroke-width="2.5" marker-end="url(#arrowhead_light-ray)"/>
+<circle id="torch-dot" cx="422" cy="355" r="5" fill="none" stroke="#ffee55" stroke-width="2" stroke-dasharray=""/>
+<text id="torch-label" x="408" y="342" font-size="11" fill="#ffee55" text-anchor="middle" font-weight="normal">torch</text>
+<circle id="person-head" cx="300" cy="348" r="12" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="person-label" x="300" y="336" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">you</text>
+<circle id="observer-head" cx="760" cy="390" r="14" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-body" x1="760" y1="404" x2="760" y2="420" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<text id="observer-label" x="760" y="450" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="normal">platform observer</text>
+<path id="naive-arrow" d="M 200 195 L 560 195" stroke="rgba(232,232,238,0.3)" stroke-width="1.5" fill="none" stroke-dasharray="5 5"/>
+<text id="naive-label" x="380" y="185" font-size="13" fill="rgba(232,232,238,0.4)" font-style="italic" text-anchor="middle">\text{naive: } 0.5c + c = 1.5c \;?</text>
+<path id="cross-out" d="M 240 175 L 590 205" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="measured-label" x="680" y="255" font-size="14" fill="#ffee55" font-style="italic" text-anchor="middle">\text{measured: } c</text>
+<text id="always-c-label" x="760" y="490" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">\text{always } c</text>
+</svg>

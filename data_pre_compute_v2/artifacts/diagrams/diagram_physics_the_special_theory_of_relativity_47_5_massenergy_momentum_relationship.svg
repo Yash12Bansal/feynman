@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis-horiz" x1="160" y1="480" x2="720" y2="480" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="axis-vert" x1="160" y1="480" x2="160" y2="100" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="leg-rest" x1="160" y1="480" x2="160" y2="200" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="leg-momentum" x1="160" y1="480" x2="560" y2="480" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<line id="hyp-total" x1="160" y1="200" x2="560" y2="480" stroke="#ff7a8a" stroke-width="3" stroke-dasharray=""/>
+<path id="right-angle-marker" d="M 160 460 L 180 460 L 180 480" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="label-rest" x="90" y="342" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">m_0 c^2</text>
+<text id="label-momentum" x="360" y="510" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">pc</text>
+<text id="label-total" x="390" y="322" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">E</text>
+<text id="relation-eq" x="450" y="175" font-size="17" fill="#e8e8ee" font-style="italic" text-anchor="middle">E^2 = (m_0 c^2)^2 + (pc)^2</text>
+<line id="photon-line" x1="160" y1="480" x2="560" y2="480" stroke="rgba(232,232,238,0)" stroke-width="0" stroke-dasharray=""/>
+<line id="photon-ray" x1="160" y1="480" x2="490" y2="218" stroke="#9effc9" stroke-width="1.5" stroke-dasharray="7 4"/>
+<text id="photon-label" x="500" y="210" font-size="11" fill="#9effc9" text-anchor="start" font-weight="normal">photon: m₀= 0</text>
+<text id="photon-eq" x="540" y="248" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">E = pc</text>
+<line id="classical-arc-guide" x1="160" y1="200" x2="560" y2="480" stroke="rgba(232,232,238,0)" stroke-width="0" stroke-dasharray=""/>
+<path id="angle-arc" d="M 160.0 432.0 A 48.0 48.0 0 0 1 198.8328157299975 451.7863078899613" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none"/>
+<text id="angle-label" x="178" y="428" font-size="12" fill="rgba(232,232,238,0.75)" text-anchor="middle" font-weight="normal">θ</text>
+<line id="classical-limit-line" x1="560" y1="480" x2="560" y2="200" stroke="rgba(232,232,238,0.18)" stroke-width="1" stroke-dasharray="4 5"/>
+<line id="total-energy-vert" x1="560" y1="200" x2="560" y2="480" stroke="rgba(232,232,238,0)" stroke-width="0" stroke-dasharray=""/>
+<path id="ke-brace" d="M 570 200 L 578 200 L 578 480 L 570 480" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<text id="ke-label" x="620" y="345" font-size="13" fill="rgba(232,232,238,0.65)" font-style="italic" text-anchor="middle">KE</text>
+<text id="ke-caption" x="650" y="368" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">≈ ½mv²  (v≪c)</text>
+<line id="rest-top-tick" x1="152" y1="200" x2="168" y2="200" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="momentum-right-tick" x1="560" y1="472" x2="560" y2="488" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="origin-dot" cx="160" cy="480" r="4" fill="none" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="apex-dot" cx="160" cy="200" r="4" fill="none" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="momentum-tip-dot" cx="560" cy="480" r="4" fill="none" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="hyp-tip-dot" cx="560" cy="480" r="0" fill="none" stroke="none" stroke-width="0" stroke-dasharray=""/>
+<text id="rest-sublabel" x="75" y="362" font-size="10" fill="rgba(127,212,255,0.7)" text-anchor="middle" font-weight="normal">rest energy</text>
+<text id="momentum-sublabel" x="360" y="528" font-size="10" fill="rgba(158,255,201,0.7)" text-anchor="middle" font-weight="normal">momentum term</text>
+<text id="total-sublabel" x="408" y="340" font-size="10" fill="rgba(255,122,138,0.7)" text-anchor="middle" font-weight="normal">total energy</text>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<ellipse id="coin-face-front" cx="450" cy="240" rx="130" ry="130" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<ellipse id="coin-rim-top" cx="450" cy="240" rx="130" ry="18" fill="none" stroke="#7fd4ff" stroke-width="1.5"/>
+<path id="coin-edge-left" d="M 320 240 L 320 268" stroke="#9effc9" stroke-width="3" fill="none" stroke-dasharray=""/>
+<path id="coin-edge-right" d="M 580 240 L 580 268" stroke="#9effc9" stroke-width="3" fill="none" stroke-dasharray=""/>
+<ellipse id="coin-face-back" cx="450" cy="268" rx="130" ry="18" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="mass-label" x="450" y="228" font-size="28" fill="#7fd4ff" text-anchor="middle" font-weight="700">MASS</text>
+<text id="mass-symbol" x="450" y="262" font-size="20" fill="#7fd4ff" font-style="italic" text-anchor="middle">m</text>
+<text id="energy-label" x="450" y="310" font-size="18" fill="#9effc9" text-anchor="middle" font-weight="700">ENERGY</text>
+<text id="energy-symbol" x="450" y="330" font-size="16" fill="#9effc9" font-style="italic" text-anchor="middle">E</text>
+<text id="c2-edge-label" x="620" y="258" font-size="22" fill="#ff7a8a" font-style="italic" text-anchor="middle">\times\, c^{2}</text>
+<text id="c2-caption" x="660" y="278" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">edge conversion</text>
+<line id="c2-pointer" x1="612" y1="258" x2="582" y2="258" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line id="divider" x1="200" y1="390" x2="700" y2="390" stroke="rgba(232,232,238,0.25)" stroke-width="1" stroke-dasharray=""/>
+<text id="scale-header" x="450" y="425" font-size="11" fill="rgba(232,232,238,0.45)" text-anchor="middle" font-weight="normal">visceral scale</text>
+<rect id="mass-block" x="200" y="445" width="28" height="28" rx="3" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<text id="mass-block-label" x="214" y="490" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">1 g</text>
+<defs><marker id="arrowhead_scale-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="scale-arrow" x1="240" y1="459" x2="330" y2="459" stroke="#ff7a8a" stroke-width="2" marker-end="url(#arrowhead_scale-arrow)"/>
+<text id="equals-label" x="340" y="463" font-size="18" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">\approx</text>
+<rect id="energy-bar" x="370" y="438" width="310" height="42" rx="4" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="energy-bar-label" x="525" y="464" font-size="18" fill="#9effc9" text-anchor="middle" font-weight="700">90 terajoules</text>
+<text id="energy-bar-sublabel" x="525" y="498" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">9 × 10¹³ J</text>
+<text id="city-caption" x="450" y="540" font-size="11" fill="rgba(232,232,238,0.4)" text-anchor="middle" font-weight="normal">enough to power a city for years</text>
+<text id="equation" x="450" y="148" font-size="22" fill="#ff7a8a" font-style="italic" text-anchor="middle">E = mc^{2}</text>
+</svg>

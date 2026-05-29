@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="divider_1" x1="300" y1="80" x2="300" y2="570" stroke="rgba(232,232,238,0.18)" stroke-width="1.2" stroke-dasharray="6,6"/>
+<line id="divider_2" x1="600" y1="80" x2="600" y2="570" stroke="rgba(232,232,238,0.18)" stroke-width="1.2" stroke-dasharray="6,6"/>
+<line id="c_line_left" x1="60" y1="200" x2="260" y2="200" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray="8,5"/>
+<text id="c_label_left" x="268" y="204" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">c</text>
+<path id="particle_curve" d="M 70 480 C 100 420 140 340 180 290 C 210 255 240 228 270 215" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_push_arrow_1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="push_arrow_1" x1="90" y1="510" x2="130" y2="510" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_push_arrow_1)"/>
+<defs><marker id="arrowhead_push_arrow_2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="push_arrow_2" x1="150" y1="510" x2="200" y2="510" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_push_arrow_2)"/>
+<defs><marker id="arrowhead_push_arrow_3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="push_arrow_3" x1="210" y1="510" x2="270" y2="510" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_push_arrow_3)"/>
+<circle id="particle_dot" cx="270" cy="510" r="8" fill="none" stroke="#9effc9" stroke-width="2.2" stroke-dasharray=""/>
+<text id="panel1_label" x="160" y="108" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">massive particle</text>
+<text id="panel1_caption" x="160" y="590" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">speed → c, never = c</text>
+<text id="axis_label_left" x="68" y="490" font-size="10" fill="rgba(232,232,238,0.45)" text-anchor="start" font-weight="normal">push →</text>
+<line id="c_line_mid" x1="330" y1="200" x2="570" y2="200" stroke="#ff7a8a" stroke-width="1.8" stroke-dasharray="8,5"/>
+<text id="c_label_mid" x="576" y="204" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">c</text>
+<defs><marker id="arrowhead_signal_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="signal_arrow" x1="340" y1="350" x2="560" y2="350" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_signal_arrow)"/>
+<circle id="source_dot" cx="340" cy="350" r="7" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="receiver_dot" cx="560" cy="350" r="7" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="source_label" x="340" y="378" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">A</text>
+<text id="receiver_label" x="560" y="378" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">B</text>
+<path id="forbidden_arrow" d="M 340 290 L 560 290" stroke="rgba(255,122,138,0.35)" stroke-width="2" fill="none" stroke-dasharray="5,4"/>
+<text id="forbidden_label" x="450" y="280" font-size="11" fill="rgba(255,122,138,0.7)" text-anchor="middle" font-weight="normal">✕  faster than c</text>
+<text id="panel2_label" x="450" y="108" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">information / signal</text>
+<text id="panel2_caption" x="450" y="590" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">no signal A → B faster than c</text>
+<circle id="universe_circle" cx="750" cy="330" r="130" fill="none" stroke="rgba(232,232,238,0.2)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="c_barrier_line" x1="630" y1="200" x2="870" y2="200" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<text id="c_barrier_label" x="750" y="192" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="700">c</text>
+<defs><marker id="arrowhead_tech_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="tech_arrow" x1="680" y1="370" x2="680" y2="230" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_tech_arrow)"/>
+<text id="tech_label" x="660" y="310" font-size="10" fill="rgba(127,212,255,0.7)" text-anchor="middle" font-weight="normal">tech</text>
+<path id="cross_mark" d="M 668 218 L 692 242 M 692 218 L 668 242" stroke="#ff7a8a" stroke-width="2.2" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_logic_arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="logic_arrow" x1="820" y1="370" x2="820" y2="230" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_logic_arrow)"/>
+<text id="logic_label" x="840" y="310" font-size="10" fill="rgba(158,255,201,0.7)" text-anchor="start" font-weight="normal">logic</text>
+<path id="check_mark" d="M 808 228 L 818 240 L 834 218" stroke="#9effc9" stroke-width="2.2" fill="none" stroke-dasharray=""/>
+<text id="panel3_label" x="750" y="108" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">the limit is logical</text>
+<text id="panel3_caption" x="750" y="590" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">not engineering — geometry of spacetime</text>
+</svg>

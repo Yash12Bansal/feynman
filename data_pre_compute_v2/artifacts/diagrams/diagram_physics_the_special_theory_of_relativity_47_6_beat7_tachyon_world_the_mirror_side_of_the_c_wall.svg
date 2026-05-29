@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="x-axis" x1="70" y1="540" x2="860" y2="540" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<line id="y-axis" x1="70" y1="60" x2="70" y2="540" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="x-axis-arrow" x1="848" y1="540" x2="862" y2="540" stroke="#e8e8ee" stroke-width="1.8" marker-end="url(#arrowhead_x-axis-arrow)"/>
+<defs><marker id="arrowhead_y-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="y-axis-arrow" x1="70" y1="72" x2="70" y2="58" stroke="#e8e8ee" stroke-width="1.8" marker-end="url(#arrowhead_y-axis-arrow)"/>
+<text id="x-axis-label" x="860" y="558" font-size="12" fill="#e8e8ee" text-anchor="start" font-weight="normal">Speed v</text>
+<text id="y-axis-label" x="55" y="52" font-size="12" fill="#e8e8ee" text-anchor="end" font-weight="normal">m_eff</text>
+<text id="origin-label" x="58" y="556" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">0</text>
+<path id="normal-mass-curve" d="M 80 490 C 130 488 200 484 260 476 C 310 469 350 458 390 440 C 420 425 445 405 460 380 C 470 360 476 335 479 305 C 481 280 482 250 483 220 C 484 190 484 160 484 130 C 484 110 484 90 484 75" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="c-wall" x1="490" y1="55" x2="490" y2="545" stroke="#ff7a8a" stroke-width="3" stroke-dasharray="10,6"/>
+<text id="c-label" x="490" y="572" font-size="14" fill="#ff7a8a" text-anchor="middle" font-weight="600">c</text>
+<path id="tachyon-curve" d="M 497 75 C 497 90 497 110 498 130 C 499 160 500 190 501 220 C 502 250 503 280 505 305 C 508 335 512 360 520 380 C 532 405 548 425 570 440 C 600 458 635 469 670 476 C 710 484 760 488 810 490 C 830 491 848 491 858 491" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="normal-world-label" x="280" y="88" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Normal world</text>
+<text id="tachyon-world-label-1" x="672" y="88" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">Tachyon world</text>
+<text id="tachyon-world-label-2" x="672" y="106" font-size="10" fill="rgba(158,255,201,0.75)" text-anchor="middle" font-weight="normal">imaginary mass, cause-effect reversed</text>
+<text id="v-arrow-label" x="840" y="508" font-size="10" fill="rgba(158,255,201,0.65)" text-anchor="middle" font-weight="normal">v → ∞</text>
+<text id="m0-label" x="58" y="494" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">m₀</text>
+<line id="m0-tick" x1="65" y1="490" x2="75" y2="490" stroke="rgba(232,232,238,0.4)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="asymptote-guide" x1="70" y1="490" x2="860" y2="490" stroke="rgba(232,232,238,0.15)" stroke-width="1" stroke-dasharray="4,6"/>
+<rect id="sudarshan-portrait-box" x="590" y="290" width="110" height="130" rx="4" fill="none" stroke="rgba(158,255,201,0.45)" stroke-width="1.5"/>
+<circle id="sudarshan-head" cx="645" cy="325" r="18" fill="none" stroke="rgba(158,255,201,0.6)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="sudarshan-shoulders" d="M 615 380 Q 620 355 645 350 Q 670 355 675 380" stroke="rgba(158,255,201,0.6)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="sudarshan-name" x="645" y="400" font-size="9" fill="rgba(158,255,201,0.85)" text-anchor="middle" font-weight="600">E.C.G. Sudarshan</text>
+<text id="sudarshan-caption" x="645" y="413" font-size="8" fill="rgba(158,255,201,0.6)" text-anchor="middle" font-weight="normal">first proposed tachyons</text>
+<text id="infinity-top-left" x="58" y="78" font-size="13" fill="rgba(232,232,238,0.45)" text-anchor="middle" font-weight="normal">∞</text>
+<text id="causality-note" x="280" y="580" font-size="10" fill="rgba(119,212,255,0.55)" text-anchor="middle" font-weight="normal">v &lt; c always</text>
+<text id="tachyon-speed-note" x="672" y="580" font-size="10" fill="rgba(158,255,201,0.55)" text-anchor="middle" font-weight="normal">v &gt; c always</text>
+</svg>

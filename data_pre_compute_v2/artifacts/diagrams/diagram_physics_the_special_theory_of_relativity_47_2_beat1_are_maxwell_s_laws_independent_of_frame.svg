@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="label-newton" x="225" y="52" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Newton&#x27;s Laws</text>
+<text id="label-maxwell" x="675" y="52" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Maxwell&#x27;s Equations</text>
+<line id="divider" x1="450" y1="30" x2="450" y2="620" stroke="rgba(232,232,238,0.2)" stroke-width="1.5" stroke-dasharray="6,6"/>
+<line id="ground-left" x1="80" y1="430" x2="380" y2="430" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="hatch-left" d="M 90 430 L 82 444 M 120 430 L 112 444 M 150 430 L 142 444 M 180 430 L 172 444 M 210 430 L 202 444 M 240 430 L 232 444 M 270 430 L 262 444 M 300 430 L 292 444 M 330 430 L 322 444 M 360 430 L 352 444" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="block-A" x="148" y="370" width="54" height="54" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="block-A-label" x="175" y="402" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">A</text>
+<rect id="block-B" x="258" y="370" width="54" height="54" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="block-B-label" x="285" y="402" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">B</text>
+<defs><marker id="arrowhead_push-force" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="push-force" x1="100" y1="397" x2="148" y2="397" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_push-force)"/>
+<text id="push-label" x="92" y="393" font-size="12" fill="#9effc9" text-anchor="end" font-weight="600">F</text>
+<circle id="observer-left" cx="225" cy="280" r="14" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-left-body" x1="225" y1="294" x2="225" y2="340" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="observer-left-arm1" x1="225" y1="310" x2="200" y2="328" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="observer-left-arm2" x1="225" y1="310" x2="250" y2="328" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="observer-left-leg1" x1="225" y1="340" x2="208" y2="370" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="observer-left-leg2" x1="225" y1="340" x2="242" y2="370" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<text id="newton-relativity" x="225" y="510" font-size="15" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">F = ma</text>
+<text id="newton-caption" x="225" y="580" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">same in all inertial frames</text>
+<circle id="observer-right" cx="580" cy="280" r="14" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-right-body" x1="580" y1="294" x2="580" y2="340" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="observer-right-arm1" x1="580" y1="310" x2="555" y2="328" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="observer-right-arm2" x1="580" y1="310" x2="605" y2="328" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="observer-right-leg1" x1="580" y1="340" x2="563" y2="370" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<line id="observer-right-leg2" x1="580" y1="340" x2="597" y2="370" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray=""/>
+<defs><marker id="arrowhead_observer-right-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="observer-right-velocity" x1="580" y1="220" x2="640" y2="220" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_observer-right-velocity)"/>
+<text id="v-label" x="648" y="218" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">v</text>
+<path id="light-wave" d="M 660 370 Q 668 355 676 370 Q 684 385 692 370 Q 700 355 708 370 Q 716 385 724 370 Q 732 355 740 370 Q 748 385 756 370 Q 764 355 772 370 Q 780 385 788 370 Q 796 355 804 370" stroke="#9effc9" stroke-width="2.2" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_light-direction" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="light-direction" x1="804" y1="370" x2="830" y2="370" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_light-direction)"/>
+<text id="c-label" x="745" y="350" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">c</text>
+<text id="maxwell-speed" x="675" y="510" font-size="15" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">c = \frac{1}{\sqrt{\mu_0 \varepsilon_0}}</text>
+<text id="maxwell-caption" x="675" y="580" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">predicts one fixed speed</text>
+<text id="question-mark" x="450" y="325" font-size="36" fill="rgba(232,232,238,0.18)" text-anchor="middle" font-weight="600">?</text>
+</svg>

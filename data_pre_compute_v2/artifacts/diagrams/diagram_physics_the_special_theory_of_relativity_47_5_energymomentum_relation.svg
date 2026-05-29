@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="triangle" d="M 200 500 L 700 500 L 200 140 Z" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<rect id="right_angle_marker" x="200" y="468" width="32" height="32" rx="0" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="1.5"/>
+<defs><marker id="arrowhead_rest_energy_leg" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="rest_energy_leg" x1="200" y1="500" x2="700" y2="500" stroke="#7fd4ff" stroke-width="3" marker-end="url(#arrowhead_rest_energy_leg)"/>
+<defs><marker id="arrowhead_momentum_leg" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="momentum_leg" x1="200" y1="500" x2="200" y2="140" stroke="#9effc9" stroke-width="3" marker-end="url(#arrowhead_momentum_leg)"/>
+<defs><marker id="arrowhead_total_energy_hyp" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="total_energy_hyp" x1="200" y1="140" x2="700" y2="500" stroke="#ff7a8a" stroke-width="3" marker-end="url(#arrowhead_total_energy_hyp)"/>
+<text id="rest_energy_label" x="450" y="548" font-size="18" fill="#7fd4ff" font-style="italic" text-anchor="middle">m_0 c^2</text>
+<text id="momentum_label" x="148" y="330" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">pc</text>
+<text id="total_energy_label" x="490" y="295" font-size="18" fill="#ff7a8a" font-style="italic" text-anchor="middle">E</text>
+<text id="main_equation" x="450" y="90" font-size="20" fill="#e8e8ee" font-style="italic" text-anchor="middle">E^2 = (m_0 c^2)^2 + (pc)^2</text>
+<circle id="photon_point" cx="700" cy="500" r="7" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="photon_label" x="718" y="518" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">photon: m₀ = 0</text>
+<text id="photon_eq" x="718" y="540" font-size="13" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">E = pc</text>
+<circle id="rest_point" cx="200" cy="500" r="7" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="rest_label" x="100" y="518" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">rest: p = 0</text>
+<text id="rest_eq" x="100" y="540" font-size="13" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">E = m_0 c^2</text>
+</svg>

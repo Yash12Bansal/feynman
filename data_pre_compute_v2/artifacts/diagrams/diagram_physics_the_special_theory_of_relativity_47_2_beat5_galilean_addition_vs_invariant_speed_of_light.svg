@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="left-label" x="225" y="52" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Ball on a train</text>
+<text id="right-label" x="675" y="52" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Light from a moving source</text>
+<line id="divider" x1="450" y1="30" x2="450" y2="620" stroke="rgba(232,232,238,0.18)" stroke-width="1.2" stroke-dasharray="6,5"/>
+<line id="left-ground" x1="60" y1="430" x2="420" y2="430" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="left-hatch" d="M 70 430 L 62 444 M 100 430 L 92 444 M 130 430 L 122 444 M 160 430 L 152 444 M 190 430 L 182 444 M 220 430 L 212 444 M 250 430 L 242 444 M 280 430 L 272 444 M 310 430 L 302 444 M 340 430 L 332 444 M 370 430 L 362 444 M 400 430 L 392 444 M 420 430 L 412 444" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="train-car" x="110" y="340" width="160" height="70" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<circle id="wheel-left" cx="145" cy="430" r="12" fill="none" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<circle id="wheel-right" cx="235" cy="430" r="12" fill="none" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<defs><marker id="arrowhead_train-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="train-velocity" x1="270" y1="375" x2="355" y2="375" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_train-velocity)"/>
+<text id="train-v-label" x="358" y="371" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">v</text>
+<circle id="ball" cx="190" cy="355" r="10" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_ball-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="ball-velocity" x1="200" y1="355" x2="270" y2="355" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_ball-velocity)"/>
+<text id="ball-u-label" x="237" y="347" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">u</text>
+<circle id="platform-observer-left" cx="390" cy="510" r="14" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-left-body" x1="390" y1="524" x2="390" y2="555" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-left-legs-l" x1="390" y1="555" x2="375" y2="575" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-left-legs-r" x1="390" y1="555" x2="405" y2="575" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-left-arms" x1="373" y1="538" x2="407" y2="538" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="galilean-result" x="225" y="560" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">Platform sees: v + u</text>
+<line id="right-ground" x1="480" y1="430" x2="840" y2="430" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="right-hatch" d="M 490 430 L 482 444 M 520 430 L 512 444 M 550 430 L 542 444 M 580 430 L 572 444 M 610 430 L 602 444 M 640 430 L 632 444 M 670 430 L 662 444 M 700 430 L 692 444 M 730 430 L 722 444 M 760 430 L 752 444 M 790 430 L 782 444 M 820 430 L 812 444" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<path id="rocket-body" d="M 530 355 L 600 355 L 615 375 L 600 395 L 530 395 Z" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<path id="rocket-fin" d="M 530 390 L 510 410 L 530 395 Z" stroke="#e8e8ee" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_rocket-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="rocket-velocity" x1="615" y1="375" x2="680" y2="375" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_rocket-velocity)"/>
+<text id="rocket-u-label" x="648" y="367" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">u</text>
+<defs><marker id="arrowhead_light-beam" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="light-beam" x1="615" y1="355" x2="790" y2="270" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_light-beam)"/>
+<text id="light-c-label" x="718" y="295" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">c</text>
+<circle id="platform-observer-right" cx="820" cy="510" r="14" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-right-body" x1="820" y1="524" x2="820" y2="555" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-right-legs-l" x1="820" y1="555" x2="805" y2="575" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-right-legs-r" x1="820" y1="555" x2="835" y2="575" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-right-arms" x1="803" y1="538" x2="837" y2="538" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="wrong-result" x="675" y="555" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">c + u</text>
+<line id="cross-1" x1="643" y1="540" x2="707" y2="570" stroke="#ff7a8a" stroke-width="3" stroke-dasharray=""/>
+<line id="cross-2" x1="707" y1="540" x2="643" y2="570" stroke="#ff7a8a" stroke-width="3" stroke-dasharray=""/>
+<text id="correct-result" x="675" y="600" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">Platform still measures: c</text>
+<text id="left-caption" x="225" y="620" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Speeds add — Galilean relativity</text>
+<text id="right-caption" x="675" y="620" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Speed of light is invariant — always c</text>
+</svg>

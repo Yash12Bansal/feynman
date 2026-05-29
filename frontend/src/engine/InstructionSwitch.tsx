@@ -1,30 +1,31 @@
-import type { VisualInstruction } from "../types/visuals";
-import { TextContent } from "./content/TextContent";
-import { EquationContent } from "./content/EquationContent";
-import { StepEquationContent } from "./content/StepEquationContent";
-import { DiagramContent } from "./content/DiagramContent";
-import { GraphContent } from "./content/GraphContent";
-import { DesignDiagramContent } from "./whiteboard/content/DesignDiagramContent";
+// TODO(DEADCODE): file unused in active pipelines (lecture-playback / ask-feynman) — interactive live-agent rendering (parked). See docs/engineering/13-redundant-code-audit.md Group 1/2. Safe to delete.
+// import type { VisualInstruction } from "../types/visuals";
+// import { TextContent } from "./content/TextContent";
+// import { EquationContent } from "./content/EquationContent";
+// import { StepEquationContent } from "./content/StepEquationContent";
+// import { DiagramContent } from "./content/DiagramContent";
+// import { GraphContent } from "./content/GraphContent";
+// import { DesignDiagramContent } from "./whiteboard/content/DesignDiagramContent";
 
-export function InstructionSwitch({
-  instruction,
-}: {
-  instruction: VisualInstruction;
-}) {
-  switch (instruction.type) {
-    case "show_text":
-      return <TextContent instruction={instruction} />;
-    case "show_equation":
-      return <EquationContent instruction={instruction} />;
-    case "step_equation":
-      return <StepEquationContent instruction={instruction} />;
-    case "draw_diagram":
-      return <DiagramContent instruction={instruction} />;
-    case "draw_design_diagram":
-      return <DesignDiagramContent instruction={instruction} />;
-    case "show_graph":
-      return <GraphContent instruction={instruction} />;
-    default:
-      return null;
-  }
-}
+// export function InstructionSwitch({
+//   instruction,
+// }: {
+//   instruction: VisualInstruction;
+// }) {
+//   switch (instruction.type) {
+//     case "show_text":
+//       return <TextContent instruction={instruction} />;
+//     case "show_equation":
+//       return <EquationContent instruction={instruction} />;
+//     case "step_equation":
+//       return <StepEquationContent instruction={instruction} />;
+//     case "draw_diagram":
+//       return <DiagramContent instruction={instruction} />;
+//     case "draw_design_diagram":
+//       return <DesignDiagramContent instruction={instruction} />;
+//     case "show_graph":
+//       return <GraphContent instruction={instruction} />;
+//     default:
+//       return null;
+//   }
+// }

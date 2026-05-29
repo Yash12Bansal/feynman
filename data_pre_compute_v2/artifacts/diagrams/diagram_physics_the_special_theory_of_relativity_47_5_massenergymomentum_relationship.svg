@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="triangle" d="M 180 520 L 180 160 L 680 520 Z" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<rect id="right_angle_marker" x="180" y="500" width="22" height="22" rx="0" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="1.5"/>
+<defs><marker id="arrowhead_side_E" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="side_E" x1="185" y1="518" x2="672" y2="518" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_side_E)"/>
+<defs><marker id="arrowhead_side_mc2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="side_mc2" x1="183" y1="515" x2="183" y2="168" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_side_mc2)"/>
+<defs><marker id="arrowhead_side_pc" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="side_pc" x1="185" y1="163" x2="674" y2="516" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_side_pc)"/>
+<text id="label_E" x="450" y="570" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">pc</text>
+<text id="label_mc2" x="110" y="348" font-size="18" fill="#7fd4ff" font-style="italic" text-anchor="middle">mc^2</text>
+<text id="label_pc" x="460" y="318" font-size="18" fill="#ff7a8a" font-style="italic" text-anchor="middle">E</text>
+<text id="main_equation" x="620" y="200" font-size="20" fill="#e8e8ee" font-style="italic" text-anchor="middle">E^2 = (mc^2)^2 + (pc)^2</text>
+<line id="eq_underline" x1="530" y1="212" x2="860" y2="212" stroke="rgba(232,232,238,0.25)" stroke-width="1" stroke-dasharray=""/>
+<text id="photon_note" x="695" y="260" font-size="13" fill="rgba(232,232,238,0.6)" font-style="italic" text-anchor="middle">m=0 \Rightarrow E = pc</text>
+<text id="classical_note" x="695" y="300" font-size="13" fill="rgba(232,232,238,0.6)" font-style="italic" text-anchor="middle">v \ll c \Rightarrow K \approx \tfrac{1}{2}mv^2</text>
+<circle id="vertex_origin" cx="180" cy="520" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="vertex_top" cx="180" cy="160" r="4" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="vertex_right" cx="680" cy="520" r="4" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+</svg>

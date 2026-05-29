@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="graph-border" x="110" y="60" width="680" height="500" rx="0" fill="none" stroke="rgba(232,232,238,0.15)" stroke-width="1"/>
+<line id="x-axis" x1="110" y1="560" x2="790" y2="560" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="y-axis" x1="110" y1="60" x2="110" y2="560" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="x-axis-arrow" x1="775" y1="560" x2="800" y2="560" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_x-axis-arrow)"/>
+<defs><marker id="arrowhead_y-axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="y-axis-arrow" x1="110" y1="75" x2="110" y2="50" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_y-axis-arrow)"/>
+<text id="x-label" x="450" y="600" font-size="13" fill="rgba(232,232,238,0.75)" text-anchor="middle" font-weight="normal">Energy input (→ ∞)</text>
+<text id="y-label" x="38" y="310" font-size="13" fill="rgba(232,232,238,0.75)" text-anchor="middle" font-weight="normal">Speed</text>
+<line id="asymptote-line" x1="110" y1="100" x2="790" y2="100" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="10,7"/>
+<text id="c-label" x="800" y="96" font-size="15" fill="#ff7a8a" text-anchor="start" font-weight="600">c</text>
+<path id="curve-blue" d="M 110 560 C 160 540 200 490 250 420" stroke="#5588ff" stroke-width="3.5" fill="none" stroke-dasharray=""/>
+<path id="curve-mid" d="M 250 420 C 300 350 360 270 430 190" stroke="#cc66ff" stroke-width="3.5" fill="none" stroke-dasharray=""/>
+<path id="curve-red" d="M 430 190 C 500 150 580 125 680 110 C 720 106 750 103 790 101" stroke="#ff7a4a" stroke-width="3.5" fill="none" stroke-dasharray=""/>
+<circle id="rocket-body-outer" cx="430" cy="190" r="14" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<path id="rocket-icon" d="M 418 190 L 426 182 L 434 182 L 442 190 L 434 198 L 426 198 Z" stroke="#e8e8ee" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_rocket-direction" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="rocket-direction" x1="444" y1="190" x2="460" y2="190" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_rocket-direction)"/>
+<path id="gap-indicator" d="M 760 101 L 760 100" stroke="rgba(232,232,238,0.0)" stroke-width="1" fill="none" stroke-dasharray=""/>
+<line id="gap-arrow-line" x1="720" y1="108" x2="720" y2="100" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray="3,3"/>
+<text id="never-label" x="620" y="135" font-size="11" fill="rgba(232,232,238,0.5)" text-anchor="middle" font-weight="normal">never reaches c</text>
+<text id="origin-label" x="96" y="574" font-size="11" fill="rgba(232,232,238,0.5)" text-anchor="middle" font-weight="normal">0</text>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="number-line" x1="80" y1="320" x2="820" y2="320" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.45)"/></marker></defs><line id="axis-arrow" x1="800" y1="320" x2="830" y2="320" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" marker-end="url(#arrowhead_axis-arrow)"/>
+<line id="origin-tick" x1="180" y1="313" x2="180" y2="327" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="observer-a-head" cx="180" cy="285" r="10" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-a-body" x1="180" y1="295" x2="180" y2="318" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-a-arms" x1="165" y1="305" x2="195" y2="305" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-a-leg-l" x1="180" y1="318" x2="168" y2="332" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-a-leg-r" x1="180" y1="318" x2="192" y2="332" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="observer-a-label" x="180" y="268" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">A</text>
+<circle id="observer-b-head" cx="460" cy="285" r="10" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-b-body" x1="460" y1="295" x2="460" y2="318" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-b-arms" x1="445" y1="305" x2="475" y2="305" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-b-leg-l" x1="460" y1="318" x2="448" y2="332" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="observer-b-leg-r" x1="460" y1="318" x2="472" y2="332" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="observer-b-label" x="460" y="268" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<defs><marker id="arrowhead_observer-b-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="observer-b-velocity" x1="476" y1="285" x2="530" y2="285" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_observer-b-velocity)"/>
+<text id="observer-b-velocity-label" x="503" y="273" font-size="11" fill="#9effc9" font-style="italic" text-anchor="middle">u = c/2</text>
+<circle id="light-pulse-glow" cx="720" cy="320" r="18" fill="none" stroke="rgba(255,240,100,0.35)" stroke-width="6" stroke-dasharray=""/>
+<circle id="light-pulse-core" cx="720" cy="320" r="9" fill="none" stroke="#ffe066" stroke-width="2.5" stroke-dasharray=""/>
+<path id="light-pulse-rays" d="M 720 297 L 720 291 M 736 302 L 740 297 M 743 320 L 749 320 M 736 338 L 740 343 M 720 343 L 720 349 M 704 338 L 700 343 M 697 320 L 691 320 M 704 302 L 700 297" stroke="#ffe066" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<text id="light-pulse-label" x="720" y="268" font-size="13" fill="#ffe066" text-anchor="middle" font-weight="600">W</text>
+<defs><marker id="arrowhead_light-pulse-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ffe066"/></marker></defs><line id="light-pulse-velocity" x1="740" y1="285" x2="800" y2="285" stroke="#ffe066" stroke-width="2.5" marker-end="url(#arrowhead_light-pulse-velocity)"/>
+<text id="light-pulse-velocity-label" x="770" y="273" font-size="11" fill="#ffe066" font-style="italic" text-anchor="middle">c</text>
+<path id="distance-aw-bracket" d="M 180 395 L 180 408 L 720 408 L 720 395" stroke="rgba(232,232,238,0.7)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="distance-aw" x="450" y="428" font-size="12" fill="rgba(232,232,238,0.9)" font-style="italic" text-anchor="middle">AW = c \cdot t</text>
+<path id="distance-bw-bracket" d="M 460 450 L 460 463 L 720 463 L 720 450" stroke="#9effc9" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
+<text id="distance-bw" x="590" y="482" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">BW = c \cdot t</text>
+<path id="distance-ab-bracket" d="M 180 245 L 180 232 L 460 232 L 460 245" stroke="rgba(232,232,238,0.7)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="distance-ab" x="320" y="222" font-size="12" fill="rgba(232,232,238,0.9)" font-style="italic" text-anchor="middle">AB = \tfrac{c}{2} \cdot t</text>
+<line id="observer-a" x1="180" y1="275" x2="180" y2="335" stroke="#7fd4ff" stroke-width="0.1" stroke-dasharray=""/>
+<line id="observer-b" x1="460" y1="275" x2="460" y2="335" stroke="#9effc9" stroke-width="0.1" stroke-dasharray=""/>
+<circle id="light-pulse-w" cx="720" cy="320" r="1" fill="none" stroke="#ffe066" stroke-width="0.1" stroke-dasharray=""/>
+<rect id="contradiction-note" x="260" y="516" width="380" height="44" rx="6" fill="none" stroke="#ff7a8a" stroke-width="1.5"/>
+<text id="contradiction-text" x="450" y="543" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">AW = BW,  but  AB ≠ 0 — contradiction?</text>
+</svg>

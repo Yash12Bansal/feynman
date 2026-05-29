@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="label-ground" x="225" y="58" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Ground frame</text>
+<text id="label-train" x="675" y="58" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Train frame</text>
+<line id="divider" x1="450" y1="80" x2="450" y2="590" stroke="rgba(232,232,238,0.18)" stroke-width="1.2" stroke-dasharray="6 6"/>
+<line id="ground-left" x1="80" y1="460" x2="380" y2="460" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="hatch-left" d="M 90 460 L 80 475 M 120 460 L 110 475 M 150 460 L 140 475 M 180 460 L 170 475 M 210 460 L 200 475 M 240 460 L 230 475 M 270 460 L 260 475 M 300 460 L 290 475 M 330 460 L 320 475 M 360 460 L 350 475 M 380 460 L 370 475" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="train-car-left" x="110" y="340" width="230" height="120" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<circle id="wheel-left-1" cx="160" cy="462" r="14" fill="none" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<circle id="wheel-left-2" cx="290" cy="462" r="14" fill="none" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<defs><marker id="arrowhead_train-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="train-velocity" x1="340" y1="395" x2="415" y2="395" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_train-velocity)"/>
+<text id="v-label" x="420" y="391" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">v</text>
+<circle id="observer-left" cx="225" cy="370" r="12" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="body-left" x1="225" y1="382" x2="225" y2="420" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="arms-left" x1="200" y1="398" x2="250" y2="398" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="leg-left-1" x1="225" y1="420" x2="210" y2="450" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="leg-left-2" x1="225" y1="420" x2="240" y2="450" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="ball-left" cx="225" cy="310" r="10" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_ball-drop-left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="ball-drop-left" x1="225" y1="320" x2="225" y2="355" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_ball-drop-left)"/>
+<path id="parabola-left" d="M 225 355 Q 265 400 295 450" stroke="#9effc9" stroke-width="1.8" fill="none" stroke-dasharray="5 4"/>
+<text id="parabola-label" x="308" y="448" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">curved path</text>
+<line id="ground-right" x1="520" y1="460" x2="820" y2="460" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="hatch-right" d="M 530 460 L 520 475 M 560 460 L 550 475 M 590 460 L 580 475 M 620 460 L 610 475 M 650 460 L 640 475 M 680 460 L 670 475 M 710 460 L 700 475 M 740 460 L 730 475 M 770 460 L 760 475 M 800 460 L 790 475 M 820 460 L 810 475" stroke="rgba(232,232,238,0.45)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="train-car-right" x="550" y="340" width="250" height="120" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<circle id="wheel-right-1" cx="600" cy="462" r="14" fill="none" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<circle id="wheel-right-2" cx="740" cy="462" r="14" fill="none" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<circle id="observer-right" cx="675" cy="370" r="12" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="body-right" x1="675" y1="382" x2="675" y2="420" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="arms-right" x1="650" y1="398" x2="700" y2="398" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="leg-right-1" x1="675" y1="420" x2="660" y2="450" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="leg-right-2" x1="675" y1="420" x2="690" y2="450" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="ball-right" cx="675" cy="310" r="10" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_ball-drop-right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="ball-drop-right" x1="675" y1="320" x2="675" y2="355" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_ball-drop-right)"/>
+<path id="straight-drop-right" d="M 675 355 L 675 450" stroke="#9effc9" stroke-width="1.8" fill="none" stroke-dasharray="5 4"/>
+<text id="straight-label" x="688" y="415" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">straight down</text>
+<text id="newton-left" x="225" y="530" font-size="15" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">F = ma</text>
+<text id="newton-right" x="675" y="530" font-size="15" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">F = ma</text>
+<text id="caption-left" x="225" y="580" font-size="11" fill="rgba(232,232,238,0.45)" text-anchor="middle" font-weight="normal">ball curves — observer at rest</text>
+<text id="caption-right" x="675" y="580" font-size="11" fill="rgba(232,232,238,0.45)" text-anchor="middle" font-weight="normal">ball drops straight — same laws</text>
+</svg>

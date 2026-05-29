@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="label-rest" x="225" y="58" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">At rest</text>
+<text id="label-moving" x="675" y="58" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Near speed of light</text>
+<line id="divider" x1="450" y1="80" x2="450" y2="580" stroke="rgba(232,232,238,0.2)" stroke-width="1" stroke-dasharray="6,6"/>
+<rect id="cart-rest-body" x="165" y="290" width="120" height="70" rx="5" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<circle id="cart-rest-wheel1" cx="185" cy="368" r="12" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="cart-rest-wheel2" cx="265" cy="368" r="12" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="ground-rest" x1="100" y1="382" x2="350" y2="382" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="m0-label" x="225" y="282" font-size="22" fill="#7fd4ff" text-anchor="middle" font-weight="600">m₀</text>
+<defs><marker id="arrowhead_push-rest" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="push-rest" x1="100" y1="325" x2="162" y2="325" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_push-rest)"/>
+<text id="push-rest-label" x="90" y="320" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">F</text>
+<text id="caption-rest" x="225" y="430" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">v = 0</text>
+<rect id="cart-moving-body" x="595" y="290" width="120" height="70" rx="5" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<circle id="cart-moving-wheel1" cx="615" cy="368" r="12" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="cart-moving-wheel2" cx="695" cy="368" r="12" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="ground-moving" x1="530" y1="382" x2="800" y2="382" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="gm0-label" x="655" y="282" font-size="22" fill="#ff7a8a" text-anchor="middle" font-weight="600">γ m₀</text>
+<defs><marker id="arrowhead_velocity-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="velocity-arrow" x1="718" y1="325" x2="800" y2="325" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_velocity-arrow)"/>
+<text id="velocity-label" x="810" y="320" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">v → c</text>
+<defs><marker id="arrowhead_push-moving" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="push-moving" x1="530" y1="325" x2="592" y2="325" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_push-moving)"/>
+<text id="push-moving-label" x="520" y="320" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">F</text>
+<text id="caption-moving" x="655" y="430" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">v → c,  γ → ∞</text>
+<text id="formula" x="450" y="530" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">m = \gamma m_0 = \dfrac{m_0}{\sqrt{1 - v^2/c^2}}</text>
+</svg>

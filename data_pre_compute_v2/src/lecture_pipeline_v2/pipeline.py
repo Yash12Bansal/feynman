@@ -29,12 +29,14 @@ from neo4j import AsyncGraphDatabase
 from .config import PipelineConfig
 from .curriculum.anchors import DeterministicAnchorExtractor
 from .curriculum.anchors.models import ExtractionAnchors
-from .curriculum.beat_narration import BeatNarrationWriter
+# TODO(DEADCODE): BeatNarrationWriter import — legacy 7d only. See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
+# from .curriculum.beat_narration import BeatNarrationWriter
 from .curriculum.enrichment.diagram_qa import DiagramQA, QAResult
-from .curriculum.enrichment.diagram_spec_generator import (
-    DESIGN_DIAGRAM_TOOLS,
-    DiagramSpecGenerator,
-)
+# TODO(DEADCODE): diagram_spec_generator import — used only by the now-unreferenced legacy helpers below; comment when deleting them. See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
+# from .curriculum.enrichment.diagram_spec_generator import (
+#     DESIGN_DIAGRAM_TOOLS,
+#     DiagramSpecGenerator,
+# )
 from .curriculum.enrichment.orchestrator import EnrichmentOrchestrator
 from .curriculum.enrichment.prereqs import PrereqLinker
 from .curriculum.id_generator import generate_chapter_uid
@@ -46,7 +48,8 @@ from .curriculum.ingestion.embedding_generator import (
 from .curriculum.ingestion.idempotency import IdempotencySnapshot, take_snapshot
 from .curriculum.ingestion.neo4j_writer import Neo4jWriter
 from .curriculum.lecture_plan.chapter_planner import ChapterLecturePlanner
-from .curriculum.lecture_plan.concept_planner import ConceptPlanner
+# TODO(DEADCODE): ConceptPlanner import — legacy 7b only. See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
+# from .curriculum.lecture_plan.concept_planner import ConceptPlanner
 from .curriculum.lecture_plan.curriculum_adapter import CurriculumAdapter
 from .curriculum.lecture_plan.book_example_weaver import BookExampleWeaver
 from .curriculum.lecture_plan.lesson_diagram_generator import LessonDiagramGenerator
@@ -61,8 +64,10 @@ from .curriculum.lecture_plan.lesson_quality_gate import (
     LessonQualityGate,
 )
 from .curriculum.lecture_script.models import ChapterScript
-from .curriculum.length_enforcer import LengthEnforcer
-from .curriculum.script_assembler import ScriptAssembler
+# TODO(DEADCODE): LengthEnforcer import — legacy 7f only. See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
+# from .curriculum.length_enforcer import LengthEnforcer
+# TODO(DEADCODE): ScriptAssembler import — legacy 7g only. See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
+# from .curriculum.script_assembler import ScriptAssembler
 from .curriculum.media.artifact_store import ArtifactStore
 from .curriculum.media.audio_pipeline import AudioPipeline
 from .curriculum.media.diagram_renderer import DiagramFallbackRenderer
@@ -379,169 +384,170 @@ class CurriculumPipelineV2:
                     # `if not ch.concept_plans: continue` per chapter, so
                     # leaving concept_plans empty naturally skips them.
                     report.skipped_phases.append("concept_plan_legacy")
-                else:
-                    notify("concept_plan", "Planning per-concept teaching beats...")
-                    concept_planner = ConceptPlanner(self.config)
-                    concept_plans_by_chapter = await concept_planner.plan_for_all(
-                        chapter_nodes,
-                        topics_by_chapter_for_plan,
-                        lecture_plans,
-                        diagrams_by_topic_for_plan,
-                    )
-                    # Book-coverage USP post-pass: enforce the example
-                    # allocation rule per topic. The kernel ConceptTeachingPlan
-                    # doesn't carry topic_id, but plans come back in the same
-                    # order as `lecture_plan.concept_sequence` (a list of
-                    # topic_ids), so we zip them. Pure function — zero LLM cost.
-                    from .curriculum.lecture_plan.example_allocator import (
-                        allocate_example_beats,
-                    )
-                    for ch in chapter_nodes:
-                        plans = concept_plans_by_chapter.get(ch.chapter_id, [])
-                        lp = lecture_plans.get(ch.chapter_id)
-                        topic_lookup = {
-                            t.topic_id: t
-                            for t in topics_by_chapter_for_plan.get(ch.chapter_id, [])
-                        }
-                        sequence = lp.concept_sequence if lp else []
-                        reallocated: list[ConceptTeachingPlan] = []
-                        for plan, topic_id in zip(plans, sequence, strict=False):
-                            topic = topic_lookup.get(topic_id)
-                            if topic is None:
-                                reallocated.append(plan)
-                                continue
-                            reallocated.append(allocate_example_beats(plan, topic))
-                        ch.concept_plans = reallocated
-
-                # --- Phase 7c + 7d: per-beat diagrams + DiagramQA (NEW Phase 4c) ---
-                # Per-beat DiagramSpecGenerator iterates each Chapter.concept_plans,
-                # finds beats with visual.tool in {"draw_design_diagram",
-                # "modify_design_diagram"}, and generates one Diagram per such
-                # beat. DiagramQA scores each via Claude Sonnet vision; score <
-                # min_score triggers regeneration with the QA's suggestion as a
-                # corrective hint. Final diagrams (incl. needs_review flagged
-                # ones) join the chapter-wide diagrams list and topic.has_diagram_ids.
-                per_beat_cfg = self.config.enrichment.per_beat_diagrams
-                qa_cfg = self.config.enrichment.diagram_qa
-                if per_beat_cfg.enabled:
-                    notify(
-                        "per_beat_diagrams",
-                        "Generating per-beat design diagrams...",
-                    )
-                    new_diagrams = await self._run_per_beat_diagram_stage(
-                        chapter_nodes=chapter_nodes,
-                        topics_by_chapter=topics_by_chapter_for_plan,
-                        existing_diagram_ids={d.diagram_id for d in diagrams},
-                        per_beat_cfg=per_beat_cfg,
-                        qa_cfg=qa_cfg,
-                        skip_qa=skip_diagram_qa,
-                        notify=notify,
-                    )
-                    # Append per-beat diagrams to the chapter-wide list and to
-                    # each parent topic's has_diagram_ids so existing render
-                    # paths (Phase 10 fallback) pick them up.
-                    topics_by_id: dict[str, Any] = {t.topic_id: t for t in all_topics}
-                    for d in new_diagrams:
-                        diagrams.append(d)
-                        for tid in d.linked_topic_ids:
-                            t = topics_by_id.get(tid)
-                            if t is not None and d.diagram_id not in t.has_diagram_ids:
-                                t.has_diagram_ids.append(d.diagram_id)
-                    extraction.diagrams = diagrams
-                else:
-                    report.skipped_phases.append("per_beat_diagrams")
-
-                # --- Phase 7e + 7f + 7g: per-beat narration + length trim +
-                # script assembly (NEW Phase 4d, promoted to playback in 4e).
-                # ScriptAssembler's output (`chapter.assembled_chapter_script`)
-                # is consumed by Phase 8 to build the ChapterScript fed into
-                # the TTS layer.
-                bn_cfg = self.config.enrichment.beat_narration
-                le_cfg = self.config.enrichment.length_enforcer
-                sa_cfg = self.config.enrichment.script_assembler
-                if (not skip_beat_narration) and bn_cfg.enabled:
-                    diagrams_by_beat_id = {
-                        d.linked_beat_id: d for d in diagrams if d.linked_beat_id
-                    }
-                    notify("beat_narration", "Writing per-beat narrations...")
-                    bn_writer = BeatNarrationWriter(self.llm, config=bn_cfg)
-                    # `rewrite_context` is populated by `write_for_chapter` as
-                    # a side-effect so `LengthEnforcer` Pass 3 can re-invoke
-                    # the writer on the longest non-structural beat.
-                    rewrite_context: dict[str, Any] = {}
-                    for ch in chapter_nodes:
-                        if not ch.concept_plans or ch.lecture_plan is None:
-                            continue
-                        ch_topics = topics_by_chapter_for_plan.get(ch.chapter_id, [])
-                        ch_topics_by_id = {t.topic_id: t for t in ch_topics}
-                        narrations, bn_report = await bn_writer.write_for_chapter(
-                            chapter=ch,
-                            topics_by_id=ch_topics_by_id,
-                            diagrams_by_beat_id=diagrams_by_beat_id,
-                            rewrite_context_out=rewrite_context,
-                        )
-                        ch.beat_narrations = narrations
-                        logger.info(bn_report.summary())
-
-                    # Book-coverage validator (soft-warn v1). Logs structured
-                    # gaps for any Topic.book_examples that didn't land in a
-                    # faithful book-source beat. Promote to hard-fail once we
-                    # have signal on real ingests.
-                    from .curriculum.validation.example_coverage import (
-                        validate_example_coverage,
-                    )
-                    for ch in chapter_nodes:
-                        if not ch.beat_narrations:
-                            continue
-                        ch_topics = topics_by_chapter_for_plan.get(ch.chapter_id, [])
-                        narrations_by_topic: dict[str, list] = {}
-                        for n in ch.beat_narrations:
-                            narrations_by_topic.setdefault(n.topic_id, []).append(n)
-                        cov = validate_example_coverage(ch_topics, narrations_by_topic)
-                        logger.info(
-                            "example_coverage chapter=%s: %s",
-                            ch.chapter_id, cov.summary(),
-                        )
-
-                    if le_cfg.enabled:
-                        notify(
-                            "length_enforcer",
-                            "Enforcing length budget per chapter...",
-                        )
-                        enforcer = LengthEnforcer(config=le_cfg)
-                        for ch in chapter_nodes:
-                            if not ch.beat_narrations:
-                                continue
-                            le_report = await enforcer.trim(
-                                chapter=ch,
-                                rewriter=bn_writer,
-                                rewrite_context=rewrite_context,
-                            )
-                            logger.info(le_report.summary())
-                    else:
-                        report.skipped_phases.append("length_enforcer")
-
-                    if sa_cfg.enabled:
-                        notify(
-                            "script_assembler",
-                            "Assembling per-topic narration strings...",
-                        )
-                        assembler = ScriptAssembler(config=sa_cfg)
-                        for ch in chapter_nodes:
-                            if not ch.beat_narrations:
-                                continue
-                            ch_topics = topics_by_chapter_for_plan.get(
-                                ch.chapter_id, []
-                            )
-                            ch_topics_by_id = {t.topic_id: t for t in ch_topics}
-                            ch.assembled_chapter_script = assembler.assemble_chapter(
-                                chapter=ch,
-                                topics_by_id=ch_topics_by_id,
-                            )
-                    else:
-                        report.skipped_phases.append("script_assembler")
-                else:
-                    report.skipped_phases.append("beat_narration")
+# TODO(DEADCODE): legacy 7b-7g stack (ConceptPlanner->DiagramSpecGenerator->BeatNarrationWriter->LengthEnforcer->ScriptAssembler); use_lesson_pipeline=False path, never taken (default True). See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
+#                 else:
+#                     notify("concept_plan", "Planning per-concept teaching beats...")
+#                     concept_planner = ConceptPlanner(self.config)
+#                     concept_plans_by_chapter = await concept_planner.plan_for_all(
+#                         chapter_nodes,
+#                         topics_by_chapter_for_plan,
+#                         lecture_plans,
+#                         diagrams_by_topic_for_plan,
+#                     )
+#                     # Book-coverage USP post-pass: enforce the example
+#                     # allocation rule per topic. The kernel ConceptTeachingPlan
+#                     # doesn't carry topic_id, but plans come back in the same
+#                     # order as `lecture_plan.concept_sequence` (a list of
+#                     # topic_ids), so we zip them. Pure function — zero LLM cost.
+#                     from .curriculum.lecture_plan.example_allocator import (
+#                         allocate_example_beats,
+#                     )
+#                     for ch in chapter_nodes:
+#                         plans = concept_plans_by_chapter.get(ch.chapter_id, [])
+#                         lp = lecture_plans.get(ch.chapter_id)
+#                         topic_lookup = {
+#                             t.topic_id: t
+#                             for t in topics_by_chapter_for_plan.get(ch.chapter_id, [])
+#                         }
+#                         sequence = lp.concept_sequence if lp else []
+#                         reallocated: list[ConceptTeachingPlan] = []
+#                         for plan, topic_id in zip(plans, sequence, strict=False):
+#                             topic = topic_lookup.get(topic_id)
+#                             if topic is None:
+#                                 reallocated.append(plan)
+#                                 continue
+#                             reallocated.append(allocate_example_beats(plan, topic))
+#                         ch.concept_plans = reallocated
+#
+#                 # --- Phase 7c + 7d: per-beat diagrams + DiagramQA (NEW Phase 4c) ---
+#                 # Per-beat DiagramSpecGenerator iterates each Chapter.concept_plans,
+#                 # finds beats with visual.tool in {"draw_design_diagram",
+#                 # "modify_design_diagram"}, and generates one Diagram per such
+#                 # beat. DiagramQA scores each via Claude Sonnet vision; score <
+#                 # min_score triggers regeneration with the QA's suggestion as a
+#                 # corrective hint. Final diagrams (incl. needs_review flagged
+#                 # ones) join the chapter-wide diagrams list and topic.has_diagram_ids.
+#                 per_beat_cfg = self.config.enrichment.per_beat_diagrams
+#                 qa_cfg = self.config.enrichment.diagram_qa
+#                 if per_beat_cfg.enabled:
+#                     notify(
+#                         "per_beat_diagrams",
+#                         "Generating per-beat design diagrams...",
+#                     )
+#                     new_diagrams = await self._run_per_beat_diagram_stage(
+#                         chapter_nodes=chapter_nodes,
+#                         topics_by_chapter=topics_by_chapter_for_plan,
+#                         existing_diagram_ids={d.diagram_id for d in diagrams},
+#                         per_beat_cfg=per_beat_cfg,
+#                         qa_cfg=qa_cfg,
+#                         skip_qa=skip_diagram_qa,
+#                         notify=notify,
+#                     )
+#                     # Append per-beat diagrams to the chapter-wide list and to
+#                     # each parent topic's has_diagram_ids so existing render
+#                     # paths (Phase 10 fallback) pick them up.
+#                     topics_by_id: dict[str, Any] = {t.topic_id: t for t in all_topics}
+#                     for d in new_diagrams:
+#                         diagrams.append(d)
+#                         for tid in d.linked_topic_ids:
+#                             t = topics_by_id.get(tid)
+#                             if t is not None and d.diagram_id not in t.has_diagram_ids:
+#                                 t.has_diagram_ids.append(d.diagram_id)
+#                     extraction.diagrams = diagrams
+#                 else:
+#                     report.skipped_phases.append("per_beat_diagrams")
+#
+#                 # --- Phase 7e + 7f + 7g: per-beat narration + length trim +
+#                 # script assembly (NEW Phase 4d, promoted to playback in 4e).
+#                 # ScriptAssembler's output (`chapter.assembled_chapter_script`)
+#                 # is consumed by Phase 8 to build the ChapterScript fed into
+#                 # the TTS layer.
+#                 bn_cfg = self.config.enrichment.beat_narration
+#                 le_cfg = self.config.enrichment.length_enforcer
+#                 sa_cfg = self.config.enrichment.script_assembler
+#                 if (not skip_beat_narration) and bn_cfg.enabled:
+#                     diagrams_by_beat_id = {
+#                         d.linked_beat_id: d for d in diagrams if d.linked_beat_id
+#                     }
+#                     notify("beat_narration", "Writing per-beat narrations...")
+#                     bn_writer = BeatNarrationWriter(self.llm, config=bn_cfg)
+#                     # `rewrite_context` is populated by `write_for_chapter` as
+#                     # a side-effect so `LengthEnforcer` Pass 3 can re-invoke
+#                     # the writer on the longest non-structural beat.
+#                     rewrite_context: dict[str, Any] = {}
+#                     for ch in chapter_nodes:
+#                         if not ch.concept_plans or ch.lecture_plan is None:
+#                             continue
+#                         ch_topics = topics_by_chapter_for_plan.get(ch.chapter_id, [])
+#                         ch_topics_by_id = {t.topic_id: t for t in ch_topics}
+#                         narrations, bn_report = await bn_writer.write_for_chapter(
+#                             chapter=ch,
+#                             topics_by_id=ch_topics_by_id,
+#                             diagrams_by_beat_id=diagrams_by_beat_id,
+#                             rewrite_context_out=rewrite_context,
+#                         )
+#                         ch.beat_narrations = narrations
+#                         logger.info(bn_report.summary())
+#
+#                     # Book-coverage validator (soft-warn v1). Logs structured
+#                     # gaps for any Topic.book_examples that didn't land in a
+#                     # faithful book-source beat. Promote to hard-fail once we
+#                     # have signal on real ingests.
+#                     from .curriculum.validation.example_coverage import (
+#                         validate_example_coverage,
+#                     )
+#                     for ch in chapter_nodes:
+#                         if not ch.beat_narrations:
+#                             continue
+#                         ch_topics = topics_by_chapter_for_plan.get(ch.chapter_id, [])
+#                         narrations_by_topic: dict[str, list] = {}
+#                         for n in ch.beat_narrations:
+#                             narrations_by_topic.setdefault(n.topic_id, []).append(n)
+#                         cov = validate_example_coverage(ch_topics, narrations_by_topic)
+#                         logger.info(
+#                             "example_coverage chapter=%s: %s",
+#                             ch.chapter_id, cov.summary(),
+#                         )
+#
+#                     if le_cfg.enabled:
+#                         notify(
+#                             "length_enforcer",
+#                             "Enforcing length budget per chapter...",
+#                         )
+#                         enforcer = LengthEnforcer(config=le_cfg)
+#                         for ch in chapter_nodes:
+#                             if not ch.beat_narrations:
+#                                 continue
+#                             le_report = await enforcer.trim(
+#                                 chapter=ch,
+#                                 rewriter=bn_writer,
+#                                 rewrite_context=rewrite_context,
+#                             )
+#                             logger.info(le_report.summary())
+#                     else:
+#                         report.skipped_phases.append("length_enforcer")
+#
+#                     if sa_cfg.enabled:
+#                         notify(
+#                             "script_assembler",
+#                             "Assembling per-topic narration strings...",
+#                         )
+#                         assembler = ScriptAssembler(config=sa_cfg)
+#                         for ch in chapter_nodes:
+#                             if not ch.beat_narrations:
+#                                 continue
+#                             ch_topics = topics_by_chapter_for_plan.get(
+#                                 ch.chapter_id, []
+#                             )
+#                             ch_topics_by_id = {t.topic_id: t for t in ch_topics}
+#                             ch.assembled_chapter_script = assembler.assemble_chapter(
+#                                 chapter=ch,
+#                                 topics_by_id=ch_topics_by_id,
+#                             )
+#                     else:
+#                         report.skipped_phases.append("script_assembler")
+#                 else:
+#                     report.skipped_phases.append("beat_narration")
         else:
             report.skipped_phases.append("lecture_plan")
 
@@ -852,222 +858,224 @@ class CurriculumPipelineV2:
             out.setdefault(t.chapter_id, []).append(t)
         return out
 
-    async def _run_per_beat_diagram_stage(
-        self,
-        *,
-        chapter_nodes: list,
-        topics_by_chapter: dict[str, list],
-        existing_diagram_ids: set[str],
-        per_beat_cfg,
-        qa_cfg,
-        skip_qa: bool,
-        notify: StageCallback,
-    ) -> list:
-        """Phase 7c + 7d: generate per-beat diagrams and optionally QA them.
+# TODO(DEADCODE): _run_per_beat_diagram_stage — legacy 7c per-beat diagrams (parked); unreferenced once legacy region is commented. See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
+#     async def _run_per_beat_diagram_stage(
+#         self,
+#         *,
+#         chapter_nodes: list,
+#         topics_by_chapter: dict[str, list],
+#         existing_diagram_ids: set[str],
+#         per_beat_cfg,
+#         qa_cfg,
+#         skip_qa: bool,
+#         notify: StageCallback,
+#     ) -> list:
+#         """Phase 7c + 7d: generate per-beat diagrams and optionally QA them.
 
-        Returns the newly generated diagrams (already QA-filtered + needs_review
-        flagged). Caller is responsible for appending them to the chapter-wide
-        diagrams list and to each parent topic's has_diagram_ids.
-        """
-        spec_gen = DiagramSpecGenerator(
-            self.llm,
-            concurrency=per_beat_cfg.concurrency,
-            mode=per_beat_cfg.mode,
-        )
-        qa: DiagramQA | None = None
-        if qa_cfg.enabled and not skip_qa:
-            qa = DiagramQA(
-                api_key=self.config.llm.api_key or "",
-                model=qa_cfg.model,
-                min_score=qa_cfg.min_score,
-            )
+#         Returns the newly generated diagrams (already QA-filtered + needs_review
+#         flagged). Caller is responsible for appending them to the chapter-wide
+#         diagrams list and to each parent topic's has_diagram_ids.
+#         """
+#         spec_gen = DiagramSpecGenerator(
+#             self.llm,
+#             concurrency=per_beat_cfg.concurrency,
+#             mode=per_beat_cfg.mode,
+#         )
+#         qa: DiagramQA | None = None
+#         if qa_cfg.enabled and not skip_qa:
+#             qa = DiagramQA(
+#                 api_key=self.config.llm.api_key or "",
+#                 model=qa_cfg.model,
+#                 min_score=qa_cfg.min_score,
+#             )
 
-        result: list = []
-        for ch in chapter_nodes:
-            if not ch.concept_plans:
-                continue
-            lp = ch.lecture_plan
-            if lp is None:
-                continue
-            ch_topics = topics_by_chapter.get(ch.chapter_id, [])
-            topics_by_id = {t.topic_id: t for t in ch_topics}
+#         result: list = []
+#         for ch in chapter_nodes:
+#             if not ch.concept_plans:
+#                 continue
+#             lp = ch.lecture_plan
+#             if lp is None:
+#                 continue
+#             ch_topics = topics_by_chapter.get(ch.chapter_id, [])
+#             topics_by_id = {t.topic_id: t for t in ch_topics}
             # cp.concept_index is the position in lp.concept_sequence; map
             # list-index → topic_id via that.
-            topic_id_by_plan_index: dict[int, str] = {}
-            for i, cp in enumerate(ch.concept_plans):
-                if 0 <= cp.concept_index < len(lp.concept_sequence):
-                    topic_id_by_plan_index[i] = lp.concept_sequence[cp.concept_index]
-            new_diagrams, _gen_report = await spec_gen.generate_for_chapter(
-                topics_by_id,
-                ch.concept_plans,
-                topic_id_by_plan_index,
-                existing_diagram_ids,
-            )
-            if qa is not None and new_diagrams:
-                notify(
-                    "diagram_qa",
-                    f"QA scoring {len(new_diagrams)} per-beat diagrams "
-                    f"for chapter {ch.chapter_id}...",
-                )
-                new_diagrams = await self._run_diagram_qa_loop(
-                    qa=qa,
-                    spec_gen=spec_gen,
-                    diagrams=new_diagrams,
-                    concept_plans=ch.concept_plans,
-                    topic_id_by_plan_index=topic_id_by_plan_index,
-                    topics_by_id=topics_by_id,
-                    max_retries=qa_cfg.max_retries,
-                )
-            for d in new_diagrams:
-                existing_diagram_ids.add(d.diagram_id)
-            result.extend(new_diagrams)
-        return result
+#             topic_id_by_plan_index: dict[int, str] = {}
+#             for i, cp in enumerate(ch.concept_plans):
+#                 if 0 <= cp.concept_index < len(lp.concept_sequence):
+#                     topic_id_by_plan_index[i] = lp.concept_sequence[cp.concept_index]
+#             new_diagrams, _gen_report = await spec_gen.generate_for_chapter(
+#                 topics_by_id,
+#                 ch.concept_plans,
+#                 topic_id_by_plan_index,
+#                 existing_diagram_ids,
+#             )
+#             if qa is not None and new_diagrams:
+#                 notify(
+#                     "diagram_qa",
+#                     f"QA scoring {len(new_diagrams)} per-beat diagrams "
+#                     f"for chapter {ch.chapter_id}...",
+#                 )
+#                 new_diagrams = await self._run_diagram_qa_loop(
+#                     qa=qa,
+#                     spec_gen=spec_gen,
+#                     diagrams=new_diagrams,
+#                     concept_plans=ch.concept_plans,
+#                     topic_id_by_plan_index=topic_id_by_plan_index,
+#                     topics_by_id=topics_by_id,
+#                     max_retries=qa_cfg.max_retries,
+#                 )
+#             for d in new_diagrams:
+#                 existing_diagram_ids.add(d.diagram_id)
+#             result.extend(new_diagrams)
+#         return result
 
-    @staticmethod
-    async def _run_diagram_qa_loop(
-        *,
-        qa: DiagramQA,
-        spec_gen: DiagramSpecGenerator,
-        diagrams: list,
-        concept_plans: list,
-        topic_id_by_plan_index: dict[int, str],
-        topics_by_id: dict[str, Any],
-        max_retries: int,
-    ) -> list:
-        """Score each diagram; retry up to max_retries on score < qa.min_score.
+# TODO(DEADCODE): _run_diagram_qa_loop — legacy 7c QA loop (parked); unreferenced once legacy region is commented. See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
+#     @staticmethod
+#     async def _run_diagram_qa_loop(
+#         *,
+#         qa: DiagramQA,
+#         spec_gen: DiagramSpecGenerator,
+#         diagrams: list,
+#         concept_plans: list,
+#         topic_id_by_plan_index: dict[int, str],
+#         topics_by_id: dict[str, Any],
+#         max_retries: int,
+#     ) -> list:
+#         """Score each diagram; retry up to max_retries on score < qa.min_score.
 
-        Tracks the best-ever score across attempts; if no attempt clears the
-        threshold, accepts the best one and flags needs_review=True. Never
-        drops a diagram — Phase 4c is additive.
-        """
+#         Tracks the best-ever score across attempts; if no attempt clears the
+#         threshold, accepts the best one and flags needs_review=True. Never
+#         drops a diagram — Phase 4c is additive.
+#         """
         # Build beat-lookup: linked_beat_id → (topic, plan, beat, beat_index)
-        beat_lookup: dict[str, tuple[Any, Any, Any, int]] = {}
-        for i, cp in enumerate(concept_plans):
-            topic_id = topic_id_by_plan_index.get(i)
-            topic = topics_by_id.get(topic_id or "")
-            if topic is None:
-                continue
-            for beat_index, beat in enumerate(cp.beats):
-                if beat.visual and beat.visual.tool in DESIGN_DIAGRAM_TOOLS:
-                    beat_lookup[f"{topic.topic_id}_b{beat_index}"] = (
-                        topic,
-                        cp,
-                        beat,
-                        beat_index,
-                    )
+#         beat_lookup: dict[str, tuple[Any, Any, Any, int]] = {}
+#         for i, cp in enumerate(concept_plans):
+#             topic_id = topic_id_by_plan_index.get(i)
+#             topic = topics_by_id.get(topic_id or "")
+#             if topic is None:
+#                 continue
+#             for beat_index, beat in enumerate(cp.beats):
+#                 if beat.visual and beat.visual.tool in DESIGN_DIAGRAM_TOOLS:
+#                     beat_lookup[f"{topic.topic_id}_b{beat_index}"] = (
+#                         topic,
+#                         cp,
+#                         beat,
+#                         beat_index,
+#                     )
 
-        final: list = []
-        for original in diagrams:
-            best = original
-            best_score = -1
-            current = original
-            last_result: QAResult | None = None
-            for attempt in range(max_retries + 1):  # 1 initial + max_retries
-                result = await qa.verify(current, current.description)
-                last_result = result
-                if result.score > best_score:
-                    best_score = result.score
-                    best = current
-                if result.passed and result.score >= qa.min_score:
-                    final.append(current)
-                    break
-                if attempt >= max_retries:
-                    if best_score < qa.min_score:
-                        best.needs_review = True
-                        logger.warning(
-                            "DiagramQA.exhausted for %s — best score %d, flagging needs_review",
-                            original.linked_beat_id,
-                            best_score,
-                        )
-                    final.append(best)
-                    break
-                lookup = beat_lookup.get(original.linked_beat_id)
-                if lookup is None:
-                    logger.warning(
-                        "DiagramQA.no_beat_for_retry %s — accepting current",
-                        original.linked_beat_id,
-                    )
-                    current.needs_review = True
-                    final.append(current)
-                    break
-                topic, plan, beat, beat_index = lookup
-                hint = (
-                    f"Prior attempt scored {result.score}/5. "
-                    f"Issue: {result.issue}\nSuggestion: {result.suggestion}"
-                )
-                try:
-                    regen = await spec_gen.regenerate_for_beat(
-                        topic,
-                        plan,
-                        beat,
-                        beat_index,
-                        hint=hint,
-                    )
-                except Exception as e:  # noqa: BLE001 — regen failure is recoverable
-                    logger.warning(
-                        "DiagramQA.regenerate_failed for %s: %s — accepting best",
-                        original.linked_beat_id,
-                        e,
-                    )
-                    if best_score < qa.min_score:
-                        best.needs_review = True
-                    final.append(best)
-                    break
-                if regen is None:
-                    logger.warning(
-                        "DiagramQA.regenerate_returned_none for %s — accepting best",
-                        original.linked_beat_id,
-                    )
-                    if best_score < qa.min_score:
-                        best.needs_review = True
-                    final.append(best)
-                    break
+#         final: list = []
+#         for original in diagrams:
+#             best = original
+#             best_score = -1
+#             current = original
+#             last_result: QAResult | None = None
+#             for attempt in range(max_retries + 1):  # 1 initial + max_retries
+#                 result = await qa.verify(current, current.description)
+#                 last_result = result
+#                 if result.score > best_score:
+#                     best_score = result.score
+#                     best = current
+#                 if result.passed and result.score >= qa.min_score:
+#                     final.append(current)
+#                     break
+#                 if attempt >= max_retries:
+#                     if best_score < qa.min_score:
+#                         best.needs_review = True
+#                         logger.warning(
+#                             "DiagramQA.exhausted for %s — best score %d, flagging needs_review",
+#                             original.linked_beat_id,
+#                             best_score,
+#                         )
+#                     final.append(best)
+#                     break
+#                 lookup = beat_lookup.get(original.linked_beat_id)
+#                 if lookup is None:
+#                     logger.warning(
+#                         "DiagramQA.no_beat_for_retry %s — accepting current",
+#                         original.linked_beat_id,
+#                     )
+#                     current.needs_review = True
+#                     final.append(current)
+#                     break
+#                 topic, plan, beat, beat_index = lookup
+#                 hint = (
+#                     f"Prior attempt scored {result.score}/5. "
+#                     f"Issue: {result.issue}\nSuggestion: {result.suggestion}"
+#                 )
+#                 try:
+#                     regen = await spec_gen.regenerate_for_beat(
+#                         topic,
+#                         plan,
+#                         beat,
+#                         beat_index,
+#                         hint=hint,
+#                     )
+#                 except Exception as e:  # noqa: BLE001 — regen failure is recoverable
+#                     logger.warning(
+#                         "DiagramQA.regenerate_failed for %s: %s — accepting best",
+#                         original.linked_beat_id,
+#                         e,
+#                     )
+#                     if best_score < qa.min_score:
+#                         best.needs_review = True
+#                     final.append(best)
+#                     break
+#                 if regen is None:
+#                     logger.warning(
+#                         "DiagramQA.regenerate_returned_none for %s — accepting best",
+#                         original.linked_beat_id,
+#                     )
+#                     if best_score < qa.min_score:
+#                         best.needs_review = True
+#                     final.append(best)
+#                     break
                 # Stable diagram_id across attempts so downstream references hold.
-                regen.diagram_id = original.diagram_id
-                current = regen
-            _ = last_result  # silence unused
-        return final
+#                 regen.diagram_id = original.diagram_id
+#                 current = regen
+#             _ = last_result  # silence unused
+#         return final
 
-    async def _ingest(
-        self, extraction: CurriculumExtractionResult, report: PipelineReport
-    ) -> None:
-        cypher_gen = CypherGenerator()
-        statements = cypher_gen.generate(extraction)
+#     async def _ingest(
+#         self, extraction: CurriculumExtractionResult, report: PipelineReport
+#     ) -> None:
+#         cypher_gen = CypherGenerator()
+#         statements = cypher_gen.generate(extraction)
 
-        async with Neo4jWriter(self.config.neo4j) as writer:
-            await writer.ingest(
-                statements,
-                embedding_dimensions=self.config.embedding.dimensions,
-            )
-            try:
-                expected_ids = (
-                    {c.chapter_id for c in extraction.chapters}
-                    | {t.topic_id for t in extraction.topics}
-                    | {d.diagram_id for d in extraction.diagrams}
-                    | {q.question_id for q in extraction.questions}
-                )
-                expected_rels = sum(
-                    1
-                    + (1 if t.next_topic_id else 0)
-                    + len(t.prereq_topic_ids)
-                    + len(t.has_diagram_ids)
-                    + len(t.has_question_ids)
-                    for t in extraction.topics
-                )
-                verification = await verify_ingestion(
-                    writer.driver,
-                    expected_node_ids=expected_ids,
-                    expected_rel_count=expected_rels,
-                    database=self.config.neo4j.database,
-                )
-                logger.info(verification.summary())
-                if not verification.passed:
-                    report.warnings.append(
-                        f"verification failed: {verification.error_count} errors"
-                    )
-            except Exception as e:
-                logger.exception("Verification failed (non-fatal): %s", e)
-                report.warnings.append(f"verification error: {e}")
+#         async with Neo4jWriter(self.config.neo4j) as writer:
+#             await writer.ingest(
+#                 statements,
+#                 embedding_dimensions=self.config.embedding.dimensions,
+#             )
+#             try:
+#                 expected_ids = (
+#                     {c.chapter_id for c in extraction.chapters}
+#                     | {t.topic_id for t in extraction.topics}
+#                     | {d.diagram_id for d in extraction.diagrams}
+#                     | {q.question_id for q in extraction.questions}
+#                 )
+#                 expected_rels = sum(
+#                     1
+#                     + (1 if t.next_topic_id else 0)
+#                     + len(t.prereq_topic_ids)
+#                     + len(t.has_diagram_ids)
+#                     + len(t.has_question_ids)
+#                     for t in extraction.topics
+#                 )
+#                 verification = await verify_ingestion(
+#                     writer.driver,
+#                     expected_node_ids=expected_ids,
+#                     expected_rel_count=expected_rels,
+#                     database=self.config.neo4j.database,
+#                 )
+#                 logger.info(verification.summary())
+#                 if not verification.passed:
+#                     report.warnings.append(
+#                         f"verification failed: {verification.error_count} errors"
+#                     )
+#             except Exception as e:
+#                 logger.exception("Verification failed (non-fatal): %s", e)
+#                 report.warnings.append(f"verification error: {e}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

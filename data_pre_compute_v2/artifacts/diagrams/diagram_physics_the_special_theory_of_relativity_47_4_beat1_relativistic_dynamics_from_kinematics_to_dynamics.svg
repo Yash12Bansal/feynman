@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="label-newton" x="225" y="52" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Newtonian</text>
+<text id="label-relativistic" x="675" y="52" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Relativistic</text>
+<line id="divider" x1="450" y1="40" x2="450" y2="610" stroke="rgba(232,232,238,0.18)" stroke-width="1.2" stroke-dasharray="6,6"/>
+
+
+<text id="newton-curve-label" x="370" y="148" font-size="11" fill="#9effc9" text-anchor="start" font-weight="normal">v = at</text>
+<text id="relativistic-curve-label" x="820" y="200" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="normal">v → c</text>
+<text id="c-limit-label" x="820" y="148" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="normal">c</text>
+<defs><marker id="arrowhead_newton-force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="newton-force-arrow" x1="130" y1="430" x2="320" y2="430" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_newton-force-arrow)"/>
+<rect id="newton-block" x="60" y="410" width="70" height="44" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="newton-F-label" x="328" y="427" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">F</text>
+<defs><marker id="arrowhead_relativistic-force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="relativistic-force-arrow" x1="580" y1="430" x2="770" y2="430" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_relativistic-force-arrow)"/>
+<rect id="relativistic-block" x="510" y="410" width="70" height="44" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="relativistic-F-label" x="778" y="427" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">F</text>
+<defs><marker id="arrowhead_newton-velocity-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="newton-velocity-arrow" x1="130" y1="390" x2="260" y2="390" stroke="#ff7a8a" stroke-width="2" marker-end="url(#arrowhead_newton-velocity-arrow)"/>
+<defs><marker id="arrowhead_relativistic-velocity-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="relativistic-velocity-arrow" x1="580" y1="390" x2="690" y2="390" stroke="#ff7a8a" stroke-width="2" marker-end="url(#arrowhead_relativistic-velocity-arrow)"/>
+<text id="newton-v-label" x="268" y="388" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="normal">v</text>
+<text id="relativistic-v-label" x="698" y="388" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="normal">v &lt; c</text>
+<text id="newton-law" x="225" y="530" font-size="15" fill="#e8e8ee" font-style="italic" text-anchor="middle">\vec{F} = m\vec{a}</text>
+<text id="relativistic-law" x="675" y="530" font-size="15" fill="#e8e8ee" font-style="italic" text-anchor="middle">\vec{F} = \frac{d}{dt}\left(\gamma m\vec{v}\right)</text>
+<text id="newton-caption" x="225" y="590" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">v grows without bound</text>
+<text id="relativistic-caption" x="675" y="590" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">v asymptotes to c</text>
+</svg>
