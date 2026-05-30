@@ -4,22 +4,6 @@ import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
 import { LectureHomeScreen } from "./screens/LectureHomeScreen";
 import { WaitingScreen } from "./screens/WaitingScreen";
-// TODO(DEADCODE): dev-only screens, unused in active pipelines. See docs/engineering/13-redundant-code-audit.md Group 1. Safe to delete.
-// import { DevHarness } from "./screens/DevHarness";
-// import { DiagramGenerationTestScreen } from "./screens/DiagramGenerationTestScreen";
-// import { LecturePreviewScreen } from "./screens/LecturePreviewScreen";
-// import { SplitBoardPrototype } from "./screens/SplitBoardPrototype";
-
-// TODO(DEADCODE): only used by the dev/legacy hash routes below (now commented). See docs/engineering/13-redundant-code-audit.md Group 1. Safe to delete.
-// function useHash(): string {
-//   const [hash, setHash] = useState(window.location.hash);
-//   useEffect(() => {
-//     const onHashChange = () => setHash(window.location.hash);
-//     window.addEventListener("hashchange", onHashChange);
-//     return () => window.removeEventListener("hashchange", onHashChange);
-//   }, []);
-//   return hash;
-// }
 
 function useLectureChapterParam(): string | null {
   // ?lecture=<chapter_id> on the main app path binds the session to a
@@ -40,30 +24,6 @@ function useLectureChapterParam(): string | null {
 }
 
 export function App() {
-  // TODO(DEADCODE): all dev/legacy hash routes are unused in the active product
-  // (consumer entrypoint is MainEntry → LectureHomeScreen). See
-  // docs/engineering/13-redundant-code-audit.md Group 1 (+ Group 2 for live-teacher). Safe to delete.
-  // const hash = useHash();
-  //
-  // if (hash === "#/dev") {
-  //   return <DevHarness />;
-  // }
-  // if (hash === "#/dev/split-board") {
-  //   return <SplitBoardPrototype />;
-  // }
-  // // Diagram-generation experimental testbed (strategy/model/options plugin lab).
-  // if (hash.startsWith("#/diagram_generation_test")) {
-  //   return <DiagramGenerationTestScreen />;
-  // }
-  // // v2 precompute classroom playback playground.
-  // if (hash.startsWith("#/lecture-preview")) {
-  //   return <LecturePreviewScreen />;
-  // }
-  // // Legacy live-agent flow ("type a topic, start a class"). Parked.
-  // if (hash.startsWith("#/dev/live-teacher")) {
-  //   return <MainApp />;
-  // }
-
   return <MainEntry />;
 }
 
