@@ -141,22 +141,6 @@ class LayoutConfig(BaseModel):
     pagination: PaginationConfig = Field(default_factory=PaginationConfig)
 
 
-# TODO(DEADCODE): legacy 7c-7g config — values no longer read once the legacy stack is removed (kept as an EnrichmentConfig field default so not commented here). See docs/engineering/13-redundant-code-audit.md Group 3.
-class PerBeatDiagramsConfig(BaseModel):
-    """Phase 4c — per-beat DiagramSpecGenerator config.
-
-    `mode="direct"` is the only wired path; `"auto"` aliases to `"direct"`;
-    `"python"` raises NotImplementedError (the canvas_dsl sandbox lives in
-    backend/src/feynman/agent/design_bridge.py — porting into v2 is a future
-    sub-phase).
-    """
-
-    enabled: bool = True
-    mode: Literal["direct", "auto", "python"] = "direct"
-    concurrency: int = 5
-    temperature: float = 0.1
-
-
 class DiagramQAConfig(BaseModel):
     """Phase 4c — DiagramQA vision-loop config."""
 
@@ -164,53 +148,6 @@ class DiagramQAConfig(BaseModel):
     model: str = "claude-sonnet-4-20250514"
     max_retries: int = 2
     min_score: int = 3
-
-
-# TODO(DEADCODE): legacy 7c-7g config — values no longer read once the legacy stack is removed (kept as an EnrichmentConfig field default so not commented here). See docs/engineering/13-redundant-code-audit.md Group 3.
-class BeatNarrationConfig(BaseModel):
-    """Phase 4d — per-beat narration writer config.
-
-    One LLM call per beat (whose `TeachingBeat` was emitted by ConceptPlanner).
-    `target_wps` (English speech rate) drives `target_words = target_seconds * target_wps`
-    inside the user prompt and the seconds estimator.
-    """
-
-    enabled: bool = True
-    model: str = "claude-sonnet-4-20250514"
-    concurrency: int = 5
-    target_wps: float = 2.5
-    min_target_seconds: int = 5
-    max_target_seconds: int = 90
-
-
-# TODO(DEADCODE): legacy 7c-7g config — values no longer read once the legacy stack is removed (kept as an EnrichmentConfig field default so not commented here). See docs/engineering/13-redundant-code-audit.md Group 3.
-class LengthEnforcerConfig(BaseModel):
-    """Phase 4d — deterministic chapter-length trim algorithm config.
-
-    `budget_tolerance` is the soft window (e.g. 1.1 = up to 110% of the chapter's
-    `length_budget_seconds` accepted without trimming). `hard_ceiling` (1.3) is
-    the never-block ceiling — over this, we log a warning and flag the chapter
-    `needs_review=True`, but always accept.
-    """
-
-    enabled: bool = True
-    budget_tolerance: float = 1.1
-    hard_ceiling: float = 1.3
-
-
-# TODO(DEADCODE): legacy 7c-7g config — values no longer read once the legacy stack is removed (kept as an EnrichmentConfig field default so not commented here). See docs/engineering/13-redundant-code-audit.md Group 3.
-class ScriptAssemblerConfig(BaseModel):
-    """Phase 4d — stitches per-beat narrations into per-topic ChapterScript shape.
-
-    Phase 4e: flipped `use_for_playback` to `True` and removed ScriptWriter
-    from the pipeline. The flag stays in config for explicitness (acts as a
-    kill switch; setting `False` produces no audio since ScriptWriter is gone).
-    """
-
-    enabled: bool = True
-    use_for_playback: bool = True
-    pause_between_beats: Literal["short", "long"] = "short"
-    pause_between_topics: Literal["short", "long"] = "long"
 
 
 class LessonPipelineConfig(BaseModel):
@@ -244,15 +181,7 @@ class EnrichmentConfig(BaseModel):
     end-to-end.
     """
 
-    per_beat_diagrams: PerBeatDiagramsConfig = Field(
-        default_factory=PerBeatDiagramsConfig
-    )
     diagram_qa: DiagramQAConfig = Field(default_factory=DiagramQAConfig)
-    beat_narration: BeatNarrationConfig = Field(default_factory=BeatNarrationConfig)
-    length_enforcer: LengthEnforcerConfig = Field(default_factory=LengthEnforcerConfig)
-    script_assembler: ScriptAssemblerConfig = Field(
-        default_factory=ScriptAssemblerConfig
-    )
     # Phase H — doc-19 path toggle. Default ON.
     use_lesson_pipeline: bool = True
     lesson_pipeline: LessonPipelineConfig = Field(default_factory=LessonPipelineConfig)

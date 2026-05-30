@@ -16,9 +16,6 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal, Union
 from pydantic import BaseModel, Field, model_validator
 
 if TYPE_CHECKING:
-    from feynman_teaching_kernel import ConceptTeachingPlan
-
-    from lecture_pipeline_v2.curriculum.beat_narration.models import BeatNarration
     from lecture_pipeline_v2.curriculum.lecture_plan.lesson_narrator import (
         TopicNarration,
     )
@@ -773,12 +770,6 @@ class Chapter(BaseModel):
     # artifacts — pre-Phase-4c stages don't consume them. Optional so older
     # extractions (pre-4b) load without migration.
     lecture_plan: "ChapterLecturePlan | None" = None
-    # TODO(DEADCODE): legacy 7b/7d field — populated only by the (removed) use_lesson_pipeline=False stack; doc-19 path uses lesson_plans/lesson_narrations. See docs/engineering/13-redundant-code-audit.md Group 3.
-    concept_plans: "list[ConceptTeachingPlan]" = Field(default_factory=list)
-    # Phase 4d: per-beat narrations produced by BeatNarrationWriter, trimmed
-    # to budget by LengthEnforcer. Phase 4e: feeds ScriptAssembler.
-    # TODO(DEADCODE): legacy 7b/7d field — populated only by the (removed) use_lesson_pipeline=False stack; doc-19 path uses lesson_plans/lesson_narrations. See docs/engineering/13-redundant-code-audit.md Group 3.
-    beat_narrations: "list[BeatNarration]" = Field(default_factory=list)
     # Phase 4d: ScriptAssembler output (dict-form of ChapterScript dataclass —
     # {chapter_id, segments: [{topic_id, narration_chapter, narration_standalone}]}).
     # Stored as dict so Pydantic can serialize without coupling to the
@@ -851,15 +842,12 @@ class CurriculumExtractionResult(BaseModel):
         return cls.model_validate_json(Path(path).read_text(encoding="utf-8"))
 
 
-# Resolve Phase 4b + 4d forward references on Chapter (lecture_plan,
-# concept_plans, beat_narrations). Imported at the bottom because the
+# Resolve Phase 4b + doc-19 forward references on Chapter (lecture_plan,
+# lesson_narrations, lesson_plans). Imported at the bottom because the
 # referenced modules import from this module transitively, so eager top-level
 # imports would create a cycle. With `from __future__ import annotations`
 # above, the field annotations are stringified until model_rebuild() resolves
 # them here.
-from feynman_teaching_kernel import ConceptTeachingPlan  # noqa: E402
-
-from lecture_pipeline_v2.curriculum.beat_narration.models import BeatNarration  # noqa: E402
 from lecture_pipeline_v2.curriculum.lecture_plan.lesson_narrator import (  # noqa: E402
     TopicNarration,
 )
