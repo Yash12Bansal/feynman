@@ -12,7 +12,5 @@ ScriptWriter.
 """
 
 from .models import BeatNarration
-# TODO(DEADCODE): BeatNarrationWriter/Report are legacy (use_lesson_pipeline=False stack). See docs/engineering/13-redundant-code-audit.md Group 3. Safe to delete.
-# from .writer import BeatNarrationReport, BeatNarrationWriter
 
 __all__ = ["BeatNarration"]
