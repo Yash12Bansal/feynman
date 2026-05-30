@@ -6,7 +6,7 @@
  * - play() walks events and fires onComplete at the end
  * - pause() halts mid-audio and on resume the same fragment re-plays
  * - restart() resets cursor + audio progress + slide
- * - topic_start / show_diagram / focus events update derived state
+ * - topic_start / show_diagram events update derived state
  *
  * The <audio> element is mocked via a controllable fake; tests manually fire
  * its "ended" event to advance the loop deterministically.
@@ -256,32 +256,6 @@ describe("useExtractionPlayback", () => {
     expect(result.current.slide.liveInstruction?.element_id).toBe(
       "diagram:test:d1",
     );
-  });
-
-  it("focus updates SlideState.focusedElementId", async () => {
-    const chapter = mkChapter([
-      { type: "show_diagram", diagram_id: "diagram:test:d1" },
-      {
-        type: "focus",
-        diagram_id: "diagram:test:d1",
-        target_element_id: "elem-a",
-        target_role: "trajectory",
-        text: "look here",
-      },
-      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
-    ]);
-    const fake = makeFakeAudio();
-    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
-    attach(result.current.setAudioElement, fake);
-
-    await act(async () => {
-      void result.current.play();
-    });
-    await waitFor(() =>
-      expect(result.current.slide.focusedElementId).toBe("elem-a"),
-    );
-    expect(result.current.slide.focusedRole).toBe("trajectory");
-    expect(result.current.slide.inlineLabelText).toBe("look here");
   });
 
   it("restart resets cursor + audio progress + slide", async () => {

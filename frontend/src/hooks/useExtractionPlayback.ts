@@ -7,8 +7,8 @@
  *   - `pause` → cancelable setTimeout.
  *   - `topic_start` → updates currentTopicId / currentTopicLabel.
  *   - `show_diagram` → mounts a DrawDesignDiagramInstruction on SlideState.
- *   - `focus` / `unfocus` / `clear_annotations` → spotlight state.
- *   - `trace` / `mark_point` / `point_at` / `write_margin` → live annotation lists.
+ *   - `unfocus` / `clear_annotations` → clear the live annotation lists.
+ *   - `trace` / `mark_point` / `write_margin` → live annotation lists.
  *   - `write_*` / `strikethrough` / `new_page` / `page_break` → notebook state.
  *
  * Pause semantics: pause() halts immediately, cancels the in-flight audio /
@@ -401,8 +401,9 @@ export function useExtractionPlayback(
   >([]);
   const [pageNum, setPageNum] = useState(1);
   const [pageTurning, setPageTurning] = useState(false);
-  const [currentSnapshot, setCurrentSnapshot] =
-    useState<BoardSnapshot | null>(null);
+  const [currentSnapshot, setCurrentSnapshot] = useState<BoardSnapshot | null>(
+    null,
+  );
   // Index of the next snapshot to consume on the NEXT page close. Snapshots
   // are emitted by the composer in the same order as pages — first close
   // consumes [0], second close [1], etc.
@@ -431,7 +432,8 @@ export function useExtractionPlayback(
       const prev = audioElementRef.current;
       if (prev) prev.removeEventListener("timeupdate", handleAudioTimeUpdate);
       audioElementRef.current = element;
-      if (element) element.addEventListener("timeupdate", handleAudioTimeUpdate);
+      if (element)
+        element.addEventListener("timeupdate", handleAudioTimeUpdate);
     },
     [handleAudioTimeUpdate],
   );
@@ -548,27 +550,11 @@ export function useExtractionPlayback(
     });
   }, []);
 
-  const setFocusedTarget = useCallback(
-    (elementId: string | null, role: string | null, label: string | null) => {
-      setSlide((prev) => ({
-        ...prev,
-        focusedElementId: elementId,
-        focusedRole: role,
-        inlineLabelText: label,
-      }));
-    },
-    [],
-  );
-
-  const resetSlideFocus = useCallback(() => {
+  const resetSlideAnnotations = useCallback(() => {
     setSlide((prev) => ({
       ...prev,
-      focusedElementId: null,
-      focusedRole: null,
-      inlineLabelText: null,
       traces: [],
       markPoints: [],
-      pointers: [],
       marginNotes: [],
     }));
   }, []);
@@ -592,20 +578,6 @@ export function useExtractionPlayback(
           ...prev,
           nextAnnotationKey: key + 1,
           markPoints: [...(prev.markPoints ?? []), { key, x, y, kind, label }],
-        };
-      });
-    },
-    [],
-  );
-
-  const appendPointer = useCallback(
-    (elementId: string, fromSide: "top" | "bottom" | "left" | "right") => {
-      setSlide((prev) => {
-        const key = prev.nextAnnotationKey ?? 0;
-        return {
-          ...prev,
-          nextAnnotationKey: key + 1,
-          pointers: [...(prev.pointers ?? []), { key, elementId, fromSide }],
         };
       });
     },
@@ -673,14 +645,8 @@ export function useExtractionPlayback(
           setSlide({
             status: "ready",
             liveInstruction: instr,
-            focusedElementId: null,
-            focusedRole: null,
-            inlineLabelText: null,
-            presentationMode:
-              ev.presentation_mode ?? d.spec.presentation_mode ?? "overview",
             traces: [],
             markPoints: [],
-            pointers: [],
             marginNotes: [],
             nextAnnotationKey: 0,
           });
@@ -753,17 +719,9 @@ export function useExtractionPlayback(
           );
           return;
         }
-        case "focus": {
-          setFocusedTarget(
-            ev.target_element_id ?? null,
-            ev.target_role ?? null,
-            ev.text?.trim() || null,
-          );
-          return;
-        }
         case "unfocus":
         case "clear_annotations": {
-          resetSlideFocus();
+          resetSlideAnnotations();
           return;
         }
         case "trace": {
@@ -772,10 +730,6 @@ export function useExtractionPlayback(
         }
         case "mark_point": {
           appendMarkPoint(ev.x, ev.y, ev.kind ?? "dot", ev.label ?? "");
-          return;
-        }
-        case "point_at": {
-          appendPointer(ev.element_id, ev.from_side ?? "left");
           return;
         }
         case "write_margin": {
@@ -801,10 +755,8 @@ export function useExtractionPlayback(
       appendNotebookEntry,
       appendMarkPoint,
       appendMarginNote,
-      appendPointer,
       appendTrace,
-      resetSlideFocus,
-      setFocusedTarget,
+      resetSlideAnnotations,
     ],
   );
 
@@ -1116,13 +1068,8 @@ export function useExtractionPlayback(
           setSlide({
             status: "ready",
             liveInstruction: instr,
-            focusedElementId: null,
-            focusedRole: null,
-            inlineLabelText: null,
-            presentationMode: entry.spec.presentation_mode ?? "overview",
             traces: [],
             markPoints: [],
-            pointers: [],
             marginNotes: [],
             nextAnnotationKey: 0,
           });
@@ -1132,16 +1079,6 @@ export function useExtractionPlayback(
       // Apply each annotation action via the same setters the lecture uses.
       for (const action of annotations) {
         switch (action.action) {
-          case "focus":
-            setFocusedTarget(
-              action.target_element_id ?? null,
-              action.target_role ?? null,
-              action.text?.trim() || null,
-            );
-            break;
-          case "point_at":
-            appendPointer(action.element_id, action.from_side ?? "left");
-            break;
           case "trace":
             appendTrace(action.element_id, action.duration_ms ?? 1500);
             break;
@@ -1156,12 +1093,12 @@ export function useExtractionPlayback(
         }
       }
     },
-    [setFocusedTarget, appendPointer, appendTrace, appendMarkPoint],
+    [appendTrace, appendMarkPoint],
   );
 
   const clearDoubtAnnotations = useCallback(() => {
-    resetSlideFocus();
-  }, [resetSlideFocus]);
+    resetSlideAnnotations();
+  }, [resetSlideAnnotations]);
 
   // Auto-start when chapter loads, if requested.
   useEffect(() => {

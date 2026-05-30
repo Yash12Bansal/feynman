@@ -1,19 +1,19 @@
 /**
- * SlideAnnotationLayer — doc 18 spotlight overlay on the slide panel.
+ * SlideAnnotationLayer — live-annotation overlay on the slide panel.
  *
- * Renders ONE thing at a time: a `<Spotlight>` for the currently focused
- * role on the active design diagram. The 5-marker annotation system
- * (pin_label / draw_callout / bracket / highlight_pulse) and the four
- * sub-components that rendered them were deleted per doc 18 §3 — see
- * `docs/design/18-attention-direction-redesign.md`.
+ * Hosts the doc 19 §12 live-annotation primitives layered over the active
+ * design diagram: TRACE (stroke-draw), MARK_POINT (dot/cross/star) and
+ * WRITE_MARGIN (margin note). The FOCUS spotlight (dimming overlay) and the
+ * POINT_AT pointer arrow were removed — they rendered broken (a full-board
+ * gray wash and stray blue arrows) and the feature was cut.
  *
  * Live-DOM bounds resolution is preserved (this is the truth source for
- * positioning) and exported as `useResolvedBounds` for the Spotlight
- * component to consume.
+ * positioning) and exported as `useResolvedBounds` for the primitives to
+ * consume.
  *
  * Reduced-motion: the layer reflects `prefers-reduced-motion: reduce` via
  * a `data-reduced-motion` attribute. CSS in `SlideAnnotationLayer.css`
- * reads that attribute to disable spotlight transitions.
+ * reads that attribute to disable annotation animations.
  */
 
 import { useEffect, useRef, useState, type RefObject } from "react";
@@ -22,44 +22,15 @@ import type {
   ElementBounds,
   ElementMeta,
 } from "../../../types/visuals";
-import { Spotlight } from "./Spotlight";
 import { TraceOverlay } from "./TraceOverlay";
 import { MarkPoint } from "./MarkPoint";
-import { Pointer } from "./Pointer";
 import { MarginNote } from "./MarginNote";
-import type {
-  MarginNoteState,
-  MarkPointState,
-  PointerState,
-  TraceState,
-} from "./types";
+import type { MarginNoteState, MarkPointState, TraceState } from "./types";
 import "./SlideAnnotationLayer.css";
 
 interface SlideAnnotationLayerProps {
   readonly viewBox: string;
   readonly dictionary: Record<string, ElementMeta> | undefined;
-  /**
-   * Stable element_id from the diagram's dictionary (doc 19 §A-3 preferred
-   * selector). When present, the spotlight ignores `focusedRole` and resolves
-   * bounds directly by id.
-   */
-  readonly focusedElementId?: string | null;
-  /**
-   * Role currently in focus (deprecated alias; back-compat with extraction
-   * files generated before the element_id switch). Null/undefined when
-   * nothing is focused.
-   */
-  readonly focusedRole: string | null | undefined;
-  /**
-   * Optional 2-3 word inline label rendered next to the focused element.
-   */
-  readonly inlineLabelText?: string | null;
-  /**
-   * Doc 18 §4.3: dim treatment for the rest of the diagram. "build_up"
-   * dims harder (non-revealed elements are invisible-ish); "overview"
-   * dims softly. Defaults to "overview".
-   */
-  readonly presentationMode?: "build_up" | "overview";
   /**
    * Ref to the slide stage container. The layer queries it for
    * `[data-design-element]` to read live bounds via
@@ -70,11 +41,10 @@ interface SlideAnnotationLayerProps {
   /**
    * Doc 19 §12 live-annotation primitives. Each list accumulates as the
    * lesson choreography emits events; show_diagram + clear_annotations wipe
-   * all four. Order within each list is render order (and arrival order).
+   * them. Order within each list is render order (and arrival order).
    */
   readonly traces?: readonly TraceState[];
   readonly markPoints?: readonly MarkPointState[];
-  readonly pointers?: readonly PointerState[];
   readonly marginNotes?: readonly MarginNoteState[];
 }
 
@@ -232,7 +202,7 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-// ── Live-DOM bounds hook (exported for Spotlight) ─────────────
+// ── Live-DOM bounds hook (exported for annotation primitives) ─
 
 /**
  * `useResolvedBounds` recomputes bounds on every layout pass tied to
@@ -290,21 +260,14 @@ export function useResolvedBounds(
 export function SlideAnnotationLayer({
   viewBox,
   dictionary,
-  focusedElementId,
-  focusedRole,
-  inlineLabelText,
-  presentationMode,
   stageRef,
   traces,
   markPoints,
-  pointers,
   marginNotes,
 }: SlideAnnotationLayerProps) {
   const reduced = useReducedMotion();
   const overlayRef = useRef<SVGSVGElement>(null);
 
-  // Render the SVG overlay even when there's no focus — that lets the
-  // Spotlight component's CSS transitions reset cleanly when focus changes.
   return (
     <svg
       ref={overlayRef}
@@ -312,23 +275,10 @@ export function SlideAnnotationLayer({
       viewBox={viewBox}
       preserveAspectRatio="xMidYMid meet"
       data-reduced-motion={reduced ? "true" : undefined}
-      data-presentation-mode={presentationMode ?? "overview"}
-      data-focused-role={focusedRole ?? undefined}
-      data-focused-element-id={focusedElementId ?? undefined}
       aria-hidden="true"
     >
-      <Spotlight
-        focusedElementId={focusedElementId ?? null}
-        focusedRole={focusedRole ?? null}
-        inlineLabelText={inlineLabelText ?? null}
-        presentationMode={presentationMode ?? "overview"}
-        dictionary={dictionary}
-        stageRef={stageRef}
-        overlayRef={overlayRef}
-      />
-      {/* Doc 19 §12: live-annotation primitives layered on top of the
-       * spotlight dim. They share the same viewBox space and resolve element
-       * bounds via the same useResolvedBounds path. */}
+      {/* Doc 19 §12: live-annotation primitives. They share the diagram's
+       * viewBox space and resolve element bounds via useResolvedBounds. */}
       {traces?.map((t) => (
         <TraceOverlay
           key={`trace-${t.key}`}
@@ -345,16 +295,6 @@ export function SlideAnnotationLayer({
           y={m.y}
           kind={m.kind}
           label={m.label}
-        />
-      ))}
-      {pointers?.map((p) => (
-        <Pointer
-          key={`pointer-${p.key}`}
-          elementId={p.elementId}
-          fromSide={p.fromSide}
-          dictionary={dictionary}
-          stageRef={stageRef}
-          overlayRef={overlayRef}
         />
       ))}
       {marginNotes?.map((n) => (

@@ -14,93 +14,6 @@
   overflow: visible;
 }
 
-/* ── Spotlight (focus) ─────────────────────────────────────── */
-
-.sb-spotlight {
-  /* The whole spotlight group fades in/out via opacity on its children. The
-   * <g> itself doesn't transition — masks need stable geometry per frame. */
-  pointer-events: none;
-}
-
-.sb-spotlight-dim {
-  /* The dim overlay smoothly fades when focus arrives/leaves. The mask hole
-   * jumps to its new position; the dim opacity easing softens that jump. */
-  transition:
-    opacity 250ms ease-in-out,
-    fill 250ms ease;
-}
-
-.sb-spotlight-ring {
-  /* Subtle accent halo around the spotlight hole — a thin glow that hints
-   * at the focused area without being a hard outline. */
-  stroke: var(--sb-neon, #7fd4ff);
-  stroke-width: 1.4;
-  stroke-opacity: 0.55;
-  filter: drop-shadow(0 0 6px var(--sb-neon, #7fd4ff));
-  transition:
-    stroke-opacity 250ms ease,
-    filter 250ms ease;
-}
-
-/* ── Inline label pill ─────────────────────────────────────── */
-
-.sb-spotlight-label {
-  /* The label fades in slightly after the spotlight settles so it doesn't
-   * compete with the eye-catch of the dim transition. */
-  opacity: 0;
-  animation: sb-spotlight-label-fade 220ms ease forwards;
-  animation-delay: 80ms;
-}
-
-.sb-spotlight-label-pill {
-  fill: rgba(15, 17, 28, 0.92);
-  stroke: var(--sb-neon, #7fd4ff);
-  stroke-width: 1;
-  stroke-opacity: 0.7;
-  filter: drop-shadow(0 0 6px rgba(127, 212, 255, 0.4));
-}
-
-.sb-spotlight-label-text {
-  fill: #f0f4ff;
-  font-family: "Crimson Pro", Georgia, serif;
-  font-weight: 500;
-  font-style: italic;
-  letter-spacing: 0.01em;
-}
-
-/* ── Keyframes ─────────────────────────────────────────────── */
-
-@keyframes sb-spotlight-label-fade {
-  to {
-    opacity: 1;
-  }
-}
-
-/* ── Reduced motion ─────────────────────────────────────────
- * Both the OS-level preference and the layer's data attribute disable the
- * spotlight transitions. The label appears instantly with no fade. */
-
-.sb-slide-annotations[data-reduced-motion="true"] .sb-spotlight-dim,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-spotlight-ring {
-  transition: none !important;
-}
-
-.sb-slide-annotations[data-reduced-motion="true"] .sb-spotlight-label {
-  animation: none !important;
-  opacity: 1 !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sb-spotlight-dim,
-  .sb-spotlight-ring {
-    transition: none !important;
-  }
-  .sb-spotlight-label {
-    animation: none !important;
-    opacity: 1 !important;
-  }
-}
-
 /* ── Doc 19 §12: live-annotation primitives ─────────────────── */
 
 /* ── TraceOverlay ───────────────────────────────────────────── */
@@ -202,59 +115,6 @@
   }
 }
 
-/* ── Pointer ────────────────────────────────────────────────── */
-
-.sb-pointer {
-  pointer-events: none;
-  opacity: 0;
-  animation: sb-pointer-tap 260ms cubic-bezier(0.34, 1.2, 0.5, 1) forwards;
-}
-
-.sb-pointer-shaft {
-  stroke: var(--sb-neon, #7fd4ff);
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 5px rgba(127, 212, 255, 0.55));
-}
-
-.sb-pointer-head {
-  fill: var(--sb-neon, #7fd4ff);
-  filter: drop-shadow(0 0 5px rgba(127, 212, 255, 0.55));
-}
-
-.sb-pointer-pulse {
-  animation: sb-pointer-pulse 1800ms ease-in-out infinite;
-  animation-delay: 320ms;
-}
-
-@keyframes sb-pointer-tap {
-  0% {
-    opacity: 0;
-    transform: translate(
-      var(--pointer-bounce-x, 0px),
-      var(--pointer-bounce-y, 0px)
-    );
-  }
-  60% {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-  100% {
-    opacity: 0.95;
-    transform: translate(0, 0);
-  }
-}
-
-@keyframes sb-pointer-pulse {
-  0%,
-  100% {
-    opacity: 0.95;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
 /* ── MarginNote ─────────────────────────────────────────────── */
 
 .sb-margin-note {
@@ -292,8 +152,6 @@
 
 .sb-slide-annotations[data-reduced-motion="true"] .sb-trace-stroke,
 .sb-slide-annotations[data-reduced-motion="true"] .sb-mark-point,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-pointer,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-pointer-pulse,
 .sb-slide-annotations[data-reduced-motion="true"] .sb-margin-note {
   animation: none !important;
 }
@@ -303,8 +161,7 @@
   opacity: 0.7 !important;
 }
 
-.sb-slide-annotations[data-reduced-motion="true"] .sb-mark-point,
-.sb-slide-annotations[data-reduced-motion="true"] .sb-pointer {
+.sb-slide-annotations[data-reduced-motion="true"] .sb-mark-point {
   opacity: 1 !important;
   transform: none !important;
 }
@@ -316,8 +173,6 @@
 @media (prefers-reduced-motion: reduce) {
   .sb-trace-stroke,
   .sb-mark-point,
-  .sb-pointer,
-  .sb-pointer-pulse,
   .sb-margin-note {
     animation: none !important;
   }
@@ -325,8 +180,7 @@
     stroke-dashoffset: 0 !important;
     opacity: 0.7 !important;
   }
-  .sb-mark-point,
-  .sb-pointer {
+  .sb-mark-point {
     opacity: 1 !important;
     transform: none !important;
   }

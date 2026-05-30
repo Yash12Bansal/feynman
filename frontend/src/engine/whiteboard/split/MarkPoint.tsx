@@ -94,7 +94,7 @@ function MarkPointLabel({
   readonly y: number;
   readonly text: string;
 }) {
-  // Approximate the text width — same heuristic as SpotlightLabel.
+  // Approximate the text width — cheap heuristic for sizing the label pill.
   const textWidth = Math.max(28, text.length * LABEL_FONT * 0.55);
   const pillW = textWidth + LABEL_PAD * 2;
   const pillH = LABEL_FONT + LABEL_PAD;

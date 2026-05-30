@@ -38,36 +38,25 @@ export function SlidePanel({ state }: SlidePanelProps) {
     active,
     pendingTitle,
     liveInstruction,
-    focusedElementId,
-    focusedRole,
-    inlineLabelText,
-    presentationMode,
     traces,
     markPoints,
-    pointers,
     marginNotes,
   } = state;
 
-  // Live-DOM bounds anchor: the spotlight layer queries this subtree for
+  // Live-DOM bounds anchor: the annotation layer queries this subtree for
   // `[data-design-element]` and reads `getBoundingClientRect()`.
   const stageRef = useRef<HTMLDivElement>(null);
 
-  // Only design diagrams carry the semantic dictionary; the spotlight is a
-  // no-op for legacy diagram types since it has nothing to anchor against.
+  // Only design diagrams carry the semantic dictionary; the annotation layer
+  // is a no-op for legacy diagram types since it has nothing to anchor against.
   const designDiagram =
     status === "ready" && liveInstruction?.type === "draw_design_diagram"
       ? liveInstruction
       : null;
-  // Mount the spotlight whenever there's a design diagram with a dictionary,
-  // even if nothing is focused yet — keeps transitions clean when focus
-  // arrives mid-narration.
-  const showSpotlight =
+  // Mount the annotation layer whenever there's a design diagram with a
+  // dictionary, so trace/mark/margin annotations can anchor to its elements.
+  const showAnnotations =
     designDiagram !== null && !!designDiagram.spec?.dictionary;
-
-  // Doc 18 §4.3: presentation mode comes from the SlideState (set by the
-  // event dispatcher) OR the spec's declared mode OR "overview".
-  const effectivePresentationMode =
-    presentationMode ?? designDiagram?.spec?.presentation_mode ?? "overview";
 
   const liveHeader = liveInstruction ? liveTitleFor(liveInstruction) : null;
   const headerTitle = liveHeader?.title || active?.title || pendingTitle || "";
@@ -99,18 +88,13 @@ export function SlidePanel({ state }: SlidePanelProps) {
             <InstructionSwitch instruction={liveInstruction} />
           </div>
         )}
-        {showSpotlight && designDiagram && (
+        {showAnnotations && designDiagram && (
           <SlideAnnotationLayer
             viewBox={`0 0 ${designDiagram.spec?.width ?? 900} ${designDiagram.spec?.height ?? 650}`}
             dictionary={designDiagram.spec?.dictionary}
-            focusedElementId={focusedElementId}
-            focusedRole={focusedRole}
-            inlineLabelText={inlineLabelText}
-            presentationMode={effectivePresentationMode}
             stageRef={stageRef}
             traces={traces}
             markPoints={markPoints}
-            pointers={pointers}
             marginNotes={marginNotes}
           />
         )}
