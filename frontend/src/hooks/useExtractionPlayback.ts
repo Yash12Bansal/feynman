@@ -293,12 +293,12 @@ export interface UseExtractionPlaybackResult {
   // Text fragment currently being spoken by the TTS audio. Empty string when
   // no audio is playing or when the chapter lacks persisted narration_text.
   readonly currentNarrationText: string;
-  // Player timing — total ms across all audio events in the chapter, and
-  // the ms offset at the START of the current/next audio event. Drives the
-  // scrubber position and the displayed timestamps. Both are 0 when the
-  // chapter hasn't loaded.
-  readonly totalAudioMs: number;
-  readonly currentAudioOffsetMs: number;
+  // Player timing — total wall-clock ms across every timed event in the
+  // chapter (audio + pause + page-turn sleeps) and ms elapsed so far from
+  // chapter start. Drives the scrubber position and the displayed
+  // timestamps. Both are 0 when the chapter hasn't loaded.
+  readonly chapterDurationMs: number;
+  readonly currentLectureMs: number;
   // Topic boundaries for the "Jump to topic" panel — one entry per
   // TopicStartEvent in order with the chapter event index to seek to.
   readonly topicJumps: readonly TopicJumpEntry[];
@@ -311,6 +311,12 @@ export interface UseExtractionPlaybackResult {
   readonly pause: () => void;
   readonly restart: () => void;
   readonly seekToEvent: (index: number) => void;
+  // Resolves once any in-flight playback loop has finished unwinding.
+  // After pause() flags abort + cancels, the loop only stops on the next
+  // microtask — callers that want to mutate cursor / restart play() in the
+  // same tick must await this first, or the loop's abort branch overwrites
+  // their cursor change.
+  readonly waitForIdle: () => Promise<void>;
   readonly applyDoubtBeat: (
     beat: {
       readonly target_diagram_id?: string | null;
@@ -391,10 +397,12 @@ export function useExtractionPlayback(
 
   const [status, setStatus] = useState<PlaybackStatus>("idle");
   const [cursorState, setCursorState] = useState(0);
-  // ms elapsed within the currently-playing AudioEvent. Updated via the
-  // HTMLAudioElement.timeupdate event (~4Hz) so the scrubber thumb glides
-  // continuously instead of jumping per-fragment.
-  const [withinAudioMs, setWithinAudioMs] = useState(0);
+  // ms elapsed within the currently-playing event (audio OR sleep). For
+  // audio events the value comes from the HTMLAudioElement.timeupdate event
+  // (~4Hz). For sleep-bearing events (pause / new_page / page_break) a
+  // requestAnimationFrame loop updates it from wall-clock — without that,
+  // the scrubber would freeze for the entire pause duration.
+  const [withinEventMs, setWithinEventMs] = useState(0);
   const [slide, setSlide] = useState<SlideState>({ status: "empty" });
   const [notebookEntries, setNotebookEntries] = useState<
     readonly NotebookEntry[]
@@ -418,12 +426,36 @@ export function useExtractionPlayback(
   const [currentNarrationText, setCurrentNarrationText] = useState("");
 
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
-  // Listener that surfaces audio.currentTime into withinAudioMs. Created
+  // Listener that surfaces audio.currentTime into withinEventMs. Created
   // once via useCallback so setAudioElement can attach/detach the same
   // function reference across remounts.
   const handleAudioTimeUpdate = useCallback(() => {
     const audio = audioElementRef.current;
-    if (audio) setWithinAudioMs(audio.currentTime * 1000);
+    if (audio) setWithinEventMs(audio.currentTime * 1000);
+  }, []);
+
+  // Sleep-event wall-clock ticker. Active only while a non-audio timed
+  // event (pause / new_page / page_break) is in flight. RAF gives smooth
+  // scrubber motion without the cost of a JS-driven setInterval.
+  const sleepStartedAtRef = useRef<number | null>(null);
+  const sleepRafRef = useRef<number | null>(null);
+  const startSleepTick = useCallback(() => {
+    sleepStartedAtRef.current = performance.now();
+    setWithinEventMs(0);
+    const tick = () => {
+      const start = sleepStartedAtRef.current;
+      if (start === null) return;
+      setWithinEventMs(performance.now() - start);
+      sleepRafRef.current = requestAnimationFrame(tick);
+    };
+    sleepRafRef.current = requestAnimationFrame(tick);
+  }, []);
+  const stopSleepTick = useCallback(() => {
+    sleepStartedAtRef.current = null;
+    if (sleepRafRef.current !== null) {
+      cancelAnimationFrame(sleepRafRef.current);
+      sleepRafRef.current = null;
+    }
   }, []);
   const setAudioElement = useCallback(
     (element: HTMLAudioElement | null) => {
@@ -467,33 +499,43 @@ export function useExtractionPlayback(
     [chapter],
   );
 
-  // Cumulative audio offsets in ms — index `i` holds the total ms BEFORE
-  // the i-th AudioEvent starts (so length is `totalAudios + 1`; index 0 is
-  // always 0, index `totalAudios` is the chapter's full duration).
-  // The scrubber reads this to map (eventIndex ↔ ms) both ways.
-  const audioOffsetsMs = useMemo<readonly number[]>(() => {
-    if (!chapter) return [0];
-    const out: number[] = [0];
-    let cum = 0;
-    for (const ev of chapter.events) {
-      if (ev.type === "audio") {
-        cum += ev.duration_ms || 0;
-        out.push(cum);
-      }
-    }
-    return out;
+  // Per-event duration table — covers every event that consumes wall-clock
+  // time in the playback loop: audio fragments, explicit pauses, and the
+  // half-PAGE_TURN_MS sleeps that drive page-turn animations. Sync-only
+  // events (slide_*, notebook_*, topic_start) contribute 0.
+  const eventDurationsMs = useMemo<readonly number[]>(() => {
+    if (!chapter) return [];
+    return chapter.events.map((ev) => {
+      if (ev.type === "audio") return ev.duration_ms || 0;
+      if (ev.type === "pause") return ev.duration_ms || 0;
+      if (ev.type === "new_page" || ev.type === "page_break")
+        return PAGE_TURN_MS / 2;
+      return 0;
+    });
   }, [chapter]);
 
-  const totalAudioMs = audioOffsetsMs[audioOffsetsMs.length - 1] ?? 0;
-  // Start of the currently-playing AudioEvent + ms elapsed within it. When
-  // audioProgress.current is N (1-based count of audio events that have
-  // STARTED), the base offset is audioOffsetsMs[N-1]. Live within-event time
-  // comes from withinAudioMs (updated by the timeupdate event handler).
-  const baseAudioOffsetMs =
-    audioOffsetsMs[Math.max(0, audioProgress.current - 1)] ?? 0;
-  const currentAudioOffsetMs = Math.min(
-    baseAudioOffsetMs + withinAudioMs,
-    totalAudioMs,
+  // Cumulative offsets in ms — index `i` holds the total ms BEFORE event `i`
+  // starts. Length = events.length + 1; index events.length is the chapter's
+  // full wall-clock duration. The scrubber maps (eventIndex ↔ ms) via this.
+  const eventOffsetsMs = useMemo<readonly number[]>(() => {
+    const out: number[] = [0];
+    let cum = 0;
+    for (const d of eventDurationsMs) {
+      cum += d;
+      out.push(cum);
+    }
+    return out;
+  }, [eventDurationsMs]);
+
+  const chapterDurationMs = eventOffsetsMs[eventOffsetsMs.length - 1] ?? 0;
+  // Live elapsed time across the whole lecture: start of the current event +
+  // ms elapsed within it. cursorState advances AFTER each event completes,
+  // so during playback it points at the in-flight event. withinEventMs comes
+  // from the audio timeupdate handler OR the sleep RAF ticker depending on
+  // event type.
+  const currentLectureMs = Math.min(
+    (eventOffsetsMs[cursorState] ?? 0) + withinEventMs,
+    chapterDurationMs,
   );
 
   // Topic-jump index — one entry per TopicStartEvent in the chapter, in
@@ -531,12 +573,13 @@ export function useExtractionPlayback(
     setCurrentSnapshot(null);
     snapshotCursorRef.current = 0;
     setCurrentNarrationText("");
-    setWithinAudioMs(0);
+    setWithinEventMs(0);
+    stopSleepTick();
     setCurrentTopicId(null);
     setCurrentTopicLabel("");
     setCurrentTopicName(null);
     setAudioProgress({ current: 0, total: totalAudios });
-  }, [chapter, totalAudios]);
+  }, [chapter, totalAudios, stopSleepTick]);
 
   const appendNotebookEntry = useCallback((entry: NotebookEntry) => {
     setNotebookEntries((prev) => {
@@ -835,7 +878,8 @@ export function useExtractionPlayback(
           // New audio starts at t=0 within the fragment. Reset the live
           // within-event counter explicitly — the timeupdate event will
           // begin advancing it once playback resumes.
-          setWithinAudioMs(0);
+          stopSleepTick();
+          setWithinEventMs(0);
           // Live transcript: surface the text fragment being spoken. The
           // preview server attaches `.text` per AudioEvent at fetch time
           // by re-chunking Chapter.narration_text. Empty string for
@@ -848,18 +892,28 @@ export function useExtractionPlayback(
           return !abortRef.current;
         }
         case "pause": {
+          startSleepTick();
           const c2 = makeCancelableSleep(ev.duration_ms);
           currentCancelableRef.current = c2;
-          await c2.promise;
-          currentCancelableRef.current = null;
+          try {
+            await c2.promise;
+          } finally {
+            stopSleepTick();
+            currentCancelableRef.current = null;
+          }
           return !abortRef.current;
         }
         case "new_page": {
           setPageTurning(true);
+          startSleepTick();
           const c2 = makeCancelableSleep(PAGE_TURN_MS / 2);
           currentCancelableRef.current = c2;
-          await c2.promise;
-          currentCancelableRef.current = null;
+          try {
+            await c2.promise;
+          } finally {
+            stopSleepTick();
+            currentCancelableRef.current = null;
+          }
           if (abortRef.current) {
             setPageTurning(false);
             return false;
@@ -872,10 +926,15 @@ export function useExtractionPlayback(
         }
         case "page_break": {
           setPageTurning(true);
+          startSleepTick();
           const c2 = makeCancelableSleep(PAGE_TURN_MS / 2);
           currentCancelableRef.current = c2;
-          await c2.promise;
-          currentCancelableRef.current = null;
+          try {
+            await c2.promise;
+          } finally {
+            stopSleepTick();
+            currentCancelableRef.current = null;
+          }
           if (abortRef.current) {
             setPageTurning(false);
             return false;
@@ -896,7 +955,7 @@ export function useExtractionPlayback(
           return true;
       }
     },
-    [applySyncEvent, advanceSnapshot, totalAudios],
+    [applySyncEvent, advanceSnapshot, totalAudios, startSleepTick, stopSleepTick],
   );
 
   const play = useCallback(async (): Promise<void> => {
@@ -948,6 +1007,16 @@ export function useExtractionPlayback(
       loopRef.current = null;
     }
   }, [chapter, runEvent, status, totalAudios]);
+
+  const waitForIdle = useCallback(async (): Promise<void> => {
+    if (loopRef.current) {
+      try {
+        await loopRef.current;
+      } catch {
+        /* the loop never throws but be safe across refactors */
+      }
+    }
+  }, []);
 
   const pause = useCallback(() => {
     if (!loopRef.current) return;
@@ -1005,7 +1074,8 @@ export function useExtractionPlayback(
       setCurrentSnapshot(null);
       snapshotCursorRef.current = 0;
       setCurrentNarrationText("");
-      setWithinAudioMs(0);
+      setWithinEventMs(0);
+      stopSleepTick();
       slideSnapshotRef.current = null;
 
       // REPLAY sync state for events [0..clamped). React batches the
@@ -1048,39 +1118,26 @@ export function useExtractionPlayback(
       cursorRef.current = clamped;
       setCursorState(clamped);
     },
-    [chapter, totalAudios, advanceSnapshot, applySyncEvent],
+    [chapter, totalAudios, advanceSnapshot, applySyncEvent, stopSleepTick],
   );
 
-  // Seek to a time offset in ms (scrubber consumer). Fragment-level —
-  // snaps to the START of the AudioEvent whose [offset, offset+duration]
-  // range contains targetMs. Off the end → seek to last audio event.
+  // Seek to a time offset in ms (scrubber consumer). Snaps to the START of
+  // whichever event (audio OR pause OR page-turn) covers targetMs. Past the
+  // chapter end → seek to the last event.
   const seekToTimeMs = useCallback(
     (targetMs: number) => {
-      if (!chapter || audioOffsetsMs.length <= 1) return;
-      const clamped = Math.max(0, Math.min(targetMs, totalAudioMs));
-      // Find the audio-event index whose end-offset first exceeds the target.
-      let audioIdx = audioOffsetsMs.length - 2;
-      for (let i = 1; i < audioOffsetsMs.length; i++) {
-        if (audioOffsetsMs[i] > clamped) {
-          audioIdx = i - 1;
+      if (!chapter || eventOffsetsMs.length <= 1) return;
+      const clamped = Math.max(0, Math.min(targetMs, chapterDurationMs));
+      let eventIdx = eventOffsetsMs.length - 2;
+      for (let i = 1; i < eventOffsetsMs.length; i++) {
+        if (eventOffsetsMs[i] > clamped) {
+          eventIdx = i - 1;
           break;
-        }
-      }
-      // Map audio-event index → chapter-event index.
-      let seen = 0;
-      let eventIdx = chapter.events.length;
-      for (let i = 0; i < chapter.events.length; i++) {
-        if (chapter.events[i].type === "audio") {
-          if (seen === audioIdx) {
-            eventIdx = i;
-            break;
-          }
-          seen += 1;
         }
       }
       seekToEvent(eventIdx);
     },
-    [chapter, audioOffsetsMs, totalAudioMs, seekToEvent],
+    [chapter, eventOffsetsMs, chapterDurationMs, seekToEvent],
   );
 
   // ── Phase 5: doubt-mode slide mutators ─────────────────────────
@@ -1189,8 +1246,8 @@ export function useExtractionPlayback(
     notebook,
     currentSnapshot,
     currentNarrationText,
-    totalAudioMs,
-    currentAudioOffsetMs,
+    chapterDurationMs,
+    currentLectureMs,
     topicJumps,
     setAudioElement,
     play,
@@ -1198,6 +1255,7 @@ export function useExtractionPlayback(
     restart,
     seekToEvent,
     seekToTimeMs,
+    waitForIdle,
     applyDoubtBeat,
     clearDoubtAnnotations,
   };
