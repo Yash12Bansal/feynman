@@ -125,13 +125,14 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     currentTopicId,
     currentSnapshot,
     currentNarrationText,
-    totalAudioMs,
-    currentAudioOffsetMs,
+    chapterDurationMs,
+    currentLectureMs,
     topicJumps,
     pause,
     play,
     seekToEvent,
     seekToTimeMs,
+    waitForIdle,
     applyDoubtBeat,
     clearDoubtAnnotations,
   } = useExtractionPlayback({ chapter, autoStart: true });
@@ -142,6 +143,73 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     readonly SatisfactionOption[] | null
   >(null);
   const room = useRoomContext();
+
+  // Subtitle (closed-caption) prefs. Visibility + size persist across
+  // reloads via localStorage (YouTube-style). Position is per-session only —
+  // when the user drags the band somewhere, we keep it there until the next
+  // page load; defaults centered above the scrubber.
+  const [subtitlesHidden, setSubtitlesHidden] = useState<boolean>(
+    () => _readCCPref("feynman.cc.hidden") === "1",
+  );
+  const [subtitleSize, setSubtitleSize] = useState<"S" | "M" | "L">(() => {
+    const v = _readCCPref("feynman.cc.size");
+    return v === "S" || v === "L" ? v : "M";
+  });
+  const [subtitlePos, setSubtitlePos] = useState<{ x: number; y: number } | null>(null);
+  // Brief on-screen confirmation when a CC hotkey fires. Without this the
+  // size change is easy to miss (especially Small→Medium), and toggling C
+  // when subtitles are already empty looks like nothing happened.
+  const [ccToast, setCCToast] = useState<string | null>(null);
+  const ccToastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashCCToast = useCallback((msg: string) => {
+    setCCToast(msg);
+    if (ccToastTimeoutRef.current) clearTimeout(ccToastTimeoutRef.current);
+    ccToastTimeoutRef.current = setTimeout(() => setCCToast(null), 1400);
+  }, []);
+  useEffect(() => {
+    _writeCCPref("feynman.cc.hidden", subtitlesHidden ? "1" : "0");
+  }, [subtitlesHidden]);
+  useEffect(() => {
+    _writeCCPref("feynman.cc.size", subtitleSize);
+  }, [subtitleSize]);
+  // Reset position when the chapter changes (per-session ≈ per-chapter is
+  // a reasonable interpretation; a fresh chapter starts in the default spot).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- chapter-id is a prop-bound reset, same pattern as the fetch effect above.
+    setSubtitlePos(null);
+  }, [chapterId]);
+
+  // Keyboard shortcuts for subtitle controls. `C` toggles visibility,
+  // `+`/`=` and `-`/`_` adjust the size preset. Ignored while typing into
+  // an input/textarea so they don't collide with text entry elsewhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      if (e.key === "c" || e.key === "C") {
+        setSubtitlesHidden((v) => {
+          flashCCToast(v ? "Subtitles: On" : "Subtitles: Off");
+          return !v;
+        });
+      } else if (e.key === "+" || e.key === "=") {
+        setSubtitleSize((s) => {
+          const next: "S" | "M" | "L" = s === "S" ? "M" : "L";
+          flashCCToast(`Subtitles: ${SUBTITLE_SIZE_LABEL[next]}`);
+          return next;
+        });
+      } else if (e.key === "-" || e.key === "_") {
+        setSubtitleSize((s) => {
+          const next: "S" | "M" | "L" = s === "L" ? "M" : "S";
+          flashCCToast(`Subtitles: ${SUBTITLE_SIZE_LABEL[next]}`);
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flashCCToast]);
 
   // Hotfix: bound the listening / thinking states with explicit timeouts
   // so a silent backend (worker down, mic permission denied, network
@@ -345,28 +413,37 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
   }, [isPaused, pause, play]);
 
   // Scrubber: keep playback state intact across a seek. Auto-resume if the
-  // lecture was playing when the user grabbed the thumb.
+  // lecture was playing when the user grabbed the thumb. The mouseup → seek
+  // gap gives the inflight loop time to unwind on its own; we still await
+  // waitForIdle defensively so the contract matches the topic-jump path.
   const onSeekStart = useCallback(() => {
     wasPlayingBeforeSeekRef.current = status === "playing";
     if (status === "playing") pause();
   }, [pause, status]);
   const onSeekCommit = useCallback(
-    (ms: number) => {
+    async (ms: number) => {
+      await waitForIdle();
       seekToTimeMs(ms);
       if (wasPlayingBeforeSeekRef.current) void play();
     },
-    [seekToTimeMs, play],
+    [seekToTimeMs, play, waitForIdle],
   );
 
-  // Topic jump: same auto-resume semantics as the scrubber.
+  // Topic jump: same auto-resume semantics as the scrubber. Critical: we
+  // MUST wait for the inflight playback loop to finish unwinding before
+  // calling seekToEvent. Otherwise the loop's abort branch (which runs on
+  // the next microtask) overwrites cursorRef with `oldIdx + 1`, undoing the
+  // seek and stranding playback without ever calling play() again — that
+  // was the "audio doesn't catch up to the new slide" bug.
   const onTopicJump = useCallback(
-    (eventIndex: number) => {
+    async (eventIndex: number) => {
       const wasPlaying = status === "playing";
       if (wasPlaying) pause();
+      await waitForIdle();
       seekToEvent(eventIndex);
       if (wasPlaying) void play();
     },
-    [pause, play, seekToEvent, status],
+    [pause, play, seekToEvent, status, waitForIdle],
   );
 
   const doubtActive = doubtState !== "idle";
@@ -384,13 +461,19 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
           onJump={onTopicJump}
         />
       )}
-      {chapter && !doubtActive && currentNarrationText && (
-        <TranscriptBand text={currentNarrationText} />
+      {chapter && !doubtActive && !subtitlesHidden && currentNarrationText && (
+        <TranscriptBand
+          text={currentNarrationText}
+          size={subtitleSize}
+          position={subtitlePos}
+          onPositionChange={setSubtitlePos}
+        />
       )}
-      {chapter && !doubtActive && totalAudioMs > 0 && (
+      {ccToast && <CCToast text={ccToast} />}
+      {chapter && !doubtActive && chapterDurationMs > 0 && (
         <Scrubber
-          totalMs={totalAudioMs}
-          currentMs={currentAudioOffsetMs}
+          totalMs={chapterDurationMs}
+          currentMs={currentLectureMs}
           onSeekStart={onSeekStart}
           onSeekCommit={onSeekCommit}
         />
@@ -415,18 +498,94 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
 
 interface TranscriptBandProps {
   readonly text: string;
+  readonly size: "S" | "M" | "L";
+  readonly position: { x: number; y: number } | null;
+  readonly onPositionChange: (p: { x: number; y: number } | null) => void;
 }
 
-function TranscriptBand({ text }: TranscriptBandProps) {
+const SUBTITLE_FONT: Record<"S" | "M" | "L", string> = {
+  S: "0.75rem",
+  M: "1.05rem",
+  L: "1.6rem",
+};
+const SUBTITLE_SIZE_LABEL: Record<"S" | "M" | "L", string> = {
+  S: "Small",
+  M: "Medium",
+  L: "Large",
+};
+
+function TranscriptBand({
+  text,
+  size,
+  position,
+  onPositionChange,
+}: TranscriptBandProps) {
+  // Drag state: local dx/dy relative to the band's top-left at drag start,
+  // so the cursor stays "stuck" to the same point inside the band while
+  // dragging — feels native instead of snapping the band's center to cursor.
+  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
+
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      // Left button only — right-click should still let the user select text.
+      if (e.button !== 0) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      dragRef.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+      // Seed position from current rect so the first move is jump-free even
+      // if we're starting from the default centered layout.
+      onPositionChange({ x: rect.left, y: rect.top });
+      e.preventDefault();
+    },
+    [onPositionChange],
+  );
+
+  useEffect(() => {
+    if (dragRef.current === null) return;
+    const onMove = (ev: MouseEvent) => {
+      const d = dragRef.current;
+      if (!d) return;
+      // Clamp to viewport with a small margin so the band can't be lost
+      // off-screen. Width/height read off the element each frame is fine —
+      // a typed transcript is ~40px tall.
+      const margin = 8;
+      const w = 360; // typical band width; clamp uses a conservative estimate
+      const h = 60;
+      const x = Math.min(
+        Math.max(margin, ev.clientX - d.dx),
+        window.innerWidth - w - margin,
+      );
+      const y = Math.min(
+        Math.max(margin, ev.clientY - d.dy),
+        window.innerHeight - h - margin,
+      );
+      onPositionChange({ x, y });
+    };
+    const onUp = () => {
+      dragRef.current = null;
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    // We deliberately rebind on each position so the closure sees fresh
+    // onPositionChange — the dragRef gate keeps the work cheap when idle.
+  }, [position, onPositionChange]);
+
+  const positioned = position
+    ? { left: position.x, top: position.y, transform: "none" as const }
+    : { left: "50%" as const, bottom: 80, transform: "translateX(-50%)" as const };
+
   return (
     <div
+      onMouseDown={onMouseDown}
       style={{
         position: "fixed",
-        // Sit ABOVE the scrubber (bottom: 24, ~40px tall). Anchor at the
-        // bottom so the band grows UPWARD for multi-line transcripts.
-        bottom: 80,
-        left: "50%",
-        transform: "translateX(-50%)",
+        // Default placement sits ABOVE the scrubber (bottom: 24, ~40px tall).
+        // Anchor at the bottom so the band grows UPWARD for multi-line
+        // transcripts. When the user drags, we switch to top/left positioning.
+        ...positioned,
         zIndex: 90,
         maxWidth: "min(72vw, 920px)",
         padding: "10px 22px",
@@ -434,11 +593,13 @@ function TranscriptBand({ text }: TranscriptBandProps) {
         border: "1px solid rgba(232, 232, 238, 0.10)",
         borderRadius: 14,
         color: "rgba(232, 232, 238, 0.88)",
-        fontSize: "1rem",
+        fontSize: SUBTITLE_FONT[size],
         lineHeight: 1.5,
         textAlign: "center",
         backdropFilter: "blur(8px)",
-        pointerEvents: "none",
+        // The band catches mouse events so it can be dragged; cursor reflects
+        // that affordance. Text inside is still selectable on mouseup.
+        cursor: "move",
         userSelect: "text",
       }}
     >
@@ -536,6 +697,51 @@ function Scrubber({
       <span style={{ minWidth: 44 }}>{_fmtMs(totalMs)}</span>
     </div>
   );
+}
+
+// Flash pill shown when a subtitle hotkey fires. Pure presentation; the
+// parent owns the visibility timer.
+function CCToast({ text }: { readonly text: string }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 32,
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 110,
+        padding: "8px 16px",
+        background: "rgba(12, 13, 16, 0.85)",
+        border: "1px solid rgba(232, 232, 238, 0.18)",
+        borderRadius: 999,
+        color: "rgba(232, 232, 238, 0.92)",
+        fontSize: "0.85rem",
+        letterSpacing: "0.01em",
+        backdropFilter: "blur(8px)",
+        pointerEvents: "none",
+        userSelect: "none",
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+// localStorage shims — defensive against environments without it (jsdom in
+// tests, SSR if we ever do it, Safari private mode quota errors).
+function _readCCPref(key: string): string | null {
+  try {
+    return window.localStorage?.getItem(key) ?? null;
+  } catch {
+    return null;
+  }
+}
+function _writeCCPref(key: string, value: string): void {
+  try {
+    window.localStorage?.setItem(key, value);
+  } catch {
+    /* swallow — preference loss isn't worth crashing the player. */
+  }
 }
 
 function _fmtMs(ms: number): string {
