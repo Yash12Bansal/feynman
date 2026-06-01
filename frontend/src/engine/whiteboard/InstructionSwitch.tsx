@@ -21,14 +21,25 @@ import { StepEquationContent } from "../content/StepEquationContent";
 
 export function InstructionSwitch({
   instruction,
+  focusedElementId,
+  focusedRole,
 }: {
   instruction: VisualInstruction;
+  /** FOCUS target, threaded to design diagrams for the in-place glow+lift. */
+  readonly focusedElementId?: string | null;
+  readonly focusedRole?: string | null;
 }) {
   switch (instruction.type) {
     case "draw_diagram":
       return <RoughDiagramContent instruction={instruction} />;
     case "draw_design_diagram":
-      return <DesignDiagramContent instruction={instruction} />;
+      return (
+        <DesignDiagramContent
+          instruction={instruction}
+          focusedElementId={focusedElementId}
+          focusedRole={focusedRole}
+        />
+      );
     case "show_text":
       return <TextContent instruction={instruction} />;
     case "show_equation":

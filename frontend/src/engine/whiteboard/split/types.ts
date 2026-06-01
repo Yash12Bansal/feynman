@@ -54,7 +54,18 @@ export interface SlideState {
   readonly traces?: readonly TraceState[];
   readonly markPoints?: readonly MarkPointState[];
   readonly marginNotes?: readonly MarginNoteState[];
+  readonly pointers?: readonly PointerState[];
   readonly nextAnnotationKey?: number;
+
+  // ── FOCUS (glow+lift) ─────────────────────────────────────────────────
+  //
+  // The element currently spotlighted while the agent talks about it. Applied
+  // IN PLACE to the real diagram element (DesignDiagramContent), not via an
+  // overlay — so no bounds math, and it glows the actual shape in its own
+  // colour. Either id (preferred) or role (resolved against the dictionary).
+  // Cleared on unfocus / clear_annotations / show_diagram.
+  readonly focusedElementId?: string | null;
+  readonly focusedRole?: string | null;
 }
 
 /** Doc 19 §12: stroke-draw animation along an element's geometry. */
@@ -79,6 +90,13 @@ export interface MarginNoteState {
   readonly anchorElementId: string;
   readonly side: "top" | "bottom" | "left" | "right";
   readonly text: string;
+}
+
+/** Doc 19 §12: an arrow pointing at an element from one side ("look here"). */
+export interface PointerState {
+  readonly key: number;
+  readonly elementId: string;
+  readonly fromSide: "top" | "bottom" | "left" | "right";
 }
 
 export type NotebookEntryKind =

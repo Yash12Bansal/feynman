@@ -351,3 +351,99 @@ describe("useExtractionPlayback — slide snapshot/restore (Phase 6)", () => {
     );
   });
 });
+
+// ── FOCUS + POINT_AT wiring (P1/P2) — both entry points ─────────
+//
+// These prove the load-bearing claim: focus/point_at light up the SAME slide
+// state in BOTH the precomputed lecture (applySyncEvent, via seekToEvent's
+// replay) AND the live doubt path (applyDoubtBeat). Same render downstream.
+
+describe("useExtractionPlayback — FOCUS + POINT_AT", () => {
+  it("lecture: focus event sets focusedElementId/Role; point_at appends a pointer", () => {
+    const chapter = mkChapter([
+      {
+        type: "focus",
+        diagram_id: "d",
+        target_element_id: "hyp",
+        target_role: "hypotenuse",
+      },
+      {
+        type: "point_at",
+        diagram_id: "d",
+        element_id: "vertex",
+        from_side: "left",
+      },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const { result } = renderHook(() =>
+      useExtractionPlayback({ chapter, autoStart: false }),
+    );
+    act(() => {
+      result.current.seekToEvent(2); // replays events 0..1
+    });
+    expect(result.current.slide.focusedElementId).toBe("hyp");
+    expect(result.current.slide.focusedRole).toBe("hypotenuse");
+    expect(result.current.slide.pointers?.length).toBe(1);
+    expect(result.current.slide.pointers?.[0].elementId).toBe("vertex");
+    expect(result.current.slide.pointers?.[0].fromSide).toBe("left");
+  });
+
+  it("lecture: clear_annotations clears focus + pointers", () => {
+    const chapter = mkChapter([
+      { type: "focus", diagram_id: "d", target_element_id: "hyp" },
+      { type: "point_at", diagram_id: "d", element_id: "v", from_side: "top" },
+      { type: "clear_annotations", diagram_id: "d" },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const { result } = renderHook(() =>
+      useExtractionPlayback({ chapter, autoStart: false }),
+    );
+    act(() => {
+      result.current.seekToEvent(3); // replays events 0..2
+    });
+    expect(result.current.slide.focusedElementId).toBeNull();
+    expect(result.current.slide.pointers?.length ?? 0).toBe(0);
+  });
+
+  it("doubt: applyDoubtBeat wires focus + point_at (same setters as the lecture)", () => {
+    const chapter = mkChapter([]);
+    const { result } = renderHook(() =>
+      useExtractionPlayback({ chapter, autoStart: false }),
+    );
+    act(() => {
+      result.current.applyDoubtBeat(
+        {
+          target_diagram_id: "diagram:test:d1",
+          annotation_actions: [
+            {
+              action: "focus",
+              target_element_id: "hyp",
+              target_role: "hypotenuse",
+            },
+            { action: "point_at", element_id: "v", from_side: "right" },
+          ],
+        },
+        chapter,
+      );
+    });
+    expect(result.current.slide.focusedElementId).toBe("hyp");
+    expect(result.current.slide.pointers?.length).toBe(1);
+    expect(result.current.slide.pointers?.[0].fromSide).toBe("right");
+  });
+
+  it("show_diagram resets a prior topic's focus + pointers", () => {
+    const chapter = mkChapter([
+      { type: "focus", diagram_id: "d", target_element_id: "old" },
+      { type: "show_diagram", diagram_id: "diagram:test:d1" },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const { result } = renderHook(() =>
+      useExtractionPlayback({ chapter, autoStart: false }),
+    );
+    act(() => {
+      result.current.seekToEvent(2); // replays focus(0) then show_diagram(1)
+    });
+    expect(result.current.slide.focusedElementId).toBeNull();
+    expect(result.current.slide.pointers?.length ?? 0).toBe(0);
+  });
+});

@@ -10,8 +10,8 @@
  * full design diagram element; more contextual than a free-floating text.
  */
 
-import { useRef, type RefObject } from "react";
-import type { ElementMeta } from "../../../types/visuals";
+import { useMemo, type RefObject } from "react";
+import type { AnnotationTarget, ElementMeta } from "../../../types/visuals";
 import { useResolvedBounds } from "./SlideAnnotationLayer";
 
 const CONNECTOR_LENGTH = 28;
@@ -35,10 +35,10 @@ export function MarginNote({
   stageRef,
   overlayRef,
 }: MarginNoteProps) {
-  const target = useRef({
-    kind: "id" as const,
-    value: anchorElementId,
-  }).current;
+  const target = useMemo<AnnotationTarget>(
+    () => ({ kind: "id", value: anchorElementId }),
+    [anchorElementId],
+  );
   const bounds = useResolvedBounds(target, stageRef, overlayRef, dictionary);
 
   if (!bounds || !text.trim()) return null;

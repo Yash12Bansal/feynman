@@ -599,8 +599,38 @@ export function useExtractionPlayback(
       traces: [],
       markPoints: [],
       marginNotes: [],
+      pointers: [],
+      focusedElementId: null,
+      focusedRole: null,
     }));
   }, []);
+
+  // FOCUS — spotlight one element in place (glow+lift). Replaces any prior
+  // focus (single focused element at a time); null clears it.
+  const setFocus = useCallback(
+    (elementId: string | null, role: string | null) => {
+      setSlide((prev) => ({
+        ...prev,
+        focusedElementId: elementId,
+        focusedRole: role,
+      }));
+    },
+    [],
+  );
+
+  const appendPointer = useCallback(
+    (elementId: string, fromSide: "top" | "bottom" | "left" | "right") => {
+      setSlide((prev) => {
+        const key = prev.nextAnnotationKey ?? 0;
+        return {
+          ...prev,
+          nextAnnotationKey: key + 1,
+          pointers: [...(prev.pointers ?? []), { key, elementId, fromSide }],
+        };
+      });
+    },
+    [],
+  );
 
   const appendTrace = useCallback((elementId: string, durationMs: number) => {
     setSlide((prev) => {
@@ -691,6 +721,9 @@ export function useExtractionPlayback(
             traces: [],
             markPoints: [],
             marginNotes: [],
+            pointers: [],
+            focusedElementId: null,
+            focusedRole: null,
             nextAnnotationKey: 0,
           });
           return;
@@ -762,6 +795,14 @@ export function useExtractionPlayback(
           );
           return;
         }
+        case "focus": {
+          setFocus(ev.target_element_id ?? null, ev.target_role ?? null);
+          return;
+        }
+        case "point_at": {
+          appendPointer(ev.element_id, ev.from_side ?? "left");
+          return;
+        }
         case "unfocus":
         case "clear_annotations": {
           resetSlideAnnotations();
@@ -799,6 +840,8 @@ export function useExtractionPlayback(
       appendMarkPoint,
       appendMarginNote,
       appendTrace,
+      appendPointer,
+      setFocus,
       resetSlideAnnotations,
     ],
   );
@@ -907,7 +950,13 @@ export function useExtractionPlayback(
           return true;
       }
     },
-    [applySyncEvent, advanceSnapshot, totalAudios, startSleepTick, stopSleepTick],
+    [
+      applySyncEvent,
+      advanceSnapshot,
+      totalAudios,
+      startSleepTick,
+      stopSleepTick,
+    ],
   );
 
   const play = useCallback(async (): Promise<void> => {
@@ -1128,14 +1177,27 @@ export function useExtractionPlayback(
             traces: [],
             markPoints: [],
             marginNotes: [],
+            pointers: [],
+            focusedElementId: null,
+            focusedRole: null,
             nextAnnotationKey: 0,
           });
         }
       }
 
-      // Apply each annotation action via the same setters the lecture uses.
+      // Apply each annotation action via the same setters the lecture uses, so
+      // doubt highlighting renders identically to the precomputed lecture.
       for (const action of annotations) {
         switch (action.action) {
+          case "focus":
+            setFocus(
+              action.target_element_id ?? null,
+              action.target_role ?? null,
+            );
+            break;
+          case "point_at":
+            appendPointer(action.element_id, action.from_side ?? "left");
+            break;
           case "trace":
             appendTrace(action.element_id, action.duration_ms ?? 1500);
             break;
@@ -1150,7 +1212,7 @@ export function useExtractionPlayback(
         }
       }
     },
-    [appendTrace, appendMarkPoint],
+    [appendTrace, appendMarkPoint, appendPointer, setFocus],
   );
 
   const clearDoubtAnnotations = useCallback(() => {

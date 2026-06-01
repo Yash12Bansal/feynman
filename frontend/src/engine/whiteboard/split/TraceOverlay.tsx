@@ -97,13 +97,15 @@ function extractLeafShape(
   if (LEAF_TAGS.has(root.tagName.toLowerCase())) {
     candidates.push(root);
   }
-  // Otherwise look at direct children + descendant SVG shape elements.
-  // We bias towards the first one — design diagrams typically wrap a single
-  // shape in their <g data-design-element="…">.
+  // Otherwise look at descendant SVG shape elements. We bias towards the first
+  // one — design diagrams typically wrap a single shape in their
+  // <g data-design-element="…">. CRITICAL: skip geometry inside <defs>/<marker>
+  // (e.g. an svg_arrow's arrowhead template) — tracing the marker triangle
+  // instead of the arrow line is exactly the "random outlining" bug.
   for (const child of Array.from(root.querySelectorAll("*"))) {
-    if (LEAF_TAGS.has(child.tagName.toLowerCase())) {
-      candidates.push(child);
-    }
+    if (!LEAF_TAGS.has(child.tagName.toLowerCase())) continue;
+    if (child.closest("defs") || child.closest("marker")) continue;
+    candidates.push(child);
   }
   const leaf = candidates[0];
   if (!leaf) {

@@ -332,30 +332,36 @@ class Walker:
 
         if slide.diagram_id is not None:
             if slide.placed_rect is not None:
-                elements.append(BoardElement(
-                    element_id=slide.diagram_id,
-                    kind="diagram",
-                    rect=_to_pyd_rect(slide.placed_rect),
-                ))
+                elements.append(
+                    BoardElement(
+                        element_id=slide.diagram_id,
+                        kind="diagram",
+                        rect=_to_pyd_rect(slide.placed_rect),
+                    )
+                )
             role_to_meta = self._diagram_role_index(slide.diagram_id)
             for role, rect in slide.element_bounds.items():
                 meta = role_to_meta.get(role, {})
-                elements.append(BoardElement(
-                    element_id=meta.get("element_id", role),
-                    kind="diagram_element",
-                    rect=_to_pyd_rect(rect),
-                    parent_id=slide.diagram_id,
-                    role=role,
-                    semantic=meta.get("semantic", ""),
-                ))
+                elements.append(
+                    BoardElement(
+                        element_id=meta.get("element_id", role),
+                        kind="diagram_element",
+                        rect=_to_pyd_rect(rect),
+                        parent_id=slide.diagram_id,
+                        role=role,
+                        semantic=meta.get("semantic", ""),
+                    )
+                )
 
         for bp in nb.blocks:
-            elements.append(BoardElement(
-                element_id=bp.fragment_id,
-                kind="notebook_block",
-                rect=_to_pyd_rect(bp.rect),
-                block_type=bp.block_type,
-            ))
+            elements.append(
+                BoardElement(
+                    element_id=bp.fragment_id,
+                    kind="notebook_block",
+                    rect=_to_pyd_rect(bp.rect),
+                    block_type=bp.block_type,
+                )
+            )
 
         return BoardSnapshot(
             page_index=self._page_state.page_index,
@@ -673,29 +679,37 @@ class Walker:
     def _handle_focus(self, frag: FocusFragment) -> ScriptFragment | None:
         """Validate FOCUS against active diagram; stamp diagram_id; emit.
 
-        Drops when:
+        The FOCUS body (carried in `frag.role`) may be EITHER a stable
+        `element_id` (the semantic highlight aligner + the frontend's preferred
+        `target_element_id` path) OR a legacy `role`. We resolve id-first, then
+        role, so both authoring styles work. Drops when:
           - no active diagram
-          - role not in the active diagram's dictionary
-        Re-FOCUS on the same role is allowed (re-emit; frontend can repaint
-        as a brief re-attention flash). Empty inline label is fine.
+          - body matches neither an element_id nor a role in the dictionary
+        Re-FOCUS on the same target is allowed (re-emit). Empty label is fine.
         """
         if self._active is None:
             self.report.record_drop("no_active_diagram")
             return None
-        role = frag.role.strip()
-        if not role:
-            self.report.record_drop("focus_empty_role")
+        body = frag.role.strip()
+        if not body:
+            self.report.record_drop("focus_empty_target")
             return None
-        if not self._active.has_role(role):
-            self.report.record_drop("role_unknown")
+        if self._active.has_element_id(body):
+            resolved_id: str | None = body
+            meta = self._active.dictionary.get(body) or {}
+            role = meta.get("role", "") if isinstance(meta, dict) else ""
+        elif self._active.has_role(body):
+            role = body
+            resolved_id = self._active.role_to_element_id(body)
+        else:
+            self.report.record_drop("focus_target_unknown")
             return None
-        resolved_id = self._active.role_to_element_id(role)
         frag.role = role
         frag.diagram_id = self._active.diagram_id
         # Doc 19 §A-3: stamp the stable element_id so the audio_pipeline can
         # populate FocusEvent.target_element_id (the preferred selector).
         frag.element_id = resolved_id or ""
-        self._active.focus_role = role
+        self._active.focus_role = role or resolved_id
         self.report.record_emit()
         self._bump_annotations()
         return frag

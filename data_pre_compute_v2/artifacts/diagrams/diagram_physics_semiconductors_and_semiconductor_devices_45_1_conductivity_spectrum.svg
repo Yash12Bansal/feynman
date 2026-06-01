@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="conductivity-axis" x1="80" y1="340" x2="830" y2="340" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_axis-arrow-right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="axis-arrow-right" x1="800" y1="340" x2="840" y2="340" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_axis-arrow-right)"/>
+<defs><marker id="arrowhead_axis-arrow-left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="axis-arrow-left" x1="110" y1="340" x2="70" y2="340" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_axis-arrow-left)"/>
+<text id="axis-label" x="455" y="395" font-size="12" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">Conductivity  σ  (S/m)  →  increasing</text>
+<line id="tick-low" x1="155" y1="333" x2="155" y2="347" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<text id="tick-low-label" x="155" y="362" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">10⁻¹⁴</text>
+<line id="tick-mid" x1="455" y1="333" x2="455" y2="347" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<text id="tick-mid-label" x="455" y="362" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">10⁻²</text>
+<line id="tick-high" x1="755" y1="333" x2="755" y2="347" stroke="#e8e8ee" stroke-width="1.5" stroke-dasharray=""/>
+<text id="tick-high-label" x="755" y="362" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">10⁷</text>
+<rect id="insulator-band" x="82" y="290" width="210" height="100" rx="4" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<text id="insulator-label" x="187" y="278" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Insulators</text>
+<text id="insulator-examples" x="187" y="330" font-size="10" fill="rgba(127,212,255,0.7)" text-anchor="middle" font-weight="normal">rubber, glass</text>
+<rect id="semiconductor-band" x="340" y="290" width="210" height="100" rx="4" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="semiconductor-label" x="445" y="278" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">Semiconductors</text>
+<text id="semiconductor-examples" x="445" y="330" font-size="10" fill="rgba(158,255,201,0.7)" text-anchor="middle" font-weight="normal">silicon, germanium</text>
+<rect id="conductor-band" x="598" y="290" width="232" height="100" rx="4" fill="none" stroke="#ff7a8a" stroke-width="2"/>
+<text id="conductor-label" x="714" y="278" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">Conductors</text>
+<text id="conductor-examples" x="714" y="330" font-size="10" fill="rgba(255,122,138,0.7)" text-anchor="middle" font-weight="normal">copper, silver</text>
+<circle id="silicon-dot" cx="430" cy="340" r="7" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<line id="silicon-marker" x1="430" y1="290" x2="430" y2="390" stroke="#9effc9" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text id="silicon-label" x="430" y="408" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">Si</text>
+<circle id="copper-dot" cx="755" cy="340" r="7" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<line id="copper-marker" x1="755" y1="290" x2="755" y2="390" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text id="copper-label" x="755" y="408" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">Cu</text>
+<defs><marker id="arrowhead_temp-up-semiconductor-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="temp-up-semiconductor-arrow" x1="445" y1="235" x2="445" y2="175" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_temp-up-semiconductor-arrow)"/>
+<text id="temp-semi-label" x="445" y="163" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">Heat → σ rises</text>
+<defs><marker id="arrowhead_temp-up-conductor-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="temp-up-conductor-arrow" x1="714" y1="175" x2="714" y2="235" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_temp-up-conductor-arrow)"/>
+<text id="temp-conductor-label" x="714" y="163" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">Heat → σ falls</text>
+</svg>

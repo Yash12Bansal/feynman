@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="y-axis" x1="160" y1="60" x2="160" y2="590" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="y-axis-label" x="90" y="325" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Energy</text>
+<line id="isolated-level" x1="180" y1="400" x2="380" y2="400" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="isolated-level-label" x="185" y="392" font-size="11" fill="#7fd4ff" text-anchor="start" font-weight="normal">3s (isolated atom)</text>
+<line id="split-level-1" x1="420" y1="380" x2="550" y2="380" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="split-level-2" x1="420" y1="400" x2="550" y2="400" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<line id="split-level-3" x1="420" y1="420" x2="550" y2="420" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<g id="split-levels-few" transform="translate(0,0)"><line id="sl1" x1="420" y1="380" x2="550" y2="380" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/><line id="sl2" x1="420" y1="400" x2="550" y2="400" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/><line id="sl3" x1="420" y1="420" x2="550" y2="420" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/></g>
+<text id="split-few-label" x="485" y="370" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="normal">3 atoms</text>
+<rect id="band-region" x="620" y="400" width="130" height="4" rx="2" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<path id="band-region-fill" d="M 621 &quot;400 - (n_atoms - 1) * 2.4 + 2&quot; L 749 &quot;400 - (n_atoms - 1) * 2.4 + 2&quot; L 749 &quot;400 + (n_atoms - 1) * 2.4 + 2&quot; L 621 &quot;400 + (n_atoms - 1) * 2.4 + 2&quot; Z" stroke="none" stroke-width="0" fill="rgba(127,212,255,0.12)" stroke-dasharray=""/>
+<text id="n-atoms-label" x="685" y="422" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">N atoms packed together</text>
+<text id="band-region-label" x="685" y="392" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="normal">Energy Band (3s)</text>
+<line id="filled-half-marker" x1="618" y1="400" x2="752" y2="400" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="6,4"/>
+<text id="filled-half-label" x="756" y="404" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="normal">Electrons fill up to here</text>
+<rect id="band-gap-region" x="620" y="300" width="130" height="56" rx="2" fill="none" stroke="rgba(232,232,238,0.3)" stroke-width="1.5"/>
+<text id="band-gap-label" x="685" y="332" font-size="11" fill="rgba(232,232,238,0.6)" text-anchor="middle" font-weight="normal">Band Gap</text>
+<rect id="upper-band-region" x="620" y="220" width="130" height="72" rx="2" fill="none" stroke="#9effc9" stroke-width="2"/>
+<path id="upper-band-fill" d="M 621 &quot;400 - (n_atoms - 1) * 2.4 - 179&quot; L 749 &quot;400 - (n_atoms - 1) * 2.4 - 179&quot; L 749 &quot;400 - (n_atoms - 1) * 2.4 - 109&quot; L 621 &quot;400 - (n_atoms - 1) * 2.4 - 109&quot; Z" stroke="none" stroke-width="0" fill="rgba(158,255,201,0.10)" stroke-dasharray=""/>
+<text id="upper-band-label" x="685" y="215" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="normal">3p Band (empty)</text>
+<line id="connector-left" x1="380" y1="400" x2="420" y2="400" stroke="rgba(232,232,238,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+<line id="connector-mid-top" x1="550" y1="380" x2="620" y2="400" stroke="rgba(232,232,238,0.25)" stroke-width="1" stroke-dasharray="3,3"/>
+<line id="connector-mid-bot" x1="550" y1="420" x2="620" y2="404" stroke="rgba(232,232,238,0.25)" stroke-width="1" stroke-dasharray="3,3"/>
+<text id="x-label-1" x="290" y="580" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">1 atom</text>
+<text id="x-label-3" x="485" y="580" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">3 atoms</text>
+<text id="x-label-n" x="685" y="580" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">N atoms</text>
+<line id="x-axis" x1="160" y1="565" x2="820" y2="565" stroke="rgba(232,232,238,0.35)" stroke-width="1.2" stroke-dasharray=""/>
+<text id="x-axis-label" x="490" y="610" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Number of interacting atoms</text>
+</svg>

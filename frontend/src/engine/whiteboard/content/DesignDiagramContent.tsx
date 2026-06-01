@@ -24,10 +24,7 @@ import type {
 const MATH_CONTEXT =
   "const {sin,cos,tan,sqrt,abs,PI,E,log,exp,pow,floor,ceil,min,max,atan2,asin,acos,sinh,cosh,tanh}=Math;";
 
-function evalMathExpr(
-  expr: string,
-  vars: Record<string, number>,
-): number {
+function evalMathExpr(expr: string, vars: Record<string, number>): number {
   try {
     const keys = Object.keys(vars);
     const vals = Object.values(vars);
@@ -75,9 +72,13 @@ function arcPath(
 function GraphInset({
   el,
   params,
+  focused,
+  focusColor,
 }: {
   el: DesignDiagramGraph;
   params: Record<string, number>;
+  focused?: boolean;
+  focusColor?: string;
 }) {
   const x = resolveValue(el.x, params);
   const y = resolveValue(el.y, params);
@@ -97,7 +98,13 @@ function GraphInset({
 
   // Grid lines
   const gridLines = useMemo(() => {
-    const lines: { x1: number; y1: number; x2: number; y2: number; axis: string }[] = [];
+    const lines: {
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      axis: string;
+    }[] = [];
     const xTicks = 5;
     const yTicks = 5;
     for (let i = 0; i <= xTicks; i++) {
@@ -119,8 +126,7 @@ function GraphInset({
       const points: { x: number; y: number }[] = [];
       const numSamples = 200;
       for (let i = 0; i <= numSamples; i++) {
-        const xVal =
-          xDomain[0] + (i / numSamples) * (xDomain[1] - xDomain[0]);
+        const xVal = xDomain[0] + (i / numSamples) * (xDomain[1] - xDomain[0]);
         const yVal = evalMathExpr(curve.expression, { x: xVal, ...params });
         if (isFinite(yVal)) {
           points.push({ x: scaleX(xVal), y: scaleY(yVal) });
@@ -129,7 +135,11 @@ function GraphInset({
       const d = points
         .map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`)
         .join(" ");
-      return { d, color: curve.color ?? "steelblue", strokeWidth: curve.strokeWidth ?? 2 };
+      return {
+        d,
+        color: curve.color ?? "steelblue",
+        strokeWidth: curve.strokeWidth ?? 2,
+      };
     });
   }, [el.curves, xDomain, yDomain, params, innerW, innerH]);
 
@@ -138,7 +148,10 @@ function GraphInset({
     const labels: { value: string; x: number }[] = [];
     for (let i = 0; i <= 5; i++) {
       const v = xDomain[0] + (i / 5) * (xDomain[1] - xDomain[0]);
-      labels.push({ value: Number.isInteger(v) ? String(v) : v.toFixed(1), x: scaleX(v) });
+      labels.push({
+        value: Number.isInteger(v) ? String(v) : v.toFixed(1),
+        x: scaleX(v),
+      });
     }
     return labels;
   }, [xDomain, innerW]);
@@ -147,7 +160,10 @@ function GraphInset({
     const labels: { value: string; y: number }[] = [];
     for (let i = 0; i <= 5; i++) {
       const v = yDomain[0] + (i / 5) * (yDomain[1] - yDomain[0]);
-      labels.push({ value: Number.isInteger(v) ? String(v) : v.toFixed(1), y: scaleY(v) });
+      labels.push({
+        value: Number.isInteger(v) ? String(v) : v.toFixed(1),
+        y: scaleY(v),
+      });
     }
     return labels;
   }, [yDomain, innerH]);
@@ -156,6 +172,14 @@ function GraphInset({
     <g
       transform={`translate(${x}, ${y})`}
       data-design-element={el.id ?? undefined}
+      className={focused ? "dd-focused" : undefined}
+      style={
+        focused
+          ? ({
+              ["--dd-focus-color" as string]: focusColor,
+            } as React.CSSProperties)
+          : undefined
+      }
     >
       <rect
         width={w}
@@ -178,7 +202,14 @@ function GraphInset({
             />
           ))}
         {/* X axis */}
-        <line x1={0} y1={innerH} x2={innerW} y2={innerH} stroke="#333" strokeWidth={1} />
+        <line
+          x1={0}
+          y1={innerH}
+          x2={innerW}
+          y2={innerH}
+          stroke="#333"
+          strokeWidth={1}
+        />
         {xTickLabels.map((t, i) => (
           <text
             key={`xtick-${i}`}
@@ -250,21 +281,43 @@ function renderSvgElement(
   el: DesignDiagramElement,
   idx: number,
   params: Record<string, number>,
+  focusId?: string | null,
 ): React.ReactNode {
   try {
     const dataAttr = el.id ? { "data-design-element": el.id } : {};
+    // FOCUS (in place): stamp the focused element's class + colour var at
+    // creation time so the glow rides the real shape. Leaf primitives also
+    // lift (scale); groups/arrows/text glow only (scale could clobber a
+    // transform). The `[data-design-element].dd-focused` CSS does the rest.
+    const focused = !!el.id && !!focusId && el.id === focusId;
+    const liftSafe = focused && SCALE_SAFE_TYPES.has(el.type);
+    const focusCls = focused
+      ? ` dd-focused${liftSafe ? " dd-focused-lift" : ""}`
+      : "";
+    const focusStyle: React.CSSProperties = focused
+      ? ({
+          ["--dd-focus-color" as string]: pickFocusColor(el),
+        } as React.CSSProperties)
+      : {};
+    const groupFocusAttr = focused
+      ? {
+          className: `dd-focused${liftSafe ? " dd-focused-lift" : ""}`,
+          style: focusStyle,
+        }
+      : {};
     // Split-board stroke-reveal: classes + per-element draw order. The CSS
     // selectors are scoped under `.sb-slide-live`, so these are no-ops in the
     // legacy WhiteboardScene path.
     const strokeOrderStyle = {
       ["--sb-stroke-order" as string]: idx,
+      ...focusStyle,
     } as React.CSSProperties;
     const strokeAttr = {
-      className: "dd-stroke-path",
+      className: `dd-stroke-path${focusCls}`,
       style: strokeOrderStyle,
     };
     const labelAttr = {
-      className: "dd-label-fade",
+      className: `dd-label-fade${focusCls}`,
       style: strokeOrderStyle,
     };
 
@@ -417,6 +470,7 @@ function renderSvgElement(
           <g
             key={idx}
             transform={el.transform || undefined}
+            {...groupFocusAttr}
             {...dataAttr}
           >
             {(el.elements ?? []).map((child, ci) =>
@@ -435,7 +489,7 @@ function renderSvgElement(
         const color = el.stroke ?? "var(--sb-ink, #222)";
         const markerId = `da-arrow-${idx}`;
         return (
-          <g key={idx} {...dataAttr}>
+          <g key={idx} {...groupFocusAttr} {...dataAttr}>
             <defs>
               <marker
                 id={markerId}
@@ -480,7 +534,7 @@ function renderSvgElement(
         const titleY = y + 26;
         const captionY = y + h - 14;
         return (
-          <g key={idx} {...dataAttr}>
+          <g key={idx} {...groupFocusAttr} {...dataAttr}>
             <rect
               x={x}
               y={y}
@@ -524,7 +578,15 @@ function renderSvgElement(
         );
       }
       case "graph":
-        return <GraphInset key={idx} el={el} params={params} />;
+        return (
+          <GraphInset
+            key={idx}
+            el={el}
+            params={params}
+            focused={focused}
+            focusColor={focused ? pickFocusColor(el) : undefined}
+          />
+        );
       default:
         return null;
     }
@@ -542,12 +604,14 @@ function LatexOverlay({
   specWidth,
   specHeight,
   order,
+  focused,
 }: {
   el: DesignDiagramElement & { type: "svg_latex" };
   params: Record<string, number>;
   specWidth: number;
   specHeight: number;
   order: number;
+  focused?: boolean;
 }) {
   const x = resolveValue(el.x, params);
   const y = resolveValue(el.y, params);
@@ -578,7 +642,7 @@ function LatexOverlay({
   return (
     <div
       ref={ref}
-      className="dd-label-fade"
+      className={focused ? "dd-label-fade dd-focused" : "dd-label-fade"}
       data-design-element={el.id ?? undefined}
       style={
         {
@@ -590,23 +654,83 @@ function LatexOverlay({
           pointerEvents: "none",
           whiteSpace: "nowrap",
           ["--sb-stroke-order" as string]: order,
+          ...(focused
+            ? {
+                ["--dd-focus-color" as string]:
+                  el.color ?? "var(--sb-neon, #7fd4ff)",
+              }
+            : {}),
         } as React.CSSProperties
       }
     />
   );
 }
 
+// ── FOCUS (glow + lift) ────────────────────────────────────
+//
+// Applied IN PLACE to the real element — no overlay, no bounds resolution.
+// `renderSvgElement` stamps the focused element with the `dd-focused` class +
+// a `--dd-focus-color` CSS var (the element's own ink) AT CREATION TIME (not via
+// cloneElement, which proved unreliable for <g> in the live tree). Scale
+// ("lift") is added only for leaf primitives that carry no SVG `transform`
+// attribute, so it can never clobber a rotate/translate. CSS lives in
+// SplitBoard.css (`.sb-slide-live [data-design-element].dd-focused`).
+
+const SCALE_SAFE_TYPES = new Set([
+  "svg_line",
+  "svg_rect",
+  "svg_circle",
+  "svg_ellipse",
+  "svg_path",
+  "svg_arc",
+]);
+
+function pickFocusColor(el: DesignDiagramElement): string {
+  const stroke = (el as { stroke?: string }).stroke;
+  if (stroke && stroke !== "none") return stroke;
+  const fill = (el as { fill?: string }).fill;
+  if (fill && fill !== "none") return fill;
+  const color = (el as { color?: string }).color;
+  if (color) return color;
+  return "var(--sb-neon, #7fd4ff)";
+}
+
 // ── Main component ─────────────────────────────────────────
 
 export function DesignDiagramContent({
   instruction,
+  focusedElementId,
+  focusedRole,
 }: {
   instruction: DrawDesignDiagramInstruction;
+  /** Element to spotlight in place (glow+lift). Resolved by id, then role. */
+  readonly focusedElementId?: string | null;
+  readonly focusedRole?: string | null;
 }) {
   const spec: DesignDiagramSpec = instruction.spec ?? {};
   const elements = spec.elements ?? [];
   const width = spec.width ?? 900;
   const height = spec.height ?? 650;
+
+  // Resolve the focus target to a single element id. Prefer the explicit id;
+  // but if it matches no actual element, fall back to the role (roles are
+  // non-unique — first match wins, matching the backend walker's role→id
+  // resolution). The fallback recovers cases where the backend stamped a
+  // stale/missing element_id but the role still maps to a real element.
+  const focusId = useMemo<string | null>(() => {
+    const ids = new Set(
+      (spec.elements ?? []).map((e) => e.id).filter((id): id is string => !!id),
+    );
+    if (focusedElementId && ids.has(focusedElementId)) return focusedElementId;
+    if (focusedRole && spec.dictionary) {
+      for (const [id, meta] of Object.entries(spec.dictionary)) {
+        if (meta?.role === focusedRole && ids.has(id)) return id;
+      }
+    }
+    // Last resort: honour the explicit id even if we can't see it in elements
+    // (e.g. it lives only in the dictionary / a nested group we don't flatten).
+    return focusedElementId ?? null;
+  }, [focusedElementId, focusedRole, spec.dictionary, spec.elements]);
 
   // Parameter state for interactive sliders
   const paramDefaults = useMemo(() => {
@@ -687,6 +811,13 @@ export function DesignDiagramContent({
         <svg
           width="100%"
           viewBox={`0 0 ${width} ${height}`}
+          // Stable hook the annotation overlay measures so it can be sized to
+          // coincide EXACTLY with this diagram (same box + viewBox) — without
+          // it, viewBox-space annotations land offset.
+          data-design-root=""
+          // When a focus is active, this class lets the CSS dim every
+          // non-focused element so the spotlighted part is unmistakable.
+          className={focusId ? "dd-has-focus" : undefined}
           style={{
             display: "block",
             fontFamily: "Inter, system-ui, sans-serif",
@@ -697,7 +828,9 @@ export function DesignDiagramContent({
             background: spec.backgroundColor ?? "transparent",
           }}
         >
-          {elements.map((el, i) => renderSvgElement(el, i, paramValues))}
+          {elements.map((el, i) =>
+            renderSvgElement(el, i, paramValues, focusId),
+          )}
         </svg>
 
         {/* KaTeX overlays — rendered as HTML on top of SVG */}
@@ -709,6 +842,7 @@ export function DesignDiagramContent({
             specWidth={width}
             specHeight={height}
             order={elements.length + i}
+            focused={!!el.id && el.id === focusId}
           />
         ))}
       </div>

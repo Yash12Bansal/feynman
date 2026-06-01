@@ -414,6 +414,161 @@ def load_extraction(
     asyncio.run(_run())
 
 
+@app.command("realign-highlights")
+def realign_highlights(
+    extraction_path: str = typer.Argument(..., help="Path to extraction.json"),
+    chapter: Optional[str] = typer.Option(
+        None,
+        "--chapter",
+        help="Chapter title substring (case-insensitive); realign all chapters if omitted.",
+    ),
+    skip_neo4j: bool = typer.Option(
+        False, "--skip-neo4j", help="Skip writing the updated manifest to Neo4j."
+    ),
+    skip_audio: bool = typer.Option(
+        False,
+        "--skip-audio",
+        help="Only rewrite markers in narration_text; don't re-TTS or rebuild the manifest.",
+    ),
+    config: Optional[str] = typer.Option(None, "--config", "-c"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Re-decide diagram highlights (FOCUS/POINT/TRACE) semantically, post-hoc.
+
+    The lesson planner authored highlight markers BEFORE the diagrams existed,
+    guessing which element to point at — so they're wrong most of the time. This
+    command strips them and re-decides each one against the REAL on-screen
+    diagram: per narration sentence, an LLM picks the element that sentence is
+    actually explaining (semantically, even when unnamed) or nothing. Sustained
+    highlights hold across consecutive sentences about the same part.
+
+    Cheap: ~1 LLM call per topic, local Kokoro TTS, no planner/diagram re-run.
+    """
+    _setup_logging(verbose)
+
+    if not Path(extraction_path).exists():
+        console.print(f"[red]File not found: {extraction_path}[/red]")
+        raise typer.Exit(1)
+
+    from .curriculum.ingestion.cypher_generator import CypherGenerator
+    from .curriculum.ingestion.neo4j_writer import Neo4jWriter
+    from .curriculum.lecture_plan.highlight_aligner import (
+        AlignerReport,
+        SemanticHighlightAligner,
+        _split_topic_blocks,
+    )
+    from .curriculum.lecture_script.models import ChapterScript
+    from .curriculum.media.audio_pipeline import AudioPipeline
+    from .curriculum.models import CurriculumExtractionResult
+    from .tts.factory import create_tts_provider
+
+    cfg = _load_config(config)
+    extraction = CurriculumExtractionResult.load(extraction_path)
+
+    if chapter:
+        needle = chapter.lower()
+        targets = [ch for ch in extraction.chapters if needle in ch.title.lower()]
+        if not targets:
+            console.print(
+                f"[red]No chapter matches {chapter!r}.[/red] Available: "
+                + ", ".join(f"'{c.title}'" for c in extraction.chapters)
+            )
+            raise typer.Exit(1)
+    else:
+        targets = list(extraction.chapters)
+
+    # render_data per diagram is the aligner's ground truth (dictionary + title).
+    diagrams_by_id = {d.diagram_id: (d.render_data or {}) for d in extraction.diagrams}
+
+    console.print(
+        f"\n[bold]realign-highlights[/bold] — {len(targets)} chapter(s) from {extraction_path}"
+    )
+
+    async def _run() -> None:
+        aligner = SemanticHighlightAligner(cfg.llm)
+
+        # 1. Re-decide markers in each chapter's narration_text.
+        chapter_scripts: dict[str, ChapterScript] = {}
+        for ch in targets:
+            if not ch.narration_text:
+                console.print(
+                    f"  [yellow]skip {ch.chapter_id}: no narration_text[/yellow]"
+                )
+                continue
+            report = AlignerReport()
+            new_text = await aligner.realign_chapter_narration(
+                ch.narration_text, diagrams_by_id, report
+            )
+            console.print(f"  • {ch.title}: {report.summary()}")
+            for w in report.warnings[:3]:
+                console.print(f"      [yellow]{w}[/yellow]")
+
+            # 2. Rebuild ChapterScript segments from the realigned narration.
+            segments = []
+            for header, body in _split_topic_blocks(new_text):
+                if not header:
+                    continue  # leading preamble (none in practice)
+                tid = header[len("<<TOPIC_START:") : -2]
+                text = body.strip()
+                segments.append(
+                    {
+                        "topic_id": tid,
+                        "narration_chapter": text,
+                        "narration_standalone": text,
+                    }
+                )
+            ch.assembled_chapter_script = {
+                "chapter_id": ch.chapter_id,
+                "segments": segments,
+            }
+            chapter_scripts[ch.chapter_id] = ChapterScript(
+                chapter_id=ch.chapter_id, segments=segments
+            )
+            # audio_pipeline APPENDS to narration_text, so clear it first to
+            # avoid doubling the recovered text on re-run.
+            ch.narration_text = ""
+
+        if skip_audio:
+            extraction.save(extraction_path)
+            console.print(
+                f"\n  [yellow]--skip-audio: markers rewritten only.[/yellow] "
+                f"saved → {extraction_path}"
+            )
+            return
+
+        if not chapter_scripts:
+            console.print("[red]Nothing to realign.[/red]")
+            raise typer.Exit(1)
+
+        # 3. Re-TTS + rebuild manifest from the realigned scripts (local Kokoro).
+        tts = create_tts_provider(cfg.tts)
+        audio_pipeline = AudioPipeline(tts, cfg.tts, cfg.artifacts, layout=cfg.layout)
+        report = await audio_pipeline.build_for_book(
+            targets,
+            extraction.topics,
+            chapter_scripts,
+            diagrams=extraction.diagrams,
+        )
+        console.print(f"\n  {report.summary()}")
+
+        # 4. Persist + (optionally) re-hydrate Neo4j so the preview picks it up.
+        extraction.save(extraction_path)
+        console.print(f"  extraction saved → {extraction_path}")
+        if skip_neo4j:
+            console.print("  [yellow]skipping Neo4j write (--skip-neo4j)[/yellow]")
+            return
+        cypher_gen = CypherGenerator()
+        statements = cypher_gen.generate(extraction)
+        async with Neo4jWriter(cfg.neo4j) as writer:
+            ingest_report = await writer.ingest(
+                statements, embedding_dimensions=cfg.embedding.dimensions
+            )
+            console.print(f"  {ingest_report.summary()}")
+
+    asyncio.run(_run())
+    console.print("\n[bold green]Done.[/bold green]")
+
+
 @app.command("regen-audio")
 def regen_audio(
     extraction_path: str = typer.Argument(..., help="Path to extraction.json"),

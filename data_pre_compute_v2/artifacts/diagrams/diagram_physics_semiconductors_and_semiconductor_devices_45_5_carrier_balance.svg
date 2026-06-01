@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="valence-band" x="80" y="460" width="740" height="90" rx="4" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="vb-label" x="450" y="505" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">Valence Band (VB)</text>
+<circle id="vb-e1" cx="160" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e2" cx="210" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e3" cx="260" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e4" cx="310" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e5" cx="360" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e6" cx="540" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e7" cx="590" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e8" cx="640" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e9" cx="690" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="vb-e10" cx="740" cy="490" r="7" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="conduction-band" x="80" y="100" width="740" height="90" rx="4" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="cb-label" x="450" y="153" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Conduction Band (CB)</text>
+<rect id="band-gap" x="80" y="195" width="740" height="260" rx="0" fill="none" stroke="rgba(232,232,238,0.18)" stroke-width="1"/>
+<text id="bg-label" x="88" y="328" font-size="11" fill="rgba(232,232,238,0.45)" text-anchor="start" font-weight="normal">Band Gap</text>
+<line id="donor-level" x1="80" y1="225" x2="820" y2="225" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="10,6"/>
+<text id="donor-label" x="826" y="229" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="normal">Donor level (n-type)</text>
+<circle id="free-electron" cx="450" cy="132" r="9" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<text id="free-electron-label" x="464" y="136" font-size="12" fill="#7fd4ff" text-anchor="start" font-weight="600">e⁻</text>
+<circle id="extra-e1" cx="530" cy="132" r="9" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="extra-e2" cx="610" cy="132" r="9" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="hole" cx="460" cy="490" r="9" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<text id="hole-label" x="474" y="494" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">h⁺</text>
+<defs><marker id="arrowhead_thermal-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ffcc55"/></marker></defs><line id="thermal-arrow" x1="340" y1="455" x2="340" y2="200" stroke="#ffcc55" stroke-width="2.5" marker-end="url(#arrowhead_thermal-arrow)"/>
+<text id="thermal-label" x="310" y="330" font-size="11" fill="#ffcc55" text-anchor="middle" font-weight="normal">Thermal energy</text>
+<defs><marker id="arrowhead_recombination-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8a0ff"/></marker></defs><line id="recombination-arrow" x1="560" y1="200" x2="560" y2="455" stroke="#e8a0ff" stroke-width="2.5" marker-end="url(#arrowhead_recombination-arrow)"/>
+<text id="recomb-label" x="595" y="330" font-size="11" fill="#e8a0ff" text-anchor="middle" font-weight="normal">Recombination</text>
+<rect id="np-box" x="620" y="285" width="178" height="40" rx="5" fill="none" stroke="rgba(232,232,238,0.4)" stroke-width="1.5"/>
+<text id="np-product-label" x="709" y="311" font-size="13" fill="#e8e8ee" font-style="italic" text-anchor="middle">n \times p = \text{const}</text>
+<text id="carrier-count-label" x="450" y="78" font-size="12" fill="rgba(232,232,238,0.75)" font-style="italic" text-anchor="middle">n \approx p \approx 7\times10^{15}\,\text{m}^{-3}\;(\text{Si, }300\text{ K})</text>
+<text id="energy-axis-label" x="44" y="328" font-size="12" fill="rgba(232,232,238,0.45)" text-anchor="middle" font-weight="normal">Energy</text>
+<defs><marker id="arrowhead_energy-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.3)"/></marker></defs><line id="energy-axis" x1="54" y1="560" x2="54" y2="90" stroke="rgba(232,232,238,0.3)" stroke-width="1.5" marker-end="url(#arrowhead_energy-axis)"/>
+</svg>

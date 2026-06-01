@@ -41,6 +41,9 @@ export function SlidePanel({ state }: SlidePanelProps) {
     traces,
     markPoints,
     marginNotes,
+    pointers,
+    focusedElementId,
+    focusedRole,
   } = state;
 
   // Live-DOM bounds anchor: the annotation layer queries this subtree for
@@ -85,7 +88,11 @@ export function SlidePanel({ state }: SlidePanelProps) {
             className="sb-slide-live sb-slide-active"
             key={liveInstruction.element_id ?? `${liveInstruction.type}-live`}
           >
-            <InstructionSwitch instruction={liveInstruction} />
+            <InstructionSwitch
+              instruction={liveInstruction}
+              focusedElementId={focusedElementId}
+              focusedRole={focusedRole}
+            />
           </div>
         )}
         {showAnnotations && designDiagram && (
@@ -96,6 +103,7 @@ export function SlidePanel({ state }: SlidePanelProps) {
             traces={traces}
             markPoints={markPoints}
             marginNotes={marginNotes}
+            pointers={pointers}
           />
         )}
         {status === "ready" && !liveInstruction && active && (
