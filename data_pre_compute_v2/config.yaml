@@ -1,10 +1,32 @@
 # Curriculum Pipeline v2 Configuration
 
+# ── LLM: the SINGLE switch for the whole ingestion authoring path ──────────
+# Change `provider` + `model` here and EVERY authoring stage (skeleton, topics,
+# prereqs, questions, lesson planner, diagram generator, book-example weaver,
+# highlight aligner, semantic validation, vision diagram-QA) uses it.
+#   provider: "anthropic" | "openai" | "gemini" | "ollama"
+#   model:    a model id valid for that provider, e.g.
+#             anthropic → "claude-sonnet-4-6"
+#             openai    → "gpt-4o" (must support vision for DiagramQA)
+#             gemini    → "gemini-2.5-pro" (or another vision-capable model)
+# API key is read from the matching env var:
+#   ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY (or GOOGLE_API_KEY).
+# ollama is local + keyless (set `base_url` if not on the default port).
 llm:
-  provider: "anthropic"
-  model: "claude-sonnet-4-6"
+  provider: "gemini"
+  model: "gemini-3.1-pro-preview"
   temperature: 0.3
   max_tokens: 16384
+  # base_url: "http://localhost:11434"   # for ollama / OpenAI-compatible endpoints
+
+# Optional per-role overrides. Leave commented to follow the `llm` switch above.
+# enrichment:
+#   diagram_qa:
+#     provider: "anthropic"          # vision QA — pin a strong vision model
+#     model: "claude-sonnet-4-6"
+#   lesson_pipeline:
+#     judge_provider: "openai"       # judging with a DIFFERENT model than the
+#     judge_model: "gpt-4o"          # author reduces correlated error
 
 pdf:
   ocr_threshold: 50

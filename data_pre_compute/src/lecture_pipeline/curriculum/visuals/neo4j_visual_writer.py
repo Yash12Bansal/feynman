@@ -137,7 +137,7 @@ class Neo4jVisualWriter:
         """Build Cypher parameter dict for a single visual."""
         # Derive visual UID from concept UID
         if concept_uid.startswith("curriculum:"):
-            visual_uid = "visual:" + concept_uid[len("curriculum:"):]
+            visual_uid = "visual:" + concept_uid[len("curriculum:") :]
         else:
             visual_uid = "visual:" + concept_uid
 
@@ -163,7 +163,7 @@ class Neo4jVisualWriter:
     ) -> None:
         """Execute a batch of visual writes in a single transaction."""
         async with driver.session(database=database) as session:
-            async with session.begin_transaction() as tx:
+            async with await session.begin_transaction() as tx:
                 for params in batch:
                     await tx.run(_MERGE_VISUAL_CYPHER, params)
                     report.visuals_written += 1
@@ -184,8 +184,6 @@ class Neo4jVisualWriter:
                 report.visuals_written += 1
                 report.edges_written += 1
         except Exception as e:
-            error_msg = (
-                f"Failed to write visual {params['visual_uid']!r}: {e}"
-            )
+            error_msg = f"Failed to write visual {params['visual_uid']!r}: {e}"
             report.errors.append(error_msg)
             logger.error(error_msg)

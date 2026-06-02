@@ -1,8 +1,9 @@
-"""Phase 4c — DiagramQA: Claude Sonnet vision pass over generated DiagramSpecs.
+"""Phase 4c — DiagramQA: vision pass over generated DiagramSpecs.
 
 Renders a DiagramSpec to PNG via ``DiagramFallbackRenderer``'s in-memory
-SVG+cairo path, attaches the PNG as a base64 image, and asks Sonnet to score
-the diagram against the beat's claim on a 1-5 rubric. Score < min_score
+SVG+cairo path and asks the configured vision-capable LLM (claude / gpt-4o /
+gemini — whatever `llm` resolves to, or a pinned override) to score the
+diagram against the beat's claim on a 1-5 rubric. Score < min_score
 triggers a retry in the caller (``DiagramSpecGenerator.regenerate_for_beat``
 with corrective hint).
 
@@ -13,21 +14,15 @@ blocks the pipeline. The diagram passes through without a score.
 
 from __future__ import annotations
 
-import base64
 import dataclasses
 import json
 import logging
 from io import BytesIO
-from typing import TYPE_CHECKING
 
-import anthropic
-
+from ...llm.base import LLMProvider, ProviderCapabilityError
 from ..media.diagram_renderer import DiagramFallbackRenderer
 from ..models import Diagram
 from .diagram_qa_prompts import DIAGRAM_QA_SYSTEM_PROMPT, build_qa_user_text
-
-if TYPE_CHECKING:
-    from anthropic.types import Message
 
 logger = logging.getLogger(__name__)
 
@@ -69,12 +64,10 @@ class DiagramQA:
     def __init__(
         self,
         *,
-        api_key: str,
-        model: str = "claude-sonnet-4-20250514",
+        provider: LLMProvider,
         min_score: int = 3,
     ) -> None:
-        self.client = anthropic.AsyncAnthropic(api_key=api_key)
-        self.model = model
+        self._provider = provider
         self.min_score = min_score
         self._renderer = _BareSVGRenderer()
 
@@ -95,32 +88,20 @@ class DiagramQA:
             )
             return QAResult.skipped("cairosvg unavailable")
         try:
-            b64 = base64.standard_b64encode(png_bytes).decode("ascii")
-            response = await self.client.messages.create(
-                model=self.model,
+            response = await self._provider.agenerate_vision(
+                DIAGRAM_QA_SYSTEM_PROMPT,
+                build_qa_user_text(claim),
+                png_bytes,
                 max_tokens=512,
-                system=DIAGRAM_QA_SYSTEM_PROMPT,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "image",
-                                "source": {
-                                    "type": "base64",
-                                    "media_type": "image/png",
-                                    "data": b64,
-                                },
-                            },
-                            {
-                                "type": "text",
-                                "text": build_qa_user_text(claim),
-                            },
-                        ],
-                    },
-                ],
             )
-            return self._parse_response(response, diagram.diagram_id)
+            return self._parse_text(response.content, diagram.diagram_id)
+        except ProviderCapabilityError as e:
+            logger.info(
+                "DiagramQA.vision_unsupported for %s: %s - accepting diagram",
+                diagram.diagram_id,
+                e,
+            )
+            return QAResult.skipped(f"vision unsupported: {e}")
         except Exception as e:  # noqa: BLE001 — vision API errors are recoverable
             logger.warning(
                 "DiagramQA.vision_call_failed for %s: %s - accepting diagram",
@@ -146,12 +127,7 @@ class DiagramQA:
         )
         return buf.getvalue()
 
-    def _parse_response(self, response: Message, diagram_id: str) -> QAResult:
-        text = ""
-        for block in response.content:
-            if getattr(block, "type", None) == "text":
-                text = block.text  # type: ignore[attr-defined]
-                break
+    def _parse_text(self, text: str, diagram_id: str) -> QAResult:
         if not text:
             logger.warning(
                 "DiagramQA.no_text_block for %s - defaulting to pass-through",

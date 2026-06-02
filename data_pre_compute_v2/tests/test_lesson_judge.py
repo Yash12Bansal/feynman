@@ -1,13 +1,12 @@
 """PlanJudge tests — doc 19 Phase F.
 
-Strategy: monkeypatch `anthropic.AsyncAnthropic` in the lesson_judge module
-with a fake whose `messages.create` returns canned `tool_use` responses
-containing PlanJudgement payloads. Same shape as test_lesson_planner.py.
+Strategy: inject a fake LLM provider at the `provider=` seam whose
+`agenerate_tool_use` returns canned PlanJudgement payloads from a queue.
+Provider-agnostic. Same shape as test_lesson_planner.py.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 import pytest
@@ -112,68 +111,46 @@ _BORDERLINE_JUDGEMENT_2 = {
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Fake Anthropic client harness
+# Fake provider (injected at the `provider=` seam)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-@dataclass
-class _FakeBlock:
-    type: str
-    name: str
-    input: Any
+class _FakeProvider:
+    """LLM provider double. `agenerate_tool_use` pops the next queued item: a
+    dict is the tool payload, an Exception is raised, None (or any non-dict)
+    models 'no usable tool call'.
+    """
 
-
-@dataclass
-class _FakeResponse:
-    content: list[_FakeBlock]
-
-
-class _FakeMessages:
-    def __init__(self, queue: list[_FakeResponse]) -> None:
-        self._queue = queue
-        self.create_call_count = 0
+    def __init__(self, queue: list[Any]) -> None:
+        self._queue = list(queue)
+        self.calls: list[dict] = []
         self.last_user_message: str = ""
 
-    async def create(self, **kwargs: Any) -> _FakeResponse:
-        assert kwargs.get("system") == LESSON_JUDGE_SYSTEM_PROMPT
-        messages = kwargs.get("messages") or []
-        if messages:
-            self.last_user_message = messages[0].get("content", "")
-        self.create_call_count += 1
+    async def agenerate_tool_use(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        tool_name: str,
+        tool_description: str,
+        input_schema: dict,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+    ) -> Any:
+        assert system_prompt == LESSON_JUDGE_SYSTEM_PROMPT
+        assert tool_name == "emit_plan_judgement"
+        self.last_user_message = user_prompt
+        self.calls.append({"tool_name": tool_name})
         if not self._queue:
             raise RuntimeError("test ran out of canned judge responses")
-        return self._queue.pop(0)
+        item = self._queue.pop(0)
+        if isinstance(item, Exception):
+            raise item
+        return item
 
-
-class _FakeAnthropicClient:
-    def __init__(self, *, api_key: str | None = None) -> None:
-        self.api_key = api_key
-        self.messages = _CURRENT_FAKE_MESSAGES
-
-
-_CURRENT_FAKE_MESSAGES: _FakeMessages | None = None
-
-
-def _install_fake(
-    monkeypatch: pytest.MonkeyPatch, responses: list[_FakeResponse]
-) -> _FakeMessages:
-    global _CURRENT_FAKE_MESSAGES
-    _CURRENT_FAKE_MESSAGES = _FakeMessages(responses)
-    monkeypatch.setattr(
-        "lecture_pipeline_v2.curriculum.lecture_plan.lesson_judge.anthropic.AsyncAnthropic",
-        _FakeAnthropicClient,
-    )
-    return _CURRENT_FAKE_MESSAGES
-
-
-def _tool_response(payload: dict[str, Any]) -> _FakeResponse:
-    return _FakeResponse(
-        content=[_FakeBlock(type="tool_use", name="emit_plan_judgement", input=payload)]
-    )
-
-
-def _empty_response() -> _FakeResponse:
-    return _FakeResponse(content=[])
+    @property
+    def create_call_count(self) -> int:
+        return len(self.calls)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -182,34 +159,20 @@ def _empty_response() -> _FakeResponse:
 
 
 @pytest.mark.asyncio
-async def test_judge_emits_score_for_valid_plan(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    messages = _install_fake(monkeypatch, [_tool_response(_PASSING_JUDGEMENT)])
-    judge = PlanJudge(_config())
+async def test_judge_emits_score_for_valid_plan() -> None:
+    provider = _FakeProvider([_PASSING_JUDGEMENT])
+    judge = PlanJudge(_config(), provider=provider)
     result = await judge.judge(_make_plan(), topic_name="Test lesson")
     assert result.passed is True
     assert result.score == 5
     assert "lands" in result.issue.lower()
-    assert messages.create_call_count == 1
+    assert provider.create_call_count == 1
 
 
 @pytest.mark.asyncio
-async def test_judge_returns_skipped_on_api_error(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    class _ExplodingMessages:
-        async def create(self, **kwargs: Any) -> Any:
-            raise RuntimeError("simulated API failure")
-
-    global _CURRENT_FAKE_MESSAGES
-    _CURRENT_FAKE_MESSAGES = _ExplodingMessages()  # type: ignore[assignment]
-    monkeypatch.setattr(
-        "lecture_pipeline_v2.curriculum.lecture_plan.lesson_judge.anthropic.AsyncAnthropic",
-        _FakeAnthropicClient,
-    )
-
-    judge = PlanJudge(_config())
+async def test_judge_returns_skipped_on_api_error() -> None:
+    provider = _FakeProvider([RuntimeError("simulated API failure")])
+    judge = PlanJudge(_config(), provider=provider)
     result = await judge.judge(_make_plan(), topic_name="Test lesson")
     assert result.passed is True  # skipped passes through
     assert result.score == 3
@@ -217,11 +180,9 @@ async def test_judge_returns_skipped_on_api_error(
 
 
 @pytest.mark.asyncio
-async def test_judge_returns_skipped_on_missing_tool_use_block(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _install_fake(monkeypatch, [_empty_response()])
-    judge = PlanJudge(_config())
+async def test_judge_returns_skipped_on_missing_tool_use_block() -> None:
+    provider = _FakeProvider([None])
+    judge = PlanJudge(_config(), provider=provider)
     result = await judge.judge(_make_plan(), topic_name="Test lesson")
     assert result.passed is True
     assert result.score == 3
@@ -229,31 +190,22 @@ async def test_judge_returns_skipped_on_missing_tool_use_block(
 
 
 @pytest.mark.asyncio
-async def test_judge_returns_skipped_on_invalid_tool_input(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Tool block with non-dict input → skipped."""
-    bad_response = _FakeResponse(
-        content=[
-            _FakeBlock(type="tool_use", name="emit_plan_judgement", input="not a dict")
-        ]
-    )
-    _install_fake(monkeypatch, [bad_response])
-    judge = PlanJudge(_config())
+async def test_judge_returns_skipped_on_non_dict_payload() -> None:
+    """A provider that returns a non-dict payload → skipped (no_tool_use_block)."""
+    provider = _FakeProvider(["not a dict"])
+    judge = PlanJudge(_config(), provider=provider)
     result = await judge.judge(_make_plan(), topic_name="Test lesson")
     assert result.passed is True
     assert result.score == 3
-    assert "tool_input_not_dict" in result.issue
+    assert "no_tool_use_block" in result.issue
 
 
 @pytest.mark.asyncio
-async def test_judge_returns_skipped_on_pydantic_failure(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Tool block with payload that fails PlanJudgement validation → skipped."""
+async def test_judge_returns_skipped_on_pydantic_failure() -> None:
+    """A payload that fails PlanJudgement validation → skipped."""
     bad_payload = {"passed": True, "score": 99, "issue": "x", "suggestion": "y"}
-    _install_fake(monkeypatch, [_tool_response(bad_payload)])
-    judge = PlanJudge(_config())
+    provider = _FakeProvider([bad_payload])
+    judge = PlanJudge(_config(), provider=provider)
     result = await judge.judge(_make_plan(), topic_name="Test lesson")
     assert result.passed is True
     assert result.score == 3
@@ -261,18 +213,10 @@ async def test_judge_returns_skipped_on_pydantic_failure(
 
 
 @pytest.mark.asyncio
-async def test_judge_passes_threshold_at_min_score(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_judge_passes_threshold_at_min_score() -> None:
     """score=3, min_score=3 → passed=True. score=2 → passed=False."""
-    _install_fake(
-        monkeypatch,
-        [
-            _tool_response(_BORDERLINE_JUDGEMENT_3),
-            _tool_response(_BORDERLINE_JUDGEMENT_2),
-        ],
-    )
-    judge = PlanJudge(_config(), min_score=3)
+    provider = _FakeProvider([_BORDERLINE_JUDGEMENT_3, _BORDERLINE_JUDGEMENT_2])
+    judge = PlanJudge(_config(), provider=provider, min_score=3)
     r3 = await judge.judge(_make_plan(), topic_name="Test")
     r2 = await judge.judge(_make_plan(), topic_name="Test")
     assert r3.passed is True
@@ -282,9 +226,7 @@ async def test_judge_passes_threshold_at_min_score(
 
 
 @pytest.mark.asyncio
-async def test_judge_overrides_llm_passed_to_match_threshold(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_judge_overrides_llm_passed_to_match_threshold() -> None:
     """LLM emits passed=True with score=2 (disagrees with threshold=3) →
     our `passed` overrides to False."""
     payload = {
@@ -293,24 +235,22 @@ async def test_judge_overrides_llm_passed_to_match_threshold(
         "issue": "x",
         "suggestion": "y",
     }
-    _install_fake(monkeypatch, [_tool_response(payload)])
-    judge = PlanJudge(_config(), min_score=3)
+    provider = _FakeProvider([payload])
+    judge = PlanJudge(_config(), provider=provider, min_score=3)
     result = await judge.judge(_make_plan(), topic_name="Test")
     assert result.passed is False  # we override based on our threshold
     assert result.score == 2
 
 
 @pytest.mark.asyncio
-async def test_judge_user_message_includes_full_plan_serialization(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_judge_user_message_includes_full_plan_serialization() -> None:
     """User message must contain hook text, crucial_facts, all step narrations,
     diagram requirements — so the LLM has full context to judge."""
-    messages = _install_fake(monkeypatch, [_tool_response(_PASSING_JUDGEMENT)])
-    judge = PlanJudge(_config())
+    provider = _FakeProvider([_PASSING_JUDGEMENT])
+    judge = PlanJudge(_config(), provider=provider)
     await judge.judge(_make_plan(), topic_name="The Test Lesson Name")
 
-    msg = messages.last_user_message
+    msg = provider.last_user_message
     assert "The Test Lesson Name" in msg
     assert "A surprising-feeling hook." in msg
     assert "the test crucial fact" in msg
@@ -322,28 +262,24 @@ async def test_judge_user_message_includes_full_plan_serialization(
 
 
 @pytest.mark.asyncio
-async def test_judge_user_message_marks_question_and_payoff_flags(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_judge_user_message_marks_question_and_payoff_flags() -> None:
     """The serialization must surface the is_question / is_payoff /
     presses_crucial_fact flags so the LLM can grade Q→P rhythm."""
-    messages = _install_fake(monkeypatch, [_tool_response(_PASSING_JUDGEMENT)])
-    judge = PlanJudge(_config())
+    provider = _FakeProvider([_PASSING_JUDGEMENT])
+    judge = PlanJudge(_config(), provider=provider)
     await judge.judge(_make_plan(), topic_name="Test")
 
-    msg = messages.last_user_message
+    msg = provider.last_user_message
     assert "QUESTION" in msg
     assert "PAYOFF" in msg
     assert "PRESSES_CRUCIAL_FACT" in msg
 
 
 @pytest.mark.asyncio
-async def test_judge_emits_concrete_issue_and_suggestion_strings(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_judge_emits_concrete_issue_and_suggestion_strings() -> None:
     """When the LLM returns issue + suggestion strings, they pass through verbatim."""
-    _install_fake(monkeypatch, [_tool_response(_FAILING_JUDGEMENT)])
-    judge = PlanJudge(_config())
+    provider = _FakeProvider([_FAILING_JUDGEMENT])
+    judge = PlanJudge(_config(), provider=provider)
     result = await judge.judge(_make_plan(), topic_name="Test")
     assert result.issue == "Hook reads like a textbook opener."
     assert (

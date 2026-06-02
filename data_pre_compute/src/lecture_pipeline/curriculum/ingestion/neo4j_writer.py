@@ -101,7 +101,9 @@ class Neo4jWriter:
     @property
     def driver(self) -> AsyncDriver:
         if self._driver is None:
-            raise RuntimeError("Neo4jWriter not connected. Use 'async with' or call connect().")
+            raise RuntimeError(
+                "Neo4jWriter not connected. Use 'async with' or call connect()."
+            )
         return self._driver
 
     async def ingest(
@@ -188,7 +190,7 @@ class Neo4jWriter:
     ) -> None:
         """Execute a batch of statements in a single transaction."""
         async with self.driver.session(database=self._config.database) as session:
-            async with session.begin_transaction() as tx:
+            async with await session.begin_transaction() as tx:
                 for stmt in batch:
                     result = await tx.run(stmt.query, stmt.params)
                     summary = await result.consume()
@@ -230,8 +232,7 @@ class Neo4jWriter:
         async with self.driver.session(database=self._config.database) as session:
             # Count nodes by label
             result = await session.run(
-                "MATCH (n) RETURN labels(n)[0] AS label, count(n) AS cnt "
-                "ORDER BY label"
+                "MATCH (n) RETURN labels(n)[0] AS label, count(n) AS cnt ORDER BY label"
             )
             records = [r.data() async for r in result]
             info["nodes_by_label"] = {r["label"]: r["cnt"] for r in records}

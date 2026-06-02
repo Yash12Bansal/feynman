@@ -113,7 +113,9 @@ class Neo4jWriter:
 
         logger.info(
             "Ingesting %d nodes + %d edges (batch_size=%d)",
-            len(node_stmts), len(edge_stmts), batch_size,
+            len(node_stmts),
+            len(edge_stmts),
+            batch_size,
         )
 
         await self._execute_batched(node_stmts, batch_size, report)
@@ -136,7 +138,9 @@ class Neo4jWriter:
             except Exception as e:
                 logger.warning(
                     "Batch %d-%d failed (%s), falling back to per-statement",
-                    i, i + len(batch), e,
+                    i,
+                    i + len(batch),
+                    e,
                 )
                 for stmt in batch:
                     await self._execute_single(stmt, report)
@@ -145,7 +149,7 @@ class Neo4jWriter:
         self, batch: list[CypherStatement], report: IngestionReport
     ) -> None:
         async with self.driver.session(database=self._config.database) as session:
-            async with session.begin_transaction() as tx:
+            async with await session.begin_transaction() as tx:
                 for stmt in batch:
                     result = await tx.run(stmt.query, stmt.params)
                     summary = await result.consume()

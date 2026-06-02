@@ -46,16 +46,17 @@ source .venv/bin/activate
 
 Already configured in the project's root `docker-compose.yml`:
 
-| Setting | Value |
-|---|---|
-| Bolt URI | `bolt://localhost:7687` |
+| Setting    | Value                   |
+| ---------- | ----------------------- |
+| Bolt URI   | `bolt://localhost:7687` |
 | Browser UI | `http://localhost:7474` |
-| Username | `neo4j` |
-| Password | `password` |
-| Database | `neo4j` |
-| Plugins | APOC enabled |
+| Username   | `neo4j`                 |
+| Password   | `password`              |
+| Database   | `neo4j`                 |
+| Plugins    | APOC enabled            |
 
 Start it:
+
 ```bash
 cd ..                              # back to project root
 docker compose up -d neo4j         # waits ~10s, exposes Bolt + Browser
@@ -63,6 +64,7 @@ docker compose logs -f neo4j       # to watch startup
 ```
 
 Schema is created automatically on the first `ingest-book` run, or manually:
+
 ```bash
 poetry run lecture-pipeline-v2 init-schema
 ```
@@ -77,12 +79,39 @@ ollama serve                       # if not auto-running
 
 Note: there is no `qwen3.5:9b` — `qwen3:8b` is the closest available size.
 
+### Switching the ingestion model (single place)
+
+The whole authoring path runs through one provider abstraction. Set
+`llm.provider` + `llm.model` in `config.yaml` and every stage (skeleton,
+topics, prereqs, questions, lesson planner, diagram generator, book-example
+weaver, highlight aligner, semantic validation, vision DiagramQA) uses it:
+
+```yaml
+llm:
+  provider: "gemini" # "anthropic" | "openai" | "gemini" | "ollama"
+  model: "gemini-2.5-pro" # any model id valid for that provider
+```
+
+The API key is read from the matching env var automatically. Optional per-role
+overrides (`enrichment.diagram_qa.*` for vision QA, `enrichment.lesson_pipeline.
+judge_*` for the LLM-as-judge) let you pin a different model for those roles —
+unset, they follow the main switch. See `config.yaml` for examples.
+
+Notes:
+
+- DiagramQA needs a **vision-capable** model; if the chosen model can't see
+  images it degrades gracefully (skips QA, never blocks).
+- A judge model that differs from the author reduces correlated error.
+
 ### API keys (env vars)
 
-| Var | Required for |
-|---|---|
-| `ANTHROPIC_API_KEY` | Claude (skeleton / topics / scripts) |
-| `OPENAI_API_KEY` | Only if you switch `embedding.provider` to `openai` |
+| Var                                    | Required for                                            |
+| -------------------------------------- | ------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`                    | `llm.provider: anthropic` (Claude)                      |
+| `OPENAI_API_KEY`                       | `llm.provider: openai`, or `embedding.provider: openai` |
+| `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | `llm.provider: gemini`                                  |
+
+(`ollama` is local + keyless.)
 
 ## Commands
 
@@ -117,20 +146,20 @@ poetry run lecture-pipeline-v2 query "MATCH (t:Topic) RETURN t.topic_name LIMIT 
 
 ## Schema
 
-| Label | Purpose |
-|---|---|
-| `Chapter` | book chapter; holds chapter-level lecture manifest |
-| `Topic` | one per anchored section; holds standalone manifest |
-| `Diagram` | renderer-specific (svg or manim) + fallback PNG |
-| `Question` | with pre-rendered audio for question + answer |
+| Label      | Purpose                                             |
+| ---------- | --------------------------------------------------- |
+| `Chapter`  | book chapter; holds chapter-level lecture manifest  |
+| `Topic`    | one per anchored section; holds standalone manifest |
+| `Diagram`  | renderer-specific (svg or manim) + fallback PNG     |
+| `Question` | with pre-rendered audio for question + answer       |
 
-| Edge | Used for |
-|---|---|
-| `CONTAINS` | Chapter → Topic |
-| `NEXT` | Topic → Topic (lecture flow only) |
-| `PREREQ` | Topic → Topic (reference only, within-book) |
-| `HAS_DIAGRAM` | Topic → Diagram |
-| `HAS_QUESTION` | Topic → Question |
+| Edge           | Used for                                    |
+| -------------- | ------------------------------------------- |
+| `CONTAINS`     | Chapter → Topic                             |
+| `NEXT`         | Topic → Topic (lecture flow only)           |
+| `PREREQ`       | Topic → Topic (reference only, within-book) |
+| `HAS_DIAGRAM`  | Topic → Diagram                             |
+| `HAS_QUESTION` | Topic → Question                            |
 
 ## Idempotency
 

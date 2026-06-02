@@ -15,11 +15,12 @@ from __future__ import annotations
 
 from typing import Any
 
-import anthropic
 import structlog
 from pydantic import BaseModel, Field, model_validator
 
 from lecture_pipeline_v2.config import PipelineConfig
+from lecture_pipeline_v2.llm.base import LLMProvider
+from lecture_pipeline_v2.llm.factory import create_llm_provider
 from lecture_pipeline_v2.curriculum.lecture_plan.lesson_judge_prompts import (
     LESSON_JUDGE_SYSTEM_PROMPT,
 )
@@ -35,7 +36,6 @@ _TOOL_DESCRIPTION = (
     "suggestion are mandatory."
 )
 _MAX_TOKENS = 1024
-_DEFAULT_JUDGE_MODEL = "claude-sonnet-4-20250514"
 _DEFAULT_MIN_SCORE = 3
 
 
@@ -85,7 +85,7 @@ class PlanJudgement(BaseModel):
 
 
 class PlanJudge:
-    """Async judge. One Anthropic round-trip per `judge()` call.
+    """Async judge. One LLM round-trip (configured provider) per `judge()` call.
 
     `min_score` is the pass threshold applied DETERMINISTICALLY on our side
     after the LLM emits a score, so config-level threshold tweaks don't
@@ -96,12 +96,19 @@ class PlanJudge:
         self,
         config: PipelineConfig,
         *,
-        model: str = _DEFAULT_JUDGE_MODEL,
+        provider: LLMProvider | None = None,
+        provider_override: str | None = None,
+        model_override: str | None = None,
         min_score: int = _DEFAULT_MIN_SCORE,
     ) -> None:
         self.config = config
-        self.model = model
         self.min_score = max(1, min(5, min_score))
+        # The judge follows the main `llm` switch unless an override is set.
+        # Pinning a DIFFERENT model/provider than the author is good practice:
+        # a model is a poor judge of its own blind spots.
+        self._provider = provider or create_llm_provider(
+            config.llm.for_override(provider_override, model_override)
+        )
 
     async def judge(
         self,
@@ -118,20 +125,13 @@ class PlanJudge:
         user_message = _build_user_message(plan, topic_name=topic_name)
 
         try:
-            client = anthropic.AsyncAnthropic(api_key=self.config.llm.api_key or "")
-            response = await client.messages.create(
-                model=self.model,
+            payload = await self._provider.agenerate_tool_use(
+                LESSON_JUDGE_SYSTEM_PROMPT,
+                user_message,
+                tool_name=_TOOL_NAME,
+                tool_description=_TOOL_DESCRIPTION,
+                input_schema=PlanJudgement.model_json_schema(),
                 max_tokens=_MAX_TOKENS,
-                system=LESSON_JUDGE_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_message}],
-                tools=[
-                    {
-                        "name": _TOOL_NAME,
-                        "description": _TOOL_DESCRIPTION,
-                        "input_schema": PlanJudgement.model_json_schema(),
-                    }
-                ],
-                tool_choice={"type": "tool", "name": _TOOL_NAME},
             )
         except Exception as exc:  # noqa: BLE001 — judge must never bubble
             logger.warning(
@@ -141,50 +141,39 @@ class PlanJudge:
             )
             return PlanJudgement.skipped(f"api_error: {exc}")
 
-        return self._extract_judgement(response, topic_name=topic_name)
+        return self._build_judgement(payload, topic_name=topic_name)
 
-    def _extract_judgement(self, response: Any, *, topic_name: str) -> PlanJudgement:
-        """Pull the tool_use block out of the response and Pydantic-validate.
+    def _build_judgement(
+        self, payload: dict[str, Any] | None, *, topic_name: str
+    ) -> PlanJudgement:
+        """Validate the tool payload into a PlanJudgement.
 
-        Any structural mismatch (no tool block, non-dict input, validator
-        failure) returns skipped() so the orchestrator passes the plan
-        through with `needs_review` set elsewhere.
+        Any structural mismatch (no payload, validator failure) returns
+        skipped() so the orchestrator passes the plan through with
+        `needs_review` set elsewhere.
         """
-        content = getattr(response, "content", None) or []
-        for block in content:
-            if (
-                getattr(block, "type", None) == "tool_use"
-                and getattr(block, "name", None) == _TOOL_NAME
-            ):
-                payload = block.input
-                if not isinstance(payload, dict):
-                    logger.warning(
-                        "lesson_judge.tool_input_not_dict",
-                        topic_name=topic_name,
-                    )
-                    return PlanJudgement.skipped("tool_input_not_dict")
-                try:
-                    judgement = PlanJudgement.model_validate(payload)
-                except Exception as exc:  # noqa: BLE001 — boundary
-                    logger.warning(
-                        "lesson_judge.pydantic_error",
-                        topic_name=topic_name,
-                        error=str(exc),
-                    )
-                    return PlanJudgement.skipped(f"pydantic_error: {exc}")
+        if not isinstance(payload, dict):
+            logger.warning(
+                "lesson_judge.no_tool_use_block",
+                topic_name=topic_name,
+            )
+            return PlanJudgement.skipped("no_tool_use_block")
+        try:
+            judgement = PlanJudgement.model_validate(payload)
+        except Exception as exc:  # noqa: BLE001 — boundary
+            logger.warning(
+                "lesson_judge.pydantic_error",
+                topic_name=topic_name,
+                error=str(exc),
+            )
+            return PlanJudgement.skipped(f"pydantic_error: {exc}")
 
-                # Deterministic threshold override: don't trust the LLM's
-                # `passed` if it disagrees with our configured threshold.
-                final_passed = judgement.score >= self.min_score
-                if final_passed != judgement.passed:
-                    judgement = judgement.model_copy(update={"passed": final_passed})
-                return judgement
-
-        logger.warning(
-            "lesson_judge.no_tool_use_block",
-            topic_name=topic_name,
-        )
-        return PlanJudgement.skipped("no_tool_use_block")
+        # Deterministic threshold override: don't trust the LLM's `passed`
+        # if it disagrees with our configured threshold.
+        final_passed = judgement.score >= self.min_score
+        if final_passed != judgement.passed:
+            judgement = judgement.model_copy(update={"passed": final_passed})
+        return judgement
 
 
 # ─────────────────────────────────────────────────────────────────────────────

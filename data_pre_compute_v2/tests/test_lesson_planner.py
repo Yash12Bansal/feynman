@@ -1,14 +1,14 @@
 """LessonPlanner tests — doc 19 Phase C.
 
-Strategy: monkeypatch `anthropic.AsyncAnthropic` with a fake whose
-`messages.create()` returns canned responses (tool_use blocks containing
-LessonPlan-shaped payloads). Cover the happy path, the validation-error
-retry path, the no-tool-use-block path, and the final-failure path.
+Strategy: inject a fake LLM provider at the `provider=` seam whose
+`agenerate_tool_use()` returns canned payloads from a queue. Cover the happy
+path, the validation-error retry path, the no-tool-use-block path, and the
+final-failure path. Provider-agnostic — exercises the same boundary regardless
+of which real provider (claude / openai / gemini) the pipeline is configured for.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 import pytest
@@ -160,72 +160,46 @@ _INVALID_HOOK_PAYLOAD = {
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Fake Anthropic client harness
+# Fake provider (injected at the `provider=` seam)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-@dataclass
-class _FakeBlock:
-    """Mimics anthropic.types.ToolUseBlock shape."""
+class _FakeProvider:
+    """LLM provider double. `agenerate_tool_use` pops the next item off a queue:
+    a dict is returned as the tool payload, an Exception is raised, and None
+    models 'the model emitted no tool call'.
+    """
 
-    type: str
-    name: str
-    input: Any
+    def __init__(self, queue: list[Any]) -> None:
+        self._queue = list(queue)
+        self.calls: list[dict] = []
 
-
-@dataclass
-class _FakeResponse:
-    content: list[_FakeBlock]
-
-
-class _FakeMessages:
-    def __init__(self, queue: list[_FakeResponse]) -> None:
-        self._queue = queue
-        self.create_call_count = 0
-
-    async def create(self, **kwargs: Any) -> _FakeResponse:
-        # Assertions: system prompt + tool wiring are what we expect.
-        assert kwargs.get("system") == LESSON_PLANNING_SYSTEM_PROMPT
-        tools = kwargs.get("tools", [])
-        assert tools and tools[0]["name"] == "emit_lesson_plan"
-        self.create_call_count += 1
+    async def agenerate_tool_use(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        tool_name: str,
+        tool_description: str,
+        input_schema: dict,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+    ) -> dict | None:
+        # The stage must wire the real prompt, tool name, and JSON schema.
+        assert system_prompt == LESSON_PLANNING_SYSTEM_PROMPT
+        assert tool_name == "emit_lesson_plan"
+        assert "properties" in input_schema
+        self.calls.append({"tool_name": tool_name, "max_tokens": max_tokens})
         if not self._queue:
-            raise RuntimeError("test ran out of canned Anthropic responses")
-        return self._queue.pop(0)
+            raise RuntimeError("test ran out of canned provider responses")
+        item = self._queue.pop(0)
+        if isinstance(item, Exception):
+            raise item
+        return item
 
-
-class _FakeAnthropicClient:
-    def __init__(self, *, api_key: str | None = None) -> None:
-        self.api_key = api_key
-        # `messages` is bound at class level by the test setup.
-        self.messages = _CURRENT_FAKE_MESSAGES
-
-
-# Module-level pointer so each `LessonPlanner._call_anthropic` invocation
-# (which constructs a fresh AsyncAnthropic) shares the SAME response queue.
-_CURRENT_FAKE_MESSAGES: _FakeMessages | None = None
-
-
-def _install_fake(
-    monkeypatch: pytest.MonkeyPatch, responses: list[_FakeResponse]
-) -> _FakeMessages:
-    global _CURRENT_FAKE_MESSAGES
-    _CURRENT_FAKE_MESSAGES = _FakeMessages(responses)
-    monkeypatch.setattr(
-        "lecture_pipeline_v2.curriculum.lecture_plan.lesson_planner.anthropic.AsyncAnthropic",
-        _FakeAnthropicClient,
-    )
-    return _CURRENT_FAKE_MESSAGES
-
-
-def _tool_use_response(payload: dict) -> _FakeResponse:
-    return _FakeResponse(
-        content=[_FakeBlock(type="tool_use", name="emit_lesson_plan", input=payload)]
-    )
-
-
-def _empty_response() -> _FakeResponse:
-    return _FakeResponse(content=[])
+    @property
+    def create_call_count(self) -> int:
+        return len(self.calls)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -234,13 +208,11 @@ def _empty_response() -> _FakeResponse:
 
 
 @pytest.mark.asyncio
-async def test_lesson_planner_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    """One valid LessonPlan returned for one topic — single Anthropic call."""
-    messages = _install_fake(
-        monkeypatch, [_tool_use_response(_VALID_LESSON_PLAN_PAYLOAD)]
-    )
+async def test_lesson_planner_happy_path() -> None:
+    """One valid LessonPlan returned for one topic — single LLM call."""
+    provider = _FakeProvider([_VALID_LESSON_PLAN_PAYLOAD])
 
-    planner = LessonPlanner(_config())
+    planner = LessonPlanner(_config(), provider=provider)
     result = await planner.plan_for_all(
         [_chapter()],
         {"ch1": [_topic("t1", "Topic One")]},
@@ -253,23 +225,15 @@ async def test_lesson_planner_happy_path(monkeypatch: pytest.MonkeyPatch) -> Non
     assert plans[0].topic_id == "t1"
     assert plans[0].title == "Ball thrown in a moving train"
     assert plans[0].hook.type.value == "paradox"
-    assert messages.create_call_count == 1
+    assert provider.create_call_count == 1
 
 
 @pytest.mark.asyncio
-async def test_lesson_planner_retries_on_validation_error(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_lesson_planner_retries_on_validation_error() -> None:
     """First call returns a plan with a forbidden hook; second call succeeds."""
-    messages = _install_fake(
-        monkeypatch,
-        [
-            _tool_use_response(_INVALID_HOOK_PAYLOAD),
-            _tool_use_response(_VALID_LESSON_PLAN_PAYLOAD),
-        ],
-    )
+    provider = _FakeProvider([_INVALID_HOOK_PAYLOAD, _VALID_LESSON_PLAN_PAYLOAD])
 
-    planner = LessonPlanner(_config())
+    planner = LessonPlanner(_config(), provider=provider)
     result = await planner.plan_for_all(
         [_chapter()],
         {"ch1": [_topic("t1", "Topic One")]},
@@ -280,23 +244,15 @@ async def test_lesson_planner_retries_on_validation_error(
     plans = result["ch1"]
     assert len(plans) == 1
     assert plans[0].topic_id == "t1"
-    assert messages.create_call_count == 2
+    assert provider.create_call_count == 2
 
 
 @pytest.mark.asyncio
-async def test_lesson_planner_gives_up_after_two_validation_failures(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_lesson_planner_gives_up_after_two_validation_failures() -> None:
     """Two consecutive validation failures → no plan emitted for the topic."""
-    messages = _install_fake(
-        monkeypatch,
-        [
-            _tool_use_response(_INVALID_HOOK_PAYLOAD),
-            _tool_use_response(_INVALID_HOOK_PAYLOAD),
-        ],
-    )
+    provider = _FakeProvider([_INVALID_HOOK_PAYLOAD, _INVALID_HOOK_PAYLOAD])
 
-    planner = LessonPlanner(_config())
+    planner = LessonPlanner(_config(), provider=provider)
     result = await planner.plan_for_all(
         [_chapter()],
         {"ch1": [_topic("t1", "Topic One")]},
@@ -307,20 +263,15 @@ async def test_lesson_planner_gives_up_after_two_validation_failures(
     # No plan made it into the result.
     assert result["ch1"] == []
     # Both attempts were tried.
-    assert messages.create_call_count == 2
+    assert provider.create_call_count == 2
 
 
 @pytest.mark.asyncio
-async def test_lesson_planner_handles_missing_tool_use_block(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Response with no tool_use block triggers retry; second call succeeds."""
-    messages = _install_fake(
-        monkeypatch,
-        [_empty_response(), _tool_use_response(_VALID_LESSON_PLAN_PAYLOAD)],
-    )
+async def test_lesson_planner_handles_missing_tool_use_block() -> None:
+    """A response with no tool call (None) triggers retry; second call succeeds."""
+    provider = _FakeProvider([None, _VALID_LESSON_PLAN_PAYLOAD])
 
-    planner = LessonPlanner(_config())
+    planner = LessonPlanner(_config(), provider=provider)
     result = await planner.plan_for_all(
         [_chapter()],
         {"ch1": [_topic("t1", "Topic One")]},
@@ -329,32 +280,17 @@ async def test_lesson_planner_handles_missing_tool_use_block(
     )
 
     assert len(result["ch1"]) == 1
-    assert messages.create_call_count == 2
+    assert provider.create_call_count == 2
 
 
 @pytest.mark.asyncio
-async def test_lesson_planner_catches_unexpected_exception(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Anthropic API exception → fallback retry path; both fail → empty."""
-
-    class _ExplodingMessages:
-        def __init__(self) -> None:
-            self.create_call_count = 0
-
-        async def create(self, **kwargs: Any) -> Any:
-            self.create_call_count += 1
-            raise RuntimeError("simulated API failure")
-
-    global _CURRENT_FAKE_MESSAGES
-    exploding = _ExplodingMessages()
-    _CURRENT_FAKE_MESSAGES = exploding  # type: ignore[assignment]
-    monkeypatch.setattr(
-        "lecture_pipeline_v2.curriculum.lecture_plan.lesson_planner.anthropic.AsyncAnthropic",
-        _FakeAnthropicClient,
+async def test_lesson_planner_catches_unexpected_exception() -> None:
+    """Provider exception → fallback retry path; both fail → empty."""
+    provider = _FakeProvider(
+        [RuntimeError("simulated API failure"), RuntimeError("again")]
     )
 
-    planner = LessonPlanner(_config())
+    planner = LessonPlanner(_config(), provider=provider)
     result = await planner.plan_for_all(
         [_chapter()],
         {"ch1": [_topic("t1", "Topic One")]},
@@ -363,18 +299,16 @@ async def test_lesson_planner_catches_unexpected_exception(
     )
 
     assert result["ch1"] == []
-    assert exploding.create_call_count == 2  # both attempts hit, both failed
+    assert provider.create_call_count == 2  # both attempts hit, both failed
 
 
 @pytest.mark.asyncio
-async def test_lesson_planner_pins_topic_id_against_llm_rename(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_lesson_planner_pins_topic_id_against_llm_rename() -> None:
     """The LLM could emit a renamed topic_id; the planner pins the real one."""
     renamed = {**_VALID_LESSON_PLAN_PAYLOAD, "topic_id": "wrong-llm-id"}
-    _install_fake(monkeypatch, [_tool_use_response(renamed)])
+    provider = _FakeProvider([renamed])
 
-    planner = LessonPlanner(_config())
+    planner = LessonPlanner(_config(), provider=provider)
     result = await planner.plan_for_all(
         [_chapter()],
         {"ch1": [_topic("t1", "Topic One")]},
@@ -389,13 +323,11 @@ async def test_lesson_planner_pins_topic_id_against_llm_rename(
 
 
 @pytest.mark.asyncio
-async def test_lesson_planner_skips_chapter_without_lecture_plan(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Chapters with no ChapterLecturePlan are skipped without Anthropic calls."""
-    messages = _install_fake(monkeypatch, [])
+async def test_lesson_planner_skips_chapter_without_lecture_plan() -> None:
+    """Chapters with no ChapterLecturePlan are skipped without LLM calls."""
+    provider = _FakeProvider([])
 
-    planner = LessonPlanner(_config())
+    planner = LessonPlanner(_config(), provider=provider)
     result = await planner.plan_for_all(
         [_chapter()],
         {"ch1": [_topic("t1", "Topic One")]},
@@ -404,4 +336,4 @@ async def test_lesson_planner_skips_chapter_without_lecture_plan(
     )
 
     assert result == {}
-    assert messages.create_call_count == 0
+    assert provider.create_call_count == 0

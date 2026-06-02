@@ -29,7 +29,7 @@ from neo4j import AsyncGraphDatabase
 from .config import PipelineConfig
 from .curriculum.anchors import DeterministicAnchorExtractor
 from .curriculum.anchors.models import ExtractionAnchors
-from .curriculum.enrichment.diagram_qa import DiagramQA, QAResult
+from .curriculum.enrichment.diagram_qa import DiagramQA
 from .curriculum.enrichment.orchestrator import EnrichmentOrchestrator
 from .curriculum.enrichment.prereqs import PrereqLinker
 from .curriculum.id_generator import generate_chapter_uid
@@ -131,6 +131,18 @@ class CurriculumPipelineV2:
         if self._artifact_store is None:
             self._artifact_store = ArtifactStore(self.config.artifacts)
         return self._artifact_store
+
+    def _provider_for_override(self, provider: str | None, model: str | None):
+        """Provider for a per-role override (judge / vision-QA).
+
+        Reuses the main provider (`self.llm`) when no override is set — the
+        identity short-circuit in `LLMConfig.for_override` makes that a cheap
+        comparison rather than a second client.
+        """
+        override_cfg = self.config.llm.for_override(provider, model)
+        if override_cfg is self.config.llm:
+            return self.llm
+        return create_llm_provider(override_cfg)
 
     async def run(
         self,
@@ -443,9 +455,16 @@ class CurriculumPipelineV2:
             report.skipped_phases.append("embeddings")
 
         # --- Phase 12: Neo4j ingest + verify ---
+        # Non-fatal (like embeddings): a Neo4j failure must NOT discard the
+        # whole run — the caller writes the extraction JSON after run() returns,
+        # so we always reach `report.extraction = extraction` below.
         if not skip_neo4j:
             notify("ingest", "Ingesting to Neo4j...")
-            await self._ingest(extraction, report)
+            try:
+                await self._ingest(extraction, report)
+            except Exception as e:
+                logger.exception("Neo4j ingest failed (non-fatal): %s", e)
+                report.warnings.append(f"neo4j ingest failed: {e}")
         else:
             report.skipped_phases.append("ingest")
 
@@ -495,14 +514,28 @@ class CurriculumPipelineV2:
         """
         lesson_cfg = self.config.enrichment.lesson_pipeline
 
-        planner = LessonPlanner(self.config)
-        diagram_generator = LessonDiagramGenerator(self.config)
+        # Composition root: build providers ONCE and inject them. The main
+        # authoring path (planner / diagram generator / weaver) shares one
+        # provider; judge + vision-QA follow the main `llm` switch unless an
+        # override is configured. This is the single seam where "which model"
+        # is decided for the whole lesson pipeline.
+        main_provider = self.llm
+        judge_provider = self._provider_for_override(
+            lesson_cfg.judge_provider, lesson_cfg.judge_model
+        )
+        qa_provider = self._provider_for_override(
+            self.config.enrichment.diagram_qa.provider,
+            self.config.enrichment.diagram_qa.model,
+        )
+
+        planner = LessonPlanner(self.config, provider=main_provider)
+        diagram_generator = LessonDiagramGenerator(self.config, provider=main_provider)
         narrator = LessonNarrator(self.config)
-        plan_judge = PlanJudge(self.config, min_score=lesson_cfg.plan_min_score)
+        plan_judge = PlanJudge(
+            self.config, provider=judge_provider, min_score=lesson_cfg.plan_min_score
+        )
         diagram_qa = DiagramQA(
-            api_key=self.config.llm.api_key or "",
-            model=self.config.enrichment.diagram_qa.model,
-            min_score=lesson_cfg.diagram_min_score,
+            provider=qa_provider, min_score=lesson_cfg.diagram_min_score
         )
         prosody = LessonProsody()
 
@@ -574,8 +607,8 @@ class CurriculumPipelineV2:
         topics_by_tid = {t.topic_id: t for t in topics_for_chapter}
         # All diagrams that exist for this chapter (existing + freshly minted)
         diagrams_by_id_for_weaver = {d.diagram_id: d for d in new_diagrams}
-        weaver = BookExampleWeaver(self.config)
-        weaver_report = await weaver.weave_for_chapter(
+        weaver = BookExampleWeaver(self.config, provider=main_provider)
+        await weaver.weave_for_chapter(
             chapter_lesson_plans=plans_by_tid,
             topics_by_id=topics_by_tid,
             diagrams_by_id=diagrams_by_id_for_weaver,
@@ -674,47 +707,46 @@ class CurriculumPipelineV2:
             out.setdefault(t.chapter_id, []).append(t)
         return out
 
+    async def _ingest(
+        self, extraction: CurriculumExtractionResult, report: PipelineReport
+    ) -> None:
+        cypher_gen = CypherGenerator()
+        statements = cypher_gen.generate(extraction)
 
-#     async def _ingest(
-#         self, extraction: CurriculumExtractionResult, report: PipelineReport
-#     ) -> None:
-#         cypher_gen = CypherGenerator()
-#         statements = cypher_gen.generate(extraction)
-
-#         async with Neo4jWriter(self.config.neo4j) as writer:
-#             await writer.ingest(
-#                 statements,
-#                 embedding_dimensions=self.config.embedding.dimensions,
-#             )
-#             try:
-#                 expected_ids = (
-#                     {c.chapter_id for c in extraction.chapters}
-#                     | {t.topic_id for t in extraction.topics}
-#                     | {d.diagram_id for d in extraction.diagrams}
-#                     | {q.question_id for q in extraction.questions}
-#                 )
-#                 expected_rels = sum(
-#                     1
-#                     + (1 if t.next_topic_id else 0)
-#                     + len(t.prereq_topic_ids)
-#                     + len(t.has_diagram_ids)
-#                     + len(t.has_question_ids)
-#                     for t in extraction.topics
-#                 )
-#                 verification = await verify_ingestion(
-#                     writer.driver,
-#                     expected_node_ids=expected_ids,
-#                     expected_rel_count=expected_rels,
-#                     database=self.config.neo4j.database,
-#                 )
-#                 logger.info(verification.summary())
-#                 if not verification.passed:
-#                     report.warnings.append(
-#                         f"verification failed: {verification.error_count} errors"
-#                     )
-#             except Exception as e:
-#                 logger.exception("Verification failed (non-fatal): %s", e)
-#                 report.warnings.append(f"verification error: {e}")
+        async with Neo4jWriter(self.config.neo4j) as writer:
+            await writer.ingest(
+                statements,
+                embedding_dimensions=self.config.embedding.dimensions,
+            )
+            try:
+                expected_ids = (
+                    {c.chapter_id for c in extraction.chapters}
+                    | {t.topic_id for t in extraction.topics}
+                    | {d.diagram_id for d in extraction.diagrams}
+                    | {q.question_id for q in extraction.questions}
+                )
+                expected_rels = sum(
+                    1
+                    + (1 if t.next_topic_id else 0)
+                    + len(t.prereq_topic_ids)
+                    + len(t.has_diagram_ids)
+                    + len(t.has_question_ids)
+                    for t in extraction.topics
+                )
+                verification = await verify_ingestion(
+                    writer.driver,
+                    expected_node_ids=expected_ids,
+                    expected_rel_count=expected_rels,
+                    database=self.config.neo4j.database,
+                )
+                logger.info(verification.summary())
+                if not verification.passed:
+                    report.warnings.append(
+                        f"verification failed: {verification.error_count} errors"
+                    )
+            except Exception as e:
+                logger.exception("Verification failed (non-fatal): %s", e)
+                report.warnings.append(f"verification error: {e}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

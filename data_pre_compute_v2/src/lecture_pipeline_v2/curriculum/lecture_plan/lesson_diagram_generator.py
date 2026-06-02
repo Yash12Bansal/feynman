@@ -25,11 +25,12 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-import anthropic
 import structlog
 
 from lecture_pipeline_v2.config import PipelineConfig
 from lecture_pipeline_v2.curriculum.id_generator import generate_diagram_uid
+from lecture_pipeline_v2.llm.base import LLMProvider
+from lecture_pipeline_v2.llm.factory import create_llm_provider
 from lecture_pipeline_v2.curriculum.lecture_plan.lesson_diagram_prompts import (
     LESSON_DIAGRAM_SYSTEM_PROMPT,
 )
@@ -78,9 +79,11 @@ class LessonDiagramGenerator:
         config: PipelineConfig,
         *,
         concurrency: int = _DEFAULT_CONCURRENCY,
+        provider: LLMProvider | None = None,
     ) -> None:
         self.config = config
         self.concurrency = max(1, concurrency)
+        self._provider = provider or create_llm_provider(config.llm)
 
     async def generate_for_requirements(
         self,
@@ -164,7 +167,7 @@ class LessonDiagramGenerator:
 
         for attempt in range(_MAX_ATTEMPTS):
             try:
-                spec = await self._call_anthropic(
+                spec = await self._call_llm(
                     requirement=requirement,
                     prior_validation_error=prior_error,
                     prior_quality_feedback=prior_quality_feedback,
@@ -228,30 +231,28 @@ class LessonDiagramGenerator:
         )
         return None
 
-    async def _call_anthropic(
+    async def _call_llm(
         self,
         *,
         requirement: DiagramRequirement,
         prior_validation_error: str | None,
         prior_quality_feedback: str | None = None,
     ) -> dict[str, Any] | None:
-        """One Anthropic round-trip. Returns the parsed spec dict, or None if
-        the response had no usable text content. JSON parse errors bubble as
-        exceptions (caller catches at the boundary).
+        """One LLM round-trip via the configured provider. Returns the parsed
+        spec dict, or None if the response had no usable text content. JSON
+        parse errors bubble as exceptions (caller catches at the boundary).
         """
         user_message = _build_user_message(
             requirement, prior_validation_error, prior_quality_feedback
         )
 
-        client = anthropic.AsyncAnthropic(api_key=self.config.llm.api_key or "")
-        response = await client.messages.create(
-            model=self.config.llm.model,
+        response = await self._provider.agenerate_text(
+            LESSON_DIAGRAM_SYSTEM_PROMPT,
+            user_message,
             max_tokens=_MAX_TOKENS,
-            system=LESSON_DIAGRAM_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
         )
 
-        text = _extract_text(response)
+        text = (response.content or "").strip()
         if not text:
             logger.warning(
                 "lesson_diagram_generator.no_text_in_response",
@@ -413,23 +414,6 @@ def _build_user_message(
         parts.append("```")
 
     return "\n".join(parts)
-
-
-def _extract_text(response: Any) -> str:
-    """Pull the first text block from an Anthropic Messages response.
-
-    The response shape is `response.content: list[ContentBlock]` where each
-    block has `.type` and (for text blocks) `.text`. We coalesce all text
-    blocks in case the LLM emitted multiple, but typically there's one.
-    """
-    content = getattr(response, "content", None) or []
-    out: list[str] = []
-    for block in content:
-        if getattr(block, "type", None) == "text":
-            text = getattr(block, "text", "")
-            if isinstance(text, str) and text:
-                out.append(text)
-    return "\n".join(out).strip()
 
 
 def _parse_json(raw: str) -> dict[str, Any]:

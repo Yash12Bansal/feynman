@@ -19,11 +19,12 @@ from __future__ import annotations
 
 from typing import Any
 
-import anthropic
 import structlog
 from pydantic import ValidationError
 
 from lecture_pipeline_v2.config import PipelineConfig
+from lecture_pipeline_v2.llm.base import LLMProvider
+from lecture_pipeline_v2.llm.factory import create_llm_provider
 from lecture_pipeline_v2.curriculum.lecture_plan.curriculum_adapter import (
     CurriculumAdapter,
 )
@@ -55,8 +56,14 @@ _MAX_ATTEMPTS = 2
 class LessonPlanner:
     """Plans every topic via Anthropic tool-use against the LessonPlan schema."""
 
-    def __init__(self, config: PipelineConfig) -> None:
+    def __init__(
+        self, config: PipelineConfig, *, provider: LLMProvider | None = None
+    ) -> None:
         self.config = config
+        # Routes through the configured provider (claude / openai / gemini /
+        # ollama). `provider` injection point is used by the pipeline (to share
+        # one client) and by tests (to inject a fake).
+        self._provider = provider or create_llm_provider(config.llm)
 
     async def plan_for_all(
         self,
@@ -151,7 +158,7 @@ class LessonPlanner:
 
         for attempt in range(_MAX_ATTEMPTS):
             try:
-                lp = await self._call_anthropic(
+                lp = await self._call_llm(
                     concept_index=concept_index,
                     curriculum=curriculum,
                     topic_id=topic_id,
@@ -199,7 +206,7 @@ class LessonPlanner:
         )
         return None
 
-    async def _call_anthropic(
+    async def _call_llm(
         self,
         *,
         concept_index: int,
@@ -209,9 +216,11 @@ class LessonPlanner:
         prior_validation_error: str | None,
         prior_quality_feedback: str | None = None,
     ) -> LessonPlan | None:
-        """One Anthropic round-trip. Returns the validated LessonPlan or None
-        if the response had no tool-use block. Raises ValidationError when
-        Pydantic rejects the tool's input — the caller catches it.
+        """One LLM round-trip via the configured provider's tool-use surface.
+
+        Returns the validated LessonPlan, or None if the model emitted no tool
+        call. Raises ValidationError when Pydantic rejects the tool input —
+        the caller catches it for the retry-with-feedback loop.
         """
         user_message = _build_user_message(
             concept_index=concept_index,
@@ -221,51 +230,28 @@ class LessonPlanner:
             prior_quality_feedback=prior_quality_feedback,
         )
 
-        client = anthropic.AsyncAnthropic(api_key=self.config.llm.api_key or "")
-        response = await client.messages.create(
-            model=self.config.llm.model,
+        payload = await self._provider.agenerate_tool_use(
+            LESSON_PLANNING_SYSTEM_PROMPT,
+            user_message,
+            tool_name=_LESSON_TOOL_NAME,
+            tool_description=_LESSON_TOOL_DESCRIPTION,
+            input_schema=LessonPlan.model_json_schema(),
             max_tokens=_MAX_TOKENS,
-            system=LESSON_PLANNING_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
-            tools=[
-                {
-                    "name": _LESSON_TOOL_NAME,
-                    "description": _LESSON_TOOL_DESCRIPTION,
-                    "input_schema": LessonPlan.model_json_schema(),
-                }
-            ],
-            tool_choice={"type": "tool", "name": _LESSON_TOOL_NAME},
         )
 
-        for block in response.content:
-            if (
-                getattr(block, "type", None) == "tool_use"
-                and getattr(block, "name", None) == _LESSON_TOOL_NAME
-            ):
-                payload = block.input
-                if not isinstance(payload, dict):
-                    logger.warning(
-                        "lesson_planner.tool_input_not_dict",
-                        chapter_id=chapter_id,
-                        topic_id=topic_id,
-                        concept_index=concept_index,
-                    )
-                    return None
-                # Pin topic_id so the LLM cannot rename it; the LessonPlan
-                # MUST be keyed against the curriculum topic, not whatever
-                # the LLM invented.
-                payload = {**payload, "topic_id": topic_id}
-                # Raises ValidationError if any validator fails; caller
-                # handles the retry.
-                return LessonPlan.model_validate(payload)
-
-        logger.warning(
-            "lesson_planner.no_tool_use_block",
-            chapter_id=chapter_id,
-            topic_id=topic_id,
-            concept_index=concept_index,
-        )
-        return None
+        if not isinstance(payload, dict):
+            logger.warning(
+                "lesson_planner.no_tool_use_block",
+                chapter_id=chapter_id,
+                topic_id=topic_id,
+                concept_index=concept_index,
+            )
+            return None
+        # Pin topic_id so the LLM cannot rename it; the LessonPlan MUST be
+        # keyed against the curriculum topic, not whatever the LLM invented.
+        payload = {**payload, "topic_id": topic_id}
+        # Raises ValidationError if any validator fails; caller handles retry.
+        return LessonPlan.model_validate(payload)
 
 
 def _build_user_message(

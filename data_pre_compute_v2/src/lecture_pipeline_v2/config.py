@@ -12,14 +12,66 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, Field
 
+# Providers that need an API key, and the env var(s) each reads. `ollama` is
+# local and keyless. This is the SINGLE place provider→env-var mapping lives;
+# both `PipelineConfig.load()` and `LLMConfig.for_override()` go through it.
+_PROVIDER_ENV_KEYS: dict[str, tuple[str, ...]] = {
+    "openai": ("OPENAI_API_KEY",),
+    "anthropic": ("ANTHROPIC_API_KEY",),
+    "gemini": ("GEMINI_API_KEY", "GOOGLE_API_KEY"),
+}
+
+
+def api_key_for_provider(provider: str) -> str | None:
+    """Resolve the API key for a provider from the environment.
+
+    Returns the first non-empty matching env var, or None (ollama / unknown
+    providers are keyless). Gemini accepts either GEMINI_API_KEY or the
+    Google-standard GOOGLE_API_KEY.
+    """
+    for env_var in _PROVIDER_ENV_KEYS.get(provider, ()):
+        value = os.environ.get(env_var)
+        if value:
+            return value
+    return None
+
 
 class LLMConfig(BaseModel):
-    provider: Literal["openai", "anthropic", "ollama"] = "anthropic"
+    provider: Literal["openai", "anthropic", "ollama", "gemini"] = "anthropic"
     model: str = "claude-sonnet-4-6"
     base_url: str | None = None
     temperature: float = 0.3
     max_tokens: int = 16384
     api_key: str | None = None
+
+    def for_override(
+        self, provider: str | None = None, model: str | None = None
+    ) -> LLMConfig:
+        """Return a copy with provider/model overridden for a single role.
+
+        Used by per-role overrides (judge, vision-QA) so they can pin a
+        different model than the main authoring path. When the provider
+        changes, the API key is re-resolved from the environment so the right
+        SDK gets the right key. Returns ``self`` UNCHANGED when no effective
+        override is requested — callers identity-check this to reuse the main
+        provider instance instead of building a second client.
+        """
+        new_provider = provider or self.provider
+        new_model = model or self.model
+        if new_provider == self.provider and new_model == self.model:
+            return self
+        api_key = (
+            self.api_key
+            if new_provider == self.provider
+            else api_key_for_provider(new_provider)
+        )
+        return self.model_copy(
+            update={
+                "provider": new_provider,
+                "model": new_model,
+                "api_key": api_key,
+            }
+        )
 
 
 class PDFConfig(BaseModel):
@@ -39,7 +91,7 @@ class TTSConfig(BaseModel):
 
 
 class JudgeModelConfig(BaseModel):
-    provider: Literal["openai", "anthropic", "ollama"]
+    provider: Literal["openai", "anthropic", "ollama", "gemini"]
     model: str
 
 
@@ -142,10 +194,19 @@ class LayoutConfig(BaseModel):
 
 
 class DiagramQAConfig(BaseModel):
-    """Phase 4c — DiagramQA vision-loop config."""
+    """Phase 4c — DiagramQA vision-loop config.
+
+    `provider`/`model` are OPTIONAL overrides. Left unset (the default),
+    DiagramQA follows the main `llm` switch — so a single model change covers
+    vision QA too. Set them to pin a specific vision-capable model (e.g. keep
+    QA on a strong vision model while authoring on a cheaper one). Note: the
+    chosen model MUST support image input; DiagramQA degrades gracefully
+    (skips, never blocks) if it doesn't.
+    """
 
     enabled: bool = True
-    model: str = "claude-sonnet-4-20250514"
+    provider: str | None = None
+    model: str | None = None
     max_retries: int = 2
     min_score: int = 3
 
@@ -168,6 +229,12 @@ class LessonPipelineConfig(BaseModel):
     max_quality_retries: int = 1
     plan_min_score: int = 3
     diagram_min_score: int = 3
+    # Optional override for the LLM-as-judge (PlanJudge). Unset → follows the
+    # main `llm` switch. Pinning a DIFFERENT model/provider than the author is
+    # good practice: it reduces correlated errors (a model is a poor judge of
+    # its own blind spots).
+    judge_provider: str | None = None
+    judge_model: str | None = None
 
 
 class EnrichmentConfig(BaseModel):
@@ -217,9 +284,6 @@ class PipelineConfig(BaseModel):
             cfg = cls()
 
         if cfg.llm.api_key is None:
-            if cfg.llm.provider == "openai":
-                cfg.llm.api_key = os.environ.get("OPENAI_API_KEY")
-            elif cfg.llm.provider == "anthropic":
-                cfg.llm.api_key = os.environ.get("ANTHROPIC_API_KEY")
+            cfg.llm.api_key = api_key_for_provider(cfg.llm.provider)
 
         return cfg

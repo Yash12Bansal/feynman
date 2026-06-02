@@ -40,7 +40,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from anthropic import AsyncAnthropic
+from lecture_pipeline_v2.llm.base import LLMProvider
+from lecture_pipeline_v2.llm.factory import create_llm_provider
 
 from .highlight_aligner_prompt import HIGHLIGHT_ALIGNER_SYSTEM_PROMPT
 
@@ -247,11 +248,17 @@ class AlignerReport:
 class SemanticHighlightAligner:
     """Re-decides diagram highlights against the real on-screen diagrams."""
 
-    def __init__(self, config, *, model: str | None = None):
-        """`config` is the pipeline LLMConfig (provider/model/api_key)."""
+    def __init__(self, config, *, model: str | None = None, provider=None):
+        """`config` is the pipeline LLMConfig (provider/model/api_key).
+
+        Follows the main `llm` switch; pass `model` to pin a different model
+        (api_key is re-resolved if that implies a different provider). The
+        `provider` kwarg injects a pre-built provider (tests / shared client).
+        """
         self._config = config
-        self._model = model or config.model
-        self._client = AsyncAnthropic(api_key=config.api_key or "")
+        self._provider: LLMProvider = provider or create_llm_provider(
+            config.for_override(None, model)
+        )
 
     async def realign_chapter_narration(
         self,
@@ -317,7 +324,7 @@ class SemanticHighlightAligner:
         """One LLM call: per sentence, which on-screen element is it explaining?"""
         user_message = _build_user_message(sentences, diagrams_by_id)
         try:
-            raw = await self._call_anthropic(user_message)
+            raw = await self._call_llm(user_message)
         except Exception as e:  # noqa: BLE001
             report.llm_failures += 1
             report.warnings.append(f"aligner LLM call failed: {e}")
@@ -336,22 +343,16 @@ class SemanticHighlightAligner:
                 }
         return out
 
-    async def _call_anthropic(self, user_message: str) -> dict[str, Any]:
-        response = await self._client.messages.create(
-            model=self._model,
+    async def _call_llm(self, user_message: str) -> dict[str, Any]:
+        payload = await self._provider.agenerate_tool_use(
+            HIGHLIGHT_ALIGNER_SYSTEM_PROMPT,
+            user_message,
+            tool_name=_ALIGN_TOOL["name"],
+            tool_description=_ALIGN_TOOL["description"],
+            input_schema=_ALIGN_TOOL["input_schema"],
             max_tokens=_MAX_OUTPUT_TOKENS,
-            system=HIGHLIGHT_ALIGNER_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
-            tools=[_ALIGN_TOOL],
-            tool_choice={"type": "tool", "name": "emit_highlights"},
         )
-        for blk in response.content:
-            if (
-                getattr(blk, "type", None) == "tool_use"
-                and blk.name == "emit_highlights"
-            ):
-                return blk.input if isinstance(blk.input, dict) else {}
-        return {}
+        return payload if isinstance(payload, dict) else {}
 
 
 # ---------------------------------------------------------------------------

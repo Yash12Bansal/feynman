@@ -25,11 +25,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import anthropic
 import structlog
 from pydantic import BaseModel, Field, ValidationError
 
 from ...config import PipelineConfig
+from ...llm.base import LLMProvider
+from ...llm.factory import create_llm_provider
 from ..models import BookExample, Diagram, Topic
 from .book_example_prompts import (
     BOOK_EXAMPLE_WEAVER_SYSTEM_PROMPT,
@@ -87,9 +88,11 @@ class WeaverReport(BaseModel):
 class BookExampleWeaver:
     """Per-example LLM render + structural validation + retry loop."""
 
-    def __init__(self, config: PipelineConfig) -> None:
+    def __init__(
+        self, config: PipelineConfig, *, provider: LLMProvider | None = None
+    ) -> None:
         self.config = config
-        self._client = anthropic.AsyncAnthropic(api_key=config.llm.api_key or "")
+        self._provider = provider or create_llm_provider(config.llm)
 
     async def weave_for_chapter(
         self,
@@ -139,9 +142,7 @@ class BookExampleWeaver:
         # Without this, re-running the weaver on an already-woven plan
         # appends a SECOND copy of every example block.
         original_count = len(lesson_plan.choreography)
-        stripped = [
-            s for s in lesson_plan.choreography if not s.is_book_example
-        ]
+        stripped = [s for s in lesson_plan.choreography if not s.is_book_example]
         if len(stripped) < original_count:
             logger.info(
                 "book_example_weaver.stripped_existing",
@@ -216,7 +217,9 @@ class BookExampleWeaver:
             )
             for ref_idx, _ in enumerate(topic.book_examples):
                 if ref_idx not in {
-                    s.book_example_ref for s in flat_new_steps if s.book_example_ref is not None
+                    s.book_example_ref
+                    for s in flat_new_steps
+                    if s.book_example_ref is not None
                 }:
                     continue
                 # All weaver steps drop on the floor; mark all as failures.
@@ -258,7 +261,7 @@ class BookExampleWeaver:
                 prior_attempt_feedback=last_error if attempt > 0 else "",
             )
             try:
-                steps = await self._call_anthropic(user_msg)
+                steps = await self._call_llm(user_msg)
             except ValidationError as exc:
                 last_error = (
                     f"Pydantic rejected your output: {exc}. The steps list must "
@@ -321,32 +324,19 @@ class BookExampleWeaver:
         )
         return None
 
-    async def _call_anthropic(self, user_msg: str) -> list[ChoreographyStep] | None:
-        response = await self._client.messages.create(
-            model=self.config.llm.model,
+    async def _call_llm(self, user_msg: str) -> list[ChoreographyStep] | None:
+        payload = await self._provider.agenerate_tool_use(
+            BOOK_EXAMPLE_WEAVER_SYSTEM_PROMPT,
+            user_msg,
+            tool_name=_TOOL_NAME,
+            tool_description=_TOOL_DESCRIPTION,
+            input_schema=_WeaverOutput.model_json_schema(),
             max_tokens=_MAX_TOKENS,
-            system=BOOK_EXAMPLE_WEAVER_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_msg}],
-            tools=[
-                {
-                    "name": _TOOL_NAME,
-                    "description": _TOOL_DESCRIPTION,
-                    "input_schema": _WeaverOutput.model_json_schema(),
-                }
-            ],
-            tool_choice={"type": "tool", "name": _TOOL_NAME},
         )
-        for block in response.content:
-            if (
-                getattr(block, "type", None) == "tool_use"
-                and getattr(block, "name", None) == _TOOL_NAME
-            ):
-                payload = block.input
-                if not isinstance(payload, dict):
-                    return None
-                parsed = _WeaverOutput.model_validate(payload)
-                return parsed.steps
-        return None
+        if not isinstance(payload, dict):
+            return None
+        parsed = _WeaverOutput.model_validate(payload)
+        return parsed.steps
 
 
 def _trailing_insertion_index(choreography: list[ChoreographyStep]) -> int:
@@ -387,11 +377,7 @@ def _resolve_active_diagram(
     available — the LLM is then told to leave actions empty.
     """
     candidate = next(
-        (
-            d
-            for d in diagrams_by_id.values()
-            if topic.topic_id in d.linked_topic_ids
-        ),
+        (d for d in diagrams_by_id.values() if topic.topic_id in d.linked_topic_ids),
         None,
     )
     if candidate is None:
