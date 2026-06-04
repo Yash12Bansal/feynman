@@ -18,17 +18,15 @@ from dataclasses import dataclass, field
 
 import structlog
 
-from feynman.agent.doubt_resolution.diagram_fit_matcher import (
-    match_diagrams_for_plan,
-)
-from feynman.agent.doubt_resolution.doubt_classifier import (
-    DoubtType,
-    classify_doubt,
-)
+from feynman.agent.doubt_resolution.diagram_templates import is_known
+from feynman.agent.doubt_resolution.doubt_classifier import classify_doubt
 from feynman.agent.doubt_resolution.models import (
     ChapterContext,
     DoubtRecord,
+    NoDiagram,
     ResolutionPlan,
+    ReuseDiagram,
+    TemplateDiagram,
 )
 from feynman.agent.doubt_resolution.resolution_planner import plan_resolution
 
@@ -40,6 +38,10 @@ class LectureDoubtSession:
     chapter_context: ChapterContext
     prior_doubts_in_session: list[DoubtRecord] = field(default_factory=list)
     shown_diagram_ids: set[str] = field(default_factory=set)
+    # Per-session cache of generated doubt-diagram specs, keyed by the
+    # generation brief. Lets a `start_over`/re-resolve reuse a spec instead of
+    # paying the generation latency + cost again. Ephemeral — never persisted.
+    generated_specs: dict[str, dict] = field(default_factory=dict)
 
     async def resolve(
         self,
@@ -90,21 +92,32 @@ class LectureDoubtSession:
             logger.error("lecture_session.planner_failed", cursor=cursor)
             return None
 
-        # Phase 6 adaptive matcher: local clarifications are typically
-        # small verbal explanations where a tangentially-related diagram
-        # is acceptable. Skipping the Haiku verifier shaves ~1-2s off the
-        # latency budget on the most-common doubt type.
-        skip_stage2 = classification.type == DoubtType.LOCAL_CLARIFICATION
-
-        await match_diagrams_for_plan(
-            plan=plan,
-            chapter_context=self.chapter_context,
-            doubt_text=doubt_text,
-            classification=classification,
-            current_topic_id=current_topic_id,
-            shown_diagram_ids=self.shown_diagram_ids,
-            skip_stage2=skip_stage2,
-        )
+        # The planner now decides each beat's diagram directly — it sees the
+        # full diagram catalog with element semantics and chooses reuse /
+        # generate / keep / none. Validate its reuse picks against the real
+        # chapter diagrams: an id the planner invented degrades to "no diagram"
+        # rather than dangling. `target_diagram_id` is mirrored from a valid
+        # reuse for telemetry + the recency set (delivery reads the directive).
+        valid_ids = set(self.chapter_context.diagrams.keys())
+        for beat in plan.beats:
+            directive = beat.diagram
+            if isinstance(directive, ReuseDiagram):
+                if directive.diagram_id in valid_ids:
+                    beat.target_diagram_id = directive.diagram_id
+                else:
+                    logger.warning(
+                        "lecture_session.reuse_id_invalid",
+                        diagram_id=directive.diagram_id,
+                    )
+                    beat.diagram = NoDiagram()
+            elif isinstance(directive, TemplateDiagram) and not is_known(directive.concept_id):
+                # An invented template id would render a blank slide — degrade
+                # to no-diagram (narration still answers the student).
+                logger.warning(
+                    "lecture_session.template_concept_invalid",
+                    concept_id=directive.concept_id,
+                )
+                beat.diagram = NoDiagram()
 
         matched_ids = [b.target_diagram_id for b in plan.beats if b.target_diagram_id]
         elapsed_ms = int((time.monotonic() - t0) * 1000)
@@ -118,7 +131,6 @@ class LectureDoubtSession:
             "phase6.doubt_pipeline_total_ms",
             ms=elapsed_ms,
             classification=classification.type.value,
-            skip_stage2=skip_stage2,
         )
 
         # Update session history + shown set.

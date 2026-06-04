@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # DO NOT EDIT — synced VERBATIM from design_agent/backend/prompts.py:SYSTEM_PROMPT
-# on 2026-05-22 (Phase 1 of precompute-lecture-overhaul).
+# on 2026-05-30 (Phase 2 of diagram-interactivity-animation: staged-reveal section).
 # If the canonical design_agent prompt changes, copy the new version here and
 # update the sync date.
 # ---------------------------------------------------------------------------
@@ -62,7 +62,8 @@ Return **only** a single JSON object. No markdown fences, no commentary, no expl
   "backgroundColor": "transparent",  // the dark slide panel owns the bg; leave transparent
   "elements": [ ... ],
   "parameters": [ ... ],
-  "animations": [ ... ],
+  "presentation_mode": "overview", // OPTIONAL — omit for a static figure (the common case); "build_up" = staged reveal (see "Staged reveal")
+  "animations": [ ... ],           // OPTIONAL — staged-reveal steps; leave empty unless the diagram IS a sequence (see "Staged reveal")
   "dictionary": { ... }            // semantic metadata, see "Semantic dictionary" below
 }
 ```
@@ -165,6 +166,37 @@ Entry shape:
 - **Bounds** is `[x, y, width, height]` in your SVG coordinate space — used to position annotations later. For lines/arrows, give the bounding box of the segment. For curves, the bounding box of the curve. Use `null` only if the bounds genuinely make no sense (e.g. a transform-only group).
 - The dictionary keys must match `id` values from your `elements` array. Anything not in `elements` is ignored.
 
+## Staged reveal (OPTIONAL — most diagrams skip this)
+
+By default every element appears at once: a finished diagram the student takes in as a whole. That is correct for **reference** figures — a labeled triangle, a free-body diagram, a circuit, a molecule. For these, leave `animations` empty and omit `presentation_mode`. **This is the common case; the vast majority of diagrams emit zero animation steps.**
+
+Use staged reveal **only when the diagram's meaning IS a sequence** — when watching it built, piece by piece, is itself the lesson. A projectile's path traced from launch to landing; a ray that strikes a lens then refracts and continues; a geometric construction where each line depends on the one before. If the elements have no narrative order, do not stage them.
+
+To opt in: set `"presentation_mode": "build_up"` and list the reveal steps in `animations`. Each step names the elements that appear together on **one beat of narration**:
+
+```
+"presentation_mode": "build_up",
+"animations": [
+  {"step": 1, "role_targets": ["surface"], "cue": "we start from the ground"},
+  {"step": 2, "element_targets": ["trajectory"], "cue": "the ball arcs up and over"},
+  {"step": 3, "role_targets": ["velocity", "acceleration"], "cue": "two things act on it the whole way"}
+]
+```
+
+- `role_targets` — dictionary roles to reveal (preferred; survives id changes). `element_targets` — explicit element ids (use when no clean role fits). A step may use either or both.
+- `step` — order, ascending. `cue` — the short phrase in the teacher's narration where this beat lands (it lets the system time the reveal to the voice). `duration_ms` — optional fade length, default 400.
+- **Reveal is monotonic and additive**: once an element is shown it stays. The final frame is always the *complete* static diagram — byte-identical to what you'd draw with no animation at all. Never expect an element to vanish, move, or morph.
+- **There is no autoplay.** Steps advance only as the teacher speaks. You are expressing *order*, never timing, looping, or motion. There is no field for any of those — do not invent one.
+- One step = one idea. Don't reveal a single element per step if three belong to the same breath; don't cram two unrelated ideas into one step.
+
+### ✅ GOOD — the diagram IS a sequence
+Projectile motion: reveal the ground, then trace the parabola, then bring in the velocity and gravity arrows. The student watches the story build — surface, path, forces — exactly as Feynman narrates it. Three beats, three steps. The finished frame is the full labeled diagram.
+
+### ❌ BAD — animating a static fact
+A right triangle with its sides, right-angle marker, and angle θ labeled is a **reference**, not a sequence. Revealing the hypotenuse "after" the two legs teaches nothing: there is no before/after — the triangle simply *is*. Show it whole (empty `animations`, no `presentation_mode`). Staging a static figure just makes the student sit and wait for pieces that have no reason to arrive in order.
+
+**Rule of thumb:** if you cannot say *why this element comes after that one* in the narration, the diagram is a reference — show it all at once.
+
 ## Rules
 
 1. **Pixel coordinates**: origin top-left, x right, y DOWN. Canvas default 900×650. Center ≈ (450, 325).
@@ -221,6 +253,7 @@ Every one of these has appeared in a failed output. Every one makes the diagram 
 - ❌ **Dark-on-dark colors** (`#000`, `#111`, `#333`, `#555`) on the transparent canvas. They vanish against the dark slide.
 - ❌ **More than ~12 visible elements** on a 900×650 canvas (~5–6 per side in a comparison plus labels). The eye cannot follow clutter.
 - ❌ **Thick strokes** (strokeWidth ≥ 5). Keep strokes 2–3 for shapes, 2.5–3 for accent vector arrows.
+- ❌ **Staging a static reference figure.** A labeled triangle, a finished free-body diagram, a circuit — these have no narrative order, so revealing them piece by piece just makes the student wait. Staged reveal (`presentation_mode: "build_up"` + `animations`) is ONLY for diagrams whose meaning is a sequence (a traced trajectory, a step-by-step construction). Common case: empty `animations`, no `presentation_mode`.
 
 ## Comparisons — side-by-side sub-scenes without frames
 
@@ -293,7 +326,7 @@ No frames, no headline, no narrative text. Cyan N, green F, pink mg — each lab
     {"type": "svg_arrow", "id": "m-velocity", "x1": 725, "y1": 330, "x2": 810, "y2": 330, "stroke": "#ff7a8a", "strokeWidth": 2.5},
 
     {"type": "svg_text", "id": "e-caption", "x": 230, "y": 580, "text": "v = 0", "fontSize": 12, "fill": "rgba(232,232,238,0.55)", "textAnchor": "middle"},
-    {"type": "svg_text", "id": "m-caption", "x": 670, "y": 580, "text": "v ≈ 30 km/s", "fontSize": 12, "fill": "rgba(232,232,238,0.55)", "textAnchor": "middle"}
+    {"type": "svg_text", "id": "m-caption", "x": 670, "y": 580, "text": "v \u2248 30 km/s", "fontSize": 12, "fill": "rgba(232,232,238,0.55)", "textAnchor": "middle"}
   ]
 }
 ```
@@ -317,9 +350,9 @@ The diagram is JUST the motion. No "definition" paragraph, no "characteristics" 
     {"type": "svg_arrow", "id": "v0", "x1": 130, "y1": 500, "x2": 210, "y2": 400, "stroke": "#7fd4ff", "strokeWidth": 2.5},
     {"type": "svg_arrow", "id": "vx-apex", "x1": 450, "y1": 230, "x2": 540, "y2": 230, "stroke": "#9effc9", "strokeWidth": 2.5},
     {"type": "svg_arrow", "id": "g", "x1": 450, "y1": 280, "x2": 450, "y2": 360, "stroke": "#ff7a8a", "strokeWidth": 2.5},
-    {"type": "svg_text", "id": "v0-label", "x": 215, "y": 395, "text": "v₀", "fontSize": 13, "fill": "#7fd4ff", "textAnchor": "start", "fontWeight": "600"},
-    {"type": "svg_text", "id": "angle-label", "x": 182, "y": 492, "text": "θ", "fontSize": 13, "fill": "#7fd4ff", "textAnchor": "middle", "fontWeight": "600"},
-    {"type": "svg_text", "id": "vx-label", "x": 548, "y": 228, "text": "vₓ", "fontSize": 13, "fill": "#9effc9", "textAnchor": "start", "fontWeight": "600"},
+    {"type": "svg_text", "id": "v0-label", "x": 215, "y": 395, "text": "v\u2080", "fontSize": 13, "fill": "#7fd4ff", "textAnchor": "start", "fontWeight": "600"},
+    {"type": "svg_text", "id": "angle-label", "x": 182, "y": 492, "text": "\u03b8", "fontSize": 13, "fill": "#7fd4ff", "textAnchor": "middle", "fontWeight": "600"},
+    {"type": "svg_text", "id": "vx-label", "x": 548, "y": 228, "text": "v\u2093", "fontSize": 13, "fill": "#9effc9", "textAnchor": "start", "fontWeight": "600"},
     {"type": "svg_text", "id": "g-label", "x": 462, "y": 330, "text": "g", "fontSize": 13, "fill": "#ff7a8a", "textAnchor": "start", "fontWeight": "600"}
   ],
   "dictionary": {
@@ -342,7 +375,7 @@ The diagram is JUST the motion. No "definition" paragraph, no "characteristics" 
     {"type": "svg_text", "text": "PROJECTILE MOTION DEFINITION", "fontSize": 28, "fill": "#a0a0a0"},                         // ❌ giant headline
     {"type": "svg_text", "text": "A projectile is any particle thrown obliquely near Earth's surface...", "fontSize": 14},   // ❌ narrative paragraph
     {"type": "svg_rect", "x": 40, "y": 80, "width": 380, "height": 200, "fill": "#f4ead2", "stroke": "..."},                  // ❌ filled card for "KEY CHARACTERISTICS"
-    {"type": "svg_text", "text": "1. Launched with initial velocity at angle θ"},                                        // ❌ numbered bullet list
+    {"type": "svg_text", "text": "1. Launched with initial velocity at angle \u03b8"},                                        // ❌ numbered bullet list
     {"type": "svg_text", "text": "2. Only gravity acts on the projectile"},                                                  // ❌ more bullets
     {"type": "svg_rect", "x": 440, "y": 80, "width": 380, "height": 200, "fill": "#cfe4f2", "stroke": "..."},                 // ❌ legend card
     {"type": "svg_text", "text": "LEGEND"}, {"type": "svg_text", "text": "Initial velocity"}, {"type": "svg_text", "text": "Gravity force"},  // ❌ color key

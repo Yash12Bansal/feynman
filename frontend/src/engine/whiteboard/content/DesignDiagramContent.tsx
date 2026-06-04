@@ -15,37 +15,13 @@ import type {
   DrawDesignDiagramInstruction,
   DesignDiagramElement,
   DesignDiagramSpec,
-  DiagramCoord,
   DesignDiagramGraph,
 } from "../../../types/visuals";
+import { compile, resolveCoord } from "../../expr/evaluate";
 
-// ── Math expression evaluator ──────────────────────────────
-
-const MATH_CONTEXT =
-  "const {sin,cos,tan,sqrt,abs,PI,E,log,exp,pow,floor,ceil,min,max,atan2,asin,acos,sinh,cosh,tanh}=Math;";
-
-function evalMathExpr(expr: string, vars: Record<string, number>): number {
-  try {
-    const keys = Object.keys(vars);
-    const vals = Object.values(vars);
-    // eslint-disable-next-line no-new-func
-    const fn = new Function(...keys, `${MATH_CONTEXT}return ${expr};`);
-    return fn(...vals) as number;
-  } catch {
-    return NaN;
-  }
-}
-
-function resolveValue(
-  val: DiagramCoord | undefined,
-  params: Record<string, number>,
-  fallback = 0,
-): number {
-  if (val === undefined || val === null) return fallback;
-  if (typeof val === "number") return val;
-  const result = evalMathExpr(val, params);
-  return isNaN(result) ? fallback : result;
-}
+// Coordinate expressions are resolved by the shared, sandboxed evaluator in
+// `engine/expr/evaluate` (memoized expr-eval). `resolveCoord(val, params)` is
+// the drop-in for the previous `new Function`-based `resolveValue`.
 
 // ── Arc path helper ────────────────────────────────────────
 
@@ -74,16 +50,18 @@ function GraphInset({
   params,
   focused,
   focusColor,
+  revealedElementIds,
 }: {
   el: DesignDiagramGraph;
   params: Record<string, number>;
   focused?: boolean;
   focusColor?: string;
+  revealedElementIds?: ReadonlySet<string> | null;
 }) {
-  const x = resolveValue(el.x, params);
-  const y = resolveValue(el.y, params);
-  const w = resolveValue(el.width, params, 300);
-  const h = resolveValue(el.height, params, 200);
+  const x = resolveCoord(el.x, params);
+  const y = resolveCoord(el.y, params);
+  const w = resolveCoord(el.width, params, 300);
+  const h = resolveCoord(el.height, params, 200);
   const margin = { top: 10, right: 10, bottom: 35, left: 45 };
   const innerW = w - margin.left - margin.right;
   const innerH = h - margin.top - margin.bottom;
@@ -123,11 +101,14 @@ function GraphInset({
   // Curve paths
   const curvePaths = useMemo(() => {
     return (el.curves ?? []).map((curve) => {
+      // Compile once per curve, then evaluate across all samples — the old
+      // path built a `new Function` for every one of the 201 samples.
+      const compiled = compile(curve.expression);
       const points: { x: number; y: number }[] = [];
       const numSamples = 200;
       for (let i = 0; i <= numSamples; i++) {
         const xVal = xDomain[0] + (i / numSamples) * (xDomain[1] - xDomain[0]);
-        const yVal = evalMathExpr(curve.expression, { x: xVal, ...params });
+        const yVal = compiled.evaluate({ x: xVal, ...params });
         if (isFinite(yVal)) {
           points.push({ x: scaleX(xVal), y: scaleY(yVal) });
         }
@@ -168,6 +149,7 @@ function GraphInset({
     return labels;
   }, [yDomain, innerH]);
 
+  const revealGated = revealedElementIds != null && el.id != null;
   return (
     <g
       transform={`translate(${x}, ${y})`}
@@ -178,6 +160,13 @@ function GraphInset({
           ? ({
               ["--dd-focus-color" as string]: focusColor,
             } as React.CSSProperties)
+          : undefined
+      }
+      data-revealed={
+        revealGated
+          ? revealedElementIds.has(el.id!)
+            ? "true"
+            : "false"
           : undefined
       }
     >
@@ -281,15 +270,28 @@ function renderSvgElement(
   el: DesignDiagramElement,
   idx: number,
   params: Record<string, number>,
-  focusId?: string | null,
+  focusIds?: ReadonlySet<string> | null,
+  revealedElementIds?: ReadonlySet<string> | null,
 ): React.ReactNode {
   try {
-    const dataAttr = el.id ? { "data-design-element": el.id } : {};
+    // Staged reveal (Workstream B): when a revealed-set is present, leaf
+    // elements carry `data-revealed` so the `.dd-staging` CSS fades them in as
+    // narration reveals them. svg_group containers aren't gated (their ids
+    // aren't in the reveal plan — children self-gate). `revealedElementIds ==
+    // null` → no attribute → byte-identical static render (INV-7).
+    const revealAttr =
+      revealedElementIds != null && el.id != null && el.type !== "svg_group"
+        ? { "data-revealed": revealedElementIds.has(el.id) ? "true" : "false" }
+        : {};
+    const dataAttr = {
+      ...(el.id ? { "data-design-element": el.id } : {}),
+      ...revealAttr,
+    };
     // FOCUS (in place): stamp the focused element's class + colour var at
     // creation time so the glow rides the real shape. Leaf primitives also
     // lift (scale); groups/arrows/text glow only (scale could clobber a
     // transform). The `[data-design-element].dd-focused` CSS does the rest.
-    const focused = !!el.id && !!focusId && el.id === focusId;
+    const focused = !!el.id && !!focusIds && focusIds.has(el.id);
     const liftSafe = focused && SCALE_SAFE_TYPES.has(el.type);
     const focusCls = focused
       ? ` dd-focused${liftSafe ? " dd-focused-lift" : ""}`
@@ -323,10 +325,10 @@ function renderSvgElement(
 
     switch (el.type) {
       case "svg_line": {
-        const x1 = resolveValue(el.x1, params);
-        const y1 = resolveValue(el.y1, params);
-        const x2 = resolveValue(el.x2, params);
-        const y2 = resolveValue(el.y2, params);
+        const x1 = resolveCoord(el.x1, params);
+        const y1 = resolveCoord(el.y1, params);
+        const x2 = resolveCoord(el.x2, params);
+        const y2 = resolveCoord(el.y2, params);
         return (
           <line
             key={idx}
@@ -343,11 +345,11 @@ function renderSvgElement(
         );
       }
       case "svg_rect": {
-        const x = resolveValue(el.x, params);
-        const y = resolveValue(el.y, params);
-        const w = resolveValue(el.width, params, 100);
-        const h = resolveValue(el.height, params, 50);
-        const rx = resolveValue(el.rx, params);
+        const x = resolveCoord(el.x, params);
+        const y = resolveCoord(el.y, params);
+        const w = resolveCoord(el.width, params, 100);
+        const h = resolveCoord(el.height, params, 50);
+        const rx = resolveCoord(el.rx, params);
         return (
           <rect
             key={idx}
@@ -365,9 +367,9 @@ function renderSvgElement(
         );
       }
       case "svg_circle": {
-        const cx = resolveValue(el.cx, params);
-        const cy = resolveValue(el.cy, params);
-        const r = resolveValue(el.r, params, 10);
+        const cx = resolveCoord(el.cx, params);
+        const cy = resolveCoord(el.cy, params);
+        const r = resolveCoord(el.r, params, 10);
         return (
           <circle
             key={idx}
@@ -384,10 +386,10 @@ function renderSvgElement(
         );
       }
       case "svg_ellipse": {
-        const cx = resolveValue(el.cx, params);
-        const cy = resolveValue(el.cy, params);
-        const rx = resolveValue(el.rx, params, 10);
-        const ry = resolveValue(el.ry, params, 5);
+        const cx = resolveCoord(el.cx, params);
+        const cy = resolveCoord(el.cy, params);
+        const rx = resolveCoord(el.rx, params, 10);
+        const ry = resolveCoord(el.ry, params, 5);
         return (
           <ellipse
             key={idx}
@@ -417,8 +419,8 @@ function renderSvgElement(
           />
         );
       case "svg_text": {
-        const x = resolveValue(el.x, params);
-        const y = resolveValue(el.y, params);
+        const x = resolveCoord(el.x, params);
+        const y = resolveCoord(el.y, params);
         const anchor = el.textAnchor ?? "middle";
         const baseline =
           el.verticalAnchor === "start"
@@ -446,11 +448,11 @@ function renderSvgElement(
         );
       }
       case "svg_arc": {
-        const cx = resolveValue(el.cx, params);
-        const cy = resolveValue(el.cy, params);
-        const r = resolveValue(el.r, params, 50);
-        const startAngle = resolveValue(el.startAngle, params);
-        const endAngle = resolveValue(el.endAngle, params, 90);
+        const cx = resolveCoord(el.cx, params);
+        const cy = resolveCoord(el.cy, params);
+        const r = resolveCoord(el.r, params, 50);
+        const startAngle = resolveCoord(el.startAngle, params);
+        const endAngle = resolveCoord(el.endAngle, params, 90);
         const d = arcPath(cx, cy, r, startAngle, endAngle);
         return (
           <path
@@ -474,7 +476,7 @@ function renderSvgElement(
             {...dataAttr}
           >
             {(el.elements ?? []).map((child, ci) =>
-              renderSvgElement(child, ci, params),
+              renderSvgElement(child, ci, params, focusIds, revealedElementIds),
             )}
           </g>
         );
@@ -482,10 +484,10 @@ function renderSvgElement(
         // Rendered as HTML overlay, not inside SVG
         return null;
       case "svg_arrow": {
-        const x1 = resolveValue(el.x1, params);
-        const y1 = resolveValue(el.y1, params);
-        const x2 = resolveValue(el.x2, params);
-        const y2 = resolveValue(el.y2, params);
+        const x1 = resolveCoord(el.x1, params);
+        const y1 = resolveCoord(el.y1, params);
+        const x2 = resolveCoord(el.x2, params);
+        const y2 = resolveCoord(el.y2, params);
         const color = el.stroke ?? "var(--sb-ink, #222)";
         const markerId = `da-arrow-${idx}`;
         return (
@@ -521,11 +523,11 @@ function renderSvgElement(
         // Place ONE `svg_frame` per sub-scene and draw other primitives
         // inside its bounds as later spec-siblings (SVG paints in spec order,
         // so later elements sit on top of the frame).
-        const x = resolveValue(el.x, params);
-        const y = resolveValue(el.y, params);
-        const w = resolveValue(el.width, params, 300);
-        const h = resolveValue(el.height, params, 200);
-        const rx = resolveValue(el.rx, params, 14);
+        const x = resolveCoord(el.x, params);
+        const y = resolveCoord(el.y, params);
+        const w = resolveCoord(el.width, params, 300);
+        const h = resolveCoord(el.height, params, 200);
+        const rx = resolveCoord(el.rx, params, 14);
         const background = el.background || "var(--sb-panel-cream, #f4ead2)";
         // Solid dark ink by default so titles + borders read cleanly on the
         // light panel fills. Muted caption text has its own fallback below.
@@ -585,6 +587,7 @@ function renderSvgElement(
             params={params}
             focused={focused}
             focusColor={focused ? pickFocusColor(el) : undefined}
+            revealedElementIds={revealedElementIds}
           />
         );
       default:
@@ -605,6 +608,7 @@ function LatexOverlay({
   specHeight,
   order,
   focused,
+  revealedElementIds,
 }: {
   el: DesignDiagramElement & { type: "svg_latex" };
   params: Record<string, number>;
@@ -612,9 +616,10 @@ function LatexOverlay({
   specHeight: number;
   order: number;
   focused?: boolean;
+  revealedElementIds?: ReadonlySet<string> | null;
 }) {
-  const x = resolveValue(el.x, params);
-  const y = resolveValue(el.y, params);
+  const x = resolveCoord(el.x, params);
+  const y = resolveCoord(el.y, params);
 
   let tex = el.expression ?? "";
   for (const [k, v] of Object.entries(params)) {
@@ -639,11 +644,19 @@ function LatexOverlay({
   const leftPct = `${(x / specWidth) * 100}%`;
   const topPct = `${(y / specHeight) * 100}%`;
 
+  const revealGated = revealedElementIds != null && el.id != null;
   return (
     <div
       ref={ref}
       className={focused ? "dd-label-fade dd-focused" : "dd-label-fade"}
       data-design-element={el.id ?? undefined}
+      data-revealed={
+        revealGated
+          ? revealedElementIds.has(el.id!)
+            ? "true"
+            : "false"
+          : undefined
+      }
       style={
         {
           position: "absolute",
@@ -700,37 +713,78 @@ function pickFocusColor(el: DesignDiagramElement): string {
 export function DesignDiagramContent({
   instruction,
   focusedElementId,
+  focusedElementIds,
   focusedRole,
+  revealedElementIds,
+  interactive = false,
+  paramOverrides,
 }: {
   instruction: DrawDesignDiagramInstruction;
-  /** Element to spotlight in place (glow+lift). Resolved by id, then role. */
+  /** Element(s) to spotlight in place (glow+lift), resolved by id then role.
+   * `focusedElementIds` (co-highlight) is unioned with the single
+   * `focusedElementId`, so several parts can glow at once. */
   readonly focusedElementId?: string | null;
+  readonly focusedElementIds?: ReadonlySet<string> | null;
   readonly focusedRole?: string | null;
+  /**
+   * Workstream B: element ids currently revealed during build_up staging.
+   * `null`/undefined → every element renders (static parity, INV-7).
+   */
+  revealedElementIds?: ReadonlySet<string> | null;
+  /**
+   * Workstream A4: render draggable parameter sliders. Lecture/doubt playback
+   * passes `false` (parameters are driven by events, not the student); an
+   * interactive playground surface passes `true`.
+   */
+  interactive?: boolean;
+  /**
+   * Workstream A5: event-driven parameter values (from `set_parameter`),
+   * merged over the spec defaults and any local slider state so narration can
+   * drive a value without the student touching a slider.
+   */
+  paramOverrides?: Readonly<Record<string, number>>;
 }) {
   const spec: DesignDiagramSpec = instruction.spec ?? {};
   const elements = spec.elements ?? [];
   const width = spec.width ?? 900;
   const height = spec.height ?? 650;
+  // When a revealed-set is present the diagram is staging — `.dd-staging`
+  // suppresses the index-staggered mount draw so reveal is narration-paced.
+  const staging = revealedElementIds != null;
 
   // Resolve the focus target to a single element id. Prefer the explicit id;
   // but if it matches no actual element, fall back to the role (roles are
   // non-unique — first match wins, matching the backend walker's role→id
   // resolution). The fallback recovers cases where the backend stamped a
   // stale/missing element_id but the role still maps to a real element.
-  const focusId = useMemo<string | null>(() => {
+  const focusIds = useMemo<ReadonlySet<string>>(() => {
     const ids = new Set(
       (spec.elements ?? []).map((e) => e.id).filter((id): id is string => !!id),
     );
-    if (focusedElementId && ids.has(focusedElementId)) return focusedElementId;
+    const out = new Set<string>();
+    // Co-highlight set (preferred) + the single id. Both are honoured even if
+    // not found in `elements` (an id may live only in the dictionary / a nested
+    // group we don't flatten).
+    for (const id of focusedElementIds ?? []) out.add(id);
+    if (focusedElementId) out.add(focusedElementId);
+    // Role fallback: resolve to the first element carrying that role (roles are
+    // non-unique — first match wins, matching the backend walker).
     if (focusedRole && spec.dictionary) {
       for (const [id, meta] of Object.entries(spec.dictionary)) {
-        if (meta?.role === focusedRole && ids.has(id)) return id;
+        if (meta?.role === focusedRole && ids.has(id)) {
+          out.add(id);
+          break;
+        }
       }
     }
-    // Last resort: honour the explicit id even if we can't see it in elements
-    // (e.g. it lives only in the dictionary / a nested group we don't flatten).
-    return focusedElementId ?? null;
-  }, [focusedElementId, focusedRole, spec.dictionary, spec.elements]);
+    return out;
+  }, [
+    focusedElementId,
+    focusedElementIds,
+    focusedRole,
+    spec.dictionary,
+    spec.elements,
+  ]);
 
   // Parameter state for interactive sliders
   const paramDefaults = useMemo(() => {
@@ -747,9 +801,47 @@ export function DesignDiagramContent({
     setParamValues(paramDefaults);
   }, [paramDefaults]);
 
-  const handleParamChange = useCallback((name: string, value: string) => {
-    setParamValues((prev) => ({ ...prev, [name]: parseFloat(value) }));
+  // Effective parameters fed to geometry: local slider state (initialised from
+  // spec defaults) with event-driven overrides (A5) winning, so narration can
+  // drive a value. With no overrides this is exactly the local state (INV-7).
+  const effectiveParams = useMemo(
+    () => ({ ...paramValues, ...paramOverrides }),
+    [paramValues, paramOverrides],
+  );
+
+  // Coalesce slider input to one state flush per animation frame: a fast drag
+  // can fire many `change` events between paints, but the geometry only needs
+  // to recompute once per frame (lockstep, not debounce — no trailing lag).
+  const rafRef = useRef<number | null>(null);
+  const pendingRef = useRef<Record<string, number>>({});
+
+  const flushParams = useCallback(() => {
+    rafRef.current = null;
+    const pending = pendingRef.current;
+    pendingRef.current = {};
+    setParamValues((prev) => ({ ...prev, ...pending }));
   }, []);
+
+  const handleParamChange = useCallback(
+    (name: string, value: string) => {
+      pendingRef.current[name] = parseFloat(value);
+      if (rafRef.current != null) return;
+      if (typeof requestAnimationFrame !== "function") {
+        flushParams(); // SSR / no rAF — flush synchronously
+        return;
+      }
+      rafRef.current = requestAnimationFrame(flushParams);
+    },
+    [flushParams],
+  );
+
+  useEffect(
+    () => () => {
+      if (rafRef.current != null && typeof cancelAnimationFrame === "function")
+        cancelAnimationFrame(rafRef.current);
+    },
+    [],
+  );
 
   // Separate latex elements for HTML overlay rendering
   const latexElements = useMemo(
@@ -765,12 +857,12 @@ export function DesignDiagramContent({
 
   return (
     <div
-      className="design-diagram-content"
+      className={`design-diagram-content${staging ? " dd-staging" : ""}`}
       key={specFingerprint}
       style={{ animation: "diagram-fade-in 0.3s ease-out" }}
     >
-      {/* Parameter sliders */}
-      {(spec.parameters ?? []).length > 0 && (
+      {/* Parameter sliders — only in interactive mode (A4). */}
+      {interactive && (spec.parameters ?? []).length > 0 && (
         <div
           style={{
             display: "flex",
@@ -817,7 +909,7 @@ export function DesignDiagramContent({
           data-design-root=""
           // When a focus is active, this class lets the CSS dim every
           // non-focused element so the spotlighted part is unmistakable.
-          className={focusId ? "dd-has-focus" : undefined}
+          className={focusIds.size > 0 ? "dd-has-focus" : undefined}
           style={{
             display: "block",
             fontFamily: "Inter, system-ui, sans-serif",
@@ -829,7 +921,7 @@ export function DesignDiagramContent({
           }}
         >
           {elements.map((el, i) =>
-            renderSvgElement(el, i, paramValues, focusId),
+            renderSvgElement(el, i, effectiveParams, focusIds, revealedElementIds),
           )}
         </svg>
 
@@ -838,11 +930,12 @@ export function DesignDiagramContent({
           <LatexOverlay
             key={`latex-${el.id ?? i}`}
             el={el as DesignDiagramElement & { type: "svg_latex" }}
-            params={paramValues}
+            params={effectiveParams}
             specWidth={width}
             specHeight={height}
             order={elements.length + i}
-            focused={!!el.id && el.id === focusId}
+            focused={!!el.id && focusIds.has(el.id)}
+            revealedElementIds={revealedElementIds}
           />
         ))}
       </div>

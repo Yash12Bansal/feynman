@@ -232,6 +232,9 @@ def _emit_action_markers(
       - TRACE / POINT happen AFTER the spoken sentence so the visual
         animation lands as the sentence finishes (matches a teacher saying
         "watch this curve…" then drawing it).
+      - SET_PARAM / ANIMATE_PARAM happen BEFORE the spoken sentence so the
+        parameter change runs DURING the explaining sentence — the sweep IS
+        the explanation (INV-5), not a postscript to it.
     """
     before: list[str] = []
     after: list[str] = []
@@ -296,6 +299,30 @@ def _emit_action_markers(
                 step_index=step_index,
                 reason="payload not in ChoreographyStep model",
             )
+        elif action == ChoreographyAction.set_param:
+            if step.param_name is not None and step.param_value is not None:
+                before.append(
+                    f"<<SET_PARAM:{step.param_name}|value={step.param_value}>>"
+                )
+            else:
+                report.warnings.append(
+                    f"step {step_index}: set_param without param_name/param_value; "
+                    "skipped"
+                )
+        elif action == ChoreographyAction.animate_param:
+            if step.param_name is not None and step.param_to is not None:
+                marker = f"<<ANIMATE_PARAM:{step.param_name}|to={step.param_to}"
+                if step.param_from is not None:
+                    marker += f"|from={step.param_from}"
+                if step.param_duration_ms is not None:
+                    marker += f"|duration={step.param_duration_ms}"
+                marker += ">>"
+                before.append(marker)
+            else:
+                report.warnings.append(
+                    f"step {step_index}: animate_param without param_name/param_to; "
+                    "skipped"
+                )
 
     return before, after
 

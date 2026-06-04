@@ -16,7 +16,6 @@ manual STT capture path.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
@@ -24,10 +23,15 @@ from typing import Any, Protocol
 from livekit import rtc
 from livekit.agents import tts as tts_module
 
+from feynman.agent.doubt_resolution.board_events import compile_plan
+from feynman.agent.doubt_resolution.diagram_generator import generate_doubt_diagram
+from feynman.agent.doubt_resolution.diagram_templates import is_known
 from feynman.agent.doubt_resolution.models import (
     ChapterContext,
-    ResolutionBeat,
+    GenerateDiagram,
     ResolutionPlan,
+    ReuseDiagram,
+    TemplateDiagram,
 )
 
 logger = logging.getLogger(__name__)
@@ -149,31 +153,117 @@ class DoubtDelivery:
         chapter_context: ChapterContext,
         publish_data: _PublishDataFn,
         on_first_frame: Callable[[], None] | None = None,
+        spec_cache: dict[str, dict[str, Any]] | None = None,
     ) -> None:
-        """Walk the plan's beats: visual signal → grace → narration.
+        """Deliver a doubt as a mini-lecture: per beat, push the board events
+        (diagram + notebook + annotations) then speak the narration.
 
-        `on_first_frame` fires once on the first audio frame of the FIRST
-        beat (i.e. the moment Feynman starts speaking). Subsequent beats
-        do not refire it.
+        A beat that GENERATES a new diagram has its generation kicked off up
+        front (a background task) and awaited only when delivery reaches that
+        beat — so generation overlaps the narration of earlier beats and never
+        blocks time-to-first-voice (the planner guarantees beat 0 never
+        generates). `on_first_frame` fires once, on the first audio frame of
+        the first beat.
         """
-        _ = chapter_context  # frontend looks up the diagram from its cached chapter
+        beats = plan.beats
+        valid_diagram_ids = set(chapter_context.diagrams.keys())
+
+        # 1. Resolve the diagram id each beat SHOWS: a validated reuse id, a
+        #    deterministic id for a to-be-generated diagram, or None. Start the
+        #    generations now so they run while earlier beats narrate.
+        resolved_ids: list[str | None] = []
+        presentation_modes: list[str | None] = []
+        gen_tasks: dict[int, asyncio.Task[dict[str, Any] | None]] = {}
+        template_refs: dict[int, tuple[str, dict[str, float]]] = {}
+        for i, beat in enumerate(beats):
+            directive = beat.diagram
+            if isinstance(directive, ReuseDiagram) and directive.diagram_id in valid_diagram_ids:
+                resolved_ids.append(directive.diagram_id)
+                reused = chapter_context.diagrams.get(directive.diagram_id)
+                # Recap of an already-taught figure → show it complete.
+                presentation_modes.append(reused.presentation_mode if reused else "overview")
+            elif isinstance(directive, GenerateDiagram):
+                resolved_ids.append(f"doubt-gen-{i}")
+                # Fresh explanatory diagram → build it up as the doubt narrates.
+                presentation_modes.append("build_up")
+                gen_tasks[i] = asyncio.create_task(
+                    self._resolve_generated_spec(directive, spec_cache)
+                )
+            elif isinstance(directive, TemplateDiagram) and is_known(directive.concept_id):
+                # Canonical figure → instant, no generation. The frontend builds
+                # it from the registry; show the complete figure (overview).
+                resolved_ids.append(f"doubt-tpl-{i}")
+                presentation_modes.append("overview")
+                template_refs[i] = (directive.concept_id, dict(directive.params))
+            else:  # KeepDiagram / NoDiagram / invalid reuse or template
+                resolved_ids.append(None)
+                presentation_modes.append(None)
+
+        # 2. Compile to board events up front. Ids are deterministic, so a
+        #    not-yet-ready generated spec doesn't block compilation.
+        events_per_beat = compile_plan(beats, resolved_ids, presentation_modes=presentation_modes)
+
+        # 3. Deliver beat by beat.
         first_voice_callback = on_first_frame
-        for index, beat in enumerate(plan.beats):
-            await publish_data(_beat_payload(index, beat))
+        for i, beat in enumerate(beats):
+            events = events_per_beat[i]
+            if i in gen_tasks:
+                gen_id = f"doubt-gen-{i}"
+                spec: dict[str, Any] | None = None
+                try:
+                    spec = await gen_tasks[i]
+                except Exception:
+                    logger.warning(
+                        "doubt_delivery.generation_error",
+                        extra={"beat": i},
+                        exc_info=True,
+                    )
+                if spec is not None:
+                    # Ship the generated spec before the beat that shows it.
+                    await publish_data(
+                        {
+                            "type": "doubt_diagram_ready",
+                            "diagram_id": gen_id,
+                            "spec": spec,
+                        }
+                    )
+                else:
+                    # Generation failed — drop the events that referenced the
+                    # missing diagram (show_diagram + its annotations) so the
+                    # beat degrades to narration + notebook, not a stuck slide.
+                    events = [e for e in events if getattr(e, "diagram_id", None) != gen_id]
+            elif i in template_refs:
+                concept_id, params = template_refs[i]
+                await publish_data(
+                    {
+                        "type": "doubt_diagram_ready",
+                        "diagram_id": f"doubt-tpl-{i}",
+                        "spec": None,
+                        "template_concept_id": concept_id,
+                        "template_params": params or None,
+                    }
+                )
+            await publish_data(
+                {
+                    "type": "doubt_beat_start",
+                    "beat_index": i,
+                    "board_events": [e.model_dump(by_alias=True) for e in events],
+                }
+            )
             await asyncio.sleep(_BEAT_VISUAL_GRACE_MS / 1000)
             await self.speak(beat.narration_text, on_first_frame=first_voice_callback)
             first_voice_callback = None  # consumed after the first beat fires it
 
-
-def _beat_payload(index: int, beat: ResolutionBeat) -> dict[str, Any]:
-    """JSON-safe payload for a single beat-start event."""
-    return {
-        "type": "doubt_beat_start",
-        "beat_index": index,
-        "target_diagram_id": beat.target_diagram_id,
-        # Each AnnotationAction has its discriminator + payload; dump as
-        # plain dicts so the frontend can route by `action`.
-        "annotation_actions": [
-            json.loads(action.model_dump_json()) for action in beat.annotation_actions
-        ],
-    }
+    async def _resolve_generated_spec(
+        self,
+        directive: GenerateDiagram,
+        spec_cache: dict[str, dict[str, Any]] | None,
+    ) -> dict[str, Any] | None:
+        """Generate (or reuse a cached) DesignDiagramSpec for a generate-beat."""
+        key = (directive.brief or "").strip()
+        if spec_cache is not None and key and key in spec_cache:
+            return spec_cache[key]
+        spec = await generate_doubt_diagram(brief=directive.brief, title=directive.title)
+        if spec is not None and spec_cache is not None and key:
+            spec_cache[key] = spec
+        return spec

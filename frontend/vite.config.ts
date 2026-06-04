@@ -5,6 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    // Allow ngrok tunnel hosts — Vite rejects unknown Host headers by default,
+    // which would otherwise block the public share link with "This host is not
+    // allowed". The leading dot covers *.ngrok-free.dev and any subdomain.
+    allowedHosts: [".ngrok-free.dev"],
     proxy: {
       "/api": {
         target: "http://localhost:8000",

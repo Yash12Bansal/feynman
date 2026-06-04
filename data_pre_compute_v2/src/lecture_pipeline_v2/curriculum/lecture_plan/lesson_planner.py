@@ -34,6 +34,9 @@ from lecture_pipeline_v2.curriculum.lecture_plan.lesson_plan_models import (
 from lecture_pipeline_v2.curriculum.lecture_plan.lesson_prompts import (
     LESSON_PLANNING_SYSTEM_PROMPT,
 )
+from lecture_pipeline_v2.curriculum.lecture_plan.template_catalog import (
+    match_template,
+)
 from lecture_pipeline_v2.curriculum.lecture_plan.models import ChapterLecturePlan
 from lecture_pipeline_v2.curriculum.models import Chapter, Diagram, Topic
 
@@ -298,6 +301,26 @@ def _build_user_message(
             parts.append("")
             parts.append("## Visual hint (from the curriculum graph)")
             parts.append(str(concept.visual_hint))
+
+        # Canonical-template hint: if the topic name/summary keyword-matches a
+        # hand-built figure, surface it so the planner prefers the instant
+        # template. Advisory only — the planner still decides whether the figure
+        # genuinely IS that template, and authors required_elements against the
+        # template's real ids (see the prompt's "Available canonical templates").
+        template_hint = match_template(
+            topic=str(getattr(concept, "topic_name", "") or ""),
+            purpose=str(getattr(concept, "summary", "") or ""),
+        )
+        if template_hint is not None:
+            parts.append("")
+            parts.append("## Canonical figure hint")
+            parts.append(
+                f"This topic resembles the `{template_hint}` canonical template. "
+                f"If the diagram you need genuinely IS that figure, template it "
+                f"(set template_concept_id to {template_hint!r} and declare "
+                f"required_elements with that template's element ids). If it only "
+                f"superficially matches, ignore this hint."
+            )
 
         # NOTE: book_examples are NOT injected here anymore. The
         # BookExampleWeaver (separate stage, after this planner) owns

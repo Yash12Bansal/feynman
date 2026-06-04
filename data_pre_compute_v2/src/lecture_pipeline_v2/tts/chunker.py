@@ -27,6 +27,10 @@ Attention-direction markers (doc 18 spotlight redesign):
     <<UNFOCUS>>                            — clear current focus
     <<RESET_FOCUS>> (alias: CLEAR_ANNOTATIONS) — wipe spotlight state for the
                                               active diagram
+    <<REVEAL_STEP:n>>                      — advance staged build_up reveal to
+                                              group n (frontend clamps + fills)
+    <<SET_PARAM:name|value=V>>             — set a parameter on the active diagram
+    <<ANIMATE_PARAM:name|to=T|from=F|duration=D>> — tween a parameter (the sweep)
 
 Focus targets a ROLE from the active diagram's `dictionary` (set by
 `enrichment/diagrams.py`). The fragment's `diagram_id` field is filled by
@@ -56,7 +60,7 @@ if TYPE_CHECKING:
 _MARKER_RE = re.compile(
     r"<<(SHOW_DIAGRAM|PAUSE|SECTION|WRITE_EQUATION|WRITE_STEP|WRITE_KEY|"
     r"WRITE_TEXT|WRITE_ANSWER|STRIKE|NEW_PAGE|"
-    r"FOCUS|UNFOCUS|RESET_FOCUS|"
+    r"FOCUS|UNFOCUS|RESET_FOCUS|REVEAL_STEP|SET_PARAM|ANIMATE_PARAM|"
     r"TRACE|MARK|POINT|WRITE_MARGIN|"
     r"PIN|CALLOUT|BRACKET|HIGHLIGHT|PULSE|CLEAR_ANNOTATIONS):?([^>]*)>>",
     re.IGNORECASE,
@@ -192,6 +196,10 @@ class FocusFragment:
     # Doc 19 §A-3: stable element_id resolved from `role` by the
     # ManifestComposer walker. Stays empty if the walker drops the fragment.
     element_id: str = ""
+    # Co-highlight: when a FOCUS marker targets multiple elements at once
+    # (`<<FOCUS:a+b>>`), this holds the parsed id/role list; the walker resolves
+    # each to a real element_id. Single-target focus leaves it empty.
+    element_ids: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -241,6 +249,53 @@ class WriteMarginFragment:
     anchor_element_id: str = ""
     side: Literal["top", "bottom", "left", "right"] = "right"
     text: str = ""
+    diagram_id: str = ""
+
+
+# --- Staged-reveal fragment (Workstream B) ------------------------------------
+#
+# Advances a build_up diagram's staged element reveal. Authored as
+# `<<REVEAL_STEP:n>>` (reveal group n), OR injected by the walker with
+# step=REVEAL_ALL_STEP — the reveal-all sentinel emitted when a build_up diagram
+# leaves the screen (swap) or the chapter ends, so no element is left hidden.
+# The frontend clamps step to the last group and fills every group idempotently,
+# so the sentinel reveals everything; reveal_step is a no-op on non-staging
+# diagrams. `diagram_id` is stamped by the walker (empty at parse time).
+REVEAL_ALL_STEP = 10_000
+
+
+@dataclass
+class RevealStepFragment:
+    kind: Literal["reveal_step"]
+    step: int = 0
+    diagram_id: str = ""
+
+
+# --- Parameter-choreography fragments (Workstream A5) -------------------------
+#
+# set_parameter jumps a parameter to a value; animate_parameter tweens it (the
+# sweep IS the explanation). `name` is a parameter of the active diagram (a
+# template param, or a declared parameters[] entry on an LLM diagram). The
+# walker validates the name against the active diagram + stamps `diagram_id`;
+# an unknown name drops. `from_value` (animate) is optional — absent ⇒ tween
+# from the live value.
+
+
+@dataclass
+class SetParamFragment:
+    kind: Literal["set_parameter"]
+    name: str
+    value: float = 0.0
+    diagram_id: str = ""
+
+
+@dataclass
+class AnimateParamFragment:
+    kind: Literal["animate_parameter"]
+    name: str
+    to: float = 0.0
+    from_value: float | None = None
+    duration_ms: int | None = None
     diagram_id: str = ""
 
 
@@ -330,6 +385,9 @@ ScriptFragment = (
     | MarkPointFragment
     | PointAtFragment
     | WriteMarginFragment
+    | RevealStepFragment
+    | SetParamFragment
+    | AnimateParamFragment
     | PinFragment
     | CalloutFragment
     | BracketFragment
@@ -480,10 +538,14 @@ def _build_fragment(
     # --- Attention-direction markers (spotlight redesign) -------------------
 
     if kind == "FOCUS":
+        # Co-highlight: `<<FOCUS:a+b+c>>` spotlights several elements at once.
+        # `+` is safe — element ids/roles never contain it.
+        targets = [t.strip() for t in content.split("+") if t.strip()]
         return FocusFragment(
             kind="focus",
-            role=content,
+            role=targets[0] if targets else content.strip(),
             text=attrs.get("text", "").strip(),
+            element_ids=targets if len(targets) > 1 else [],
         )
 
     if kind == "UNFOCUS":
@@ -491,6 +553,43 @@ def _build_fragment(
 
     if kind == "RESET_FOCUS":
         return ClearAnnotationsFragment(kind="clear_annotations")
+
+    if kind == "REVEAL_STEP":
+        try:
+            step = int(content)
+        except (ValueError, TypeError):
+            step = 0
+        return RevealStepFragment(kind="reveal_step", step=max(0, step))
+
+    if kind == "SET_PARAM":
+        try:
+            value = float(attrs.get("value", "0"))
+        except (ValueError, TypeError):
+            value = 0.0
+        return SetParamFragment(kind="set_parameter", name=content, value=value)
+
+    if kind == "ANIMATE_PARAM":
+        try:
+            to = float(attrs.get("to", "0"))
+        except (ValueError, TypeError):
+            to = 0.0
+        from_value: float | None
+        try:
+            from_value = float(attrs["from"]) if "from" in attrs else None
+        except (ValueError, TypeError):
+            from_value = None
+        duration_ms: int | None
+        try:
+            duration_ms = int(attrs["duration"]) if "duration" in attrs else None
+        except (ValueError, TypeError):
+            duration_ms = None
+        return AnimateParamFragment(
+            kind="animate_parameter",
+            name=content,
+            to=to,
+            from_value=from_value,
+            duration_ms=duration_ms,
+        )
 
     # --- New live-annotation markers (doc 19 §12) ----------------------------
 

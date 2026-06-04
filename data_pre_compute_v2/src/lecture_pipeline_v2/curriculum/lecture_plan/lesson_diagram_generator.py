@@ -163,6 +163,18 @@ class LessonDiagramGenerator:
         attempt at an EARLIER diagram that was element-id-complete but
         visually below the bar. It sits in EVERY attempt's user message.
         """
+        # Canonical-template diagram → skip the LLM entirely. The frontend builds
+        # the spec from the template registry (zero tokens, correct by
+        # construction). The planner is responsible for declaring required_elements
+        # against the template's real element ids (see template_catalog).
+        if requirement.template_concept_id:
+            logger.info(
+                "lesson_diagram_generator.template_shortcut diagram=%s template=%s",
+                requirement.diagram_id,
+                requirement.template_concept_id,
+            )
+            return _build_template_diagram(requirement, topic_id)
+
         prior_error: str | None = None
 
         for attempt in range(_MAX_ATTEMPTS):
@@ -329,6 +341,28 @@ def _validate_required_elements(
     if missing_from_dict:
         parts.append(f"dictionary{{}} missing keys: {sorted(missing_from_dict)!r}")
     return "; ".join(parts)
+
+
+def _build_template_diagram(
+    requirement: DiagramRequirement,
+    topic_id: str,
+) -> Diagram:
+    """Construct a canonical-template Diagram (no LLM, empty render_data). The
+    frontend builds the spec from `template_concept_id` via the template
+    registry. `diagram_id` is pinned exactly like `_build_diagram`.
+    """
+    diagram_id = generate_diagram_uid(topic_id, requirement.diagram_id)
+    description = requirement.purpose.strip() or requirement.diagram_id
+    return Diagram(
+        diagram_id=diagram_id,
+        renderer=DiagramRenderer.SVG,
+        render_data={},
+        template_concept_id=requirement.template_concept_id,
+        description=description,
+        linked_topic_ids=[topic_id],
+        linked_beat_id="",
+        presentation_mode=requirement.presentation_mode,
+    )
 
 
 def _build_diagram(

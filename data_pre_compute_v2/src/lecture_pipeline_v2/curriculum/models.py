@@ -13,7 +13,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any, Literal, Union
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 if TYPE_CHECKING:
     from lecture_pipeline_v2.curriculum.lecture_plan.lesson_narrator import (
@@ -197,23 +197,37 @@ class PageBreakEvent(BaseModel):
 
 
 class FocusEvent(BaseModel):
-    """Spotlight a single element of the active diagram.
+    """Spotlight one or more elements of the active diagram.
 
-    Doc 19 §A-3: `target_element_id` is now the PREFERRED selector (stable id
-    from the diagram's dictionary). `target_role` is kept for back-compat with
+    Doc 19 §A-3: `target_element_id` is the PREFERRED selector (stable id from
+    the diagram's dictionary). `target_role` is kept for back-compat with
     extraction files generated before the switch — those files only carried
     the role string. New events always populate both fields; the walker
     resolves role → element_id from the active diagram.
 
-    `at_least_one_target` makes either field acceptable in isolation so old
-    JSON deserializes cleanly, but FocusEvent({}, diagram_id) without either
-    selector is a programmer error.
+    Co-highlight: `target_element_ids` carries the FULL set of elements to
+    spotlight simultaneously — used when a sentence describes a relationship
+    between parts being discussed together. It's empty for a single-element
+    focus (use `target_element_id` then); for a multi-element focus it lists
+    every id and the first is mirrored into `target_element_id` so single-target
+    consumers still work.
+
+    `at_least_one_target` makes any selector acceptable in isolation so old
+    JSON deserializes cleanly, but a FocusEvent with no selector at all is a
+    programmer error.
     """
 
     type: Literal["focus"] = "focus"
     diagram_id: str
     target_element_id: str | None = None
     target_role: str | None = None
+    target_element_ids: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Co-highlight: all element ids to spotlight at once. Empty for a "
+            "single-element focus (use target_element_id then)."
+        ),
+    )
     text: str = Field(
         default="",
         description="Optional 2-3 word inline label rendered near the focused element.",
@@ -221,10 +235,15 @@ class FocusEvent(BaseModel):
 
     @model_validator(mode="after")
     def at_least_one_target(self) -> "FocusEvent":
-        if not self.target_element_id and not self.target_role:
+        if (
+            not self.target_element_id
+            and not self.target_role
+            and not self.target_element_ids
+        ):
             raise ValueError(
-                "FocusEvent must specify target_element_id (preferred) or "
-                "target_role (deprecated back-compat alias)."
+                "FocusEvent must specify target_element_id (preferred), "
+                "target_element_ids (co-highlight), or target_role "
+                "(deprecated back-compat alias)."
             )
         return self
 
@@ -297,6 +316,56 @@ class WriteMarginEvent(BaseModel):
     anchor_element_id: str = Field(min_length=1)
     side: Literal["top", "bottom", "left", "right"] = "right"
     text: str = Field(min_length=1)
+
+
+class RevealStepEvent(BaseModel):
+    """Advance a build_up diagram's staged element reveal (Workstream B).
+
+    `step` jumps the reveal to (and fills up to) that group index; the frontend
+    clamps it to the last group and fills every group idempotently. The walker
+    injects one with step=REVEAL_ALL_STEP when a build_up diagram leaves the
+    screen (swap) or the chapter ends, so the reveal-all sentinel makes the
+    figure complete and never leaves an element hidden. A no-op on diagrams that
+    aren't staging (overview, or no reveal plan).
+    """
+
+    type: Literal["reveal_step"] = "reveal_step"
+    diagram_id: str
+    step: int = Field(default=0, ge=0)
+
+
+class SetParameterEvent(BaseModel):
+    """Narration sets an interactive parameter's value (Workstream A5).
+
+    The student doesn't touch a slider — the choreography drives it. Merged over
+    the diagram's defaults; reset by the next show_diagram. A no-op on the
+    frontend if `name` isn't a parameter of the active diagram.
+    """
+
+    type: Literal["set_parameter"] = "set_parameter"
+    diagram_id: str
+    name: str = Field(min_length=1)
+    value: float
+
+
+class AnimateParameterEvent(BaseModel):
+    """Narration animates a parameter from `from` (or its current value) to `to`
+    over `duration_ms` — the sweep IS the explanation (Workstream A5, Phase 2).
+
+    Reduced-motion / seek jumps straight to `to` (frontend). `from` is a Python
+    keyword, so the field is `from_` with alias 'from'; the manifest MUST be
+    dumped with by_alias=True (cypher_generator) or the frontend reads
+    `ev.from === undefined` and the tween silently starts from the live value.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    type: Literal["animate_parameter"] = "animate_parameter"
+    diagram_id: str
+    name: str = Field(min_length=1)
+    to: float
+    from_: float | None = Field(default=None, alias="from")
+    duration_ms: int | None = Field(default=None, ge=0)
 
 
 # --- Legacy annotation events (read-only back-compat) ------------------------
@@ -381,6 +450,9 @@ ManifestEvent = Annotated[
         MarkPointEvent,
         PointAtEvent,
         WriteMarginEvent,
+        RevealStepEvent,
+        SetParameterEvent,
+        AnimateParameterEvent,
         # Legacy back-compat (writer no longer emits):
         PinEvent,
         CalloutEvent,
@@ -547,7 +619,19 @@ class DiagramRenderer(str, Enum):
 class Diagram(BaseModel):
     diagram_id: str
     renderer: DiagramRenderer
-    render_data: dict[str, Any] = Field(..., description="Renderer-specific spec")
+    render_data: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Renderer-specific spec (the SVG DiagramSpec dict). EMPTY for a "
+            "canonical-template diagram — see template_concept_id, where the "
+            "frontend builds the spec from the template registry instead."
+        ),
+    )
+    # Canonical-template diagram (mirrors frontend diagram-templates/registry.ts).
+    # When set, render_data is empty and the frontend builds the spec instantly
+    # via buildTemplateSpec(template_concept_id, template_params) — zero LLM.
+    template_concept_id: str | None = None
+    template_params: dict[str, float] | None = None
     description: str
     fallback_image_url: str | None = Field(
         default=None,

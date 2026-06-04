@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="emitter-region" x="150" y="200" width="200" height="250" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<rect id="base-region" x="350" y="200" width="40" height="250" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<rect id="collector-region" x="390" y="200" width="360" height="250" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<line id="emitter-base-junction" x1="350" y1="200" x2="350" y2="450" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="collector-base-junction" x1="390" y1="200" x2="390" y2="450" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_carrier-flow-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="carrier-flow-arrow" x1="200" y1="325" x2="700" y2="325" stroke="#9effc9" stroke-width="3" marker-end="url(#arrowhead_carrier-flow-arrow)"/>
+<text id="emitter-label" x="250" y="180" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Emitter</text>
+<text id="base-label" x="370" y="140" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Base</text>
+<line id="base-label-line" x1="370" y1="150" x2="370" y2="195" stroke="rgba(232, 232, 238, 0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="collector-label" x="570" y="180" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Collector</text>
+<text id="emitter-doping" x="250" y="230" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">n^{++}</text>
+<text id="base-doping" x="370" y="230" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">p</text>
+<text id="collector-doping" x="570" y="230" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">n</text>
+<line id="wire-emitter" x1="100" y1="325" x2="150" y2="325" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="wire-collector" x1="750" y1="325" x2="800" y2="325" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="wire-base" x1="370" y1="450" x2="370" y2="500" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="carrier-label" x="480" y="312" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="normal">Electron flow</text>
+</svg>

@@ -64,3 +64,12 @@ class ManifestComposer:
     def last_report(self) -> ComposerReport:
         """Cumulative report across every compose() call on this composer."""
         return self._walker.report
+
+    @property
+    def open_build_up_diagram_id(self) -> str | None:
+        """The build_up diagram still on screen at chapter end (or None).
+
+        Read by the audio pipeline after `flush()` to append a reveal-all so a
+        lecture never ends on a half-built diagram (Workstream B).
+        """
+        return self._walker.open_build_up_diagram_id

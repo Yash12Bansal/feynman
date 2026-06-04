@@ -36,7 +36,9 @@ static_dir = Path(__file__).parent / "preview_static"
 app = FastAPI(title="Lecture Player")
 # /lecture-artifacts/ namespace avoids colliding with the live LiveKit backend's /artifacts/
 # when both servers are running simultaneously behind the Vite dev proxy.
-app.mount("/lecture-artifacts", StaticFiles(directory=str(artifacts_base)), name="artifacts")
+app.mount(
+    "/lecture-artifacts", StaticFiles(directory=str(artifacts_base)), name="artifacts"
+)
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 
@@ -70,7 +72,9 @@ def _chunk_narration_by_topic(narration_text: str) -> dict[str, list[str]]:
             # leave no transcript for this topic rather than failing the API.
             continue
         out[tid] = [
-            f.text.strip() for f in fragments if isinstance(f, TextFragment) and f.text.strip()
+            f.text.strip()
+            for f in fragments
+            if isinstance(f, TextFragment) and f.text.strip()
         ]
     return out
 
@@ -105,7 +109,7 @@ def rewrite_url(url: str | None) -> str | None:
     if not url:
         return url
     if url.startswith("file://./artifacts/"):
-        return "/lecture-artifacts/" + url[len("file://./artifacts/"):]
+        return "/lecture-artifacts/" + url[len("file://./artifacts/") :]
     if url.startswith("file://"):
         path = urlparse(url).path
         try:
@@ -124,7 +128,8 @@ async def root() -> FileResponse:
 @app.get("/lecture-api/chapters")
 async def list_chapters() -> JSONResponse:
     driver = AsyncGraphDatabase.driver(
-        cfg.neo4j.uri, auth=(cfg.neo4j.username, cfg.neo4j.password),
+        cfg.neo4j.uri,
+        auth=(cfg.neo4j.username, cfg.neo4j.password),
     )
     try:
         async with driver.session(database=cfg.neo4j.database) as session:
@@ -143,7 +148,8 @@ async def list_chapters() -> JSONResponse:
 @app.get("/lecture-api/chapter/{chapter_id:path}")
 async def chapter_data(chapter_id: str) -> JSONResponse:
     driver = AsyncGraphDatabase.driver(
-        cfg.neo4j.uri, auth=(cfg.neo4j.username, cfg.neo4j.password),
+        cfg.neo4j.uri,
+        auth=(cfg.neo4j.username, cfg.neo4j.password),
     )
     try:
         async with driver.session(database=cfg.neo4j.database) as session:
@@ -161,9 +167,13 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
 
             manifest_raw = record["manifest"]
             if not manifest_raw:
-                raise HTTPException(409, "Chapter has no chapter_manifest yet (TTS not run)")
+                raise HTTPException(
+                    409, "Chapter has no chapter_manifest yet (TTS not run)"
+                )
             manifest = (
-                json.loads(manifest_raw) if isinstance(manifest_raw, str) else manifest_raw
+                json.loads(manifest_raw)
+                if isinstance(manifest_raw, str)
+                else manifest_raw
             )
             events = manifest.get("events", [])
             snapshots_raw = record["board_snapshots"]
@@ -173,16 +183,18 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
                 else (snapshots_raw or [])
             )
 
-            diagram_ids = sorted({
-                e["diagram_id"] for e in events if e.get("type") == "show_diagram"
-            })
+            diagram_ids = sorted(
+                {e["diagram_id"] for e in events if e.get("type") == "show_diagram"}
+            )
             diagrams: dict = {}
             if diagram_ids:
                 result = await session.run(
                     "MATCH (d:Diagram) WHERE d.diagram_id IN $ids "
                     "RETURN d.diagram_id AS id, d.description AS desc, "
                     "       d.fallback_image_url AS url, "
-                    "       d.render_data AS render_data",
+                    "       d.render_data AS render_data, "
+                    "       d.template_concept_id AS template_concept_id, "
+                    "       d.template_params AS template_params",
                     {"ids": diagram_ids},
                 )
                 async for r in result:
@@ -194,15 +206,28 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
                             spec = None
                     else:
                         spec = rd_raw
+                    template_concept_id = r["template_concept_id"]
+                    tp_raw = r["template_params"]
+                    template_params = (
+                        json.loads(tp_raw) if isinstance(tp_raw, str) else tp_raw
+                    )
+                    # For a canonical-template diagram the frontend builds the
+                    # spec from the registry; force spec=None so its
+                    # `d.spec ?? buildTemplateSpec(...)` falls through (an empty
+                    # {} render_data would otherwise shadow the template).
+                    if template_concept_id:
+                        spec = None
                     diagrams[r["id"]] = {
                         "url": rewrite_url(r["url"]),
                         "description": r["desc"] or "",
                         "spec": spec,
+                        "template_concept_id": template_concept_id,
+                        "template_params": template_params,
                     }
 
-            topic_ids = sorted({
-                e["topic_id"] for e in events if e.get("type") == "topic_start"
-            })
+            topic_ids = sorted(
+                {e["topic_id"] for e in events if e.get("type") == "topic_start"}
+            )
             topics: dict = {}
             if topic_ids:
                 result = await session.run(
@@ -231,15 +256,17 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
         else:
             rewritten_events.append(ev)
 
-    return JSONResponse({
-        "chapter_id": chapter_id,
-        "title": record["title"],
-        "chapter_index": record["idx"],
-        "events": rewritten_events,
-        "diagrams": diagrams,
-        "topics": topics,
-        "board_snapshots": board_snapshots,
-    })
+    return JSONResponse(
+        {
+            "chapter_id": chapter_id,
+            "title": record["title"],
+            "chapter_index": record["idx"],
+            "events": rewritten_events,
+            "diagrams": diagrams,
+            "topics": topics,
+            "board_snapshots": board_snapshots,
+        }
+    )
 
 
 def main() -> None:

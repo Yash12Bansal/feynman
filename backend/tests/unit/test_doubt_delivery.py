@@ -15,10 +15,17 @@ import pytest
 
 from feynman.agent.doubt_resolution import (
     ChapterContext,
+    DiagramData,
     FocusAction,
     PointAtAction,
     ResolutionBeat,
     ResolutionPlan,
+)
+from feynman.agent.doubt_resolution.models import (
+    GenerateDiagram,
+    KeepDiagram,
+    ReuseDiagram,
+    WriteStepBlock,
 )
 from feynman.livekit.doubt_delivery import DoubtDelivery
 
@@ -145,7 +152,7 @@ async def test_speak_skips_empty_text(mocked_room):
 
 
 @pytest.mark.asyncio
-async def test_deliver_resolution_publishes_beat_start_per_beat(mocked_room):
+async def test_deliver_resolution_publishes_board_events_per_beat(mocked_room):
     tts = _make_tts()
     delivery = DoubtDelivery(tts=tts)
     audio_source, track = _patch_rtc_primitives()
@@ -154,19 +161,22 @@ async def test_deliver_resolution_publishes_beat_start_per_beat(mocked_room):
         beats=[
             ResolutionBeat(
                 narration_text="First beat — here's the idea.",
-                visual_intent_description="trains and platforms",
+                diagram=ReuseDiagram(diagram_id="d_train"),
                 annotation_actions=[FocusAction(target_role="trajectory", text="watch this")],
-                target_diagram_id="d_train",
             ),
             ResolutionBeat(
                 narration_text="Second beat — therefore the result.",
-                visual_intent_description="trajectories diverge",
+                diagram=KeepDiagram(),
                 annotation_actions=[PointAtAction(element_id="ball", from_side="left")],
-                target_diagram_id=None,
             ),
         ]
     )
-    chapter = ChapterContext(chapter_id="c1", title="t", topics={}, diagrams={})
+    chapter = ChapterContext(
+        chapter_id="c1",
+        title="t",
+        topics={},
+        diagrams={"d_train": DiagramData(diagram_id="d_train", description="d")},
+    )
 
     published: list[dict[str, Any]] = []
 
@@ -185,19 +195,139 @@ async def test_deliver_resolution_publishes_beat_start_per_beat(mocked_room):
         await delivery.start(mocked_room)
         await delivery.deliver_resolution(plan=plan, chapter_context=chapter, publish_data=_publish)
 
-    assert len(published) == 2
-    assert published[0]["type"] == "doubt_beat_start"
-    assert published[0]["beat_index"] == 0
-    assert published[0]["target_diagram_id"] == "d_train"
-    assert published[0]["annotation_actions"][0]["action"] == "focus"
-    assert published[0]["annotation_actions"][0]["target_role"] == "trajectory"
+    beat_starts = [p for p in published if p["type"] == "doubt_beat_start"]
+    assert len(beat_starts) == 2
 
-    assert published[1]["beat_index"] == 1
-    assert published[1]["target_diagram_id"] is None
-    assert published[1]["annotation_actions"][0]["action"] == "point_at"
+    # Beat 0: show the reused diagram, then focus on it.
+    types0 = [e["type"] for e in beat_starts[0]["board_events"]]
+    assert types0 == ["show_diagram", "focus"]
+    assert beat_starts[0]["board_events"][0]["diagram_id"] == "d_train"
+    assert beat_starts[0]["board_events"][1]["target_role"] == "trajectory"
 
-    # Each beat narration triggers a synthesize() call.
+    # Beat 1: keep → no new show_diagram; the pointer inherits the active diagram.
+    types1 = [e["type"] for e in beat_starts[1]["board_events"]]
+    assert types1 == ["point_at"]
+    assert beat_starts[1]["board_events"][0]["diagram_id"] == "d_train"
+
     assert tts.synthesize.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_deliver_resolution_generates_and_publishes_spec_before_beat(mocked_room):
+    """A generate-beat overlaps generation, then publishes the spec via
+    doubt_diagram_ready BEFORE that beat's board events show it."""
+    tts = _make_tts()
+    delivery = DoubtDelivery(tts=tts)
+    audio_source, track = _patch_rtc_primitives()
+
+    plan = ResolutionPlan(
+        beats=[
+            ResolutionBeat(
+                narration_text="Start with the diagram you already have.",
+                diagram=ReuseDiagram(diagram_id="d1"),
+            ),
+            ResolutionBeat(
+                narration_text="Now let me sketch the platform view.",
+                diagram=GenerateDiagram(brief="a relative-velocity triangle", title="Triangle"),
+            ),
+        ]
+    )
+    chapter = ChapterContext(
+        chapter_id="c1",
+        title="t",
+        topics={},
+        diagrams={"d1": DiagramData(diagram_id="d1", description="d")},
+    )
+    fake_spec = {
+        "elements": [{"id": "v"}],
+        "dictionary": {"v": {"role": "velocity"}},
+        "width": 800,
+        "height": 600,
+    }
+    published: list[dict[str, Any]] = []
+
+    async def _publish(payload: dict[str, Any]) -> None:
+        published.append(payload)
+
+    cache: dict[str, dict[str, Any]] = {}
+    with (
+        patch("feynman.livekit.doubt_delivery.rtc.AudioSource", return_value=audio_source),
+        patch(
+            "feynman.livekit.doubt_delivery.rtc.LocalAudioTrack.create_audio_track",
+            return_value=track,
+        ),
+        patch("feynman.livekit.doubt_delivery.asyncio.sleep", new=AsyncMock()),
+        patch(
+            "feynman.livekit.doubt_delivery.generate_doubt_diagram",
+            new=AsyncMock(return_value=fake_spec),
+        ),
+    ):
+        await delivery.start(mocked_room)
+        await delivery.deliver_resolution(
+            plan=plan, chapter_context=chapter, publish_data=_publish, spec_cache=cache
+        )
+
+    ready = [p for p in published if p["type"] == "doubt_diagram_ready"]
+    assert len(ready) == 1
+    assert ready[0]["diagram_id"] == "doubt-gen-1"
+    assert ready[0]["spec"]["dictionary"]["v"]["role"] == "velocity"
+
+    beat1 = next(
+        p for p in published if p.get("type") == "doubt_beat_start" and p["beat_index"] == 1
+    )
+    # spec shipped before the beat that shows it
+    assert published.index(ready[0]) < published.index(beat1)
+    assert beat1["board_events"][0]["type"] == "show_diagram"
+    assert beat1["board_events"][0]["diagram_id"] == "doubt-gen-1"
+    # cached for re-resolution reuse
+    assert cache["a relative-velocity triangle"] is fake_spec
+
+
+@pytest.mark.asyncio
+async def test_deliver_resolution_generation_failure_degrades(mocked_room):
+    """When generation returns None, the show_diagram + its annotations are
+    dropped (no stuck slide) but notebook writing survives."""
+    tts = _make_tts()
+    delivery = DoubtDelivery(tts=tts)
+    audio_source, track = _patch_rtc_primitives()
+
+    plan = ResolutionPlan(
+        beats=[
+            ResolutionBeat(
+                narration_text="A quick sketch would make this concrete.",
+                diagram=GenerateDiagram(brief="x"),
+                notebook_writes=[WriteStepBlock(text="key step")],
+                annotation_actions=[FocusAction(target_role="r")],
+            )
+        ]
+    )
+    chapter = ChapterContext(chapter_id="c1", title="t", topics={}, diagrams={})
+    published: list[dict[str, Any]] = []
+
+    async def _publish(payload: dict[str, Any]) -> None:
+        published.append(payload)
+
+    with (
+        patch("feynman.livekit.doubt_delivery.rtc.AudioSource", return_value=audio_source),
+        patch(
+            "feynman.livekit.doubt_delivery.rtc.LocalAudioTrack.create_audio_track",
+            return_value=track,
+        ),
+        patch("feynman.livekit.doubt_delivery.asyncio.sleep", new=AsyncMock()),
+        patch(
+            "feynman.livekit.doubt_delivery.generate_doubt_diagram",
+            new=AsyncMock(return_value=None),
+        ),
+    ):
+        await delivery.start(mocked_room)
+        await delivery.deliver_resolution(plan=plan, chapter_context=chapter, publish_data=_publish)
+
+    assert not any(p["type"] == "doubt_diagram_ready" for p in published)
+    beat0 = next(p for p in published if p["type"] == "doubt_beat_start")
+    types = [e["type"] for e in beat0["board_events"]]
+    assert "show_diagram" not in types  # dropped — generation failed
+    assert "focus" not in types  # annotation on the missing diagram dropped
+    assert "write_step" in types  # notebook survives
 
 
 @pytest.mark.asyncio

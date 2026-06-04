@@ -37,6 +37,24 @@ import type {
   DesignDiagramSpec,
   DrawDesignDiagramInstruction,
 } from "../types/visuals";
+import { deriveRevealPlan } from "../engine/whiteboard/split/defaultReveal";
+import {
+  resolveTarget,
+  roleGroupForElement,
+} from "../engine/whiteboard/split/resolveTarget";
+import { buildTemplateSpec } from "../engine/whiteboard/diagram-templates/registry";
+
+/**
+ * True when the OS requests reduced motion. Staged reveal then collapses to
+ * the full static diagram (INV-6). Guarded for SSR / test environments.
+ */
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Wire types — mirror preview_server.py's response shape
@@ -128,11 +146,42 @@ export type ManifestEvent =
       type: "focus";
       diagram_id: string;
       target_element_id?: string | null;
+      // Co-highlight: spotlight several elements at once (a relationship).
+      target_element_ids?: string[] | null;
       target_role?: string | null;
       text?: string;
     }
   | { type: "unfocus"; diagram_id: string }
   | { type: "clear_annotations"; diagram_id: string }
+  | {
+      // Workstream B: advance the staged element reveal without moving the
+      // spotlight. `step` jumps to (and fills up to) that group index; absent
+      // → advance by one. No-op unless the diagram is staging (build_up).
+      type: "reveal_step";
+      diagram_id?: string;
+      step?: number;
+    }
+  | {
+      // Workstream A5: narration drives an interactive parameter's value (the
+      // student doesn't touch a slider). Merged over the diagram's defaults;
+      // reset by the next show_diagram.
+      type: "set_parameter";
+      diagram_id?: string;
+      name: string;
+      value: number;
+    }
+  | {
+      // Workstream A5 (Phase 2): narration animates a parameter from `from` (or
+      // its current value) to `to` over `duration_ms`. Reduced-motion or a seek
+      // jumps straight to `to` (INV-6/INV-1). Reset by the next show_diagram.
+      // For "watch the change" beats where the sweep IS the concept (INV-5).
+      type: "animate_parameter";
+      diagram_id?: string;
+      name: string;
+      to: number;
+      from?: number;
+      duration_ms?: number;
+    }
   | {
       type: "trace";
       diagram_id: string;
@@ -210,6 +259,13 @@ export interface DiagramEntry {
   url: string | null;
   description: string;
   spec: DesignDiagramSpec | null;
+  /**
+   * Workstream E: instant-canonical tier. When `spec` is null but a template
+   * concept id is set, the spec is built on the client via `buildTemplateSpec`
+   * — zero spec bytes on the wire, zero LLM, rendered in one frame.
+   */
+  template_concept_id?: string | null;
+  template_params?: Record<string, number> | null;
 }
 
 export interface TopicEntry {
@@ -317,13 +373,19 @@ export interface UseExtractionPlaybackResult {
   // same tick must await this first, or the loop's abort branch overwrites
   // their cursor change.
   readonly waitForIdle: () => Promise<void>;
-  readonly applyDoubtBeat: (
-    beat: {
-      readonly target_diagram_id?: string | null;
-      readonly annotation_actions?: readonly DoubtBeatAnnotation[];
-    },
-    sourceChapter: ChapterPayload,
+  // Doubt board: begin clears to a blank scratch board (pause() already
+  // snapshotted the lecture board); addDoubtDiagram registers a live-generated
+  // spec; applyDoubtBoardEvents replays a beat's board events on it. play()
+  // restores the lecture board.
+  readonly beginDoubtBoard: () => void;
+  readonly beginDoubtBoardFromCurrent: () => void;
+  readonly addDoubtDiagram: (
+    diagramId: string,
+    spec: DesignDiagramSpec | null,
+    templateConceptId?: string | null,
+    templateParams?: Record<string, number> | null,
   ) => void;
+  readonly applyDoubtBoardEvents: (events: readonly ManifestEvent[]) => void;
   readonly clearDoubtAnnotations: () => void;
 }
 
@@ -474,11 +536,26 @@ export function useExtractionPlayback(
   const abortRef = useRef(false);
   const loopRef = useRef<Promise<void> | null>(null);
   const currentCancelableRef = useRef<Cancelable | null>(null);
+  // Active `animate_parameter` rAF handle (Phase 2). Cancelled on
+  // show_diagram/set_parameter/pause/seek/unmount so a tween never animates a
+  // paused board, writes onto a stale diagram, or fights a newer interaction.
+  const paramTweenRafRef = useRef<number | null>(null);
   // Phase 6: SlideState snapshot taken on pause() and restored on play()
   // so a doubt's diagram + annotations don't linger after the lecture
   // resumes. The snapshot captures whatever the lecture was showing right
   // before the student tapped Ask Feynman.
   const slideSnapshotRef = useRef<SlideState | null>(null);
+  // Companion to slideSnapshotRef: the lecture notebook page captured at the
+  // same instant, so play() restores the full board (slide + notebook) after a
+  // doubt is taught on a cleared scratch board.
+  const notebookSnapshotRef = useRef<{
+    entries: readonly NotebookEntry[];
+    pageNum: number;
+  } | null>(null);
+  // Diagrams generated live during a doubt (absent from chapter.diagrams),
+  // keyed by the worker's deterministic doubt-gen id; merged into the chapter
+  // view so show_diagram resolves them. Wiped at the start of each doubt.
+  const doubtDiagramsRef = useRef<Record<string, DiagramEntry>>({});
 
   // Stable refs for callbacks so the loop closure doesn't need to be rebuilt.
   const onEventRef = useRef(onEvent);
@@ -602,17 +679,24 @@ export function useExtractionPlayback(
       pointers: [],
       focusedElementId: null,
       focusedRole: null,
+      focusedElementIds: null,
     }));
   }, []);
 
   // FOCUS — spotlight one element in place (glow+lift). Replaces any prior
   // focus (single focused element at a time); null clears it.
   const setFocus = useCallback(
-    (elementId: string | null, role: string | null) => {
+    (
+      elementId: string | null,
+      role: string | null,
+      elementIds?: readonly string[] | null,
+    ) => {
       setSlide((prev) => ({
         ...prev,
         focusedElementId: elementId,
         focusedRole: role,
+        focusedElementIds:
+          elementIds && elementIds.length > 0 ? new Set(elementIds) : null,
       }));
     },
     [],
@@ -678,9 +762,63 @@ export function useExtractionPlayback(
     [],
   );
 
+  // ── animate_parameter: narration-driven parameter tween (Phase 2) ────────
+  // Lives outside applySyncEvent so pause/seek can stop it. Writes the same
+  // `paramOverrides` channel as the synchronous `set_parameter`, so it composes
+  // cleanly with sliders and reveal.
+  const cancelParamTween = useCallback(() => {
+    if (paramTweenRafRef.current != null) {
+      cancelAnimationFrame(paramTweenRafRef.current);
+      paramTweenRafRef.current = null;
+    }
+  }, []);
+
+  const startParamTween = useCallback(
+    (name: string, to: number, durationMs: number, from?: number): void => {
+      cancelParamTween();
+      // INV-6 (reduced motion) and degenerate durations jump straight to the
+      // target — no intermediate frames, no rAF scheduled.
+      if (durationMs <= 0 || prefersReducedMotion()) {
+        setSlide((prev) =>
+          prev.status === "ready"
+            ? {
+                ...prev,
+                paramOverrides: { ...prev.paramOverrides, [name]: to },
+              }
+            : prev,
+        );
+        return;
+      }
+      const t0 = performance.now();
+      let start = from ?? null;
+      const tick = (now: number): void => {
+        const p = Math.min(1, (now - t0) / durationMs);
+        // easeInOutQuad — deliberate accel/decel, not a mechanical ramp.
+        const eased = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+        setSlide((prev) => {
+          if (prev.status !== "ready") return prev; // diagram gone → no-op
+          // Resolve the start value once, from live state, when not provided.
+          if (start == null) start = (prev.paramOverrides ?? {})[name] ?? to;
+          // INV-1: the final frame writes EXACTLY `to`, not an eased approx.
+          const value = p >= 1 ? to : start + (to - start) * eased;
+          return {
+            ...prev,
+            paramOverrides: { ...prev.paramOverrides, [name]: value },
+          };
+        });
+        paramTweenRafRef.current = p < 1 ? requestAnimationFrame(tick) : null;
+      };
+      paramTweenRafRef.current = requestAnimationFrame(tick);
+    },
+    [cancelParamTween],
+  );
+
+  // Cancel any running tween on unmount — no setState after the hook is gone.
+  useEffect(() => cancelParamTween, [cancelParamTween]);
+
   // Synchronous events apply state immediately and never block the loop.
   const applySyncEvent = useCallback(
-    (ev: ManifestEvent, c: ChapterPayload): void => {
+    (ev: ManifestEvent, c: ChapterPayload, immediate = false): void => {
       switch (ev.type) {
         case "topic_start": {
           const t = c.topics[ev.topic_id];
@@ -706,25 +844,54 @@ export function useExtractionPlayback(
           return;
         }
         case "show_diagram": {
+          // A new diagram abandons any in-flight parameter tween.
+          cancelParamTween();
           const d = c.diagrams[ev.diagram_id];
-          if (!d || !d.spec) return;
+          if (!d) return;
+          // Resolve the spec: a precomputed/generated spec, else the
+          // instant-canonical template tier (Workstream E).
+          const spec =
+            d.spec ??
+            (d.template_concept_id
+              ? buildTemplateSpec(
+                  d.template_concept_id,
+                  d.template_params ?? undefined,
+                )
+              : null);
+          if (!spec) return;
           const instr: DrawDesignDiagramInstruction = {
             type: "draw_design_diagram",
             element_id: ev.diagram_id,
-            title: d.spec.title,
-            description: d.description || d.spec.description,
-            spec: d.spec,
+            title: spec.title,
+            description: d.description || spec.description,
+            spec,
           };
+          // Staged reveal (Workstream B): active only when build_up AND a
+          // reveal plan exists AND motion is allowed. Otherwise
+          // revealedElementIds = null → every element renders immediately
+          // (static parity = INV-7; reduced-motion = INV-6).
+          const mode =
+            ev.presentation_mode ?? spec.presentation_mode ?? "overview";
+          const plan =
+            mode === "build_up" && !prefersReducedMotion()
+              ? deriveRevealPlan(spec)
+              : null;
           setSlide({
             status: "ready",
             liveInstruction: instr,
+            presentationMode: mode,
             traces: [],
             markPoints: [],
             marginNotes: [],
             pointers: [],
             focusedElementId: null,
             focusedRole: null,
+            focusedElementIds: null,
             nextAnnotationKey: 0,
+            revealedElementIds: plan ? new Set<string>() : null,
+            revealOrder: plan ? plan.order : null,
+            revealCursor: plan ? -1 : undefined,
+            paramOverrides: {},
           });
           return;
         }
@@ -796,7 +963,46 @@ export function useExtractionPlayback(
           return;
         }
         case "focus": {
-          setFocus(ev.target_element_id ?? null, ev.target_role ?? null);
+          // Co-highlight: target_element_ids carries the full set; fall back to
+          // the single target_element_id. The first id mirrors into the single
+          // field for consumers that still read it.
+          const focusIds =
+            ev.target_element_ids && ev.target_element_ids.length > 0
+              ? ev.target_element_ids
+              : ev.target_element_id
+                ? [ev.target_element_id]
+                : [];
+          setFocus(focusIds[0] ?? null, ev.target_role ?? null, focusIds);
+          // Under build_up, focusing element(s) also reveals their role-group(s)
+          // (monotonic union). overview / non-staging diagrams are untouched
+          // — the guard returns the same state reference (no extra render).
+          {
+            const dict = c.diagrams[ev.diagram_id]?.spec?.dictionary;
+            setSlide((prev) => {
+              if (
+                prev.revealedElementIds == null ||
+                prev.presentationMode !== "build_up"
+              ) {
+                return prev;
+              }
+              const groupIds = new Set<string>();
+              for (const id of focusIds) {
+                for (const g of roleGroupForElement(id, dict)) groupIds.add(g);
+              }
+              if (focusIds.length === 0 && ev.target_role) {
+                for (const g of resolveTarget(
+                  { kind: "role", value: ev.target_role },
+                  dict,
+                  undefined,
+                ))
+                  groupIds.add(g);
+              }
+              if (groupIds.size === 0) return prev;
+              const merged = new Set(prev.revealedElementIds);
+              for (const id of groupIds) merged.add(id);
+              return { ...prev, revealedElementIds: merged };
+            });
+          }
           return;
         }
         case "point_at": {
@@ -805,7 +1011,66 @@ export function useExtractionPlayback(
         }
         case "unfocus":
         case "clear_annotations": {
+          // Clears the spotlight + annotation overlays. Does NOT clear
+          // revealedElementIds — reveal is monotonic; a teacher doesn't
+          // un-draw. Only show_diagram resets the revealed set.
           resetSlideAnnotations();
+          return;
+        }
+        case "reveal_step": {
+          setSlide((prev) => {
+            const order = prev.revealOrder;
+            if (
+              prev.revealedElementIds == null ||
+              !order ||
+              order.length === 0
+            ) {
+              return prev; // not staging → no-op
+            }
+            const target =
+              ev.step != null ? ev.step : (prev.revealCursor ?? -1) + 1;
+            const cursor = Math.min(Math.max(target, 0), order.length - 1);
+            const merged = new Set(prev.revealedElementIds);
+            // Reveal every group up to and including `cursor` (idempotent) so
+            // an explicit step jump fills in any skipped groups.
+            for (let i = 0; i <= cursor; i++)
+              for (const id of order[i]) merged.add(id);
+            return {
+              ...prev,
+              revealedElementIds: merged,
+              revealCursor: cursor,
+            };
+          });
+          return;
+        }
+        case "set_parameter": {
+          // An explicit set wins over an in-flight tween of the same surface.
+          cancelParamTween();
+          setSlide((prev) => ({
+            ...prev,
+            paramOverrides: { ...prev.paramOverrides, [ev.name]: ev.value },
+          }));
+          return;
+        }
+        case "animate_parameter": {
+          // Seek-replay (`immediate`) lands on the terminal value so the scrub
+          // shows the post-animation state; live playback tweens. Reduced-motion
+          // is handled inside startParamTween.
+          if (immediate) {
+            setSlide((prev) =>
+              prev.status === "ready"
+                ? {
+                    ...prev,
+                    paramOverrides: {
+                      ...prev.paramOverrides,
+                      [ev.name]: ev.to,
+                    },
+                  }
+                : prev,
+            );
+          } else {
+            startParamTween(ev.name, ev.to, ev.duration_ms ?? 700, ev.from);
+          }
           return;
         }
         case "trace": {
@@ -843,6 +1108,8 @@ export function useExtractionPlayback(
       appendPointer,
       setFocus,
       resetSlideAnnotations,
+      startParamTween,
+      cancelParamTween,
     ],
   );
 
@@ -966,12 +1233,19 @@ export function useExtractionPlayback(
       return;
     }
     abortRef.current = false;
-    // Phase 6: restore the pre-pause slide before the loop resumes so the
-    // doubt's diagram doesn't linger as the audio fragment re-plays.
+    // Phase 6: restore the pre-pause board (slide + notebook) before the loop
+    // resumes, so the doubt's scratch work doesn't linger as the audio
+    // fragment re-plays.
     if (slideSnapshotRef.current !== null) {
       setSlide(slideSnapshotRef.current);
       slideSnapshotRef.current = null;
     }
+    if (notebookSnapshotRef.current !== null) {
+      setNotebookEntries(notebookSnapshotRef.current.entries);
+      setPageNum(notebookSnapshotRef.current.pageNum);
+      notebookSnapshotRef.current = null;
+    }
+    doubtDiagramsRef.current = {};
     setStatus("playing");
     const loop = (async () => {
       while (cursorRef.current < chapter.events.length && !abortRef.current) {
@@ -1021,14 +1295,16 @@ export function useExtractionPlayback(
 
   const pause = useCallback(() => {
     if (!loopRef.current) return;
-    // Phase 6: snapshot the slide so play() can restore it after a doubt.
-    // Captured before abort + cancel so any in-flight render is already
-    // reflected in `slide`.
+    // Phase 6: snapshot the slide + notebook so play() can restore the full
+    // board after a doubt. Captured before abort + cancel so any in-flight
+    // render is already reflected in state.
     slideSnapshotRef.current = slide;
+    notebookSnapshotRef.current = { entries: notebookEntries, pageNum };
     abortRef.current = true;
     currentCancelableRef.current?.cancel();
+    cancelParamTween(); // a paused board must not keep animating
     setStatus("paused");
-  }, [slide]);
+  }, [slide, notebookEntries, pageNum, cancelParamTween]);
 
   const restart = useCallback(() => {
     abortRef.current = true;
@@ -1062,6 +1338,7 @@ export function useExtractionPlayback(
     (index: number) => {
       abortRef.current = true;
       currentCancelableRef.current?.cancel();
+      cancelParamTween();
       if (!chapter) return;
       const clamped = Math.max(0, Math.min(index, chapter.events.length));
 
@@ -1109,7 +1386,9 @@ export function useExtractionPlayback(
             advanceSnapshot(chapter);
             break;
           default:
-            applySyncEvent(ev, chapter);
+            // `immediate` → animate_parameter snaps to its terminal value so
+            // the scrub lands on the post-animation state, not mid-tween.
+            applySyncEvent(ev, chapter, true);
             break;
         }
       }
@@ -1119,7 +1398,14 @@ export function useExtractionPlayback(
       cursorRef.current = clamped;
       setCursorState(clamped);
     },
-    [chapter, totalAudios, advanceSnapshot, applySyncEvent, stopSleepTick],
+    [
+      chapter,
+      totalAudios,
+      advanceSnapshot,
+      applySyncEvent,
+      stopSleepTick,
+      cancelParamTween,
+    ],
   );
 
   // Seek to a time offset in ms (scrubber consumer). Snaps to the START of
@@ -1149,70 +1435,69 @@ export function useExtractionPlayback(
   // arrives over the LiveKit data channel — not an event we step
   // through.
 
-  const applyDoubtBeat = useCallback(
+  // ── Doubt board: a separate slide + notebook taught during a doubt ─────
+  //
+  // Board events arrive over the data channel (not the manifest loop), in the
+  // SAME ManifestEvent vocabulary the lecture uses — so we replay them through
+  // the identical `applySyncEvent`, with the live-generated doubt diagrams
+  // merged into the chapter view. `beginDoubtBoard` clears to a blank scratch
+  // board (the lecture board was already snapshotted by pause()); play()
+  // restores the lecture board on resume.
+
+  const beginDoubtBoard = useCallback(() => {
+    doubtDiagramsRef.current = {};
+    setSlide({ status: "loading" });
+    setNotebookEntries([]);
+  }, []);
+
+  // Carry-over variant: the doubt is about what's already on the board (a
+  // local_clarification with a diagram on screen), so KEEP the current slide +
+  // notebook as the doubt board's starting canvas and let the beats build on
+  // it — copying "all that board text and diagram" across, exactly. Only the
+  // live-generated-diagram map is reset (fresh doubt). The lecture board is
+  // still restored from the pause() snapshot on resume, so edits here are safe.
+  const beginDoubtBoardFromCurrent = useCallback(() => {
+    doubtDiagramsRef.current = {};
+  }, []);
+
+  const addDoubtDiagram = useCallback(
     (
-      beat: {
-        readonly target_diagram_id?: string | null;
-        readonly annotation_actions?: readonly DoubtBeatAnnotation[];
-      },
-      sourceChapter: ChapterPayload,
+      diagramId: string,
+      spec: DesignDiagramSpec | null,
+      templateConceptId?: string | null,
+      templateParams?: Record<string, number> | null,
     ) => {
-      const targetId = beat.target_diagram_id ?? null;
-      const annotations = beat.annotation_actions ?? [];
+      // A generated diagram carries a spec; a canonical template carries a
+      // template_concept_id (spec null) and the show_diagram handler builds it
+      // via buildTemplateSpec — the same instant-canonical path the lecture uses.
+      doubtDiagramsRef.current = {
+        ...doubtDiagramsRef.current,
+        [diagramId]: {
+          url: null,
+          description: spec?.description ?? "",
+          spec: spec ?? null,
+          template_concept_id: templateConceptId ?? null,
+          template_params: templateParams ?? null,
+        },
+      };
+    },
+    [],
+  );
 
-      // Swap the slide if a new diagram is named.
-      if (targetId) {
-        const entry = sourceChapter.diagrams[targetId];
-        if (entry && entry.spec) {
-          const instr: DrawDesignDiagramInstruction = {
-            type: "draw_design_diagram",
-            element_id: targetId,
-            title: entry.spec.title,
-            description: entry.description || entry.spec.description,
-            spec: entry.spec,
-          };
-          setSlide({
-            status: "ready",
-            liveInstruction: instr,
-            traces: [],
-            markPoints: [],
-            marginNotes: [],
-            pointers: [],
-            focusedElementId: null,
-            focusedRole: null,
-            nextAnnotationKey: 0,
-          });
-        }
-      }
-
-      // Apply each annotation action via the same setters the lecture uses, so
-      // doubt highlighting renders identically to the precomputed lecture.
-      for (const action of annotations) {
-        switch (action.action) {
-          case "focus":
-            setFocus(
-              action.target_element_id ?? null,
-              action.target_role ?? null,
-            );
-            break;
-          case "point_at":
-            appendPointer(action.element_id, action.from_side ?? "left");
-            break;
-          case "trace":
-            appendTrace(action.element_id, action.duration_ms ?? 1500);
-            break;
-          case "mark_point":
-            appendMarkPoint(
-              action.x,
-              action.y,
-              action.kind ?? "dot",
-              action.label ?? "",
-            );
-            break;
-        }
+  const applyDoubtBoardEvents = useCallback(
+    (events: readonly ManifestEvent[]) => {
+      if (!chapter) return;
+      // Merge live doubt diagrams so a show_diagram for a generated id (absent
+      // from the precomputed set) still resolves against a real spec.
+      const merged: ChapterPayload = {
+        ...chapter,
+        diagrams: { ...chapter.diagrams, ...doubtDiagramsRef.current },
+      };
+      for (const ev of events) {
+        applySyncEvent(ev, merged);
       }
     },
-    [appendTrace, appendMarkPoint, appendPointer, setFocus],
+    [chapter, applySyncEvent],
   );
 
   const clearDoubtAnnotations = useCallback(() => {
@@ -1255,37 +1540,16 @@ export function useExtractionPlayback(
     seekToEvent,
     seekToTimeMs,
     waitForIdle,
-    applyDoubtBeat,
+    beginDoubtBoard,
+    beginDoubtBoardFromCurrent,
+    addDoubtDiagram,
+    applyDoubtBoardEvents,
     clearDoubtAnnotations,
   };
 }
 
-// ── Phase 5: shape of the annotation actions arriving from the worker ──
-//
-// Mirrors `backend/src/feynman/agent/doubt_resolution/models.py::AnnotationAction`.
-// The hook stays agnostic about transport; the LectureViewer pulls these
-// from the data channel and hands them off via `applyDoubtBeat`.
-export type DoubtBeatAnnotation =
-  | {
-      readonly action: "focus";
-      readonly target_element_id?: string | null;
-      readonly target_role?: string | null;
-      readonly text?: string | null;
-    }
-  | {
-      readonly action: "point_at";
-      readonly element_id: string;
-      readonly from_side?: "top" | "bottom" | "left" | "right";
-    }
-  | {
-      readonly action: "trace";
-      readonly element_id: string;
-      readonly duration_ms?: number;
-    }
-  | {
-      readonly action: "mark_point";
-      readonly x: number;
-      readonly y: number;
-      readonly kind?: "dot" | "cross" | "star";
-      readonly label?: string;
-    };
+// Doubt visuals now arrive as `board_events` in the lecture's ManifestEvent
+// vocabulary (replayed via applyDoubtBoardEvents) + `doubt_diagram_ready`
+// specs (registered via addDoubtDiagram) — see `livekit/doubt_delivery.py` and
+// `agent/doubt_resolution/board_events.py`. The old per-beat annotation_actions
+// shape was retired with the matcher path.

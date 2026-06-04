@@ -22,12 +22,23 @@ import { StepEquationContent } from "../content/StepEquationContent";
 export function InstructionSwitch({
   instruction,
   focusedElementId,
+  focusedElementIds,
   focusedRole,
+  revealedElementIds,
+  interactive,
+  paramOverrides,
 }: {
   instruction: VisualInstruction;
-  /** FOCUS target, threaded to design diagrams for the in-place glow+lift. */
+  /** FOCUS target(s), threaded to design diagrams for the in-place glow+lift. */
   readonly focusedElementId?: string | null;
+  readonly focusedElementIds?: ReadonlySet<string> | null;
   readonly focusedRole?: string | null;
+  /** Workstream B: forwarded to design diagrams for staged element reveal. */
+  revealedElementIds?: ReadonlySet<string> | null;
+  /** Workstream A4: forwarded to design diagrams to show parameter sliders. */
+  interactive?: boolean;
+  /** Workstream A5: forwarded event-driven parameter overrides. */
+  paramOverrides?: Readonly<Record<string, number>>;
 }) {
   switch (instruction.type) {
     case "draw_diagram":
@@ -37,7 +48,11 @@ export function InstructionSwitch({
         <DesignDiagramContent
           instruction={instruction}
           focusedElementId={focusedElementId}
+          focusedElementIds={focusedElementIds}
           focusedRole={focusedRole}
+          revealedElementIds={revealedElementIds}
+          interactive={interactive}
+          paramOverrides={paramOverrides}
         />
       );
     case "show_text":

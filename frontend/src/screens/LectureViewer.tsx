@@ -25,9 +25,10 @@ import {
   useExtractionPlayback,
   type BoardSnapshot,
   type ChapterPayload,
-  type DoubtBeatAnnotation,
+  type ManifestEvent,
   type TopicJumpEntry,
 } from "../hooks/useExtractionPlayback";
+import type { DesignDiagramSpec } from "../types/visuals";
 
 interface LectureViewerProps {
   readonly chapterId: string;
@@ -66,14 +67,29 @@ interface DoubtResolutionFailedPayload {
 interface ResolutionReadyPayload {
   readonly type: "resolution_ready";
   readonly beats: number;
+  // True when the doubt is a local clarification about a diagram already on the
+  // board: the doubt board is seeded with a copy of the current page (diagram +
+  // notebook) and the resolution builds on it. Absent/false → fresh blank board.
+  readonly carry_over?: boolean;
   readonly matched_diagram_ids: readonly string[];
 }
 
 interface DoubtBeatStartPayload {
   readonly type: "doubt_beat_start";
   readonly beat_index: number;
-  readonly target_diagram_id: string | null;
-  readonly annotation_actions: readonly DoubtBeatAnnotation[];
+  // Board events in the lecture's ManifestEvent vocabulary — replayed on the
+  // doubt board through the same applySyncEvent path the lecture uses.
+  readonly board_events: readonly ManifestEvent[];
+}
+
+interface DoubtDiagramReadyPayload {
+  readonly type: "doubt_diagram_ready";
+  readonly diagram_id: string;
+  // A generated diagram ships a spec; a canonical template ships a
+  // template_concept_id (spec null) and the client builds it from the registry.
+  readonly spec?: DesignDiagramSpec | null;
+  readonly template_concept_id?: string | null;
+  readonly template_params?: Record<string, number> | null;
 }
 
 interface SatisfactionPromptPayload {
@@ -89,15 +105,24 @@ interface DoubtCaptureReadyPayload {
   readonly type: "doubt_capture_ready";
 }
 
+// Fired by the worker the moment the student starts speaking. Capture then
+// runs until 5s of continuous silence, which can exceed the short "listening"
+// stuck-timeout — this lets us extend it so we don't wrongly give up mid-doubt.
+interface DoubtListeningPayload {
+  readonly type: "doubt_listening";
+}
+
 type DoubtServerPayload =
   | DoubtCapturedPayload
   | DoubtCaptureFailedPayload
   | DoubtResolutionFailedPayload
   | ResolutionReadyPayload
   | DoubtBeatStartPayload
+  | DoubtDiagramReadyPayload
   | SatisfactionPromptPayload
   | LectureResumePayload
-  | DoubtCaptureReadyPayload;
+  | DoubtCaptureReadyPayload
+  | DoubtListeningPayload;
 
 export function LectureViewer({ chapterId }: LectureViewerProps) {
   const [chapter, setChapter] = useState<ChapterPayload | null>(null);
@@ -133,7 +158,10 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     seekToEvent,
     seekToTimeMs,
     waitForIdle,
-    applyDoubtBeat,
+    beginDoubtBoard,
+    beginDoubtBoardFromCurrent,
+    addDoubtDiagram,
+    applyDoubtBoardEvents,
     clearDoubtAnnotations,
   } = useExtractionPlayback({ chapter, autoStart: true });
 
@@ -251,30 +279,54 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
               "Feynman's taking too long to respond. Check the worker logs.",
             );
             return;
+          case "doubt_listening":
+            // Student is mid-doubt; capture runs until 5s of continuous silence
+            // (up to ~90s). Stay in listening and extend the stuck-timeout so a
+            // long, multi-sentence doubt isn't cut off as "didn't hear you".
+            setDoubtState("listening");
+            armStuckTimeout(
+              95_000,
+              "I didn't catch the end of that — check your mic is working.",
+            );
+            return;
           case "doubt_capture_failed":
           case "doubt_resolution_failed":
             setDoubtState("idle");
             setSatisfactionOptions(null);
             return;
           case "resolution_ready":
-            // Backend has the plan; voice + visuals start streaming next.
-            // Re-arm the thinking timeout — we're not done until the
-            // satisfaction prompt arrives.
+            // Set up the doubt board now that we know the doubt's shape:
+            // carry_over → seed it with the current page (diagram + notebook)
+            // already on screen and build on it; otherwise → a fresh blank
+            // scratch board. (The lecture board was snapshotted on pause() and
+            // is restored on resume regardless.)
+            if (parsed.carry_over) {
+              beginDoubtBoardFromCurrent();
+            } else {
+              beginDoubtBoard();
+            }
+            // Voice + visuals start streaming next. Re-arm the thinking
+            // timeout — we're not done until the satisfaction prompt arrives.
             armStuckTimeout(
               75_000,
               "Feynman's taking too long to respond. Check the worker logs.",
             );
             return;
+          case "doubt_diagram_ready":
+            // A doubt diagram arrived — a generated spec, or a canonical
+            // template ref the client builds from the registry. Register it so
+            // the following beat's show_diagram can resolve its id.
+            addDoubtDiagram(
+              parsed.diagram_id,
+              parsed.spec ?? null,
+              parsed.template_concept_id,
+              parsed.template_params,
+            );
+            return;
           case "doubt_beat_start":
-            if (chapter) {
-              applyDoubtBeat(
-                {
-                  target_diagram_id: parsed.target_diagram_id,
-                  annotation_actions: parsed.annotation_actions,
-                },
-                chapter,
-              );
-            }
+            // Replay the beat's board events on the doubt board (diagram +
+            // notebook + annotations), same vocabulary as the lecture.
+            applyDoubtBoardEvents(parsed.board_events);
             return;
           case "satisfaction_prompt":
             setSatisfactionOptions(parsed.options);
@@ -299,9 +351,11 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       }
     },
     [
-      applyDoubtBeat,
+      addDoubtDiagram,
+      applyDoubtBoardEvents,
       armStuckTimeout,
-      chapter,
+      beginDoubtBoard,
+      beginDoubtBoardFromCurrent,
       clearDoubtAnnotations,
       clearStuckTimeout,
       play,
@@ -338,6 +392,11 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       return;
     }
     pause();
+    // Snapshot taken by pause(). The doubt board is set up later, on
+    // resolution_ready, once we know whether to carry over the current page
+    // (local clarification → build on the diagram + notebook on screen) or
+    // start a fresh blank board — so the student keeps seeing what they asked
+    // about while Feynman thinks.
     setDoubtState("listening");
     armStuckTimeout(
       12_000,
@@ -654,7 +713,9 @@ function Scrubber({
         userSelect: "none",
       }}
     >
-      <span style={{ minWidth: 44, textAlign: "right" }}>{_fmtMs(displayMs)}</span>
+      <span style={{ minWidth: 44, textAlign: "right" }}>
+        {_fmtMs(displayMs)}
+      </span>
       <input
         type="range"
         min={0}
@@ -757,11 +818,7 @@ interface TopicJumpMenuProps {
   readonly onJump: (eventIndex: number) => void;
 }
 
-function TopicJumpMenu({
-  topics,
-  currentTopicId,
-  onJump,
-}: TopicJumpMenuProps) {
+function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
   const [open, setOpen] = useState(false);
   return (
     <>

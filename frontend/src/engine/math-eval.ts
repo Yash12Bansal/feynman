@@ -1,14 +1,14 @@
 /**
- * Math expression evaluator — thin wrapper around expr-eval.
+ * Function-plotting helper for Chart.js.
  *
  * Converts FunctionDef expressions (e.g., "x^2", "sin(x)", "1/x") into
- * arrays of {x, y} data points for Chart.js rendering.
+ * arrays of {x, y} data points. Expression parsing/evaluation is delegated to
+ * the shared, memoized evaluator in `./expr/evaluate` so the diagram renderer
+ * and the graph plotter use one sandboxed expr-eval core (no `new Function`).
  */
 
-import { Parser } from "expr-eval";
+import { compile } from "./expr/evaluate";
 import type { FunctionDef } from "../types/visuals";
-
-const parser = new Parser();
 
 /** Maximum absolute y value before we discard a point (prevents canvas blow-up). */
 const Y_CLAMP = 1e6;
@@ -33,12 +33,9 @@ export function evaluateFunction(
   defaultMin = -10,
   defaultMax = 10,
 ): EvalPoint[] {
-  let expr;
-  try {
-    expr = parser.parse(fn.expression);
-  } catch {
-    return [];
-  }
+  // Invalid expressions compile to a NaN-returning stub, so every sample is
+  // skipped below and we return [] — matching the old parse-failure behavior.
+  const compiled = compile(fn.expression);
 
   const xMin = fn.domain_min ?? defaultMin;
   const xMax = fn.domain_max ?? defaultMax;
@@ -48,14 +45,10 @@ export function evaluateFunction(
 
   for (let i = 0; i <= SAMPLE_COUNT; i++) {
     const x = xMin + i * step;
-    try {
-      const y = expr.evaluate({ x });
-      if (typeof y !== "number" || !isFinite(y)) continue;
-      if (Math.abs(y) > Y_CLAMP) continue;
-      points.push({ x, y });
-    } catch {
-      // Expression evaluation failed for this x value — skip it
-    }
+    const y = compiled.evaluate({ x });
+    if (!Number.isFinite(y)) continue;
+    if (Math.abs(y) > Y_CLAMP) continue;
+    points.push({ x, y });
   }
 
   return points;

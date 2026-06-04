@@ -13,8 +13,8 @@
 #   ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY (or GOOGLE_API_KEY).
 # ollama is local + keyless (set `base_url` if not on the default port).
 llm:
-  provider: "gemini"
-  model: "gemini-3.1-pro-preview"
+  provider: "anthropic"
+  model: "claude-opus-4-8"
   temperature: 0.3
   max_tokens: 16384
   # base_url: "http://localhost:11434"   # for ollama / OpenAI-compatible endpoints

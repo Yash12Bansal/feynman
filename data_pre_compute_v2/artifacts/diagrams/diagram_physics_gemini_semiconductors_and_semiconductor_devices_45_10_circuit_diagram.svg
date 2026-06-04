@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="circuit-path" d="M 200 315 L 200 200 L 300 200 M 400 200 L 500 200 M 600 200 L 700 200 L 700 305 M 700 345 L 700 450 L 200 450 L 200 335" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<line id="battery-pos" x1="180" y1="315" x2="220" y2="315" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="battery-neg" x1="190" y1="335" x2="210" y2="335" stroke="#e8e8ee" stroke-width="4" stroke-dasharray=""/>
+<text id="battery-label" x="160" y="329" font-size="14" fill="#e8e8ee" text-anchor="end" font-weight="600">V</text>
+<circle id="node-a1" cx="300" cy="200" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="node-a2" cx="400" cy="200" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="switch-a" x1="300" y1="200" x2="385" y2="165" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label-switch-a" x="350" y="140" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Switch A</text>
+<circle id="node-b1" cx="500" cy="200" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="node-b2" cx="600" cy="200" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="switch-b" x1="500" y1="200" x2="585" y2="165" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label-switch-b" x="550" y="140" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Switch B</text>
+<g id="light-bulb" transform="translate(0, 0)"><circle id="bulb-outline" cx="700" cy="325" r="20" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/><path id="bulb-filament" d="M 686 311 L 714 339 M 714 311 L 686 339" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/></g>
+<text id="label-bulb" x="735" y="329" font-size="13" fill="#e8e8ee" text-anchor="start" font-weight="600">Bulb</text>
+</svg>

@@ -34,6 +34,7 @@ import { TraceOverlay } from "./TraceOverlay";
 import { MarkPoint } from "./MarkPoint";
 import { MarginNote } from "./MarginNote";
 import { Pointer } from "./Pointer";
+import { resolveTarget } from "./resolveTarget";
 import type {
   MarginNoteState,
   MarkPointState,
@@ -78,15 +79,12 @@ function queryTargetElement(
       );
 
     case "role": {
-      // Walk the dictionary for a matching role → element_id → DOM.
-      if (!dictionary) return null;
-      for (const [id, meta] of Object.entries(dictionary)) {
-        if (meta?.role === target.value) {
-          const el = scope.querySelector(
-            `[data-design-element="${cssEscape(id)}"]`,
-          );
-          if (el) return el;
-        }
+      // Dictionary role → element ids (shared resolver) → first one in the DOM.
+      for (const id of resolveTarget(target, dictionary, undefined)) {
+        const el = scope.querySelector(
+          `[data-design-element="${cssEscape(id)}"]`,
+        );
+        if (el) return el;
       }
       return null;
     }
@@ -184,9 +182,10 @@ export function resolveBounds(
   if (target.kind === "id") {
     return dictionary?.[target.value]?.bounds ?? null;
   }
-  if (target.kind === "role" && dictionary) {
-    for (const meta of Object.values(dictionary)) {
-      if (meta?.role === target.value && meta.bounds) return meta.bounds;
+  if (target.kind === "role") {
+    for (const id of resolveTarget(target, dictionary, undefined)) {
+      const b = dictionary?.[id]?.bounds;
+      if (b) return b;
     }
   }
   if (import.meta.env.DEV) {

@@ -5,32 +5,40 @@ THE PROBLEM THIS FIXES
 The lesson planner authors `<<FOCUS:id>>` / `<<POINT:id>>` / `<<TRACE:id>>`
 markers inside the narration *before the diagram is generated* — it guesses
 which element to highlight for a picture it cannot see, with no semantic
-matching. Result: highlights point at the wrong element most of the time, fire
-at coarse 14-50s chunk boundaries, and are barely related to what's being said.
+matching. Result: highlights point at the wrong element most of the time and
+are barely related to what's being said.
 
 THE FIX (this module)
 ---------------------
-A post-hoc pass that runs AFTER narration + diagrams already exist:
+A pass that runs AFTER narration + diagrams already exist (now folded into the
+ingest pipeline, before TTS):
 
   1. Take a topic's narration block, strip the old annotation markers, keep the
      structural ones (SHOW_DIAGRAM / SECTION / WRITE_* / PAUSE / TOPIC_START).
   2. Split the spoken prose into sentences; track which diagram is on-screen for
      each sentence (from the SHOW_DIAGRAM markers).
-  3. ONE LLM call per topic: given each sentence + the REAL on-screen diagram's
-     element dictionary (id -> role + plain-English semantic), decide which
-     element that sentence is *explaining* — semantically, even if the element
-     is never named — or NONE. The model only ever sees ids that are actually on
-     screen, so it cannot point at something that isn't there.
-  4. Collapse consecutive same-element sentences into a *sustained* highlight
-     (hold while that part is explained), and re-insert FOCUS/TRACE markers at
-     the sentence boundaries where attention should move.
+  3. ONE LLM call per topic: per sentence, decide a CHOREOGRAPHY of highlight
+     "ops" against the REAL on-screen diagram's element dictionary. Each op is
+     an `anchor` (a few words copied verbatim from the sentence — where the
+     highlight should land) + `element_ids` + a treatment. The intelligence:
+       • MULTIPLE ids in one op  → co-highlight: light those parts TOGETHER
+         (the sentence relates / compares / connects them).
+       • SEVERAL ops in one sentence → sequential: attention moves across parts
+         in turn ("from the emitter, through the base, to the collector").
+       • one op, one id → a single spotlight; repeat the same set → sustained.
+  4. Insert markers DETERMINISTICALLY right before each matched anchor. Because
+     we only insert markers (never rewrite prose) and skip anchors we can't
+     find verbatim, the spoken words are preserved exactly. Sub-sentence anchor
+     positions give phrase-level timing (the chunker splits at every marker) —
+     finer than per-sentence, without needing word-level TTS timestamps.
 
 The output is a new narration string. Re-running TTS + the manifest composer
-over it (cheap, local Kokoro) produces correctly-targeted, well-timed,
-sentence-bound highlights. No planner / diagram-generation re-run.
+over it produces correctly-targeted, well-timed highlights — single, co, or
+sequential. No planner / diagram-generation re-run.
 
-The rule, in one line: *highlight the element the current sentence is
-explaining; if it's not about a specific on-screen part, highlight nothing.*
+The rule, in one line: *light the part(s) the current moment is explaining —
+together when they're discussed together, in turn when attention moves — and
+nothing when it isn't about a specific on-screen part.*
 """
 
 from __future__ import annotations
@@ -103,12 +111,9 @@ class _SentenceToken:
 
     text: str
     diagram_id: str | None = None  # on-screen diagram when this is spoken
-    # Filled by the aligner:
-    element_id: str | None = None
-    treatment: str | None = None  # "focus" | "trace" | None
-    # True when this sentence continues the SAME span as the previous one, so
-    # it must NOT re-emit a marker (the span's marker is on its first sentence).
-    suppress_marker: bool = False
+    # Filled by the aligner: the sentence with highlight markers inserted at
+    # sub-sentence positions, or None if untouched (render falls back to `text`).
+    annotated: str | None = None
 
 
 Token = _StructuralToken | _SentenceToken
@@ -152,52 +157,25 @@ def _stamp_active_diagram(tokens: list[Token]) -> None:
             t.diagram_id = active
 
 
-# ---------------------------------------------------------------------------
-# Span collapsing — sustained highlights
-# ---------------------------------------------------------------------------
+def _find_anchor(sentence: str, anchor: str) -> int | None:
+    """Index where a verbatim `anchor` substring starts in `sentence`
+    (case-insensitive), or None if not found. Empty anchor → start (0)."""
+    anchor = anchor.strip()
+    if not anchor:
+        return 0
+    idx = sentence.lower().find(anchor.lower())
+    return idx if idx >= 0 else None
 
 
-def _collapse_into_spans(
-    sentences: list[_SentenceToken], report: AlignerReport
-) -> None:
-    """Consecutive sentences pointing at the same element become ONE sustained
-    span: only the FIRST sentence of the run carries a marker; the rest hold.
-    A run of None keeps no marker. Short jabs (1-sentence run) and long holds
-    (multi-sentence run) emerge automatically. `suppress_marker` is consumed by
-    `_render_tokens`."""
-    prev_eid: str | None = None
-    for s in sentences:
-        if s.element_id:
-            report.sentences_highlighted += 1
-            if s.element_id == prev_eid:
-                s.suppress_marker = True  # span continues
-            else:
-                s.suppress_marker = False  # new span starts here
-                report.spans += 1
-        prev_eid = s.element_id
-
-
-def _render_tokens(tokens: list[Token]) -> str:
-    """Rebuild the narration block, inserting a single marker at the start of
-    each highlight span, and an UNFOCUS when attention drops. Structural markers
-    pass through verbatim; SHOW_DIAGRAM resets the active spotlight."""
+def _render_block(tokens: list[Token]) -> str:
+    """Rebuild the block: structural markers verbatim, sentences with their
+    inserted highlight markers (or the raw text when untouched)."""
     parts: list[str] = []
-    active_eid: str | None = None
     for t in tokens:
         if isinstance(t, _StructuralToken):
-            if t.kind == "SHOW_DIAGRAM":
-                active_eid = None  # new diagram clears attention
             parts.append(t.raw)
-            continue
-        # sentence token
-        if t.element_id and not t.suppress_marker:
-            kind = "TRACE" if t.treatment == "trace" else "FOCUS"
-            parts.append(f"<<{kind}:{t.element_id}>>")
-            active_eid = t.element_id
-        elif not t.element_id and active_eid is not None:
-            parts.append("<<UNFOCUS>>")
-            active_eid = None
-        parts.append(t.text)
+        else:
+            parts.append(t.annotated if t.annotated is not None else t.text)
     return " ".join(p for p in parts if p)
 
 
@@ -240,13 +218,14 @@ class AlignerReport:
         return (
             f"aligner: {self.topics_processed} topics, "
             f"{self.sentences_highlighted}/{self.sentences_total} sentences highlighted, "
-            f"{self.spans} spans, {self.dropped_invalid_id} invalid-id dropped, "
+            f"{self.spans} highlight markers, {self.dropped_invalid_id} invalid-id dropped, "
             f"{self.llm_failures} llm failures"
         )
 
 
 class SemanticHighlightAligner:
-    """Re-decides diagram highlights against the real on-screen diagrams."""
+    """Re-decides diagram highlights against the real on-screen diagrams,
+    supporting co-highlight (multiple ids at once) and sequential moves."""
 
     def __init__(self, config, *, model: str | None = None, provider=None):
         """`config` is the pipeline LLMConfig (provider/model/api_key).
@@ -281,8 +260,8 @@ class SemanticHighlightAligner:
             report.topics_processed += 1
         result = "\n\n".join(b for b in out_blocks if b.strip())
         # Defensive: strip any annotation marker we didn't author (FOCUS/TRACE/
-        # UNFOCUS are ours; a stray planner POINT/MARK/etc. pointing at a bogus
-        # id occasionally survives an edge case — drop it so it can't render).
+        # UNFOCUS are ours; a stray planner POINT/MARK/etc. occasionally
+        # survives an edge case — drop it so it can't render).
         result = _STRAY_ANNOTATION_RE.sub("", result)
         return result
 
@@ -297,31 +276,90 @@ class SemanticHighlightAligner:
         sentences = [t for t in tokens if isinstance(t, _SentenceToken)]
         report.sentences_total += len(sentences)
         if not any(s.diagram_id for s in sentences):
-            return _render_tokens(tokens)  # nothing on screen to highlight
+            return _render_block(tokens)  # nothing on screen to highlight
 
         decisions = await self._decide(sentences, diagrams_by_id, report)
-        for i, dec in decisions.items():
-            s = sentences[i]
-            eid = dec.get("element_id")
-            if not eid or not s.diagram_id:
-                continue
-            dic = (diagrams_by_id.get(s.diagram_id, {}) or {}).get("dictionary") or {}
-            if eid not in dic:
-                report.dropped_invalid_id += 1
-                continue
-            s.element_id = eid
-            s.treatment = dec.get("treatment") or "focus"
+        self._annotate(sentences, decisions, diagrams_by_id, report)
+        return _render_block(tokens)
 
-        _collapse_into_spans(sentences, report)
-        return _render_tokens(tokens)
+    def _annotate(
+        self,
+        sentences: list[_SentenceToken],
+        decisions: dict[int, list[dict[str, Any]]],
+        diagrams_by_id: dict[str, dict[str, Any]],
+        report: AlignerReport,
+    ) -> None:
+        """Insert highlight markers into each sentence at its ops' anchors.
+
+        `active` is the last-emitted focus set (for sustained-span collapse);
+        it resets whenever the on-screen diagram changes (the frontend clears
+        the spotlight on SHOW_DIAGRAM). When a previously-focused sentence is
+        followed by one with no ops, we drop the spotlight with <<UNFOCUS>>.
+        """
+        active: tuple[str, ...] | None = None
+        prev_diagram: str | None = None
+        for i, s in enumerate(sentences):
+            if s.diagram_id != prev_diagram:
+                active = None  # new diagram (or none) clears the spotlight
+            prev_diagram = s.diagram_id
+
+            dic: dict[str, Any] = {}
+            if s.diagram_id:
+                dic = (diagrams_by_id.get(s.diagram_id, {}) or {}).get(
+                    "dictionary"
+                ) or {}
+
+            placed: list[tuple[int, list[str], str]] = []
+            for op in decisions.get(i, []):
+                raw_ids = op.get("element_ids") or []
+                ids: list[str] = []
+                for e in raw_ids:
+                    if e in dic and e not in ids:
+                        ids.append(e)
+                if not ids:
+                    if raw_ids:
+                        report.dropped_invalid_id += 1
+                    continue
+                pos = _find_anchor(s.text, str(op.get("anchor") or ""))
+                if pos is None:
+                    continue
+                placed.append((pos, ids, str(op.get("treatment") or "focus")))
+
+            placed.sort(key=lambda x: x[0])
+
+            if not placed:
+                if active is not None:
+                    s.annotated = "<<UNFOCUS>> " + s.text
+                    active = None
+                continue
+
+            markers: list[tuple[int, str]] = []
+            for pos, ids, treatment in placed:
+                key = tuple(ids)
+                if key == active:
+                    continue  # sustained — hold, don't re-emit a marker
+                active = key
+                if treatment == "trace" and len(ids) == 1:
+                    markers.append((pos, f"<<TRACE:{ids[0]}>>"))
+                else:
+                    markers.append((pos, f"<<FOCUS:{'+'.join(ids)}>>"))
+                report.spans += 1
+
+            if not markers:
+                continue
+            report.sentences_highlighted += 1
+            text = s.text
+            for pos, marker in sorted(markers, key=lambda m: m[0], reverse=True):
+                text = f"{text[:pos]}{marker} {text[pos:]}"
+            s.annotated = " ".join(text.split())
 
     async def _decide(
         self,
         sentences: list[_SentenceToken],
         diagrams_by_id: dict[str, dict[str, Any]],
         report: AlignerReport,
-    ) -> dict[int, dict[str, Any]]:
-        """One LLM call: per sentence, which on-screen element is it explaining?"""
+    ) -> dict[int, list[dict[str, Any]]]:
+        """One LLM call → ordered highlight ops per sentence index."""
         user_message = _build_user_message(sentences, diagrams_by_id)
         try:
             raw = await self._call_llm(user_message)
@@ -330,17 +368,29 @@ class SemanticHighlightAligner:
             report.warnings.append(f"aligner LLM call failed: {e}")
             logger.warning("highlight_aligner.llm_failed", exc_info=True)
             return {}
-        out: dict[int, dict[str, Any]] = {}
+        out: dict[int, list[dict[str, Any]]] = {}
         for item in raw.get("decisions", []):
             try:
                 i = int(item["sentence_index"])
             except (KeyError, ValueError, TypeError):
                 continue
-            if 0 <= i < len(sentences):
-                out[i] = {
-                    "element_id": (item.get("element_id") or None),
-                    "treatment": (item.get("treatment") or None),
+            if not (0 <= i < len(sentences)):
+                continue
+            ids = item.get("element_ids")
+            if isinstance(ids, str):
+                ids = [ids]
+            if not isinstance(ids, list):
+                continue
+            ids = [str(x) for x in ids if x]
+            if not ids:
+                continue
+            out.setdefault(i, []).append(
+                {
+                    "anchor": item.get("anchor") or "",
+                    "element_ids": ids,
+                    "treatment": item.get("treatment") or "focus",
                 }
+            )
         return out
 
     async def _call_llm(self, user_message: str) -> dict[str, Any]:
@@ -387,14 +437,20 @@ def _build_user_message(
             lines.append(f"  - `{eid}`  [{role}] — {sem}")
         lines.append("")
 
-    lines.append("# Narration sentences (decide a highlight for each)\n")
+    lines.append("# Narration sentences (choreograph highlights across these)\n")
     for i, s in enumerate(sentences):
-        tag = "" if s.diagram_id else "  (no diagram on screen — must be null)"
+        tag = "" if s.diagram_id else "  (no diagram on screen — emit nothing)"
         lines.append(f"[{i}] {s.text}{tag}")
     lines.append(
-        "\nReturn one decision per sentence index you want to highlight "
-        "(omit a sentence to highlight nothing). element_id MUST come from the "
-        "on-screen diagram for that sentence."
+        "\nReturn highlight ops via emit_highlights. For each moment the "
+        "student's eye should land on a part, emit a row: the sentence_index, an "
+        "`anchor` (a few words copied EXACTLY from that sentence — the highlight "
+        "is placed right before it), and element_ids. Put MULTIPLE ids in one row "
+        "to light parts TOGETHER when the sentence relates/compares/connects them; "
+        "emit SEVERAL rows for one sentence when attention moves across parts in "
+        "turn (each with its own anchor). Omit sentences that aren't about a "
+        "specific on-screen part. Every id MUST belong to that sentence's "
+        "on-screen diagram."
     )
     return "\n".join(lines)
 
@@ -402,8 +458,9 @@ def _build_user_message(
 _ALIGN_TOOL = {
     "name": "emit_highlights",
     "description": (
-        "Emit the per-sentence highlight decisions. Only include sentences that "
-        "are genuinely explaining a specific on-screen element."
+        "Emit ordered highlight ops. Multiple ids in one row = co-highlight "
+        "(parts lit together for a relationship). Multiple rows for one "
+        "sentence_index = attention moving across parts in sequence."
     ),
     "input_schema": {
         "type": "object",
@@ -414,17 +471,33 @@ _ALIGN_TOOL = {
                     "type": "object",
                     "properties": {
                         "sentence_index": {"type": "integer"},
-                        "element_id": {
+                        "anchor": {
                             "type": "string",
-                            "description": "An element_id from the on-screen diagram, or omit to skip.",
+                            "description": (
+                                "A SHORT substring copied EXACTLY (verbatim) from "
+                                "the sentence, marking where attention should land. "
+                                "The marker is inserted right before it."
+                            ),
+                        },
+                        "element_ids": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "minItems": 1,
+                            "description": (
+                                "One id = single spotlight. Multiple ids = "
+                                "co-highlight (light them together)."
+                            ),
                         },
                         "treatment": {
                             "type": "string",
                             "enum": ["focus", "trace"],
-                            "description": "focus = spotlight; trace = draw along a line/curve being 'watched form'.",
+                            "description": (
+                                "focus = spotlight; trace = draw along a line/curve "
+                                "being followed (single id only)."
+                            ),
                         },
                     },
-                    "required": ["sentence_index", "element_id"],
+                    "required": ["sentence_index", "anchor", "element_ids"],
                 },
             }
         },

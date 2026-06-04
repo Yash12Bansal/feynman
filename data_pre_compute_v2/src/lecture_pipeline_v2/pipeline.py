@@ -409,6 +409,43 @@ class CurriculumPipelineV2:
                     "Phase 8: assembled %d chapter scripts", len(chapter_scripts)
                 )
 
+            # Phase 8b: semantic highlight alignment (folds the standalone
+            # `realign-highlights` pass into this one ingest run). Re-decide
+            # diagram highlights against the REAL generated diagrams — light
+            # related parts TOGETHER (co-highlight), move attention across parts
+            # in turn (sequential) — and rewrite the FOCUS/TRACE markers in each
+            # chapter-flow narration segment BEFORE TTS, so the manifest carries
+            # correctly-targeted, well-timed spotlights. Only narration_chapter
+            # (what the lecture plays, run through the composer) is realigned.
+            if chapter_scripts and diagrams:
+                diagrams_by_id = {
+                    d.diagram_id: (d.render_data or {}) for d in diagrams
+                }
+                if any(rd.get("dictionary") for rd in diagrams_by_id.values()):
+                    from .curriculum.lecture_plan.highlight_aligner import (
+                        AlignerReport,
+                        SemanticHighlightAligner,
+                    )
+
+                    notify("align", "Aligning diagram highlights to narration...")
+                    aligner = SemanticHighlightAligner(
+                        self.config.llm, provider=self.llm
+                    )
+                    align_report = AlignerReport()
+                    for cs in chapter_scripts.values():
+                        for seg in cs.segments:
+                            text = seg.get("narration_chapter") or ""
+                            if not text:
+                                continue
+                            seg["narration_chapter"] = (
+                                await aligner.realign_chapter_narration(
+                                    text, diagrams_by_id, align_report
+                                )
+                            )
+                    logger.info(
+                        "Phase 8b highlight aligner: %s", align_report.summary()
+                    )
+
             if chapter_scripts:
                 notify("tts", "Rendering TTS audio...")
                 audio_pipeline = AudioPipeline(

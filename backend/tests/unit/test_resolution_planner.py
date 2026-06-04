@@ -230,3 +230,56 @@ async def test_plan_resolution_rejects_banned_opener_and_retries():
     assert plan is not None
     assert create_mock.await_count == 2
     assert not plan.beats[0].narration_text.lower().startswith("great question")
+
+
+@pytest.mark.asyncio
+async def test_plan_resolution_accepts_directive_and_notebook_shape():
+    """The planner now decides the diagram (reuse/generate) and writes notebook
+    lines directly — no downstream matcher in the planning path."""
+    payload = {
+        "beats": [
+            {
+                "narration_text": "Here's the piece that's off: the speed carries over.",
+                "diagram": {"mode": "reuse", "diagram_id": "d1"},
+                "notebook_writes": [
+                    {"block": "step", "text": "ball speed = train + toss"},
+                    {"block": "equation", "latex": "v = u + at", "boxed": True},
+                ],
+                "annotation_actions": [
+                    {"action": "focus", "target_element_id": "arc", "text": "here"}
+                ],
+            },
+            {
+                "narration_text": "From the platform the path bends into an arc.",
+                "diagram": {
+                    "mode": "generate",
+                    "brief": "a parabola seen from the platform frame",
+                    "title": "Platform",
+                },
+                "notebook_writes": [],
+                "annotation_actions": [],
+            },
+        ]
+    }
+    create_mock = AsyncMock(return_value=_plan_response(payload))
+    client = AsyncMock()
+    client.messages = AsyncMock()
+    client.messages.create = create_mock
+
+    with patch(
+        "feynman.agent.doubt_resolution.resolution_planner.anthropic.AsyncAnthropic",
+        return_value=client,
+    ):
+        plan = await plan_resolution(
+            doubt_text="why is it the same?",
+            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
+            chapter_context=_ctx(),
+            current_topic_id="t1",
+        )
+
+    assert plan is not None
+    assert plan.beats[0].diagram.mode == "reuse"
+    assert plan.beats[0].diagram.diagram_id == "d1"
+    assert len(plan.beats[0].notebook_writes) == 2
+    assert plan.beats[1].diagram.mode == "generate"
+    assert plan.beats[1].diagram.brief

@@ -44,7 +44,9 @@ describe("DesignDiagramContent — svg_frame", () => {
       <DesignDiagramContent instruction={wrap(spec)} />,
     );
 
-    const rect = container.querySelector('rect[data-design-element="frame-earth"], g[data-design-element="frame-earth"] rect');
+    const rect = container.querySelector(
+      'rect[data-design-element="frame-earth"], g[data-design-element="frame-earth"] rect',
+    );
     expect(rect).not.toBeNull();
     // Background flows through via fill attribute.
     expect(rect?.getAttribute("fill")).toBe("var(--sb-panel-earth)");
@@ -168,5 +170,142 @@ describe("DesignDiagramContent — svg_frame", () => {
     );
     const svg = container.querySelector("svg");
     expect(svg?.getAttribute("style")).toContain("transparent");
+  });
+});
+
+describe("DesignDiagramContent — expression coordinates (safe evaluator)", () => {
+  it("resolves expression-string coords from parameter defaults", () => {
+    const spec: DesignDiagramSpec = {
+      parameters: [{ name: "a", min: 0, max: 100, default: 50 }],
+      elements: [{ type: "svg_circle", id: "c", cx: "a", cy: "a + 10", r: 5 }],
+    };
+    const { container } = render(
+      <DesignDiagramContent instruction={wrap(spec)} />,
+    );
+    const circle = container.querySelector('circle[data-design-element="c"]');
+    expect(circle?.getAttribute("cx")).toBe("50");
+    expect(circle?.getAttribute("cy")).toBe("60");
+  });
+
+  it("renders a graph curve as a non-empty path", () => {
+    const spec: DesignDiagramSpec = {
+      elements: [
+        {
+          type: "graph",
+          id: "g",
+          x: 0,
+          y: 0,
+          width: 300,
+          height: 200,
+          curves: [{ expression: "sin(x)" }],
+        },
+      ],
+    };
+    const { container } = render(
+      <DesignDiagramContent instruction={wrap(spec)} />,
+    );
+    const paths = Array.from(container.querySelectorAll("path")).filter(
+      (p) => (p.getAttribute("d") ?? "").length > 0,
+    );
+    expect(paths.length).toBeGreaterThan(0);
+  });
+
+  it("falls back to 0 for a dangerous/invalid coord (no eval, no throw)", () => {
+    const spec: DesignDiagramSpec = {
+      elements: [
+        // `x = 5` is an assignment — disabled in the sandbox → NaN → fallback 0.
+        { type: "svg_circle", id: "bad", cx: "x = 5", cy: 20, r: 5 },
+      ],
+    };
+    const { container } = render(
+      <DesignDiagramContent instruction={wrap(spec)} />,
+    );
+    const circle = container.querySelector('circle[data-design-element="bad"]');
+    expect(circle?.getAttribute("cx")).toBe("0");
+  });
+});
+
+describe("DesignDiagramContent — staged reveal (Workstream B)", () => {
+  const twoCircles: DesignDiagramSpec = {
+    elements: [
+      { type: "svg_circle", id: "a", cx: 100, cy: 100, r: 10 },
+      { type: "svg_circle", id: "b", cx: 200, cy: 200, r: 10 },
+    ],
+  };
+
+  it("no revealedElementIds → no dd-staging, no data-revealed (INV-7)", () => {
+    const { container } = render(
+      <DesignDiagramContent instruction={wrap(twoCircles)} />,
+    );
+    expect(
+      container.querySelector(".design-diagram-content.dd-staging"),
+    ).toBeNull();
+    expect(container.querySelector("[data-revealed]")).toBeNull();
+  });
+
+  it("a revealed-set adds dd-staging and per-element data-revealed", () => {
+    const { container } = render(
+      <DesignDiagramContent
+        instruction={wrap(twoCircles)}
+        revealedElementIds={new Set(["a"])}
+      />,
+    );
+    expect(
+      container.querySelector(".design-diagram-content.dd-staging"),
+    ).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-design-element="a"]')
+        ?.getAttribute("data-revealed"),
+    ).toBe("true");
+    expect(
+      container
+        .querySelector('[data-design-element="b"]')
+        ?.getAttribute("data-revealed"),
+    ).toBe("false");
+  });
+});
+
+describe("DesignDiagramContent — teaching-mode gate (Workstream A4)", () => {
+  const withParam: DesignDiagramSpec = {
+    parameters: [{ name: "a", min: 0, max: 10, default: 5 }],
+    elements: [{ type: "svg_circle", id: "c", cx: "a * 10", cy: 50, r: 5 }],
+  };
+
+  it("hides sliders by default (lecture/doubt playback)", () => {
+    const { container } = render(
+      <DesignDiagramContent instruction={wrap(withParam)} />,
+    );
+    expect(container.querySelector('input[type="range"]')).toBeNull();
+    // The geometry still resolves from the parameter default.
+    expect(
+      container.querySelector('[data-design-element="c"]')?.getAttribute("cx"),
+    ).toBe("50");
+  });
+
+  it("shows sliders when interactive", () => {
+    const { container } = render(
+      <DesignDiagramContent instruction={wrap(withParam)} interactive />,
+    );
+    expect(container.querySelector('input[type="range"]')).not.toBeNull();
+  });
+});
+
+describe("DesignDiagramContent — narration-driven parameters (Workstream A5)", () => {
+  it("paramOverrides win over spec defaults, even without sliders", () => {
+    const spec: DesignDiagramSpec = {
+      parameters: [{ name: "a", min: 0, max: 100, default: 50 }],
+      elements: [{ type: "svg_circle", id: "c", cx: "a", cy: 50, r: 5 }],
+    };
+    const { container } = render(
+      <DesignDiagramContent
+        instruction={wrap(spec)}
+        paramOverrides={{ a: 80 }}
+      />,
+    );
+    // default is 50; the event-driven override (80) drives the geometry.
+    expect(
+      container.querySelector('[data-design-element="c"]')?.getAttribute("cx"),
+    ).toBe("80");
   });
 });

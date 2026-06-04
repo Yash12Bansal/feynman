@@ -112,6 +112,24 @@ class DiagramRequirement(BaseModel):
     purpose: str = Field(min_length=1, description="The insight this diagram supports.")
     required_elements: list[ElementRequirement] = Field(min_length=1)
     presentation_mode: Literal["build_up", "overview"] = "build_up"
+    # Canonical-template diagram. When set, the generator SKIPS the LLM and the
+    # frontend builds the figure from the template registry. The planner MUST
+    # declare `required_elements` using the template's real element ids (see
+    # template_catalog) so choreography focus calls resolve. None = LLM-drawn.
+    template_concept_id: str | None = None
+
+    @field_validator("template_concept_id")
+    @classmethod
+    def template_id_known(cls, value: str | None) -> str | None:
+        if value is not None:
+            from .template_catalog import TEMPLATE_CONCEPT_IDS
+
+            if value not in TEMPLATE_CONCEPT_IDS:
+                raise ValueError(
+                    f"unknown template_concept_id {value!r}; "
+                    f"must be one of {sorted(TEMPLATE_CONCEPT_IDS)}"
+                )
+        return value
 
     @field_validator("required_elements")
     @classmethod
@@ -130,6 +148,36 @@ class DiagramRequirement(BaseModel):
             )
         return value
 
+    @model_validator(mode="after")
+    def templated_elements_in_vocab(self) -> DiagramRequirement:
+        """A templated diagram is pre-built — its `required_elements` may only
+        reference the template's REAL element ids. The narrator focuses by
+        element_id, so an id outside the template's vocabulary would never
+        resolve against the registry-built figure (focus/trace/point_at would
+        silently no-op). `template_id_known` has already validated the id.
+        """
+        if self.template_concept_id:
+            from .template_catalog import get_template
+
+            template = get_template(self.template_concept_id)
+            if template is not None:
+                vocab = set(template.element_ids)
+                invalid = sorted(
+                    element.element_id
+                    for element in self.required_elements
+                    if element.element_id not in vocab
+                )
+                if invalid:
+                    raise ValueError(
+                        f"templated DiagramRequirement {self.diagram_id!r} "
+                        f"(template {self.template_concept_id!r}) declares "
+                        f"required_elements outside the template's element "
+                        f"vocab: {invalid!r}. A templated figure is pre-built — "
+                        f"you may only reference its real element ids: "
+                        f"{sorted(vocab)!r}."
+                    )
+        return self
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Choreography
@@ -146,6 +194,9 @@ class ChoreographyAction(str, Enum):
     point_at = "point_at"
     write_margin = "write_margin"
     clear = "clear"
+    # Workstream A5 — parameter choreography (templates + parametric diagrams).
+    set_param = "set_param"
+    animate_param = "animate_param"
 
 
 class ChoreographyStep(BaseModel):
@@ -170,6 +221,15 @@ class ChoreographyStep(BaseModel):
     # guarantee every book example becomes one or more choreography steps.
     is_book_example: bool = False
     book_example_ref: int | None = None
+    # Workstream A5 — parameter choreography. A step carries at most ONE param
+    # action (set_param XOR animate_param). param_name is a parameter of the
+    # active (usually template) diagram. set_param needs param_value;
+    # animate_param needs param_to (param_from / param_duration_ms optional).
+    param_name: str | None = None
+    param_value: float | None = None
+    param_to: float | None = None
+    param_from: float | None = None
+    param_duration_ms: int | None = None
 
     @model_validator(mode="after")
     def question_xor_payoff(self) -> ChoreographyStep:
@@ -178,6 +238,28 @@ class ChoreographyStep(BaseModel):
                 "ChoreographyStep cannot be both is_question and is_payoff — a "
                 "step is either the question or the payoff, never both. Doc 19 §5."
             )
+        return self
+
+    @model_validator(mode="after")
+    def param_action_fields_present(self) -> ChoreographyStep:
+        """set_param / animate_param require their payload fields, and a step
+        carries at most one of them (a jump-then-sweep is two steps)."""
+        has_set = ChoreographyAction.set_param in self.actions
+        has_animate = ChoreographyAction.animate_param in self.actions
+        if has_set and has_animate:
+            raise ValueError(
+                "a ChoreographyStep may carry set_param OR animate_param, not "
+                "both — split a jump-then-sweep into two steps."
+            )
+        if (has_set or has_animate) and not self.param_name:
+            raise ValueError(
+                "set_param / animate_param requires param_name (a parameter of "
+                "the active diagram — see the template's parameters)."
+            )
+        if has_set and self.param_value is None:
+            raise ValueError("set_param requires param_value.")
+        if has_animate and self.param_to is None:
+            raise ValueError("animate_param requires param_to.")
         return self
 
 

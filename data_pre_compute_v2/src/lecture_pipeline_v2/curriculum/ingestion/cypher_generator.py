@@ -80,9 +80,7 @@ class CypherGenerator:
         import json
 
         pages_json = json.dumps([p.model_dump() for p in c.pages])
-        board_snapshots_json = json.dumps(
-            [s.model_dump() for s in c.board_snapshots]
-        )
+        board_snapshots_json = json.dumps([s.model_dump() for s in c.board_snapshots])
         # Idea 2: flat list of VisualTermEntry — JSON string for now (matches
         # the pages/board_snapshots pattern; promote to nodes/edges only when
         # a consumer needs graph traversal over visual terms).
@@ -95,7 +93,10 @@ class CypherGenerator:
             "page_start": c.page_start,
             "page_end": c.page_end,
             "topic_ids": list(c.topic_ids),
-            "chapter_manifest": c.chapter_manifest.model_dump_json(),
+            # by_alias=True so AnimateParameterEvent's `from_` field serializes
+            # as the JSON key `from` the frontend reads (D3); no-op for every
+            # other event (no other field has an alias).
+            "chapter_manifest": c.chapter_manifest.model_dump_json(by_alias=True),
             "narration_text": c.narration_text,
             "pages": pages_json,
             "board_snapshots": board_snapshots_json,
@@ -146,7 +147,7 @@ class CypherGenerator:
             "prereq_topic_ids": list(t.prereq_topic_ids),
             "has_diagram_ids": list(t.has_diagram_ids),
             "has_question_ids": list(t.has_question_ids),
-            "standalone_manifest": t.standalone_manifest.model_dump_json(),
+            "standalone_manifest": t.standalone_manifest.model_dump_json(by_alias=True),
             "standalone_narration_text": t.standalone_narration_text,
             "embedding": list(t.embedding) if t.embedding else None,
             "needs_review": t.needs_review,
@@ -189,6 +190,12 @@ class CypherGenerator:
             "fallback_image_url": d.fallback_image_url,
             "linked_topic_ids": list(d.linked_topic_ids),
             "version": d.version,
+            # Canonical-template diagram (empty render_data; frontend builds it).
+            # template_params is a nested map → JSON-encode (Neo4j props are flat).
+            "template_concept_id": d.template_concept_id,
+            "template_params": (
+                json.dumps(d.template_params) if d.template_params else None
+            ),
         }
         query = (
             "MERGE (n:Diagram {diagram_id: $diagram_id})\n"
@@ -198,6 +205,8 @@ class CypherGenerator:
             "    n.fallback_image_url = $fallback_image_url,\n"
             "    n.linked_topic_ids = $linked_topic_ids,\n"
             "    n.version = $version,\n"
+            "    n.template_concept_id = $template_concept_id,\n"
+            "    n.template_params = $template_params,\n"
             "    n.updated_at = datetime()"
         )
         return CypherStatement(query, params, "node", d.diagram_id)

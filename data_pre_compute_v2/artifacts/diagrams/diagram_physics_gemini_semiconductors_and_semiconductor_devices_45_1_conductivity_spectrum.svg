@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="insulator-region" x="100" y="220" width="220" height="140" rx="4" fill="none" stroke="#ff7a8a" stroke-width="2.5"/>
+<rect id="semiconductor-region" x="340" y="220" width="220" height="140" rx="4" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<rect id="conductor-region" x="580" y="220" width="220" height="140" rx="4" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="insulator-label" x="210" y="295" font-size="16" fill="#ff7a8a" text-anchor="middle" font-weight="600">Insulators</text>
+<text id="semiconductor-label" x="450" y="295" font-size="16" fill="#7fd4ff" text-anchor="middle" font-weight="600">Semiconductors</text>
+<text id="conductor-label" x="690" y="295" font-size="16" fill="#9effc9" text-anchor="middle" font-weight="600">Conductors</text>
+<defs><marker id="arrowhead_conductivity-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="conductivity-axis" x1="80" y1="420" x2="820" y2="420" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_conductivity-axis)"/>
+<line id="tick-insulator" x1="210" y1="415" x2="210" y2="425" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="tick-semiconductor" x1="450" y1="415" x2="450" y2="425" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="tick-conductor" x1="690" y1="415" x2="690" y2="425" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="val-insulator" x="190" y="440" font-size="14" fill="rgba(232, 232, 238, 0.55)" font-style="italic" text-anchor="middle">10^{-14}</text>
+<text id="val-semiconductor" x="440" y="440" font-size="14" fill="rgba(232, 232, 238, 0.55)" font-style="italic" text-anchor="middle">10^{0}</text>
+<text id="val-conductor" x="680" y="440" font-size="14" fill="rgba(232, 232, 238, 0.55)" font-style="italic" text-anchor="middle">10^{7}</text>
+<text id="axis-label" x="360" y="490" font-size="16" fill="#e8e8ee" font-style="italic" text-anchor="middle">\text{Conductivity } \sigma \; (\text{S/m})</text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<defs><marker id="arrowhead_energy-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="energy-axis" x1="240" y1="500" x2="240" y2="130" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_energy-axis)"/>
+<text id="energy-label" x="240" y="115" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Energy</text>
+<rect id="conduction-band" x="320" y="150" width="300" height="130" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="cb-label" x="470" y="140" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Conduction Band</text>
+<rect id="valence-band" x="320" y="370" width="300" height="130" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="vb-label" x="470" y="520" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Valence Band</text>
+<rect id="band-gap" x="320" y="280" width="300" height="90" rx="0" fill="none" stroke="rgba(232,232,238,0.4)" stroke-width="2"/>
+<defs><marker id="arrowhead_bg-arrow-up" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="bg-arrow-up" x1="640" y1="315" x2="640" y2="280" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_bg-arrow-up)"/>
+<defs><marker id="arrowhead_bg-arrow-down" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="bg-arrow-down" x1="640" y1="335" x2="640" y2="370" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_bg-arrow-down)"/>
+<text id="bg-label" x="655" y="315" font-size="16" fill="rgba(232,232,238,0.75)" font-style="italic" text-anchor="middle">E_g</text>
+<circle id="static-e1" cx="370" cy="460" r="8" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="static-e2" cx="430" cy="430" r="8" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="static-e3" cx="530" cy="470" r="8" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="static-e4" cx="570" cy="410" r="8" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="hole" cx="450" cy="390" r="8" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="3 3"/>
+<text id="hole-label" x="465" y="377" font-size="16" fill="#ff7a8a" font-style="italic" text-anchor="middle">h^+</text>
+<circle id="jumping-electron" cx="450" cy="320" r="8" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="je-label" x="465" y="307" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">e^-</text>
+<defs><marker id="arrowhead_jump-path" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="jump-path" x1="450" y1="380" x2="450" y2="332" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_jump-path)"/>
+<defs><marker id="arrowhead_thermal-energy-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="thermal-energy-arrow" x1="320" y1="390" x2="435" y2="390" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_thermal-energy-arrow)"/>
+<text id="thermal-label" x="310" y="394" font-size="12" fill="#9effc9" text-anchor="end" font-weight="normal">Thermal energy</text>
+</svg>

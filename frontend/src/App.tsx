@@ -4,6 +4,11 @@ import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
 import { LectureHomeScreen } from "./screens/LectureHomeScreen";
 import { WaitingScreen } from "./screens/WaitingScreen";
+import { AuthProvider } from "./auth/AuthProvider";
+import { AuthGate } from "./auth/AuthGate";
+import { AccountChip } from "./auth/AccountChip";
+import { FeedbackFab } from "./feedback/FeedbackFab";
+import { ExitIntentFeedback } from "./feedback/ExitIntentFeedback";
 
 function useLectureChapterParam(): string | null {
   // ?lecture=<chapter_id> on the main app path binds the session to a
@@ -24,7 +29,18 @@ function useLectureChapterParam(): string | null {
 }
 
 export function App() {
-  return <MainEntry />;
+  // Gate the entire product behind Google sign-in + profile completion. The
+  // feedback surfaces mount inside the gate so only signed-in users see them.
+  return (
+    <AuthProvider>
+      <AuthGate>
+        <MainEntry />
+        <AccountChip />
+        <FeedbackFab />
+        <ExitIntentFeedback />
+      </AuthGate>
+    </AuthProvider>
+  );
 }
 
 function MainEntry() {

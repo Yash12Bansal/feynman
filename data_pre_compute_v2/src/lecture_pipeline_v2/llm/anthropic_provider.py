@@ -9,6 +9,12 @@ from anthropic import Anthropic, AsyncAnthropic
 from ..config import LLMConfig
 from .base import LLMProvider, LLMResponse
 
+# Newer Claude generations (e.g. Opus 4.8) deprecate the `temperature` parameter
+# and reject any request that sets it with a 400. We omit temperature for these
+# models and keep sending it for ones that still accept it. Matched by prefix so
+# dated snapshots (…-YYYYMMDD) are covered too.
+_TEMPERATURE_UNSUPPORTED_PREFIXES = ("claude-opus-4-8",)
+
 
 class AnthropicProvider(LLMProvider):
     def __init__(self, config: LLMConfig):
@@ -29,14 +35,25 @@ class AnthropicProvider(LLMProvider):
             self._aclient = AsyncAnthropic(**self._client_kwargs)
         return self._aclient
 
+    def _supports_temperature(self) -> bool:
+        # Some newer Claude models reject the temperature param entirely.
+        return not self.config.model.startswith(_TEMPERATURE_UNSUPPORTED_PREFIXES)
+
+    def _temp_kwargs(self, temperature: float | None) -> dict:
+        # Model-aware override: drop temperature for models that deprecate it,
+        # even if a caller passed one explicitly; otherwise defer to the base.
+        if not self._supports_temperature():
+            return {}
+        return super()._temp_kwargs(temperature)
+
     # ── sync ──────────────────────────────────────────────────────────────
     def generate(self, system_prompt: str, user_prompt: str) -> LLMResponse:
         response = self.client.messages.create(
             model=self.config.model,
             system=system_prompt,
             messages=[{"role": "user", "content": user_prompt}],
-            temperature=self.config.temperature,
             max_tokens=self.config.max_tokens,
+            **self._temp_kwargs(self.config.temperature),
         )
         content = "".join(
             block.text for block in response.content if block.type == "text"

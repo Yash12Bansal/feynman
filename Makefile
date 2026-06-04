@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-backend dev-frontend dev-worker dev-preview-server test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset migrate migrate-create
+.PHONY: setup dev dev-backend dev-frontend dev-worker dev-preview-server test test-backend test-frontend lint lint-backend lint-frontend format db-up db-down db-reset migrate migrate-create share
 
 # =============================================================================
 # Feynman — Development Commands
@@ -89,3 +89,23 @@ db-down:
 db-reset:
 	docker compose down -v
 	docker compose up -d
+
+# --- Sharing via ngrok (stable public URL) ---
+# Tunnels the local dev stack to a public ngrok URL. The frontend on :5173
+# proxies /api -> :8000 and /lecture-api -> :8080, so one tunnel exposes the
+# whole app. Run `make dev` in another terminal first.
+#
+# Set your free ngrok static domain once (either works):
+#   echo your-name.ngrok-free.app > .ngrok-domain     # recommended; gitignored
+#   make share NGROK_DOMAIN=your-name.ngrok-free.app
+NGROK_DOMAIN ?= $(shell cat .ngrok-domain 2>/dev/null)
+share:
+	@if [ -z "$(NGROK_DOMAIN)" ]; then \
+		echo "No ngrok domain set. Do one of:"; \
+		echo "  echo your-name.ngrok-free.app > .ngrok-domain"; \
+		echo "  make share NGROK_DOMAIN=your-name.ngrok-free.app"; \
+		exit 1; \
+	fi
+	@echo "Public link  ->  https://$(NGROK_DOMAIN)"
+	@echo "Make sure 'make dev' is running and the domain is in Firebase Authorized Domains."
+	ngrok http --url=$(NGROK_DOMAIN) 5173

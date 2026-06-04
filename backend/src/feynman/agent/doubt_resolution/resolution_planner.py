@@ -1,8 +1,12 @@
-"""ResolutionPlanner — Phase 4 LLM call that turns a classified doubt into a
-list of `ResolutionBeat`s ready for Phase 5 delivery.
+"""ResolutionPlanner — the LLM call that turns a classified doubt into a list
+of `ResolutionBeat`s ready for delivery as a real-time mini-lecture.
 
-The planner doesn't pick a diagram — `target_diagram_id` stays `None` on
-every beat. `DiagramFitMatcher` fills it in a downstream step.
+The planner decides each beat's board work directly: it is shown the
+chapter's AVAILABLE DIAGRAMS with their element semantics and, per beat,
+chooses to reuse an existing diagram, generate a new one, keep the current
+one, or none — plus what to write in the notebook and how to annotate. The
+old free-text-intent + post-hoc `DiagramFitMatcher` step is no longer in the
+planning path (kept only for back-compat until delivery is migrated).
 """
 
 from __future__ import annotations
@@ -311,24 +315,23 @@ def _build_user_message(
 
     if chapter_context.diagrams:
         diagram_lines = []
-        for d in list(chapter_context.diagrams.values())[:12]:
-            roles = ", ".join(
-                sorted(
-                    {
-                        (entry or {}).get("role", "")
-                        for entry in d.dictionary.values()
-                        if isinstance(entry, dict)
-                    }
-                    - {""}
-                )
-            )
-            diagram_lines.append(
-                f"  - {d.diagram_id}: {d.description[:160]}"
-                + (f" — elements: {roles}" if roles else "")
-            )
+        for d in list(chapter_context.diagrams.values())[:15]:
+            diagram_lines.append(f"  - {d.diagram_id}: {d.description[:200]}")
+            elem_lines = []
+            for eid, entry in list(d.dictionary.items())[:8]:
+                if not isinstance(entry, dict):
+                    continue
+                role = entry.get("role") or ""
+                sem = (entry.get("semantic") or "").strip()
+                label = eid + (f" ({role})" if role else "")
+                elem_lines.append(label + (f": {sem[:80]}" if sem else ""))
+            if elem_lines:
+                diagram_lines.append("      parts: " + "; ".join(elem_lines))
         parts.append(
-            "AVAILABLE DIAGRAMS (the matcher will pick one — describe the "
-            "visual intent in plain English):\n" + "\n".join(diagram_lines)
+            "AVAILABLE DIAGRAMS — reuse one by its EXACT id when it resolves "
+            "the beat with complete clarity; otherwise generate a new one. "
+            "Use the part ids/roles below to name elements in annotations:\n"
+            + "\n".join(diagram_lines)
         )
 
     if prior_doubts:
@@ -346,22 +349,56 @@ def _build_user_message(
         )
 
     parts.append(
-        "Emit the plan via `emit_resolution_plan`. JSON example shape:\n"
+        "Emit the plan via `emit_resolution_plan`. Example shape (note the "
+        "first beat reuses or writes — it never generates):\n"
         + json.dumps(
             {
                 "beats": [
                     {
-                        "narration_text": "Here's what's happening: …",
-                        "visual_intent_description": "a side-by-side …",
+                        "narration_text": (
+                            "Here's the piece that's off: the ball keeps the "
+                            "train's speed even after it leaves your hand."
+                        ),
+                        "diagram": {
+                            "mode": "reuse",
+                            "diagram_id": "<an exact id from AVAILABLE DIAGRAMS>",
+                        },
+                        "notebook_writes": [
+                            {
+                                "block": "step",
+                                "text": "ball speed = train speed + toss speed",
+                            }
+                        ],
+                        "annotation_actions": [
+                            {
+                                "action": "focus",
+                                "target_element_id": "<an element id on that diagram>",
+                                "text": "same curve",
+                            }
+                        ],
+                    },
+                    {
+                        "narration_text": (
+                            "Now from the platform, the path bends into an arc."
+                        ),
+                        "diagram": {
+                            "mode": "generate",
+                            "brief": (
+                                "a ball's parabolic arc seen from the platform, "
+                                "with the horizontal train-velocity component and "
+                                "the vertical toss component labelled"
+                            ),
+                            "title": "Platform frame",
+                        },
+                        "notebook_writes": [],
                         "annotation_actions": [
                             {
                                 "action": "focus",
                                 "target_role": "trajectory",
-                                "text": "look here",
+                                "text": "the curve",
                             }
                         ],
-                        "target_diagram_id": None,
-                    }
+                    },
                 ]
             },
             indent=2,

@@ -15,6 +15,7 @@ from livekit.agents import AgentServer, JobContext, cli
 from livekit.rtc import DataPacket
 
 from feynman.agent.doubt_resolution import (
+    DoubtType,
     LectureDoubtSession,
     ResolutionPlan,
     load_chapter_by_id,
@@ -135,11 +136,27 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         last_doubt_state["summary"] = " | ".join(beat.narration_text[:80] for beat in plan.beats)
         last_doubt_state["topic_id"] = topic_id or ""
 
+        # Carry-over (Delta 2): a local clarification about a diagram already on
+        # the board → the frontend seeds the doubt board with a copy of the
+        # current page (diagram + notebook) so the planner builds directly on it.
+        carry_over = False
+        if doubt_session.prior_doubts_in_session:
+            cls = doubt_session.prior_doubts_in_session[-1].classification
+            snap_elements = (board_snapshot or {}).get("elements") or []
+            has_board_diagram = any(
+                isinstance(el, dict) and el.get("kind") == "diagram"
+                for el in snap_elements
+            )
+            carry_over = (
+                cls.type == DoubtType.LOCAL_CLARIFICATION and has_board_diagram
+            )
+
         await _publish_doubt(
             ctx,
             {
                 "type": "resolution_ready",
                 "beats": len(plan.beats),
+                "carry_over": carry_over,
                 "matched_diagram_ids": [
                     b.target_diagram_id for b in plan.beats if b.target_diagram_id
                 ],
@@ -160,6 +177,7 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
                     chapter_context=doubt_session.chapter_context,
                     publish_data=_publish,
                     on_first_frame=_on_first_frame,
+                    spec_cache=doubt_session.generated_specs,
                 )
             except Exception:
                 logger.exception("worker.doubt_delivery_failed")
@@ -178,7 +196,18 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         nonlocal stt_instance
         if stt_instance is None:
             stt_instance = create_stt()
-        captured = await capture_student_doubt(ctx, stt=stt_instance)
+
+        def _on_speech_started() -> None:
+            # Student has begun talking. Tell the frontend we're actively
+            # listening so its short "I didn't hear anything" timeout doesn't
+            # fire mid-doubt — capture runs until 5s of continuous silence.
+            t = asyncio.create_task(_publish_doubt(ctx, {"type": "doubt_listening"}))
+            pending_tasks.add(t)
+            t.add_done_callback(pending_tasks.discard)
+
+        captured = await capture_student_doubt(
+            ctx, stt=stt_instance, on_speech_started=_on_speech_started
+        )
         if captured is None:
             await _publish_doubt(ctx, {"type": "doubt_capture_failed", "reason": "no_transcript"})
             return

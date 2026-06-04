@@ -636,6 +636,27 @@ async def test_focus_walker_stamps_element_id_from_role(diagrams_by_id):
     assert focuses[0].diagram_id == "d1"
 
 
+@pytest.mark.asyncio
+async def test_focus_accepts_element_id_value(diagrams_by_id):
+    """The narrator emits FOCUS with the stable element_id (doc 19 §A-3) —
+    `<<FOCUS:el_hyp>>` — which the chunker carries on `.role`. The walker must
+    resolve it by element_id, not drop it as an unknown role. This is the bug
+    that killed the lecture spotlight (focus dropped `role_unknown` while
+    trace/point_at, validated by element_id, survived)."""
+    fragments = [
+        _show("d1"),
+        FocusFragment(kind="focus", role="el_hyp", text="the slanted side"),
+    ]
+    composer = ManifestComposer(diagrams_by_id)
+    out = await composer.compose(fragments)
+    focuses = [f for f in out if isinstance(f, FocusFragment)]
+    assert len(focuses) == 1
+    assert focuses[0].element_id == "el_hyp"
+    assert focuses[0].role == "hypotenuse"  # back-filled from the dictionary
+    assert focuses[0].diagram_id == "d1"
+    assert composer.last_report.drops_by_reason.get("role_unknown") is None
+
+
 def test_focus_event_accepts_element_id_only():
     """FocusEvent constructed from element_id alone is valid (the canonical
     new shape — the only thing the frontend needs to resolve bounds)."""
@@ -679,3 +700,81 @@ def test_focus_event_rejects_no_target():
     with pytest.raises(ValidationError) as exc_info:
         FocusEvent(diagram_id="d1")
     assert "target_element_id" in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# Co-highlight — multi-element FOCUS (<<FOCUS:a+b>>) end-to-end
+# ---------------------------------------------------------------------------
+
+
+def test_chunker_parses_co_highlight_focus():
+    """`<<FOCUS:a+b>>` carries both ids; a single-id focus stays single."""
+    multi = next(
+        f for f in split_script("<<FOCUS:el_hyp+el_opp>>") if f.kind == "focus"
+    )
+    assert multi.element_ids == ["el_hyp", "el_opp"]
+    assert multi.role == "el_hyp"
+    single = next(f for f in split_script("<<FOCUS:el_hyp>>") if f.kind == "focus")
+    assert single.element_ids == []
+    assert single.role == "el_hyp"
+
+
+@pytest.mark.asyncio
+async def test_co_highlight_resolves_all_ids(diagrams_by_id):
+    """A co-highlight FOCUS resolves every id; the first mirrors into
+    element_id for single-target consumers."""
+    fragments = [
+        _show("d1"),
+        FocusFragment(kind="focus", role="el_hyp", element_ids=["el_hyp", "el_opp"]),
+    ]
+    out = await ManifestComposer(diagrams_by_id).compose(fragments)
+    focus = next(f for f in out if isinstance(f, FocusFragment))
+    assert focus.element_ids == ["el_hyp", "el_opp"]
+    assert focus.element_id == "el_hyp"
+
+
+@pytest.mark.asyncio
+async def test_co_highlight_resolves_roles(diagrams_by_id):
+    """Co-highlight targets given as ROLE names resolve to element_ids."""
+    fragments = [
+        _show("d1"),
+        FocusFragment(
+            kind="focus",
+            role="hypotenuse",
+            element_ids=["hypotenuse", "opposite_side"],
+        ),
+    ]
+    out = await ManifestComposer(diagrams_by_id).compose(fragments)
+    focus = next(f for f in out if isinstance(f, FocusFragment))
+    assert focus.element_ids == ["el_hyp", "el_opp"]
+
+
+@pytest.mark.asyncio
+async def test_co_highlight_drops_invalid_keeps_valid(diagrams_by_id):
+    """An unresolvable id in a co-highlight set is dropped; valid ones survive."""
+    fragments = [
+        _show("d1"),
+        FocusFragment(kind="focus", role="el_hyp", element_ids=["el_hyp", "nope"]),
+    ]
+    out = await ManifestComposer(diagrams_by_id).compose(fragments)
+    focus = next(f for f in out if isinstance(f, FocusFragment))
+    assert focus.element_ids == ["el_hyp"]
+
+
+@pytest.mark.asyncio
+async def test_co_highlight_all_invalid_drops_fragment(diagrams_by_id):
+    """If NO id in a co-highlight set resolves, the whole FOCUS drops."""
+    fragments = [
+        _show("d1"),
+        FocusFragment(kind="focus", role="nope1", element_ids=["nope1", "nope2"]),
+    ]
+    out = await ManifestComposer(diagrams_by_id).compose(fragments)
+    assert not [f for f in out if isinstance(f, FocusFragment)]
+
+
+def test_focus_event_accepts_target_element_ids_only():
+    """FocusEvent validates with only the co-highlight list set."""
+    from lecture_pipeline_v2.curriculum.models import FocusEvent
+
+    event = FocusEvent(diagram_id="d1", target_element_ids=["el_hyp", "el_opp"])
+    assert event.target_element_ids == ["el_hyp", "el_opp"]

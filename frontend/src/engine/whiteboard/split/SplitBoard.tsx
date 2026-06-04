@@ -22,6 +22,12 @@ interface SplitBoardProps {
    * the live agent path (flex-fractional).
    */
   readonly viewport?: "responsive" | "preview";
+  /**
+   * Workstream A4: when true, design diagrams expose draggable parameter
+   * sliders (an interactive playground surface). Lecture/doubt playback omits
+   * it — parameters are driven by `set_parameter` events, not the student.
+   */
+  readonly interactive?: boolean;
 }
 
 export function SplitBoard({
@@ -30,12 +36,13 @@ export function SplitBoard({
   mode = "split",
   notebookTitle,
   viewport = "responsive",
+  interactive,
 }: SplitBoardProps) {
   const className =
     viewport === "preview" ? "sb-root sb-root--preview" : "sb-root";
   return (
     <div className={className} data-mode={mode}>
-      <SlidePanel state={slide} />
+      <SlidePanel state={slide} interactive={interactive} />
       <Notebook state={notebook} title={notebookTitle} />
     </div>
   );

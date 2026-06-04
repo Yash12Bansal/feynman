@@ -79,19 +79,16 @@ async def test_resolve_runs_full_pipeline_and_records_history():
             "beats": [
                 {
                     "narration_text": "Here's the idea.",
-                    "visual_intent_description": "train vs platform",
+                    "diagram": {"mode": "reuse", "diagram_id": "d1"},
+                    "notebook_writes": [],
                     "annotation_actions": [],
-                    "target_diagram_id": None,
                 }
             ]
         },
     )
-    matcher_resp = _resp(
-        "emit_fit_verdict",
-        {"fits": True, "confidence": 0.9, "rationale": "yes"},
-    )
 
-    client = _make_client([classifier_resp, planner_resp, matcher_resp])
+    # No matcher stage anymore — the planner picks the diagram directly.
+    client = _make_client([classifier_resp, planner_resp])
     session = LectureDoubtSession(chapter_context=_ctx())
 
     with patch(
@@ -195,8 +192,10 @@ async def test_resolve_accumulates_prior_doubts_across_calls():
 
 
 @pytest.mark.asyncio
-async def test_resolve_passes_skip_stage2_for_local_clarification():
-    """Phase 6 latency: classification == local_clarification → skip_stage2."""
+async def test_resolve_validates_reuse_id():
+    """The planner decides the diagram; resolve() validates reuse picks against
+    the real chapter diagrams — a hallucinated id degrades to NoDiagram, a real
+    one is mirrored to target_diagram_id + the recency set."""
     classifier_payload = {
         "type": "local_clarification",
         "related_concept_ids": [],
@@ -205,11 +204,17 @@ async def test_resolve_passes_skip_stage2_for_local_clarification():
     plan_payload = {
         "beats": [
             {
-                "narration_text": "Here's what's happening.",
-                "visual_intent_description": "",
+                "narration_text": "Here's what's happening, step by step.",
+                "diagram": {"mode": "reuse", "diagram_id": "d1"},
+                "notebook_writes": [],
                 "annotation_actions": [],
-                "target_diagram_id": None,
-            }
+            },
+            {
+                "narration_text": "And that explains the rest of it.",
+                "diagram": {"mode": "reuse", "diagram_id": "ghost"},
+                "notebook_writes": [],
+                "annotation_actions": [],
+            },
         ]
     }
     client = _make_client(
@@ -220,18 +225,62 @@ async def test_resolve_passes_skip_stage2_for_local_clarification():
     )
     session = LectureDoubtSession(chapter_context=_ctx())
 
-    with (
-        patch(
-            "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
-            return_value=client,
-        ),
-        patch(
-            "feynman.agent.doubt_resolution.lecture_session.match_diagrams_for_plan",
-            new=AsyncMock(),
-        ) as matcher_spy,
+    with patch(
+        "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+        return_value=client,
     ):
-        await session.resolve(doubt_text="what does inertial mean?", current_topic_id="t1")
+        plan = await session.resolve(doubt_text="what does inertial mean?", current_topic_id="t1")
 
-    matcher_spy.assert_awaited_once()
-    kwargs = matcher_spy.await_args.kwargs
-    assert kwargs.get("skip_stage2") is True
+    assert plan is not None
+    # valid reuse → mirrored to target_diagram_id
+    assert plan.beats[0].target_diagram_id == "d1"
+    # invalid reuse → degraded to NoDiagram, no target
+    assert plan.beats[1].diagram.mode == "none"
+    assert plan.beats[1].target_diagram_id is None
+    assert session.shown_diagram_ids == {"d1"}
+
+
+@pytest.mark.asyncio
+async def test_resolve_degrades_unknown_template():
+    """A `template` directive with an invented concept_id degrades to NoDiagram
+    (the narration still answers); a known canonical id is left intact."""
+    classifier_payload = {
+        "type": "local_clarification",
+        "related_concept_ids": [],
+        "rationale": "small clarification",
+    }
+    plan_payload = {
+        "beats": [
+            {
+                "narration_text": "Picture the right triangle for this.",
+                "diagram": {"mode": "template", "concept_id": "right-triangle-trig"},
+                "notebook_writes": [],
+                "annotation_actions": [],
+            },
+            {
+                "narration_text": "And that ties it together.",
+                "diagram": {"mode": "template", "concept_id": "not-a-real-template"},
+                "notebook_writes": [],
+                "annotation_actions": [],
+            },
+        ]
+    }
+    client = _make_client(
+        [
+            _resp("emit_classification", classifier_payload),
+            _resp("emit_resolution_plan", plan_payload),
+        ]
+    )
+    session = LectureDoubtSession(chapter_context=_ctx())
+
+    with patch(
+        "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+        return_value=client,
+    ):
+        plan = await session.resolve(doubt_text="how do I find the angle?", current_topic_id="t1")
+
+    assert plan is not None
+    # known template id is kept; unknown id degrades to no-diagram.
+    assert plan.beats[0].diagram.mode == "template"
+    assert plan.beats[0].diagram.concept_id == "right-triangle-trig"
+    assert plan.beats[1].diagram.mode == "none"

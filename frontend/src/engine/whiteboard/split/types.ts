@@ -66,6 +66,41 @@ export interface SlideState {
   // Cleared on unfocus / clear_annotations / show_diagram.
   readonly focusedElementId?: string | null;
   readonly focusedRole?: string | null;
+  // Co-highlight: the full set of elements spotlighted simultaneously (a
+  // relationship between parts discussed together). Single-focus leaves this
+  // empty/undefined and uses focusedElementId; DesignDiagramContent glows the
+  // union of both. Cleared alongside focusedElementId.
+  readonly focusedElementIds?: ReadonlySet<string> | null;
+  // Optional inline label shown next to a focused element (from a focus event's
+  // `text`). null/undefined → no label.
+  readonly inlineLabelText?: string | null;
+  // Presentation mode of the active diagram: "build_up" enables staged reveal
+  // (see revealedElementIds); "overview"/undefined renders everything at once.
+  readonly presentationMode?: "build_up" | "overview";
+  // ── Staged element reveal (Workstream B) ──────────────────────────────
+  //
+  // Only meaningful when presentationMode === "build_up" AND the diagram opted
+  // into staging. `null`/undefined means "show everything" — static parity
+  // (INV-7): a spec with no staging renders byte-identically to before.
+  //
+  //  - revealedElementIds: the element_ids currently drawn. A non-null EMPTY
+  //    set means staging is active but nothing is revealed yet (all hidden).
+  //  - revealOrder: ordered groups of ids (from deriveRevealPlan / animations)
+  //    that `reveal_step` walks through.
+  //  - revealCursor: index into revealOrder of the last-revealed group; -1
+  //    before the first reveal.
+  readonly revealedElementIds?: ReadonlySet<string> | null;
+  readonly revealOrder?: readonly (readonly string[])[] | null;
+  readonly revealCursor?: number;
+
+  // ── Narration-driven parameters (Workstream A5) ───────────────────────
+  //
+  // Overrides for the active diagram's interactive parameters, set by
+  // `set_parameter` events so narration can drive a slider value without the
+  // student touching it. Merged over the spec defaults at render time;
+  // show_diagram resets it to {}. Empty/undefined → diagram uses its own
+  // defaults (INV-7).
+  readonly paramOverrides?: Readonly<Record<string, number>>;
 }
 
 /** Doc 19 §12: stroke-draw animation along an element's geometry. */

@@ -199,16 +199,42 @@ class SliderParameter(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Animation spec
+# Staged reveal — declarative, narration-paced element ordering
 # ---------------------------------------------------------------------------
 
 
-# Accept any dict for animations — Claude generates varied formats
-# and we don't render animations yet anyway.
-class AnimationSpec(BaseModel):
+class AnimationStep(BaseModel):
+    """One step of a diagram's staged reveal (the `animations` list).
+
+    A step names a set of elements — by dictionary *role* (preferred, robust to
+    id churn) and/or explicit element id — that become visible together when the
+    narration reaches `cue`. The renderer reveals one step per narration beat;
+    elements never un-reveal (reveal is monotonic, the final frame is the full
+    static diagram → INV-1).
+
+    There is deliberately **no** `loop`, `autoplay`, `delay`, or `interval`
+    field: steps can only advance on a narration/interaction event, never on a
+    timer. Autoplay is therefore unrepresentable → INV-2 holds by construction.
+    Do NOT add a timing-trigger field here.
+
+    The common case is an EMPTY `animations` list (most diagrams are static
+    references shown all at once). Steps are opt-in, for diagrams whose meaning
+    is a sequence the student should watch unfold.
+    """
+
     model_config = {"extra": "allow"}
-    duration: float = 2.0
-    loop: bool = True
+
+    # Ordinal — steps are revealed in ascending `step`, ties keep list order.
+    step: int = 0
+    # Dictionary roles to reveal this step (resolved id-agnostically).
+    role_targets: list[str] = Field(default_factory=list)
+    # Explicit element ids to reveal this step (escape hatch when no role fits).
+    element_targets: list[str] = Field(default_factory=list)
+    # Narration phrase that should trigger this step (composer aligns the
+    # reveal event to it). Advisory metadata; the renderer reveals on the event.
+    cue: Optional[str] = None
+    # Fade-in duration for this step's elements, ms. Visual polish only.
+    duration_ms: int = 400
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +312,24 @@ class DiagramSpec(BaseModel):
     backgroundColor: str = "#ffffff"
     elements: list[DiagramElement] = Field(default_factory=list)
     parameters: list[SliderParameter] = Field(default_factory=list)
-    animations: list[AnimationSpec] = Field(default_factory=list)
+    animations: list[AnimationStep] = Field(
+        default_factory=list,
+        description=(
+            "Optional staged-reveal ordering. Empty (the common case) means the "
+            "whole diagram is shown at once. Each step reveals a group of "
+            "elements on a narration beat; reveal is monotonic and the final "
+            "frame is the full static diagram. No autoplay/loop — see AnimationStep."
+        ),
+    )
+    presentation_mode: Optional[Literal["build_up", "overview"]] = Field(
+        default=None,
+        description=(
+            "How the renderer should introduce this diagram. 'build_up' starts "
+            "with elements hidden and reveals them in narration-paced steps "
+            "(see `animations`); 'overview' shows everything at once and uses "
+            "focus to spotlight. None defaults to 'overview' at render time."
+        ),
+    )
     dictionary: dict[str, ElementMeta] = Field(
         default_factory=dict,
         description=(

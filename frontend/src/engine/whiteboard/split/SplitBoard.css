@@ -922,6 +922,29 @@
   }
 }
 
+/* ── Staged element reveal (Workstream B) ──────────────────────
+   A build_up diagram carries `.dd-staging`. Kill the index-staggered mount
+   draw/fade so appearance is narration-paced, then fade each element in when
+   its `data-revealed` flips to "true". Elements WITHOUT data-revealed
+   (overview / non-staging) keep the mount stagger above untouched. The
+   higher specificity (.dd-staging adds a class) wins over the base rules.
+   `data-revealed` sits on the leaf element, or — for arrow/frame/graph — on
+   its wrapper <g>, so fading the group fades its children. */
+.sb-slide-live .dd-staging .dd-stroke-path,
+.sb-slide-live .dd-staging .dd-label-fade {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+.sb-slide-live .dd-staging [data-revealed] {
+  transition: opacity 0.45s ease;
+}
+.sb-slide-live .dd-staging [data-revealed="false"] {
+  opacity: 0;
+}
+.sb-slide-live .dd-staging [data-revealed="true"] {
+  opacity: 1;
+}
+
 /* Typography for live design_agent diagrams rendered under the split-board
    slide panel. Inter everywhere, Crimson Pro for svg_frame titles + captions
    (the pedagogical textbook feel). */
@@ -964,6 +987,13 @@
     animation: none !important;
     stroke-dashoffset: 0 !important;
     opacity: 1;
+  }
+  /* Staged reveal collapses to the full static diagram (INV-6): force every
+     element visible regardless of its reveal state. (The playback hook also
+     disables staging up front under reduced motion — this is a safety net.) */
+  .sb-slide-live .dd-staging [data-revealed] {
+    opacity: 1 !important;
+    transition: none !important;
   }
   .sb-entry--struck {
     transition: none !important;

@@ -76,6 +76,27 @@ def test_from_extraction_returns_none_when_chapter_missing():
     assert chapter_context_from_extraction(extraction, "ghost") is None
 
 
+def test_from_extraction_populates_presentation_mode():
+    """Phase IV: a diagram's presentation_mode flows into DiagramData; a missing
+    value defaults to 'overview' (a recap shows the complete figure)."""
+    extraction = {
+        "chapters": [{"chapter_id": "ch1", "title": "C", "topic_ids": ["t1"]}],
+        "topics": [{"topic_id": "t1", "topic_name": "T", "section_number": "1.1"}],
+        "diagrams": [
+            {
+                "diagram_id": "d_build",
+                "linked_topic_ids": ["t1"],
+                "presentation_mode": "build_up",
+            },
+            {"diagram_id": "d_default", "linked_topic_ids": ["t1"]},
+        ],
+    }
+    ctx = chapter_context_from_extraction(extraction, "ch1")
+    assert ctx is not None
+    assert ctx.diagrams["d_build"].presentation_mode == "build_up"
+    assert ctx.diagrams["d_default"].presentation_mode == "overview"
+
+
 # ── load_chapter_by_id (mock Neo4j) ────────────────────────────────────────
 
 
@@ -145,6 +166,8 @@ async def test_load_chapter_by_id_hydrates_topics_and_diagrams():
     assert "d1" in ctx.diagrams
     # dictionary should be JSON-decoded.
     assert ctx.diagrams["d1"].dictionary == {"elem1": {"role": "trajectory"}}
+    # presentation_mode absent on the node → defaults to overview.
+    assert ctx.diagrams["d1"].presentation_mode == "overview"
 
 
 # ── Sanity check against the committed Phase H fixture ────────────────────

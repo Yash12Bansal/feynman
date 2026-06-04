@@ -50,7 +50,8 @@ RETURN
         description:       d.description,
         dictionary:        d.dictionary,
         render_data:       d.render_data,
-        linked_topic_ids:  d.linked_topic_ids
+        linked_topic_ids:  d.linked_topic_ids,
+        presentation_mode: d.presentation_mode
     }) AS diagrams
 """
 
@@ -66,6 +67,16 @@ def _parse_dictionary(value: Any) -> dict[str, dict[str, Any]]:
             return {}
         return parsed if isinstance(parsed, dict) else {}
     return {}
+
+
+def _norm_presentation_mode(value: Any) -> str:
+    """Normalise a diagram's presentation_mode → 'build_up' | 'overview'.
+
+    Not yet persisted on the Diagram node (returns None today), and a reused
+    diagram in a doubt is a recap, so the default is 'overview' (show the
+    complete figure). Forward-compatible: a valid persisted value is respected.
+    """
+    return value if value in ("build_up", "overview") else "overview"
 
 
 def _dictionary_with_render_data_fallback(raw: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -155,6 +166,7 @@ async def load_chapter_by_id(chapter_id: str) -> ChapterContext | None:
             description=raw.get("description") or "",
             dictionary=_dictionary_with_render_data_fallback(raw),
             linked_topic_ids=list(raw.get("linked_topic_ids") or []),
+            presentation_mode=_norm_presentation_mode(raw.get("presentation_mode")),
         )
 
     visual_index = [
@@ -231,6 +243,7 @@ def chapter_context_from_extraction(
             description=d.get("description") or "",
             dictionary=_dictionary_with_render_data_fallback(d),
             linked_topic_ids=list(linked),
+            presentation_mode=_norm_presentation_mode(d.get("presentation_mode")),
         )
 
     raw_index = (chapter.get("concept_visual_index") or {}).get("entries") or []

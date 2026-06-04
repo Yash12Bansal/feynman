@@ -14,6 +14,12 @@ import { SlideAnnotationLayer } from "./SlideAnnotationLayer";
 
 interface SlidePanelProps {
   readonly state: SlideState;
+  /**
+   * Workstream A4: when true, design diagrams render draggable parameter
+   * sliders. Lecture/doubt playback leaves this false (parameters are
+   * event-driven); an interactive playground surface sets it true.
+   */
+  readonly interactive?: boolean;
 }
 
 function liveTitleFor(instr: VisualInstruction): {
@@ -32,7 +38,7 @@ function liveTitleFor(instr: VisualInstruction): {
   }
 }
 
-export function SlidePanel({ state }: SlidePanelProps) {
+export function SlidePanel({ state, interactive }: SlidePanelProps) {
   const {
     status,
     active,
@@ -43,7 +49,10 @@ export function SlidePanel({ state }: SlidePanelProps) {
     marginNotes,
     pointers,
     focusedElementId,
+    focusedElementIds,
     focusedRole,
+    revealedElementIds,
+    paramOverrides,
   } = state;
 
   // Live-DOM bounds anchor: the annotation layer queries this subtree for
@@ -91,7 +100,11 @@ export function SlidePanel({ state }: SlidePanelProps) {
             <InstructionSwitch
               instruction={liveInstruction}
               focusedElementId={focusedElementId}
+              focusedElementIds={focusedElementIds}
               focusedRole={focusedRole}
+              revealedElementIds={revealedElementIds}
+              interactive={interactive}
+              paramOverrides={paramOverrides}
             />
           </div>
         )}

@@ -14,6 +14,10 @@ from __future__ import annotations
 
 from feynman_teaching_kernel.style_guide import PRONUNCIATION_RULES
 
+from lecture_pipeline_v2.curriculum.lecture_plan.template_catalog import (
+    format_templates_for_prompt,
+)
+
 
 LESSON_PLANNING_SYSTEM_PROMPT = f"""\
 You are a lesson-planning agent for the Feynman teaching system. You are \
@@ -64,6 +68,11 @@ declare `parabola-ground-frame` in `required_elements`.
 Element_id naming: kebab-case, semantic (e.g., `train-velocity-vector`, \
 `landing-point`). Avoid generic ids like `arrow-1` or `path`.
 
+If a diagram you commit to IS one of the canonical IGCSE figures listed under \
+"## Available canonical templates" below, template it (set \
+`template_concept_id`) — those render instantly and pixel-correct, at zero \
+generation cost. See that section for the exact rules.
+
 ### Stage 4 — Choreography
 
 This is the lesson's spine. A sequence of `ChoreographyStep`s where each step \
@@ -111,6 +120,30 @@ step-index AFTER which it appears, and the plain-language sentence the agent \
 says before the symbols. If no equations matter, leave the list empty — \
 forced equations are worse than no equations.
 
+## Available canonical templates
+
+Some IGCSE figures recur so often that we hand-built them. A templated diagram \
+renders instantly (zero latency, zero generation cost) and is pixel-correct — \
+prefer one whenever the figure genuinely IS that canonical diagram.
+
+To template a diagram, on its DiagramRequirement:
+1. Set `template_concept_id` to the id listed below.
+2. Declare `required_elements` using EXACTLY the element ids listed for that \
+template (a subset is fine — declare only the ones your choreography will point \
+at). For a template the `role`/`description` you write are ignored (the figure \
+is pre-built); only the `element_id` matters, and it MUST be copied verbatim \
+from the list — these ids are snake_case, NOT kebab-case like your own, so copy \
+them exactly.
+
+NEVER invent an element id for a templated diagram: an id not in its list will \
+never resolve, so your focus / trace / point_at will silently do nothing (the \
+plan is also rejected by validation). And never force a topic onto a template \
+it only superficially resembles — a parabola in a projectile lesson is \
+`projectile-motion`; a parabola in a quadratic-graphs lesson is NOT. When in \
+doubt, leave `template_concept_id` unset and the diagram will be drawn for you.
+
+{format_templates_for_prompt()}
+
 ## ChoreographyAction catalog
 
 Each step's `actions` list can contain any of these (in the order they fire \
@@ -131,6 +164,17 @@ focus; doesn't dim the rest.
 element. For inline annotations like "= mg" next to a force.
 - `clear` — reset all annotations. Use sparingly; usually only when moving \
 between substantially different visual states.
+- `set_param` — jump a diagram parameter to a value (e.g. set the angle to 20 \
+degrees). Use on a diagram that HAS that parameter — the canonical templates \
+list their parameters under "Available canonical templates". Set `param_name` \
++ `param_value` on the step. The change is instant (no animation).
+- `animate_param` — smoothly sweep a diagram parameter to a new value while \
+you talk: the sweep IS the explanation (e.g. "watch the opposite side grow as \
+the angle increases"). Set `param_name` + `param_to`; optionally `param_from` \
+(the start value) and `param_duration_ms`. The sweep runs DURING this step's \
+narration, so the words and the motion land together. A step carries set_param \
+OR animate_param, never both; the diagram must already be on screen and must \
+expose `param_name` (a template parameter, or one the figure declares).
 
 ## Notebook usage
 

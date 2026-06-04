@@ -18,6 +18,7 @@ import {
   type ChapterPayload,
   type ManifestEvent,
 } from "./useExtractionPlayback";
+import type { DrawDesignDiagramInstruction } from "../types/visuals";
 
 // ── Fake audio element ─────────────────────────────────────────
 
@@ -92,6 +93,10 @@ function attach(
 
 afterEach(() => {
   vi.restoreAllMocks();
+  // Remove globals set via vi.stubGlobal (e.g. mockReducedMotion's matchMedia).
+  // restoreAllMocks only neuters them to return undefined, which would make a
+  // later prefersReducedMotion() read `.matches` of undefined and throw.
+  vi.unstubAllGlobals();
 });
 
 // ── Tests ──────────────────────────────────────────────────────
@@ -288,34 +293,21 @@ describe("useExtractionPlayback", () => {
   });
 });
 
-// ── Phase 6: slide snapshot/restore on pause/resume ─────────────
+// ── Doubt board: separate scratch board with slide + notebook restore ──
 
-describe("useExtractionPlayback — slide snapshot/restore (Phase 6)", () => {
-  it("pause + applyDoubtBeat + play restores the pre-doubt slide", async () => {
-    // Step 1: lecture renders a diagram via show_diagram.
-    // Step 2: pause + applyDoubtBeat mutates the slide to a different diagram.
-    // Step 3: play() should restore the snapshot taken at pause time.
+describe("useExtractionPlayback — doubt board snapshot/restore", () => {
+  it("pause + beginDoubtBoard + applyDoubtBoardEvents, then play restores slide + notebook", async () => {
+    // Lecture: render d1 on the slide and write one notebook step.
     const chapter = mkChapter([
       { type: "show_diagram", diagram_id: "diagram:test:d1" },
+      { type: "write_step", id: "lec-1", text: "lecture step", indent: 0 },
       { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
     ]);
-    // Add a second diagram so applyDoubtBeat has somewhere to switch to.
-    chapter.diagrams["diagram:test:doubt"] = {
-      url: null,
-      description: "doubt diagram",
-      spec: {
-        title: "Doubt",
-        description: "doubt",
-        render_data: { elements: [] },
-        presentation_mode: "overview",
-      } as never,
-    };
 
     const fake = makeFakeAudio();
     const { result } = renderHook(() => useExtractionPlayback({ chapter }));
     attach(result.current.setAudioElement, fake);
 
-    // Run the lecture to the audio event. show_diagram has fired by now.
     await act(async () => {
       void result.current.play();
     });
@@ -324,31 +316,501 @@ describe("useExtractionPlayback — slide snapshot/restore (Phase 6)", () => {
         "diagram:test:d1",
       ),
     );
+    expect(result.current.notebook.page.entries).toHaveLength(1);
 
-    // Pause — should snapshot the current slide (showing d1).
+    // Tap Ask Feynman: pause (snapshots slide + notebook) then clear the board.
     await act(async () => {
       result.current.pause();
     });
     await waitFor(() => expect(result.current.status).toBe("paused"));
-
-    // Mutate the slide via applyDoubtBeat (simulates the doubt overlay).
     await act(async () => {
-      result.current.applyDoubtBeat(
-        { target_diagram_id: "diagram:test:doubt", annotation_actions: [] },
-        chapter,
-      );
+      result.current.beginDoubtBoard();
+    });
+    expect(result.current.notebook.page.entries).toHaveLength(0);
+
+    // Doubt teaches on the scratch board: a live-generated diagram + a note.
+    await act(async () => {
+      result.current.addDoubtDiagram("doubt-gen-1", {
+        title: "Doubt",
+        description: "doubt diagram",
+        render_data: { elements: [] },
+        presentation_mode: "overview",
+      } as never);
+      result.current.applyDoubtBoardEvents([
+        { type: "show_diagram", diagram_id: "doubt-gen-1" },
+        { type: "write_step", id: "doubt-1", text: "doubt step", indent: 0 },
+      ] as ManifestEvent[]);
     });
     expect(result.current.slide.liveInstruction?.element_id).toBe(
-      "diagram:test:doubt",
+      "doubt-gen-1",
     );
+    expect(result.current.notebook.page.entries).toHaveLength(1);
+    expect(result.current.notebook.page.entries[0].id).toBe("doubt-1");
 
-    // Resume — the snapshot should restore d1 immediately.
+    // Resume: the lecture board (slide d1 + its notebook) is restored.
     await act(async () => {
       void result.current.play();
     });
     expect(result.current.slide.liveInstruction?.element_id).toBe(
       "diagram:test:d1",
     );
+    expect(result.current.notebook.page.entries).toHaveLength(1);
+    expect(result.current.notebook.page.entries[0].id).toBe("lec-1");
+  });
+
+  it("doubt template directive builds the canonical spec via buildTemplateSpec", async () => {
+    const chapter = mkChapter([
+      { type: "show_diagram", diagram_id: "diagram:test:d1" },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() =>
+      expect(result.current.slide.liveInstruction?.element_id).toBe(
+        "diagram:test:d1",
+      ),
+    );
+    await act(async () => {
+      result.current.pause();
+    });
+    await waitFor(() => expect(result.current.status).toBe("paused"));
+    await act(async () => {
+      result.current.beginDoubtBoard();
+    });
+
+    // A Phase V-B `template` directive ships no spec — just a concept id.
+    // addDoubtDiagram stores it; the doubt show_diagram builds the figure from
+    // the registry, exactly like the lecture's instant-canonical path.
+    await act(async () => {
+      result.current.addDoubtDiagram(
+        "doubt-tpl-0",
+        null,
+        "right-triangle-trig",
+        {
+          theta: 30,
+        },
+      );
+      result.current.applyDoubtBoardEvents([
+        { type: "show_diagram", diagram_id: "doubt-tpl-0" },
+      ] as ManifestEvent[]);
+    });
+    await waitFor(() =>
+      expect(
+        (result.current.slide.liveInstruction as DrawDesignDiagramInstruction)
+          ?.spec?.elements?.length,
+      ).toBeGreaterThan(0),
+    );
+    expect(
+      (result.current.slide.liveInstruction as DrawDesignDiagramInstruction)
+        ?.title,
+    ).toBe("Right-triangle trigonometry");
+  });
+});
+
+// ── Staged element reveal (Workstream B) ───────────────────────
+
+const REVEAL_SPEC = {
+  title: "Reveal",
+  width: 900,
+  height: 650,
+  presentation_mode: "build_up",
+  elements: [
+    { type: "svg_line", id: "ground", x1: 0, y1: 600, x2: 900, y2: 600 },
+    { type: "svg_circle", id: "ball", cx: 450, cy: 300, r: 40 },
+    { type: "svg_arrow", id: "v1", x1: 450, y1: 300, x2: 500, y2: 250 },
+    { type: "svg_arrow", id: "v2", x1: 450, y1: 300, x2: 400, y2: 250 },
+    { type: "svg_text", id: "lbl", x: 450, y: 120, text: "label" },
+  ],
+  dictionary: {
+    ground: { role: "surface", semantic: "", position: "bottom" },
+    ball: { role: "object", semantic: "", position: "center" },
+    v1: { role: "velocity", semantic: "", position: "center" },
+    v2: { role: "velocity", semantic: "", position: "center" },
+    lbl: { role: "label", semantic: "", position: "top" },
+  },
+};
+
+function mkRevealChapter(events: ManifestEvent[]): ChapterPayload {
+  return {
+    chapter_id: "chapter:reveal",
+    title: "Reveal Chapter",
+    chapter_index: 1,
+    events,
+    diagrams: {
+      "diagram:reveal:rd": {
+        url: null,
+        description: "reveal diagram",
+        spec: REVEAL_SPEC as never,
+      },
+    },
+    topics: {},
+  };
+}
+
+function mockReducedMotion(matches: boolean): void {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((query: string) => ({
+      matches,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  );
+}
+
+describe("useExtractionPlayback — staged element reveal", () => {
+  it("overview leaves revealedElementIds null (static parity, INV-7)", async () => {
+    const chapter = mkRevealChapter([
+      {
+        type: "show_diagram",
+        diagram_id: "diagram:reveal:rd",
+        presentation_mode: "overview",
+      },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() => expect(result.current.slide.status).toBe("ready"));
+    expect(result.current.slide.revealedElementIds).toBeNull();
+  });
+
+  it("build_up starts with an empty revealed set; focus reveals the role-group", async () => {
+    const chapter = mkRevealChapter([
+      { type: "show_diagram", diagram_id: "diagram:reveal:rd" },
+      {
+        type: "focus",
+        diagram_id: "diagram:reveal:rd",
+        target_element_id: "v1",
+      },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    // Focusing v1 (role "velocity") reveals its whole role-group: v1 + v2.
+    await waitFor(() =>
+      expect(result.current.slide.revealedElementIds?.has("v1")).toBe(true),
+    );
+    const revealed = result.current.slide.revealedElementIds;
+    expect(revealed).not.toBeNull();
+    expect(revealed?.has("v2")).toBe(true);
+    expect(revealed?.has("ball")).toBe(false);
+    expect(result.current.slide.focusedElementId).toBe("v1");
+  });
+
+  it("focus under overview does not mutate the revealed set", async () => {
+    const chapter = mkRevealChapter([
+      {
+        type: "show_diagram",
+        diagram_id: "diagram:reveal:rd",
+        presentation_mode: "overview",
+      },
+      {
+        type: "focus",
+        diagram_id: "diagram:reveal:rd",
+        target_element_id: "v1",
+      },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() =>
+      expect(result.current.slide.focusedElementId).toBe("v1"),
+    );
+    expect(result.current.slide.revealedElementIds).toBeNull();
+  });
+
+  it("clear_annotations keeps the revealed set (reveal is monotonic)", async () => {
+    const chapter = mkRevealChapter([
+      { type: "show_diagram", diagram_id: "diagram:reveal:rd" },
+      {
+        type: "focus",
+        diagram_id: "diagram:reveal:rd",
+        target_element_id: "ball",
+      },
+      { type: "clear_annotations", diagram_id: "diagram:reveal:rd" },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() =>
+      expect(result.current.slide.revealedElementIds?.has("ball")).toBe(true),
+    );
+    // Spotlight cleared, but the drawn element stays drawn.
+    expect(result.current.slide.focusedElementId).toBeNull();
+    expect(result.current.slide.revealedElementIds?.has("ball")).toBe(true);
+  });
+
+  it("reveal_step walks the groups; the last step reveals everything (INV-1)", async () => {
+    const chapter = mkRevealChapter([
+      { type: "show_diagram", diagram_id: "diagram:reveal:rd" },
+      // 4 reveal groups: [ground],[ball],[v1,v2],[lbl].
+      { type: "reveal_step" },
+      { type: "reveal_step" },
+      { type: "reveal_step" },
+      { type: "reveal_step" },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() =>
+      expect(result.current.slide.revealedElementIds?.size).toBe(5),
+    );
+    const ids = result.current.slide.revealedElementIds!;
+    for (const id of ["ground", "ball", "v1", "v2", "lbl"]) {
+      expect(ids.has(id)).toBe(true);
+    }
+  });
+
+  it("reduced motion disables staging (revealedElementIds null, INV-6)", async () => {
+    mockReducedMotion(true);
+    const chapter = mkRevealChapter([
+      { type: "show_diagram", diagram_id: "diagram:reveal:rd" },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() => expect(result.current.slide.status).toBe("ready"));
+    expect(result.current.slide.revealedElementIds).toBeNull();
+  });
+});
+
+describe("useExtractionPlayback — instant-canonical templates (E)", () => {
+  it("builds a template spec on show_diagram when the entry has no spec", async () => {
+    const chapter: ChapterPayload = {
+      chapter_id: "c",
+      title: "t",
+      chapter_index: 1,
+      events: [
+        { type: "show_diagram", diagram_id: "d:tmpl" },
+        { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+      ],
+      diagrams: {
+        "d:tmpl": {
+          url: null,
+          description: "",
+          spec: null,
+          template_concept_id: "right-triangle-trig",
+        },
+      },
+      topics: {},
+    };
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() => expect(result.current.slide.status).toBe("ready"));
+    expect(
+      (result.current.slide.liveInstruction as DrawDesignDiagramInstruction)
+        ?.spec?.elements?.length,
+    ).toBeGreaterThan(0);
+    expect(
+      (result.current.slide.liveInstruction as DrawDesignDiagramInstruction)
+        ?.title,
+    ).toBe("Right-triangle trigonometry");
+  });
+
+  it("skips a diagram with neither a spec nor a known template id", async () => {
+    const chapter: ChapterPayload = {
+      chapter_id: "c",
+      title: "t",
+      chapter_index: 1,
+      events: [
+        { type: "show_diagram", diagram_id: "d:bad" },
+        { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+      ],
+      diagrams: {
+        "d:bad": {
+          url: null,
+          description: "",
+          spec: null,
+          template_concept_id: "no-such-template",
+        },
+      },
+      topics: {},
+    };
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() => expect(result.current.audioProgress.current).toBe(1));
+    expect(result.current.slide.liveInstruction).toBeUndefined();
+  });
+});
+
+describe("useExtractionPlayback — narration-driven parameters (A5)", () => {
+  it("set_parameter writes paramOverrides on the slide", async () => {
+    const chapter = mkRevealChapter([
+      {
+        type: "show_diagram",
+        diagram_id: "diagram:reveal:rd",
+        presentation_mode: "overview",
+      },
+      { type: "set_parameter", name: "theta", value: 30 },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() =>
+      expect(result.current.slide.paramOverrides?.theta).toBe(30),
+    );
+  });
+
+  it("animate_parameter tweens and lands EXACTLY on `to` (INV-1)", async () => {
+    // Real jsdom rAF + a short duration; we assert the terminal value only
+    // (intermediate frames are timing-dependent). The final frame must write
+    // exactly `to`, never an eased approximation.
+    const chapter = mkRevealChapter([
+      {
+        type: "show_diagram",
+        diagram_id: "diagram:reveal:rd",
+        presentation_mode: "overview",
+      },
+      {
+        type: "animate_parameter",
+        name: "theta",
+        from: 10,
+        to: 50,
+        duration_ms: 60,
+      },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    await waitFor(() =>
+      expect(result.current.slide.paramOverrides?.theta).toBe(50),
+    );
+  });
+
+  it("reduced motion jumps straight to `to`, no tween (INV-6/INV-1)", async () => {
+    mockReducedMotion(true);
+    const chapter = mkRevealChapter([
+      {
+        type: "show_diagram",
+        diagram_id: "diagram:reveal:rd",
+        presentation_mode: "overview",
+      },
+      {
+        type: "animate_parameter",
+        name: "theta",
+        from: 10,
+        to: 50,
+        duration_ms: 600,
+      },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    // Synchronous jump — the target is set without waiting for any frame.
+    await waitFor(() =>
+      expect(result.current.slide.paramOverrides?.theta).toBe(50),
+    );
+  });
+
+  it("seek snaps animate_parameter to its terminal value, not mid-tween", async () => {
+    const chapter = mkRevealChapter([
+      {
+        type: "show_diagram",
+        diagram_id: "diagram:reveal:rd",
+        presentation_mode: "overview",
+      },
+      {
+        type: "animate_parameter",
+        name: "theta",
+        from: 10,
+        to: 50,
+        duration_ms: 5000,
+      },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    // Scrub past the animate event (index 2) — replay must land on theta=50.
+    act(() => {
+      result.current.seekToEvent(2);
+    });
+    expect(result.current.slide.paramOverrides?.theta).toBe(50);
+  });
+
+  it("set_parameter cancels an in-flight tween and wins", async () => {
+    const chapter = mkRevealChapter([
+      {
+        type: "show_diagram",
+        diagram_id: "diagram:reveal:rd",
+        presentation_mode: "overview",
+      },
+      // A long tween that would crawl from 10 toward 50...
+      {
+        type: "animate_parameter",
+        name: "theta",
+        from: 10,
+        to: 50,
+        duration_ms: 5000,
+      },
+      // ...immediately overridden by an explicit set.
+      { type: "set_parameter", name: "theta", value: 99 },
+      { type: "audio", url: "/a/x.mp3", duration_ms: 100 },
+    ]);
+    const fake = makeFakeAudio();
+    const { result } = renderHook(() => useExtractionPlayback({ chapter }));
+    attach(result.current.setAudioElement, fake);
+    await act(async () => {
+      void result.current.play();
+    });
+    expect(result.current.slide.paramOverrides?.theta).toBe(99);
+    // Let several real frames pass — a non-cancelled tween would overwrite 99
+    // with values crawling up from 10. It stays 99 → the tween was cancelled.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 60));
+    });
+    expect(result.current.slide.paramOverrides?.theta).toBe(99);
   });
 });
 
@@ -405,31 +867,10 @@ describe("useExtractionPlayback — FOCUS + POINT_AT", () => {
     expect(result.current.slide.pointers?.length ?? 0).toBe(0);
   });
 
-  it("doubt: applyDoubtBeat wires focus + point_at (same setters as the lecture)", () => {
-    const chapter = mkChapter([]);
-    const { result } = renderHook(() =>
-      useExtractionPlayback({ chapter, autoStart: false }),
-    );
-    act(() => {
-      result.current.applyDoubtBeat(
-        {
-          target_diagram_id: "diagram:test:d1",
-          annotation_actions: [
-            {
-              action: "focus",
-              target_element_id: "hyp",
-              target_role: "hypotenuse",
-            },
-            { action: "point_at", element_id: "v", from_side: "right" },
-          ],
-        },
-        chapter,
-      );
-    });
-    expect(result.current.slide.focusedElementId).toBe("hyp");
-    expect(result.current.slide.pointers?.length).toBe(1);
-    expect(result.current.slide.pointers?.[0].fromSide).toBe("right");
-  });
+  // (Removed the obsolete `applyDoubtBeat` test — that per-beat annotation
+  // API was retired in favour of `applyDoubtBoardEvents` (board events in the
+  // ManifestEvent vocabulary), which is exercised by the doubt-board tests
+  // above.)
 
   it("show_diagram resets a prior topic's focus + pointers", () => {
     const chapter = mkChapter([

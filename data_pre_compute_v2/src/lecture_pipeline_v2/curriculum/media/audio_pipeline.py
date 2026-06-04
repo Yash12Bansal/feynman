@@ -27,6 +27,7 @@ from pathlib import Path
 from ...config import ArtifactsConfig, LayoutConfig, TTSConfig
 from ...tts.base import TTSProvider
 from ...tts.chunker import (
+    AnimateParamFragment,
     AnswerFragment,
     BracketFragment,
     CalloutFragment,
@@ -43,7 +44,10 @@ from ...tts.chunker import (
     PinFragment,
     PointAtFragment,
     PulseFragment,
+    REVEAL_ALL_STEP,
+    RevealStepFragment,
     SectionFragment,
+    SetParamFragment,
     StepFragment,
     StrikeFragment,
     TextEntryFragment,
@@ -57,6 +61,7 @@ from ..ingestion.visual_term_index import build_concept_visual_index
 from ..lecture_script.models import ChapterScript
 from ..manifest_composer import ManifestComposer, MeasurementService
 from ..models import (
+    AnimateParameterEvent,
     AudioEvent,
     BracketEvent,
     CalloutEvent,
@@ -73,6 +78,8 @@ from ..models import (
     PinEvent,
     PointAtEvent,
     PulseEvent,
+    RevealStepEvent,
+    SetParameterEvent,
     ShowDiagramEvent,
     StrikethroughEvent,
     Topic,
@@ -284,6 +291,15 @@ class AudioPipeline:
         # Phase 3: close the final page summary at chapter end.
         composer.flush()
 
+        # Workstream B: if the chapter ends on a build_up diagram, flush it to
+        # fully-revealed so the lecture never ends on a half-built figure
+        # (mirrors the swap-time reveal-all the walker injects mid-stream).
+        open_build_up = composer.open_build_up_diagram_id
+        if open_build_up and chapter_events:
+            chapter_events.append(
+                RevealStepEvent(diagram_id=open_build_up, step=REVEAL_ALL_STEP)
+            )
+
         if chapter_events:
             chapter.chapter_manifest = Manifest(events=chapter_events)
             report.chapters_with_chapter_audio += 1
@@ -297,7 +313,8 @@ class AudioPipeline:
         # regen-audio so it stays aligned with the diagrams as they evolve.
         chapter_topic_ids = set(chapter.topic_ids)
         chapter_diagrams = [
-            d for d in diagrams_by_id.values()
+            d
+            for d in diagrams_by_id.values()
             if chapter_topic_ids.intersection(d.linked_topic_ids)
         ]
         chapter.concept_visual_index = build_concept_visual_index(chapter_diagrams)
@@ -435,11 +452,13 @@ class AudioPipeline:
             elif isinstance(frag, FocusFragment):
                 # Doc 19 §A-3: prefer target_element_id (stable id resolved
                 # from role by the walker). target_role kept for human-
-                # readability + back-compat with consumers that still read it.
+                # readability + back-compat. Co-highlight: target_element_ids
+                # carries the full walker-resolved set (empty for single).
                 events.append(
                     FocusEvent(
                         diagram_id=frag.diagram_id,
                         target_element_id=frag.element_id or None,
+                        target_element_ids=list(frag.element_ids),
                         target_role=frag.role,
                         text=frag.text,
                     )
@@ -480,6 +499,28 @@ class AudioPipeline:
                         anchor_element_id=frag.anchor_element_id,
                         side=frag.side,
                         text=frag.text,
+                    )
+                )
+            elif isinstance(frag, RevealStepFragment):
+                events.append(
+                    RevealStepEvent(diagram_id=frag.diagram_id, step=frag.step)
+                )
+            elif isinstance(frag, SetParamFragment):
+                events.append(
+                    SetParameterEvent(
+                        diagram_id=frag.diagram_id,
+                        name=frag.name,
+                        value=frag.value,
+                    )
+                )
+            elif isinstance(frag, AnimateParamFragment):
+                events.append(
+                    AnimateParameterEvent(
+                        diagram_id=frag.diagram_id,
+                        name=frag.name,
+                        to=frag.to,
+                        from_=frag.from_value,
+                        duration_ms=frag.duration_ms,
                     )
                 )
             # --- Legacy annotation events (defensive — walker drops) ------

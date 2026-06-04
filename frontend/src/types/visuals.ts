@@ -502,6 +502,27 @@ export interface ElementMeta {
   bounds?: ElementBounds;
 }
 
+/**
+ * One step of a diagram's staged reveal. Mirrors `AnimationStep` in
+ * `design_agent/backend/schema.py`. A step names elements — by dictionary
+ * `role_targets` (preferred) and/or explicit `element_targets` — that reveal
+ * together on a narration beat. There is intentionally NO loop/autoplay/timer
+ * field: reveal only advances on an event, so autoplay is unrepresentable
+ * (INV-2). Consumed by `deriveRevealPlan` to build the reveal order.
+ */
+export interface DesignDiagramAnimationStep {
+  /** Reveal order; ascending, ties keep array order. */
+  step?: number;
+  /** Dictionary roles revealed this step (id-agnostic). */
+  role_targets?: readonly string[];
+  /** Explicit element ids revealed this step (escape hatch). */
+  element_targets?: readonly string[];
+  /** Narration phrase that triggers this step (advisory). */
+  cue?: string | null;
+  /** Fade-in duration for this step's elements, ms (visual polish only). */
+  duration_ms?: number;
+}
+
 /** Full diagram specification from the design agent. */
 export interface DesignDiagramSpec {
   title?: string;
@@ -527,6 +548,14 @@ export interface DesignDiagramSpec {
    * Optional — undefined defaults to "overview" at render time.
    */
   presentation_mode?: "build_up" | "overview";
+  /**
+   * Optional staged-reveal ordering (mirrors `animations` in
+   * `design_agent/backend/schema.py`). Empty/absent = show the whole diagram at
+   * once (the common case). When present AND `presentation_mode === "build_up"`,
+   * `deriveRevealPlan` uses these steps verbatim instead of the dictionary-role
+   * heuristic. Ignored under "overview".
+   */
+  animations?: readonly DesignDiagramAnimationStep[];
 }
 
 export interface DrawDesignDiagramInstruction extends BaseInstruction {

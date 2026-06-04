@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ...tts.chunker import (
+    AnimateParamFragment,
     AnswerFragment,
     ClearAnnotationsFragment,
     DiagramFragment,
@@ -39,8 +40,11 @@ from ...tts.chunker import (
     NewPageFragment,
     PageBreakFragment,
     PointAtFragment,
+    REVEAL_ALL_STEP,
+    RevealStepFragment,
     ScriptFragment,
     SectionFragment,
+    SetParamFragment,
     StepFragment,
     TextEntryFragment,
     TextFragment,
@@ -83,6 +87,9 @@ class _PerDiagramState:
     diagram_id: str
     # The diagram's dictionary: element_id → {role, semantic, position, bounds}.
     dictionary: dict[str, dict[str, Any]]
+    # Valid parameter names for set_param / animate_param validation (template
+    # params from the catalog, or an LLM diagram's declared parameters[]).
+    param_names: frozenset[str] = field(default_factory=frozenset)
     # role → element_id (lazy index built on first access).
     _role_to_element: dict[str, str] | None = None
     # Currently focused role (last FOCUS), or None if nothing focused.
@@ -105,6 +112,64 @@ class _PerDiagramState:
 
     def has_element_id(self, element_id: str) -> bool:
         return element_id in self.dictionary
+
+
+# ---------------------------------------------------------------------------
+# Diagram introspection — template-aware (templates carry empty render_data;
+# their element vocab + parameters live in the shared catalog).
+# ---------------------------------------------------------------------------
+
+
+def _resolve_dictionary(diagram: Any) -> dict[str, dict[str, Any]]:
+    """The diagram's element dictionary (element_id → {role, ...}).
+
+    A template diagram carries an EMPTY render_data — synthesize its dictionary
+    from the catalog so focus / trace / point_at validate against the template's
+    real element ids (otherwise every annotation on a template silently drops).
+    An LLM diagram uses render_data['dictionary'].
+    """
+    template_id = getattr(diagram, "template_concept_id", None)
+    if template_id:
+        from ..lecture_plan.template_catalog import get_template
+
+        template = get_template(template_id)
+        if template is not None:
+            return {e.element_id: {"role": e.role} for e in template.elements}
+    render_data = getattr(diagram, "render_data", None)
+    if isinstance(render_data, dict):
+        dictionary = render_data.get("dictionary")
+        if isinstance(dictionary, dict):
+            return dictionary
+    return {}
+
+
+def _extract_param_names(diagram: Any) -> frozenset[str]:
+    """Valid parameter names for set_param / animate_param validation.
+
+    Template diagrams: from the catalog. LLM diagrams: from the spec's
+    `parameters[]` (each a dict with a `name`).
+    """
+    template_id = getattr(diagram, "template_concept_id", None)
+    if template_id:
+        from ..lecture_plan.template_catalog import get_template
+
+        template = get_template(template_id)
+        if template is not None:
+            return frozenset(p.name for p in template.parameters)
+        return frozenset()
+    render_data = getattr(diagram, "render_data", None)
+    if not isinstance(render_data, dict):
+        return frozenset()
+    params = render_data.get("parameters")
+    if not isinstance(params, list):
+        return frozenset()
+    names: set[str] = set()
+    for p in params:
+        if isinstance(p, dict):
+            name = p.get("name")
+            if isinstance(name, str) and name:
+                names.add(name)
+    return frozenset(names)
 
 
 # ---------------------------------------------------------------------------
@@ -188,6 +253,19 @@ class Walker:
         # Phase 3 state — only used when layout_planner is provided.
         self._page_state: PageState | None = None
         self._fragment_timings: list[float] = []
+        # Workstream B: the build_up diagram currently on screen (or None). When
+        # it leaves (swap / chapter end) we inject a reveal-all so no element is
+        # left hidden. Read by the composer for the chapter-end terminal reveal.
+        self._open_build_up_diagram_id: str | None = None
+
+    @property
+    def open_build_up_diagram_id(self) -> str | None:
+        """The build_up diagram still on screen at the current point (or None).
+
+        The composer reads this after `flush()` to emit a chapter-end reveal-all
+        so a lecture never ends on a half-built diagram.
+        """
+        return self._open_build_up_diagram_id
 
     async def walk(self, fragments: list[ScriptFragment]) -> list[ScriptFragment]:
         """Walk one fragment batch, applying policies. State persists across
@@ -279,6 +357,15 @@ class Walker:
             return [r] if r is not None else []
         if kind == "unfocus":
             r = self._handle_unfocus(frag)  # type: ignore[arg-type]
+            return [r] if r is not None else []
+        if kind == "reveal_step":
+            r = self._handle_reveal_step(frag)  # type: ignore[arg-type]
+            return [r] if r is not None else []
+        if kind == "set_parameter":
+            r = self._handle_set_param(frag)  # type: ignore[arg-type]
+            return [r] if r is not None else []
+        if kind == "animate_parameter":
+            r = self._handle_animate_param(frag)  # type: ignore[arg-type]
             return [r] if r is not None else []
         if kind == "trace":
             r = self._handle_trace(frag)  # type: ignore[arg-type]
@@ -425,6 +512,24 @@ class Walker:
         fragments: list[ScriptFragment],
         idx: int,
     ) -> list[ScriptFragment]:
+        # Workstream B: if a DIFFERENT build_up diagram is currently on screen,
+        # flush it to fully-revealed before swapping — otherwise elements the
+        # choreography never focused would vanish half-built. Prepended below so
+        # it fires while the OLD diagram is still active (the new show_diagram
+        # resets the reveal set).
+        reveal_prefix: list[ScriptFragment] = []
+        if (
+            self._open_build_up_diagram_id is not None
+            and self._open_build_up_diagram_id != frag.diagram_id
+        ):
+            reveal_prefix.append(
+                RevealStepFragment(
+                    kind="reveal_step",
+                    step=REVEAL_ALL_STEP,
+                    diagram_id=self._open_build_up_diagram_id,
+                )
+            )
+
         # Doc-18 path: build the focus state. If layout is off, this is the
         # entire handler — early return.
         new_state = self._build_diagram_state(frag.diagram_id)
@@ -442,9 +547,15 @@ class Walker:
             mode = getattr(diagram_obj, "presentation_mode", None)
             if mode in ("build_up", "overview"):
                 frag.presentation_mode = mode
+        # Track the now-open build_up diagram (or clear it for overview / no
+        # mode) so the next swap or the chapter end knows whether to reveal-all.
+        self._open_build_up_diagram_id = (
+            frag.diagram_id if frag.presentation_mode == "build_up" else None
+        )
+
         if self._layout is None:
             self._active = new_state
-            return [frag]
+            return [*reveal_prefix, frag]
 
         # Phase 3: try to place the diagram on the current page.
         self._ensure_page_state()
@@ -460,7 +571,7 @@ class Walker:
             # first diagram of the page).
             self._active = new_state
             self._stamp_diagram_placement(frag, placement, slide_element_bounds)
-            return [frag]
+            return [*reveal_prefix, frag]
 
         # Need to break: a different diagram is already on this page.
         # Look-ahead decision is "new_diagram" → always swap to this new id.
@@ -498,7 +609,7 @@ class Walker:
         )
         self._active = new_state
         self._stamp_diagram_placement(frag, placement, slide_element_bounds)
-        return [break_frag, frag]
+        return [*reveal_prefix, break_frag, frag]
 
     @staticmethod
     def _stamp_diagram_placement(
@@ -513,20 +624,23 @@ class Walker:
         diagram = self._diagrams_by_id.get(diagram_id)
         if diagram is None:
             return None
-        render_data = getattr(diagram, "render_data", None)
-        if not isinstance(render_data, dict):
-            return None
-        dictionary = render_data.get("dictionary")
-        if not isinstance(dictionary, dict) or not dictionary:
-            # Phase-1 legacy: warn but still create a state so non-focus
-            # fragments flow. All role lookups will miss → focus drops.
+        # Template-aware: a template diagram's element vocab + parameters come
+        # from the catalog (its render_data is empty); an LLM diagram's come
+        # from render_data. Resolving template ids here is what makes a
+        # template's focus / trace / param actions validate instead of drop.
+        dictionary = _resolve_dictionary(diagram)
+        param_names = _extract_param_names(diagram)
+        if not dictionary:
+            # Non-focus fragments still flow; role / element lookups will miss.
             logger.info(
                 "Diagram %s has no semantic dictionary — focus targeting it will drop",
                 diagram_id,
             )
-            return _PerDiagramState(diagram_id=diagram_id, dictionary={})
-
-        return _PerDiagramState(diagram_id=diagram_id, dictionary=dictionary)
+        return _PerDiagramState(
+            diagram_id=diagram_id,
+            dictionary=dictionary,
+            param_names=param_names,
+        )
 
     def _handle_clear(
         self, frag: ClearAnnotationsFragment
@@ -676,40 +790,82 @@ class Walker:
         if self._page_state is not None:
             self._page_state.slide.annotations_count += 1
 
-    def _handle_focus(self, frag: FocusFragment) -> ScriptFragment | None:
-        """Validate FOCUS against active diagram; stamp diagram_id; emit.
+    def _resolve_focus_target(self, target: str) -> tuple[str, str] | None:
+        """Resolve a single FOCUS target (element_id OR role) against the active
+        diagram → (role, element_id). Returns None if it matches neither.
 
-        The FOCUS body (carried in `frag.role`) may be EITHER a stable
-        `element_id` (the semantic highlight aligner + the frontend's preferred
-        `target_element_id` path) OR a legacy `role`. We resolve id-first, then
-        role, so both authoring styles work. Drops when:
-          - no active diagram
-          - body matches neither an element_id nor a role in the dictionary
-        Re-FOCUS on the same target is allowed (re-emit). Empty label is fine.
+        An exact element_id wins (preferred, doc-19 §A-3); otherwise a role name
+        resolves to its element_id. Validating ONLY by role used to silently
+        drop every element_id-addressed focus (`role_unknown`).
+        """
+        assert self._active is not None
+        target = target.strip()
+        if not target:
+            return None
+        if self._active.has_element_id(target):
+            meta = self._active.dictionary.get(target) or {}
+            role_value = meta.get("role")
+            return (role_value if isinstance(role_value, str) else "", target)
+        if self._active.has_role(target):
+            return (target, self._active.role_to_element_id(target) or "")
+        return None
+
+    def _handle_focus(self, frag: FocusFragment) -> ScriptFragment | None:
+        """Validate FOCUS against the active diagram; stamp diagram_id +
+        element_id(s); emit.
+
+        Single-target (`<<FOCUS:x>>`): `frag.role` carries an element_id or a
+        role; resolved via `_resolve_focus_target`. Co-highlight
+        (`<<FOCUS:a+b>>`): `frag.element_ids` carries every target; each is
+        resolved independently, unresolved ones are dropped individually, and
+        the whole fragment drops only if NONE survive. The first survivor is
+        mirrored into `element_id`/`role` so single-target consumers keep
+        working.
+
+        Drops when: no active diagram, empty value, or nothing resolves.
         """
         if self._active is None:
             self.report.record_drop("no_active_diagram")
             return None
-        body = frag.role.strip()
-        if not body:
-            self.report.record_drop("focus_empty_target")
+
+        # Co-highlight path: resolve each target, dropping unresolved ones.
+        if frag.element_ids:
+            resolved: list[str] = []
+            for raw in frag.element_ids:
+                pair = self._resolve_focus_target(raw)
+                if pair is not None and pair[1] and pair[1] not in resolved:
+                    resolved.append(pair[1])
+            if not resolved:
+                self.report.record_drop("role_unknown")
+                return None
+            first_meta = self._active.dictionary.get(resolved[0]) or {}
+            first_role = first_meta.get("role")
+            frag.role = first_role if isinstance(first_role, str) else ""
+            frag.element_id = resolved[0]
+            frag.element_ids = resolved
+            frag.diagram_id = self._active.diagram_id
+            self._active.focus_role = frag.role or resolved[0]
+            self.report.record_emit()
+            self._bump_annotations()
+            return frag
+
+        # Single-target path (unchanged behaviour).
+        target = frag.role.strip()
+        if not target:
+            self.report.record_drop("focus_empty_role")
             return None
-        if self._active.has_element_id(body):
-            resolved_id: str | None = body
-            meta = self._active.dictionary.get(body) or {}
-            role = meta.get("role", "") if isinstance(meta, dict) else ""
-        elif self._active.has_role(body):
-            role = body
-            resolved_id = self._active.role_to_element_id(body)
-        else:
-            self.report.record_drop("focus_target_unknown")
+        pair = self._resolve_focus_target(target)
+        if pair is None:
+            self.report.record_drop("role_unknown")
             return None
+        role, element_id = pair
         frag.role = role
         frag.diagram_id = self._active.diagram_id
         # Doc 19 §A-3: stamp the stable element_id so the audio_pipeline can
         # populate FocusEvent.target_element_id (the preferred selector).
-        frag.element_id = resolved_id or ""
-        self._active.focus_role = role or resolved_id
+        frag.element_id = element_id
+        # Track focus for unfocus/clear; element_id is fine when there's no role.
+        self._active.focus_role = role or element_id
         self.report.record_emit()
         self._bump_annotations()
         return frag
@@ -726,6 +882,53 @@ class Walker:
         self._active.focus_role = None
         frag.diagram_id = self._active.diagram_id
         self.report.record_emit()
+        return frag
+
+    def _handle_reveal_step(self, frag: RevealStepFragment) -> ScriptFragment | None:
+        """Stamp diagram_id from the active diagram; emit. Drops if no active
+        diagram (a reveal_step before any SHOW_DIAGRAM has nothing to reveal).
+
+        Injected reveal-all fragments (from `_handle_show_diagram`) carry their
+        own diagram_id and are emitted directly, bypassing this; this path is for
+        authored `<<REVEAL_STEP:n>>` markers.
+        """
+        if self._active is None:
+            self.report.record_drop("no_active_diagram")
+            return None
+        if not frag.diagram_id:
+            frag.diagram_id = self._active.diagram_id
+        self.report.record_emit()
+        return frag
+
+    def _handle_set_param(self, frag: SetParamFragment) -> ScriptFragment | None:
+        """Validate the parameter name against the active diagram; stamp
+        diagram_id; emit. Drops if no active diagram or unknown parameter."""
+        return self._handle_param(frag, frag.name)
+
+    def _handle_animate_param(
+        self, frag: AnimateParamFragment
+    ) -> ScriptFragment | None:
+        """Validate + stamp + emit a parameter tween (same rules as set_param)."""
+        return self._handle_param(frag, frag.name)
+
+    def _handle_param(
+        self, frag: SetParamFragment | AnimateParamFragment, name: str
+    ) -> ScriptFragment | None:
+        if self._active is None:
+            self.report.record_drop("no_active_diagram")
+            return None
+        if not name:
+            self.report.record_drop("param_empty_name")
+            return None
+        if name not in self._active.param_names:
+            # Unknown parameter — the diagram doesn't expose it (typo, or an LLM
+            # diagram that didn't declare parameters[]). Drop so the frontend
+            # never gets a no-op override.
+            self.report.record_drop("param_unknown")
+            return None
+        frag.diagram_id = self._active.diagram_id
+        self.report.record_emit()
+        self._bump_annotations()
         return frag
 
     # ------------------------------------------------------------------
