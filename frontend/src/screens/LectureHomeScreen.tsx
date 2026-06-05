@@ -24,7 +24,45 @@ type FetchState =
   | { status: "error"; message: string }
   | { status: "loaded"; chapters: ChapterListEntry[] };
 
-export function LectureHomeScreen() {
+/**
+ * Curated lecture list shown on the home screen (the cohort front door). This is
+ * an allow-list: ONLY these chapters appear, in this order. Several topics were
+ * ingested more than once (physics / physics_gemini / physics_feynman) — we
+ * surface the best single version of each, and the half-finished "no audio yet"
+ * cards drop out. Edit this list to change what the cohort sees.
+ */
+const VISIBLE_CHAPTER_IDS: readonly string[] = [
+  "chapter:mathematics:arithmetic_progressions", // Arithmetic Progressions
+  "chapter:physics:physics_and_mathematics", // Physics and Mathematics
+  "chapter:physics:friction", // Friction
+  "chapter:physics:fluid_mechanics", // Fluid Mechanics
+  "chapter:physics_gemini:semiconductors_and_semiconductor_devices", // Semiconductors
+  "chapter:physics_feynman:the_special_theory_of_relativity", // The Special Theory of Relativity (Feynman)
+  "chapter:chemistry:organic_chemistry", // Organic Chemistry
+];
+
+/** Filter + order a fetched chapter list down to the curated allow-list.
+ *  `visibleIds === null` disables curation (every chapter, in fetch order). */
+function curateChapters(
+  chapters: ChapterListEntry[],
+  visibleIds: readonly string[] | null,
+): ChapterListEntry[] {
+  if (visibleIds == null) return chapters;
+  const order = new Map(visibleIds.map((id, i) => [id, i] as const));
+  return chapters
+    .filter((c) => c.id != null && order.has(c.id))
+    .sort((a, b) => order.get(a.id!)! - order.get(b.id!)!);
+}
+
+interface LectureHomeScreenProps {
+  /** Curated chapter ids to show, in display order. Defaults to
+   *  VISIBLE_CHAPTER_IDS; pass `null` to show every chapter (tests). */
+  readonly visibleChapterIds?: readonly string[] | null;
+}
+
+export function LectureHomeScreen({
+  visibleChapterIds = VISIBLE_CHAPTER_IDS,
+}: LectureHomeScreenProps = {}) {
   const [state, setState] = useState<FetchState>({ status: "loading" });
 
   useEffect(() => {
@@ -45,6 +83,13 @@ export function LectureHomeScreen() {
     };
   }, []);
 
+  // Curate the fetched list down to the allow-list (or all, when the prop is
+  // null). Only meaningful once loaded.
+  const visibleChapters =
+    state.status === "loaded"
+      ? curateChapters(state.chapters, visibleChapterIds)
+      : [];
+
   return (
     <div style={pageStyle}>
       <header style={headerStyle}>
@@ -55,11 +100,11 @@ export function LectureHomeScreen() {
       <main style={mainStyle}>
         {state.status === "loading" && <LoadingSkeleton />}
         {state.status === "error" && <ErrorState message={state.message} />}
-        {state.status === "loaded" && state.chapters.length === 0 && (
+        {state.status === "loaded" && visibleChapters.length === 0 && (
           <EmptyState />
         )}
-        {state.status === "loaded" && state.chapters.length > 0 && (
-          <ChapterGrid chapters={state.chapters} />
+        {state.status === "loaded" && visibleChapters.length > 0 && (
+          <ChapterGrid chapters={visibleChapters} />
         )}
       </main>
     </div>
@@ -175,7 +220,11 @@ function EmptyState() {
 // ── Styles ──────────────────────────────────────────────────────
 
 const pageStyle: React.CSSProperties = {
-  minHeight: "100vh",
+  // Own scroll container: #root is height:100% + overflow:hidden (for the
+  // fixed-fullscreen classroom), so the home screen must scroll internally —
+  // otherwise a long lecture list is clipped with no way to reach lower cards.
+  height: "100vh",
+  overflowY: "auto",
   background: "#0a0a0a",
   color: "#fafafa",
   fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",

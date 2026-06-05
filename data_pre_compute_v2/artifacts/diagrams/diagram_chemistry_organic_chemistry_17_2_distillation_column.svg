@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="column" d="M 360 120 L 540 120 L 540 470 L 360 470 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="tray-1" x1="360" y1="180" x2="540" y2="180" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tray-2" x1="360" y1="250" x2="540" y2="250" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tray-3" x1="360" y1="320" x2="540" y2="320" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tray-4" x1="360" y1="390" x2="540" y2="390" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="crude-oil-flask" d="M 410 500 L 410 540 A 50 50 0 1 0 490 540 L 490 500 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="oil-level" d="M 495.1052457977236 571.4169668796321 A 48.0 48.0 0 0 1 404.89475420227643 571.4169668796321" stroke="#ff7a8a" stroke-width="2" fill="none"/>
+<path id="heat-source" d="M 435 600 Q 425 580 445 575 Q 440 590 455 580 Q 465 595 450 605 Q 460 600 458 612 M 450 600 Q 444 588 454 585" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_rising-vapour" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="rising-vapour" x1="450" y1="480" x2="450" y2="140" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_rising-vapour)"/>
+<defs><marker id="arrowhead_fraction-light" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="fraction-light" x1="540" y1="155" x2="620" y2="155" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_fraction-light)"/>
+<defs><marker id="arrowhead_fraction-heavy" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="fraction-heavy" x1="540" y1="430" x2="620" y2="430" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_fraction-heavy)"/>
+<line id="temperature-scale" x1="200" y1="120" x2="200" y2="470" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="temp-tick-top" x1="195" y1="150" x2="205" y2="150" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="temp-tick-mid" x1="195" y1="300" x2="205" y2="300" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="temp-tick-bot" x1="195" y1="440" x2="205" y2="440" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<text id="temp-top-label" x="130" y="155" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">25^{\circ}\text{C}</text>
+<text id="temp-mid-label" x="122" y="305" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">200^{\circ}\text{C}</text>
+<text id="temp-bot-label" x="122" y="445" font-size="14" fill="#ff7a8a" font-style="italic" text-anchor="middle">350^{\circ}\text{C}</text>
+<path id="small-molecule" d="M 660 145 L 685 160 L 710 145" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="small-mol-c1" cx="660" cy="145" r="5" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="small-mol-c2" cx="685" cy="160" r="5" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="small-mol-c3" cx="710" cy="145" r="5" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<path id="large-molecule" d="M 645 420 L 670 435 L 695 420 L 720 435 L 745 420 L 770 435 L 795 420" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="large-mol-c1" cx="645" cy="420" r="5" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<circle id="large-mol-c2" cx="695" cy="420" r="5" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<circle id="large-mol-c3" cx="745" cy="420" r="5" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<circle id="large-mol-c4" cx="795" cy="420" r="5" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<text id="light-caption" x="640" y="130" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">light fraction — low b.p.</text>
+<text id="heavy-caption" x="630" y="470" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">heavy fraction — high b.p.</text>
+<text id="crude-label" x="450" y="615" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">crude oil</text>
+</svg>

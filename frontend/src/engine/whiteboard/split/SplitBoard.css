@@ -939,7 +939,10 @@
   transition: opacity 0.45s ease;
 }
 .sb-slide-live .dd-staging [data-revealed="false"] {
-  opacity: 0;
+  /* Faint, never fully invisible: build_up reads as faint→bright, not
+     invisible→appear. A reveal-plan gap or timing lag then leaves a part
+     dimmed, never gone. (Tunable 0.15–0.25.) */
+  opacity: 0.2;
 }
 .sb-slide-live .dd-staging [data-revealed="true"] {
   opacity: 1;

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="track" x1="80" y1="420" x2="840" y2="420" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="track-hatch" d="M 90 420 L 80 434 M 130 420 L 120 434 M 170 420 L 160 434 M 210 420 L 200 434 M 250 420 L 240 434 M 290 420 L 280 434 M 330 420 L 320 434 M 370 420 L 360 434 M 410 420 L 400 434 M 450 420 L 440 434 M 490 420 L 480 434 M 530 420 L 520 434 M 570 420 L 560 434 M 610 420 L 600 434 M 650 420 L 640 434 M 690 420 L 680 434 M 730 420 L 720 434 M 770 420 L 760 434 M 810 420 L 800 434" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<circle id="observer-a" cx="160" cy="390" r="20" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="observer-a-label" x="160" y="348" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">A</text>
+<circle id="observer-b" cx="400" cy="390" r="20" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="observer-b-label" x="400" y="348" font-size="14" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<defs><marker id="arrowhead_velocity-b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="velocity-b" x1="424" y1="390" x2="510" y2="390" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_velocity-b)"/>
+<text id="velocity-b-label" x="515" y="396" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">\tfrac{1}{2}c</text>
+<circle id="light-pulse" cx="740" cy="390" r="9" fill="none" stroke="#ff7a8a" stroke-width="3" stroke-dasharray=""/>
+<text id="light-pulse-label" x="740" y="348" font-size="14" fill="#ff7a8a" text-anchor="middle" font-weight="600">W</text>
+<defs><marker id="arrowhead_speed-from-a-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="speed-from-a-arrow" x1="185" y1="480" x2="720" y2="480" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_speed-from-a-arrow)"/>
+<text id="speed-from-a" x="450" y="505" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">c</text>
+<defs><marker id="arrowhead_speed-from-b-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="speed-from-b-arrow" x1="420" y1="540" x2="720" y2="540" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_speed-from-b-arrow)"/>
+<text id="speed-from-b" x="565" y="565" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">c</text>
+</svg>

@@ -162,6 +162,7 @@ class CurriculumPipelineV2:
         skip_lecture_plan: bool = False,
         skip_diagram_qa: bool = False,
         skip_beat_narration: bool = False,
+        style_context: str | None = None,
         on_stage: StageCallback | None = None,
     ) -> PipelineReport:
         start = time.monotonic()
@@ -366,6 +367,7 @@ class CurriculumPipelineV2:
                             lecture_plan=ch_lecture_plan,
                             diagrams_by_topic=diagrams_by_topic_for_plan,
                             existing_diagram_ids=existing_diagram_ids_global,
+                            style_context=style_context,
                             notify=notify,
                         )
                         for d in new_diagrams:
@@ -535,6 +537,7 @@ class CurriculumPipelineV2:
         lecture_plan,
         diagrams_by_topic: dict[str, list],
         existing_diagram_ids: set[str],
+        style_context: str | None = None,
         notify: StageCallback,
     ) -> list:
         """Doc-19 Phase H — runs LessonQualityGate per topic, applies prosody,
@@ -565,7 +568,9 @@ class CurriculumPipelineV2:
             self.config.enrichment.diagram_qa.model,
         )
 
-        planner = LessonPlanner(self.config, provider=main_provider)
+        planner = LessonPlanner(
+            self.config, provider=main_provider, style_context=style_context
+        )
         diagram_generator = LessonDiagramGenerator(self.config, provider=main_provider)
         narrator = LessonNarrator(self.config)
         plan_judge = PlanJudge(

@@ -83,7 +83,9 @@ describe("LectureHomeScreen", () => {
         headers: { "Content-Type": "application/json" },
       }),
     );
-    const { findAllByTestId } = render(<LectureHomeScreen />);
+    const { findAllByTestId } = render(
+      <LectureHomeScreen visibleChapterIds={null} />,
+    );
     const cards = await waitFor(async () => {
       const all = await findAllByTestId("chapter-card");
       expect(all).toHaveLength(2);
@@ -112,11 +114,63 @@ describe("LectureHomeScreen", () => {
         headers: { "Content-Type": "application/json" },
       }),
     );
-    const { findByTestId } = render(<LectureHomeScreen />);
+    const { findByTestId } = render(
+      <LectureHomeScreen visibleChapterIds={null} />,
+    );
     const card = await findByTestId("chapter-card");
     fireEvent.click(card);
     expect(window.location.href).toContain(
       "lecture=chapter%3Aphysics%3Arelativity",
+    );
+  });
+
+  it("curates to the allow-list: only allowed chapters, in allow-list order, hiding others + empty cards", async () => {
+    const chapters = [
+      {
+        id: "chapter:physics:newtons_laws_of_motion",
+        title: "Newton's Laws of Motion",
+        idx: 5,
+        has_manifest: true,
+      },
+      {
+        id: "chapter:physics:friction",
+        title: "Friction",
+        idx: 6,
+        has_manifest: true,
+      },
+      {
+        id: "chapter:mathematics:arithmetic_progressions",
+        title: "Arithmetic Progressions",
+        idx: 1,
+        has_manifest: true,
+      },
+      { id: null, title: null, idx: null, has_manifest: false },
+    ];
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(chapters), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findAllByTestId } = render(
+      <LectureHomeScreen
+        visibleChapterIds={[
+          "chapter:mathematics:arithmetic_progressions",
+          "chapter:physics:friction",
+        ]}
+      />,
+    );
+    const cards = await waitFor(async () => {
+      const all = await findAllByTestId("chapter-card");
+      expect(all).toHaveLength(2);
+      return all;
+    });
+    // Allow-list order wins over fetch order; Newton's Laws + the empty card hidden.
+    expect(cards[0].getAttribute("data-chapter-id")).toBe(
+      "chapter:mathematics:arithmetic_progressions",
+    );
+    expect(cards[1].getAttribute("data-chapter-id")).toBe(
+      "chapter:physics:friction",
     );
   });
 });

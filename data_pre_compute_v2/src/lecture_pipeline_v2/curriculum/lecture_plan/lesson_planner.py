@@ -60,13 +60,21 @@ class LessonPlanner:
     """Plans every topic via Anthropic tool-use against the LessonPlan schema."""
 
     def __init__(
-        self, config: PipelineConfig, *, provider: LLMProvider | None = None
+        self,
+        config: PipelineConfig,
+        *,
+        provider: LLMProvider | None = None,
+        style_context: str | None = None,
     ) -> None:
         self.config = config
         # Routes through the configured provider (claude / openai / gemini /
         # ollama). `provider` injection point is used by the pipeline (to share
         # one client) and by tests (to inject a fake).
         self._provider = provider or create_llm_provider(config.llm)
+        # Run-scoped style/source directive (CLI --style-source). Woven into
+        # every topic's user message so the whole chapter is taught in one
+        # master-teacher's voice with their figures. None for ordinary runs.
+        self._style_context = style_context
 
     async def plan_for_all(
         self,
@@ -231,6 +239,7 @@ class LessonPlanner:
             topic_id=topic_id,
             prior_validation_error=prior_validation_error,
             prior_quality_feedback=prior_quality_feedback,
+            style_context=self._style_context,
         )
 
         payload = await self._provider.agenerate_tool_use(
@@ -264,6 +273,7 @@ def _build_user_message(
     topic_id: str,
     prior_validation_error: str | None,
     prior_quality_feedback: str | None = None,
+    style_context: str | None = None,
 ) -> str:
     """Compose the topic-specific user message.
 
@@ -277,6 +287,23 @@ def _build_user_message(
     concept = _find_concept(concept_level, topic_id)
 
     parts: list[str] = []
+
+    # Run-scoped style directive (CLI --style-source). Placed FIRST so it frames
+    # the whole lesson — the voice, the order of ideas, and which figures to
+    # declare as diagrams. None for ordinary runs (back-compat: no-op).
+    if style_context:
+        parts.append("## Master-teacher style & source for THIS lesson")
+        parts.append(
+            "Channel the master teacher described below: adopt the VOICE, the "
+            "order of ideas, and the analogies, and REPRODUCE the key figures "
+            "named (declare them as DiagramRequirements with stable element_ids "
+            "the choreography points at). Keep the existing audience level and "
+            "every system-prompt rule. Emulate the spirit — never copy sentences "
+            "verbatim."
+        )
+        parts.append("")
+        parts.append(_clip(style_context, 6000))
+        parts.append("")
 
     if concept is None:
         parts.append(f"# Topic to plan (concept_index={concept_index})")

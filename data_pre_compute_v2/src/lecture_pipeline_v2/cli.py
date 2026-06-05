@@ -61,6 +61,16 @@ def ingest_book(
         "--single-chapter",
         help="Treat the whole PDF as one chapter with this title (bypass TOC detection)",
     ),
+    style_source: Optional[str] = typer.Option(
+        None,
+        "--style-source",
+        help=(
+            "Path to a file (or inline text) with a master-teacher style guide "
+            "+ figure/source notes. Woven into EVERY lesson plan for this run so "
+            "the AI teaches in that voice and reproduces those figures. Scoped to "
+            "this run only."
+        ),
+    ),
     output: Optional[str] = typer.Option(
         None, "--output", "-o", help="Directory for extraction JSON"
     ),
@@ -98,6 +108,15 @@ def ingest_book(
             console.print("[red]Chapters must be comma-separated integers.[/red]")
             raise typer.Exit(1)
 
+    # --style-source accepts either a path to a file or inline text. Read the
+    # file when it exists; otherwise treat the value as the style text itself.
+    style_context: str | None = None
+    if style_source:
+        sp = Path(style_source)
+        style_context = (
+            sp.read_text(encoding="utf-8") if sp.exists() else style_source
+        )
+
     console.print("\n[bold]Curriculum Pipeline v2[/bold]")
     console.print(f"  PDF: {pdf_path}")
     console.print(f"  Subject: {subject}")
@@ -109,6 +128,10 @@ def ingest_book(
         console.print(f"  Chapter (by name): {chapter_name}")
     if single_chapter:
         console.print(f"  Single chapter (TOC bypassed): {single_chapter}")
+    if style_source:
+        console.print(
+            f"  Style source: {style_source} ({len(style_context or '')} chars)"
+        )
     if force:
         console.print("  [yellow]--force: idempotency disabled[/yellow]")
     console.print()
@@ -136,6 +159,7 @@ def ingest_book(
             skip_prereqs=skip_prereqs,
             skip_beat_narration=skip_beat_narration,
             skip_diagram_qa=skip_diagram_qa,
+            style_context=style_context,
             on_stage=on_stage,
         )
     )

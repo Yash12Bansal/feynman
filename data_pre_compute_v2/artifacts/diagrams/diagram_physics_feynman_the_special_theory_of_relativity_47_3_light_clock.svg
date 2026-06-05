@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="rest-label" x="230" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Clock at rest</text>
+<text id="moving-label" x="660" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Clock moving</text>
+<line id="mirror-bottom" x1="180" y1="480" x2="280" y2="480" stroke="#7fd4ff" stroke-width="3" stroke-dasharray=""/>
+<line id="mirror-top" x1="180" y1="180" x2="280" y2="180" stroke="#7fd4ff" stroke-width="3" stroke-dasharray=""/>
+<defs><marker id="arrowhead_light-vertical" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="light-vertical" x1="230" y1="480" x2="230" y2="185" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_light-vertical)"/>
+<text id="rest-caption" x="230" y="575" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">tick = round trip</text>
+<line id="mirror-bottom-r1" x1="500" y1="480" x2="580" y2="480" stroke="rgba(127,212,255,0.4)" stroke-width="2.5" stroke-dasharray=""/>
+<line id="mirror-bottom-r2" x1="760" y1="480" x2="840" y2="480" stroke="rgba(127,212,255,0.4)" stroke-width="2.5" stroke-dasharray=""/>
+<line id="mirror-top-r" x1="630" y1="180" x2="710" y2="180" stroke="#7fd4ff" stroke-width="3" stroke-dasharray=""/>
+<path id="light-diagonal" d="M 540 480 L 670 180 L 800 480" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="base-vt" x1="540" y1="480" x2="800" y2="480" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<path id="hyp-ct" d="M 540 480 L 670 180" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="leg-ct0" x1="670" y1="480" x2="670" y2="180" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray="5 4"/>
+<text id="base-label" x="590" y="505" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">vt</text>
+<text id="hyp-label" x="585" y="320" font-size="15" fill="#e8e8ee" font-style="italic" text-anchor="middle">ct</text>
+<text id="leg-label" x="680" y="335" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">ct_{0}</text>
+<text id="moving-caption" x="660" y="575" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">same tick, longer path</text>
+</svg>
