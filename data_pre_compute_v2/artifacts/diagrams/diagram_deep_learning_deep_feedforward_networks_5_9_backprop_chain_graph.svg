@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<circle id="node-input" cx="130" cy="300" r="36" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="node-layer1" cx="370" cy="300" r="36" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="node-layer2" cx="610" cy="300" r="36" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="node-loss" cx="820" cy="300" r="32" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="input-label" x="124" y="307" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">x</text>
+<text id="layer1-label" x="358" y="307" font-size="17" fill="#7fd4ff" font-style="italic" text-anchor="middle">h_1</text>
+<text id="layer2-label" x="598" y="307" font-size="17" fill="#7fd4ff" font-style="italic" text-anchor="middle">h_2</text>
+<text id="loss-label" x="814" y="307" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">J</text>
+<defs><marker id="arrowhead_edge-forward" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-forward" x1="166" y1="288" x2="334" y2="288" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_edge-forward)"/>
+<defs><marker id="arrowhead_edge-forward-2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-forward-2" x1="406" y1="288" x2="574" y2="288" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_edge-forward-2)"/>
+<defs><marker id="arrowhead_edge-forward-3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-forward-3" x1="646" y1="288" x2="788" y2="288" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_edge-forward-3)"/>
+<defs><marker id="arrowhead_edge-backward" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="edge-backward" x1="788" y1="320" x2="646" y2="320" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_edge-backward)"/>
+<defs><marker id="arrowhead_edge-backward-2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="edge-backward-2" x1="574" y1="320" x2="406" y2="320" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_edge-backward-2)"/>
+<defs><marker id="arrowhead_edge-backward-3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="edge-backward-3" x1="334" y1="320" x2="166" y2="320" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_edge-backward-3)"/>
+<text id="fwd-op1" x="218" y="262" font-size="13" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">f(W_1 x)</text>
+<text id="fwd-op2" x="452" y="262" font-size="13" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">f(W_2 h_1)</text>
+<text id="bwd-op1" x="686" y="372" font-size="14" fill="#ff7a8a" font-style="italic" text-anchor="middle">\frac{\partial J}{\partial h_2}</text>
+<text id="bwd-op2" x="462" y="372" font-size="14" fill="#ff7a8a" font-style="italic" text-anchor="middle">\frac{\partial J}{\partial h_1}</text>
+<text id="chain-rule" x="270" y="480" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">\frac{\partial J}{\partial W_1} = \frac{\partial J}{\partial h_2}\,\frac{\partial h_2}{\partial h_1}\,\frac{\partial h_1}{\partial W_1}</text>
+<text id="fwd-caption" x="450" y="175" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">forward pass</text>
+<text id="bwd-caption" x="450" y="430" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="normal">backward pass</text>
+</svg>

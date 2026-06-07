@@ -15,7 +15,7 @@ import { SignInScreen } from "./SignInScreen";
 import { ProfileSetupScreen } from "./ProfileSetupScreen";
 
 export function AuthGate({ children }: { readonly children: ReactNode }) {
-  const { configured, initializing, user, profileComplete } = useAuth();
+  const { configured, initializing, profileLoading, user, profileComplete } = useAuth();
 
   // Local-dev escape hatch — render the product directly.
   if (config.authDisabled) return <>{children}</>;
@@ -23,6 +23,10 @@ export function AuthGate({ children }: { readonly children: ReactNode }) {
   if (!configured) return <NotConfiguredNotice />;
   if (initializing) return <AuthSplash />;
   if (!user) return <SignInScreen />;
+  // A signed-in user's profile is still loading — wait on the splash rather than
+  // flashing the setup form at a returning user whose profile just hasn't
+  // arrived yet.
+  if (profileLoading) return <AuthSplash />;
   if (!profileComplete) return <ProfileSetupScreen />;
   return <>{children}</>;
 }

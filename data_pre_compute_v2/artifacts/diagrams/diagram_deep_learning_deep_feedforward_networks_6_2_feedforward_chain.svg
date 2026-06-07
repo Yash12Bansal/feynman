@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<circle id="input-node-x" cx="150" cy="325" r="40" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="input-label" x="142" y="333" font-size="22" fill="#7fd4ff" font-style="italic" text-anchor="middle">x</text>
+<circle id="hidden-node-h" cx="450" cy="325" r="40" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="hidden-label" x="442" y="333" font-size="22" fill="#e8e8ee" font-style="italic" text-anchor="middle">h</text>
+<circle id="output-node-y" cx="750" cy="325" r="40" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="output-label" x="742" y="333" font-size="22" fill="#9effc9" font-style="italic" text-anchor="middle">y</text>
+<defs><marker id="arrowhead_edge-W" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="edge-W" x1="192" y1="325" x2="408" y2="325" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_edge-W)"/>
+<text id="edge-W-label" x="292" y="305" font-size="18" fill="#7fd4ff" font-style="italic" text-anchor="middle">W</text>
+<text id="edge-W-fn" x="300" y="360" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">f₁</text>
+<defs><marker id="arrowhead_edge-w" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="edge-w" x1="492" y1="325" x2="708" y2="325" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_edge-w)"/>
+<text id="edge-w-label" x="592" y="305" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">w</text>
+<text id="edge-w-fn" x="600" y="360" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">f₂</text>
+<text id="input-caption" x="150" y="410" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">input vector</text>
+<text id="hidden-caption" x="450" y="410" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">hidden layer</text>
+<text id="output-caption" x="750" y="410" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">output scalar</text>
+</svg>

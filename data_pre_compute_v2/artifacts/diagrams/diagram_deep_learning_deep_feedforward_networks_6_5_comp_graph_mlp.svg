@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<circle id="node-x" cx="110" cy="300" r="34" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="node-z" cx="290" cy="300" r="34" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="node-h" cx="470" cy="300" r="34" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="node-y" cx="650" cy="300" r="34" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="node-J" cx="810" cy="300" r="34" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-x-label" x="104" y="307" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">x</text>
+<text id="node-z-label" x="284" y="307" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">z</text>
+<text id="node-h-label" x="464" y="307" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">h</text>
+<text id="node-y-label" x="642" y="307" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">\hat{y}</text>
+<text id="node-J-label" x="804" y="307" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">J</text>
+<defs><marker id="arrowhead_edge-x-z" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="edge-x-z" x1="144" y1="300" x2="256" y2="300" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_edge-x-z)"/>
+<defs><marker id="arrowhead_edge-z-h" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="edge-z-h" x1="324" y1="300" x2="436" y2="300" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_edge-z-h)"/>
+<defs><marker id="arrowhead_edge-h-y" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="edge-h-y" x1="504" y1="300" x2="616" y2="300" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_edge-h-y)"/>
+<defs><marker id="arrowhead_edge-y-J" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="edge-y-J" x1="684" y1="300" x2="776" y2="300" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_edge-y-J)"/>
+<text id="edge-x-z-label" x="168" y="282" font-size="12" fill="#7fd4ff" font-style="italic" text-anchor="middle">Wx+b</text>
+<text id="edge-z-h-label" x="352" y="282" font-size="12" fill="#7fd4ff" font-style="italic" text-anchor="middle">g(z)</text>
+<text id="edge-h-y-label" x="528" y="282" font-size="12" fill="#7fd4ff" font-style="italic" text-anchor="middle">Vh+c</text>
+<text id="edge-y-J-label" x="706" y="282" font-size="12" fill="#7fd4ff" font-style="italic" text-anchor="middle">L(\hat{y},t)</text>
+<path id="backward-flow" d="M 810 360 Q 460 470 110 360" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="backward-flow-head" d="M 110 360 L 124 350 M 110 360 L 124 372" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="backward-flow-label" x="440" y="455" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">\frac{\partial J}{\partial \,\cdot}</text>
+<text id="grad-J" x="770" y="210" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">\frac{\partial J}{\partial J}=1</text>
+</svg>

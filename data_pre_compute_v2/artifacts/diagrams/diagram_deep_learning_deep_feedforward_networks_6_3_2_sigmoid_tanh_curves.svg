@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="x-axis" x1="100" y1="330" x2="800" y2="330" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="y-axis" x1="450" y1="120" x2="450" y2="540" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="z-label" x="808" y="334" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">z</text>
+<line id="tick-one" x1="442" y1="180" x2="458" y2="180" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="tick-half" x1="442" y1="255" x2="458" y2="255" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="tick-negone" x1="442" y1="480" x2="458" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<text id="label-one" x="420" y="185" font-size="13" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">1</text>
+<text id="label-half" x="415" y="260" font-size="13" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">\tfrac{1}{2}</text>
+<text id="label-negone" x="412" y="485" font-size="13" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">-1</text>
+<rect id="saturated-tail-left" x="100" y="120" width="130" height="420" rx="4" fill="none" stroke="rgba(232,232,238,0.30)" stroke-width="1"/>
+<rect id="saturated-tail-right" x="670" y="120" width="130" height="420" rx="4" fill="none" stroke="rgba(232,232,238,0.30)" stroke-width="1"/>
+<rect id="responsive-region" x="365" y="120" width="170" height="420" rx="4" fill="none" stroke="#9effc9" stroke-width="1.5"/>
+<path id="sigmoid-curve" d="M 100 322 C 230 320, 320 312, 380 290 C 420 274, 440 262, 450 255 C 460 248, 480 236, 520 220 C 580 198, 670 190, 800 188" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="tanh-curve" d="M 100 478 C 230 476, 320 470, 380 420 C 420 387, 440 350, 450 330 C 460 310, 480 273, 520 240 C 580 190, 670 184, 800 182" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="tangent-line-near-origin" x1="360" y1="470" x2="540" y2="190" stroke="#9effc9" stroke-width="1.5" stroke-dasharray="4 3"/>
+<circle id="origin-point" cx="450" cy="330" r="4.5" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="sigmoid-label" x="700" y="178" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">sigmoid</text>
+<text id="tanh-label" x="700" y="172" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">tanh</text>
+<text id="responsive-label" x="450" y="110" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="normal">responsive</text>
+<text id="left-tail-label" x="165" y="110" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">saturated</text>
+<text id="right-tail-label" x="735" y="110" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">saturated</text>
+</svg>

@@ -39,6 +39,7 @@ const VISIBLE_CHAPTER_IDS: readonly string[] = [
   "chapter:physics_gemini:semiconductors_and_semiconductor_devices", // Semiconductors
   "chapter:physics_feynman:the_special_theory_of_relativity", // The Special Theory of Relativity (Feynman)
   "chapter:chemistry:organic_chemistry", // Organic Chemistry
+  "chapter:deep_learning:deep_feedforward_networks", // Deep Feedforward Networks (graduate)
 ];
 
 /** Filter + order a fetched chapter list down to the curated allow-list.

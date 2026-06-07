@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<circle id="node-w" cx="130" cy="300" r="34" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-w-label" x="123" y="308" font-size="20" fill="#7fd4ff" font-style="italic" text-anchor="middle">w</text>
+<circle id="node-x" cx="360" cy="300" r="34" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-x-label" x="353" y="308" font-size="20" fill="#e8e8ee" font-style="italic" text-anchor="middle">x</text>
+<circle id="node-y" cx="590" cy="300" r="34" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-y-label" x="583" y="308" font-size="20" fill="#e8e8ee" font-style="italic" text-anchor="middle">y</text>
+<circle id="node-z" cx="820" cy="300" r="34" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-z-label" x="813" y="308" font-size="20" fill="#9effc9" font-style="italic" text-anchor="middle">z</text>
+<defs><marker id="arrowhead_edge-wx" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-wx" x1="166" y1="300" x2="324" y2="300" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_edge-wx)"/>
+<text id="edge-wx-label" x="240" y="282" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">f</text>
+<defs><marker id="arrowhead_edge-xy" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-xy" x1="396" y1="300" x2="554" y2="300" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_edge-xy)"/>
+<text id="edge-xy-label" x="470" y="282" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">f</text>
+<defs><marker id="arrowhead_edge-yz" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-yz" x1="626" y1="300" x2="784" y2="300" stroke="#e8e8ee" stroke-width="2.5" marker-end="url(#arrowhead_edge-yz)"/>
+<text id="edge-yz-label" x="700" y="282" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">f</text>
+<path id="backward-flow" d="M 790 360 Q 475 470 160 360" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray="8 6"/>
+<defs><marker id="arrowhead_backward-arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="backward-arrowhead" x1="200" y1="348" x2="160" y2="360" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_backward-arrowhead)"/>
+<text id="backward-label" x="452" y="452" font-size="16" fill="#ff7a8a" font-style="italic" text-anchor="middle">\frac{\partial z}{\partial w}</text>
+<text id="expansion" x="360" y="150" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">z = f(f(f(w)))</text>
+</svg>

@@ -13,6 +13,9 @@ export interface AuthContextValue {
   readonly configured: boolean;
   /** True until the first auth-state resolution completes. */
   readonly initializing: boolean;
+  /** True while a signed-in user's Firestore profile is being fetched (after
+   *  auth resolves) — so the gate can wait instead of flashing the setup form. */
+  readonly profileLoading: boolean;
   readonly user: User | null;
   readonly profile: UserProfile | null;
   readonly profileComplete: boolean;

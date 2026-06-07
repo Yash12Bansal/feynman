@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="logit-label" x="230" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">logits  z</text>
+<text id="prob-label" x="670" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">softmax  p</text>
+<line id="logit-axis" x1="90" y1="320" x2="380" y2="320" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="prob-axis" x1="520" y1="470" x2="820" y2="470" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<g id="logit-bars" transform="translate(0,0)"><rect id="logit-b1" x="110" y="270" width="36" height="50" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/><rect id="logit-b2" x="162" y="180" width="36" height="140" rx="0" fill="none" stroke="#7fd4ff" stroke-width="2.5"/><rect id="logit-b3" x="214" y="320" width="36" height="40" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/><rect id="logit-b4" x="266" y="295" width="36" height="25" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/><rect id="logit-b5" x="318" y="320" width="36" height="65" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/></g>
+<rect id="max-logit" x="158" y="176" width="44" height="148" rx="4" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="max-logit-label" x="180" y="165" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">argmax</text>
+<text id="softmax-formula" x="400" y="240" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">p_i = \dfrac{e^{z_i}}{\sum_j e^{z_j}}</text>
+<defs><marker id="arrowhead_transform-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="transform-arrow" x1="400" y1="300" x2="505" y2="300" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_transform-arrow)"/>
+<g id="prob-bars" transform="translate(0,0)"><rect id="prob-b1" x="540" y="440" width="36" height="30" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/><rect id="prob-b2" x="592" y="280" width="36" height="190" rx="0" fill="none" stroke="#9effc9" stroke-width="2.5"/><rect id="prob-b3" x="644" y="448" width="36" height="22" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/><rect id="prob-b4" x="696" y="452" width="36" height="18" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/><rect id="prob-b5" x="748" y="444" width="36" height="26" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2"/></g>
+<line id="one-line" x1="520" y1="270" x2="820" y2="270" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text id="sum-to-one" x="670" y="545" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">Σ p = 1</text>
+<defs><marker id="arrowhead_shift-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="shift-arrow" x1="160" y1="600" x2="740" y2="600" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_shift-arrow)"/>
+<text id="shift-label" x="330" y="632" font-size="14" fill="#ff7a8a" font-style="italic" text-anchor="middle">z_i + c \;\Rightarrow\; p_i \;\text{unchanged}</text>
+</svg>

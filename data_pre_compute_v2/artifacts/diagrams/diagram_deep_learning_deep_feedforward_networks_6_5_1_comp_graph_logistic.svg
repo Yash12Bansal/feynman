@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<circle id="node-x" cx="130" cy="200" r="30" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-x-label" x="124" y="208" font-size="20" fill="#7fd4ff" font-style="italic" text-anchor="middle">x</text>
+<circle id="node-w" cx="130" cy="360" r="30" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-w-label" x="122" y="368" font-size="20" fill="#7fd4ff" font-style="italic" text-anchor="middle">w</text>
+<circle id="node-u" cx="380" cy="280" r="30" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-u-label" x="373" y="288" font-size="20" fill="#e8e8ee" font-style="italic" text-anchor="middle">u</text>
+<circle id="node-b" cx="380" cy="460" r="30" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-b-label" x="373" y="468" font-size="20" fill="#7fd4ff" font-style="italic" text-anchor="middle">b</text>
+<circle id="node-z" cx="600" cy="340" r="30" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-z-label" x="593" y="348" font-size="20" fill="#e8e8ee" font-style="italic" text-anchor="middle">z</text>
+<circle id="node-yhat" cx="800" cy="340" r="32" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-yhat-label" x="789" y="349" font-size="20" fill="#9effc9" font-style="italic" text-anchor="middle">\hat{y}</text>
+<defs><marker id="arrowhead_edge-dot" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="edge-dot" x1="158" y1="213" x2="352" y2="270" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_edge-dot)"/>
+<defs><marker id="arrowhead_edge-dot-2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="edge-dot-2" x1="158" y1="347" x2="352" y2="290" stroke="#7fd4ff" stroke-width="2" marker-end="url(#arrowhead_edge-dot-2)"/>
+<text id="edge-dot-label" x="250" y="250" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">dot product</text>
+<defs><marker id="arrowhead_edge-add" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-add" x1="408" y1="293" x2="573" y2="330" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_edge-add)"/>
+<defs><marker id="arrowhead_edge-add-2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-add-2" x1="405" y1="443" x2="578" y2="358" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_edge-add-2)"/>
+<text id="edge-add-label" x="500" y="305" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">plus</text>
+<defs><marker id="arrowhead_edge-sigmoid" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="edge-sigmoid" x1="632" y1="340" x2="766" y2="340" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_edge-sigmoid)"/>
+<text id="edge-sigmoid-label" x="699" y="328" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">sigmoid</text>
+</svg>

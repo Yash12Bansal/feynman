@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="input-label" x="230" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Input space</text>
+<text id="feature-label" x="670" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Hidden feature space</text>
+<g id="input-space-axes" transform="translate(0,0)"><defs><marker id="arrowhead_in-x-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="in-x-axis" x1="110" y1="460" x2="360" y2="460" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_in-x-axis)"/><defs><marker id="arrowhead_in-y-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="in-y-axis" x1="110" y1="460" x2="110" y2="200" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_in-y-axis)"/></g>
+<text id="in-x-label" x="350" y="485" font-size="14" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">x_1</text>
+<text id="in-y-label" x="80" y="215" font-size="14" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">x_2</text>
+<circle id="point-00" cx="150" cy="460" r="11" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="point-11" cx="320" cy="250" r="11" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="point-01" cx="150" cy="250" r="11" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="point-10" cx="320" cy="460" r="11" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<text id="in-00-label" x="122" y="490" font-size="11" fill="#7fd4ff" font-style="italic" text-anchor="middle">(0,0)</text>
+<text id="in-11-label" x="332" y="245" font-size="11" fill="#7fd4ff" font-style="italic" text-anchor="middle">(1,1)</text>
+<text id="in-01-label" x="90" y="235" font-size="11" fill="#ff7a8a" font-style="italic" text-anchor="middle">(0,1)</text>
+<text id="in-10-label" x="332" y="478" font-size="11" fill="#ff7a8a" font-style="italic" text-anchor="middle">(1,0)</text>
+<line id="failed-line" x1="110" y1="320" x2="360" y2="410" stroke="#9effc9" stroke-width="2" stroke-dasharray="6 5"/>
+<g id="feature-space-axes" transform="translate(0,0)"><defs><marker id="arrowhead_feat-x-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="feat-x-axis" x1="540" y1="460" x2="800" y2="460" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_feat-x-axis)"/><defs><marker id="arrowhead_feat-y-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="feat-y-axis" x1="540" y1="460" x2="540" y2="200" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_feat-y-axis)"/></g>
+<text id="feat-x-label" x="790" y="485" font-size="14" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">h_1</text>
+<text id="feat-y-label" x="510" y="215" font-size="14" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">h_2</text>
+<circle id="collapsed-point" cx="575" cy="440" r="11" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="feat-00" cx="600" cy="410" r="11" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="feat-01" cx="740" cy="260" r="11" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="feat-10" cx="760" cy="280" r="11" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<text id="feat-00-label" x="560" y="480" font-size="11" fill="#7fd4ff" font-style="italic" text-anchor="middle">(0,0),(1,1)</text>
+<text id="feat-class1-label" x="770" y="250" font-size="11" fill="#ff7a8a" font-style="italic" text-anchor="middle">(0,1),(1,0)</text>
+<line id="separating-line" x1="560" y1="250" x2="690" y2="470" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<circle id="node-loss" cx="450" cy="100" r="32" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-loss-label" x="432" y="107" font-size="16" fill="#e8e8ee" font-style="italic" text-anchor="middle">u^{(n)}</text>
+<circle id="node-child-a" cx="310" cy="280" r="30" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-child-a-label" x="293" y="287" font-size="15" fill="#e8e8ee" font-style="italic" text-anchor="middle">u^{(a)}</text>
+<circle id="node-child-b" cx="590" cy="280" r="30" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-child-b-label" x="573" y="287" font-size="15" fill="#e8e8ee" font-style="italic" text-anchor="middle">u^{(b)}</text>
+<circle id="node-shared" cx="450" cy="440" r="32" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-shared-label" x="433" y="447" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">u^{(j)}</text>
+<circle id="node-param" cx="450" cy="580" r="30" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="node-param-label" x="443" y="587" font-size="16" fill="#9effc9" font-style="italic" text-anchor="middle">\theta</text>
+<defs><marker id="arrowhead_edge-shared-a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-shared-a" x1="427" y1="419" x2="333" y2="305" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_edge-shared-a)"/>
+<defs><marker id="arrowhead_edge-shared-b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-shared-b" x1="473" y1="419" x2="567" y2="305" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_edge-shared-b)"/>
+<defs><marker id="arrowhead_edge-a-loss" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-a-loss" x1="330" y1="256" x2="426" y2="125" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_edge-a-loss)"/>
+<defs><marker id="arrowhead_edge-b-loss" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="edge-b-loss" x1="570" y1="256" x2="474" y2="125" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_edge-b-loss)"/>
+<defs><marker id="arrowhead_edge-param-shared" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="edge-param-shared" x1="450" y1="550" x2="450" y2="474" stroke="#9effc9" stroke-width="2" marker-end="url(#arrowhead_edge-param-shared)"/>
+<text id="edge-shared-a-label" x="348" y="375" font-size="13" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">\frac{\partial u^{(a)}}{\partial u^{(j)}}</text>
+<text id="edge-shared-b-label" x="502" y="375" font-size="13" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">\frac{\partial u^{(b)}}{\partial u^{(j)}}</text>
+<defs><marker id="arrowhead_grad-arrow-loss" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="grad-arrow-loss" x1="510" y1="100" x2="560" y2="100" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_grad-arrow-loss)"/>
+<text id="grad-arrow-loss-label" x="568" y="106" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">\frac{\partial u^{(n)}}{\partial u^{(n)}}=1</text>
+<defs><marker id="arrowhead_grad-arrow-shared" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="grad-arrow-shared" x1="512" y1="440" x2="562" y2="440" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_grad-arrow-shared)"/>
+<text id="grad-arrow-shared-label" x="568" y="446" font-size="13" fill="#ff7a8a" font-style="italic" text-anchor="middle">\sum_{c}\frac{\partial u^{(n)}}{\partial u^{(c)}}\frac{\partial u^{(c)}}{\partial u^{(j)}}</text>
+</svg>
