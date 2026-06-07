@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "./hooks/useSession";
 import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
@@ -44,9 +44,9 @@ export function App() {
 }
 
 function MainEntry() {
-  // ?lecture=<id> in the URL → MainApp auto-starts a lecture session and
-  // routes into ClassroomScreen → LectureViewer. No param → show the
-  // product front door (LectureHomeScreen).
+  // ?lecture=<id> in the URL → MainApp renders the precomputed lecture (LiveKit
+  // is connected lazily, only on the first doubt). No param → product front
+  // door (LectureHomeScreen).
   const params = new URLSearchParams(window.location.search);
   if (params.get("lecture")) {
     return <MainApp />;
@@ -56,92 +56,44 @@ function MainEntry() {
 
 function MainApp() {
   const lectureChapterParam = useLectureChapterParam();
-  const { token, livekitUrl, lectureChapterId, status, error, startSession } =
-    useSession();
+  const { token, livekitUrl, status, startSession } = useSession();
 
-  // Auto-start a lecture session when ?lecture=<id> is in the URL.
-  // The ref guard short-circuits React strict-mode's double-effect in dev,
-  // which otherwise fires startSession twice before status flips off "idle"
-  // and creates two LiveKit rooms per chapter click.
-  const autoStartFiredRef = useRef(false);
-  useEffect(() => {
-    if (autoStartFiredRef.current) return;
-    if (lectureChapterParam && status === "idle") {
-      autoStartFiredRef.current = true;
-      void startSession({ lecture_chapter_id: lectureChapterParam });
-    }
+  // LAZY CONNECT: do NOT auto-start a session on lecture open. Watching a
+  // precomputed lecture is fully client-side (audio + visuals stream from the
+  // preview server); LiveKit's room + agent are only spun up when the student
+  // first taps "Ask Feynman". This means passive viewers consume zero LiveKit —
+  // the dominant cost saving. Guarded on session status so we don't double-start
+  // while a session is in flight, but a failed start can be retried.
+  const requestDoubtSession = useCallback(() => {
+    if (!lectureChapterParam) return;
+    if (status === "connecting" || status === "connected") return;
+    void startSession({ lecture_chapter_id: lectureChapterParam });
   }, [lectureChapterParam, status, startSession]);
 
-  if (status === "connected" && token && livekitUrl) {
+  // Param removed mid-session (popstate) — fall back to the free-form flow.
+  if (!lectureChapterParam) {
     return (
-      <RoomProvider token={token} serverUrl={livekitUrl}>
-        <ClassroomScreen lectureChapterId={lectureChapterId} />
-      </RoomProvider>
+      <WaitingScreen
+        onStart={(body) => startSession(body)}
+        isLoading={status === "connecting"}
+      />
     );
   }
 
-  if (status === "error") {
-    return (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: "1rem",
-          background: "#0a0a0a",
-          color: "#fafafa",
-        }}
-      >
-        <p style={{ color: "#ef4444" }}>Failed to start session: {error}</p>
-        <button
-          onClick={startSession}
-          style={{
-            padding: "0.5rem 1.5rem",
-            fontSize: "1rem",
-            background: "#3b82f6",
-            color: "#fff",
-            border: "none",
-            borderRadius: "0.5rem",
-            cursor: "pointer",
-          }}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  // While auto-starting a lecture session, show a minimal "preparing" splash
-  // instead of WaitingScreen (which expects a topic).
-  if (lectureChapterParam) {
-    return (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#0a0a0a",
-          color: "#6b7280",
-          fontFamily:
-            "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-          fontSize: "0.95rem",
-          letterSpacing: "0.05em",
-        }}
-      >
-        Preparing lecture…
-      </div>
-    );
-  }
-
+  // Render the lecture immediately. RoomProvider only CONNECTS once a session
+  // token exists (after the first doubt request); until then LiveKitRoom mounts
+  // disconnected so the viewer's room hooks work without using any LiveKit.
+  const connected = status === "connected" && !!token && !!livekitUrl;
   return (
-    <WaitingScreen
-      onStart={(body) => startSession(body)}
-      isLoading={status === "connecting"}
-    />
+    <RoomProvider
+      token={token ?? ""}
+      serverUrl={livekitUrl ?? ""}
+      connect={connected}
+    >
+      <ClassroomScreen
+        lectureChapterId={lectureChapterParam}
+        onRequestDoubtSession={requestDoubtSession}
+      />
+    </RoomProvider>
   );
 }

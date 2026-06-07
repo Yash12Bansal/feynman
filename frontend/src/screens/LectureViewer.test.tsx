@@ -26,6 +26,10 @@ let dataChannelHandler:
 
 vi.mock("@livekit/components-react", () => ({
   useRoomContext: () => ({ localParticipant: { publishData } }),
+  // Room connected + agent present → roomReady, so Ask Feynman publishes
+  // immediately (the lazy-connect deferral path isn't exercised here).
+  useConnectionState: () => "connected",
+  useRemoteParticipants: () => [{ identity: "agent" }],
   useDataChannel: (
     _topic: string,
     handler: (msg: { payload: Uint8Array; topic?: string }) => void,

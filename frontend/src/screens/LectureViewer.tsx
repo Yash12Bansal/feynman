@@ -11,7 +11,13 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDataChannel, useRoomContext } from "@livekit/components-react";
+import {
+  useConnectionState,
+  useDataChannel,
+  useRemoteParticipants,
+  useRoomContext,
+} from "@livekit/components-react";
+import { ConnectionState } from "livekit-client";
 import { SplitBoard } from "../engine/whiteboard/split/SplitBoard";
 import {
   AskFeynmanButton,
@@ -32,9 +38,15 @@ import type { DesignDiagramSpec } from "../types/visuals";
 
 interface LectureViewerProps {
   readonly chapterId: string;
+  /** Lazy-connect: spin up the LiveKit session/room/agent on the first doubt. */
+  readonly onRequestDoubtSession?: () => void;
 }
 
 const DOUBT_TOPIC = "doubt_signal";
+
+const MIC_STUCK_MS = 12_000;
+const MIC_STUCK_MSG =
+  "I didn't hear anything. Make sure your mic is granted and the worker is running.";
 
 interface DoubtIntentPayload {
   readonly type: "doubt_intent";
@@ -124,7 +136,10 @@ type DoubtServerPayload =
   | DoubtCaptureReadyPayload
   | DoubtListeningPayload;
 
-export function LectureViewer({ chapterId }: LectureViewerProps) {
+export function LectureViewer({
+  chapterId,
+  onRequestDoubtSession,
+}: LectureViewerProps) {
   const [chapter, setChapter] = useState<ChapterPayload | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -171,6 +186,17 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     readonly SatisfactionOption[] | null
   >(null);
   const room = useRoomContext();
+  // Lazy-connect: the room starts DISCONNECTED (watching needs no LiveKit). A
+  // doubt can only publish once we're connected AND the agent has actually
+  // joined the room — sending before then would drop the message (data isn't
+  // buffered for participants who join later). `pendingDoubtRef` holds a doubt
+  // raised before the room was ready; the effect below flushes it on join.
+  const connectionState = useConnectionState();
+  const remoteParticipants = useRemoteParticipants();
+  const roomReady =
+    connectionState === ConnectionState.Connected &&
+    remoteParticipants.length > 0;
+  const pendingDoubtRef = useRef(false);
 
   // Subtitle (closed-caption) prefs. Visibility + size persist across
   // reloads via localStorage (YouTube-style). Position is per-session only —
@@ -183,7 +209,10 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
     const v = _readCCPref("feynman.cc.size");
     return v === "S" || v === "L" ? v : "M";
   });
-  const [subtitlePos, setSubtitlePos] = useState<{ x: number; y: number } | null>(null);
+  const [subtitlePos, setSubtitlePos] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   // Brief on-screen confirmation when a CC hotkey fires. Without this the
   // size change is easy to miss (especially Small→Medium), and toggling C
   // when subtitles are already empty looks like nothing happened.
@@ -215,7 +244,8 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable)
+        return;
       if (e.key === "c" || e.key === "C") {
         setSubtitlesHidden((v) => {
           flashCCToast(v ? "Subtitles: On" : "Subtitles: Off");
@@ -385,23 +415,17 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
 
   useDataChannel(DOUBT_TOPIC, onDoubtMessage);
 
-  const onAskFeynman = useCallback(() => {
-    if (doubtState !== "idle") return;
+  // Publish the doubt to the worker over the data channel. The caller
+  // guarantees the room is connected + the agent is present (roomReady), so the
+  // message isn't dropped. Snapshot was taken by pause(); the doubt board is set
+  // up later on resolution_ready (carry-over vs fresh), so the student keeps
+  // seeing what they asked about while Feynman thinks.
+  const publishDoubtIntent = useCallback(() => {
     if (!room?.localParticipant) {
-      console.warn("[LectureViewer] no LiveKit room — ignoring Ask Feynman");
+      clearStuckTimeout();
+      setDoubtState("idle");
       return;
     }
-    pause();
-    // Snapshot taken by pause(). The doubt board is set up later, on
-    // resolution_ready, once we know whether to carry over the current page
-    // (local clarification → build on the diagram + notebook on screen) or
-    // start a fresh blank board — so the student keeps seeing what they asked
-    // about while Feynman thinks.
-    setDoubtState("listening");
-    armStuckTimeout(
-      12_000,
-      "I didn't hear anything. Make sure your mic is granted and the worker is running.",
-    );
     const intent: DoubtIntentPayload = {
       type: "doubt_intent",
       chapter_id: chapterId,
@@ -418,16 +442,52 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
         setDoubtState("idle");
       });
   }, [
-    doubtState,
     room,
-    pause,
-    armStuckTimeout,
-    clearStuckTimeout,
     chapterId,
     cursor,
     currentTopicId,
     currentSnapshot,
+    clearStuckTimeout,
   ]);
+
+  const onAskFeynman = useCallback(() => {
+    if (doubtState !== "idle") return;
+    pause();
+    setDoubtState("listening");
+    if (roomReady) {
+      // Room already up (a later doubt in the same lecture) — go immediately.
+      armStuckTimeout(MIC_STUCK_MS, MIC_STUCK_MSG);
+      publishDoubtIntent();
+    } else {
+      // LAZY CONNECT: watching used no LiveKit, so the room/agent are spun up
+      // now, on the first doubt. The flush effect below sends the intent the
+      // instant the room is connected and the agent has joined.
+      pendingDoubtRef.current = true;
+      armStuckTimeout(
+        25_000,
+        "Couldn't reach Feynman. Check your connection and try again.",
+      );
+      onRequestDoubtSession?.();
+    }
+  }, [
+    doubtState,
+    roomReady,
+    pause,
+    armStuckTimeout,
+    publishDoubtIntent,
+    onRequestDoubtSession,
+  ]);
+
+  // Flush a doubt raised before the room finished connecting — fired the moment
+  // the room is connected AND the agent participant has joined.
+  useEffect(() => {
+    if (pendingDoubtRef.current && roomReady) {
+      pendingDoubtRef.current = false;
+      armStuckTimeout(MIC_STUCK_MS, MIC_STUCK_MSG);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- acting on an external system (LiveKit connection) becoming ready; the state change is the intended consequence.
+      publishDoubtIntent();
+    }
+  }, [roomReady, armStuckTimeout, publishDoubtIntent]);
 
   const onErrorRetry = useCallback(() => {
     clearStuckTimeout();
@@ -634,7 +694,11 @@ function TranscriptBand({
 
   const positioned = position
     ? { left: position.x, top: position.y, transform: "none" as const }
-    : { left: "50%" as const, bottom: 80, transform: "translateX(-50%)" as const };
+    : {
+        left: "50%" as const,
+        bottom: 80,
+        transform: "translateX(-50%)" as const,
+      };
 
   return (
     <div
