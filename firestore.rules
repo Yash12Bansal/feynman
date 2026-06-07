@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Feynman — Firestore security rules (version-controlled; deploy with
+// `firebase deploy --only firestore:rules`). These mirror exactly how the
+// client accesses Firestore: a signed-in user reads/writes only their own
+// profile, and any signed-in user may submit feedback but never read it back
+// (feedback is read in the Firebase console).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // A signed-in user can read/write only their own profile doc.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Any signed-in user can submit feedback (and bounce beacons); nobody can
+    // read/edit/delete it from the client.
+    match /feedback/{doc} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if false;
+    }
+  }
+}

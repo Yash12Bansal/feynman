@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="matrix-A" x="120" y="290" width="60" height="70" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="matrix-B" x="280" y="270" width="80" height="110" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="matrix-C" x="460" y="260" width="90" height="130" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="matrix-D" x="650" y="245" width="26" height="160" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="label-A" x="142" y="333" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">A</text>
+<text id="label-B" x="312" y="333" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">B</text>
+<text id="label-C" x="497" y="333" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">C</text>
+<text id="label-D" x="656" y="333" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">D</text>
+<path id="left-bracket" d="M 112 250 Q 100 250 100 268 L 100 382 Q 100 400 112 400 M 368 250 Q 380 250 380 268 L 380 382 Q 380 400 368 400" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="right-bracket" d="M 452 235 Q 440 235 440 253 L 440 397 Q 440 415 452 415 M 684 235 Q 696 235 696 253 L 696 397 Q 696 415 684 415" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="left-bracket-label" x="200" y="235" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">(AB)\,C\,D</text>
+<text id="right-bracket-label" x="500" y="430" font-size="14" fill="#ff7a8a" font-style="italic" text-anchor="middle">A\,B\,(CD)</text>
+<defs><marker id="arrowhead_forward-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="forward-arrow" x1="130" y1="150" x2="670" y2="150" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_forward-arrow)"/>
+<defs><marker id="arrowhead_reverse-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="reverse-arrow" x1="670" y1="500" x2="130" y2="500" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_reverse-arrow)"/>
+<text id="forward-label" x="400" y="138" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">forward mode</text>
+<text id="reverse-label" x="400" y="524" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">reverse mode (backprop)</text>
+<text id="fwd-cost" x="400" y="575" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">left-to-right → matrix×matrix products</text>
+<text id="rev-cost" x="400" y="595" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">right-to-left → matrix×vector products (cheaper here)</text>
+</svg>

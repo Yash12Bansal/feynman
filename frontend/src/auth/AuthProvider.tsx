@@ -30,24 +30,58 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   // Only "initializing" when we'll actually wait for an auth callback. When
   // Firebase is unconfigured we never subscribe, so start resolved.
   const [initializing, setInitializing] = useState(firebaseConfigured);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!firebaseConfigured || !auth) return;
-    const unsub = onAuthStateChanged(auth, async (nextUser) => {
+    const unsub = onAuthStateChanged(auth, (nextUser) => {
+      // Unblock the gate the instant auth resolves — do NOT wait on the Firestore
+      // read here. A slow/blocked Firestore would otherwise hold the splash for
+      // seconds (and the read can fail "offline"). Fetch the profile in the
+      // background under its own flag so the gate can show a splash (not the
+      // setup form) while it resolves. React batches these same-tick updates, so
+      // there's no flash of the form for a signed-in user.
       setUser(nextUser);
+      setInitializing(false);
       if (nextUser && db) {
-        try {
-          const snap = await getDoc(doc(db, "users", nextUser.uid));
-          setProfile(snap.exists() ? (snap.data() as UserProfile) : null);
-        } catch (err) {
-          console.error("[auth] failed to load profile", err);
-          setProfile(null);
-        }
+        const database = db;
+        setProfileLoading(true);
+        getDoc(doc(database, "users", nextUser.uid))
+          .then((snap) => {
+            if (snap.exists()) {
+              setProfile(snap.data() as UserProfile);
+              return;
+            }
+            // First time we've seen this account — record the sign-in right away
+            // (don't wait for them to finish the profile) so every signed-in user
+            // has a Firestore row. profileComplete:false keeps the gate on the
+            // setup form; keeping the stub in local state also lets saveProfile
+            // preserve createdAt when it later completes the doc.
+            const stub: UserProfile = {
+              uid: nextUser.uid,
+              name: nextUser.displayName ?? "",
+              email: nextUser.email ?? "",
+              phone: "",
+              photoURL: nextUser.photoURL ?? null,
+              profileComplete: false,
+            };
+            setProfile(stub);
+            void setDoc(
+              doc(database, "users", nextUser.uid),
+              { ...stub, createdAt: serverTimestamp(), updatedAt: serverTimestamp() },
+              { merge: true },
+            ).catch((err) => console.error("[auth] failed to record sign-in", err));
+          })
+          .catch((err) => {
+            console.error("[auth] failed to load profile", err);
+            setProfile(null);
+          })
+          .finally(() => setProfileLoading(false));
       } else {
         setProfile(null);
+        setProfileLoading(false);
       }
-      setInitializing(false);
     });
     return unsub;
   }, []);
@@ -82,17 +116,24 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
         photoURL: user.photoURL ?? null,
         profileComplete: true,
       };
-      await setDoc(
-        doc(db, "users", user.uid),
-        {
-          ...next,
-          updatedAt: serverTimestamp(),
-          // Only stamp createdAt on first write (merge preserves it after).
-          ...(profile ? {} : { createdAt: serverTimestamp() }),
-        },
-        { merge: true },
-      );
+      // Optimistic: open the gate immediately rather than waiting on the network
+      // write. The persistent cache queues the write and syncs it when the
+      // transport recovers, so we don't roll back on a transient failure.
       setProfile(next);
+      try {
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            ...next,
+            updatedAt: serverTimestamp(),
+            // Only stamp createdAt on first write (merge preserves it after).
+            ...(profile ? {} : { createdAt: serverTimestamp() }),
+          },
+          { merge: true },
+        );
+      } catch (err) {
+        console.error("[auth] failed to persist profile", err);
+      }
     },
     [user, profile],
   );
@@ -105,6 +146,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     () => ({
       configured: firebaseConfigured,
       initializing,
+      profileLoading,
       user,
       profile,
       profileComplete: Boolean(profile?.profileComplete),
@@ -113,7 +155,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       saveProfile,
       signOut,
     }),
-    [initializing, user, profile, authError, signInWithGoogle, saveProfile, signOut],
+    [initializing, profileLoading, user, profile, authError, signInWithGoogle, saveProfile, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

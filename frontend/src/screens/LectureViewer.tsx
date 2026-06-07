@@ -21,6 +21,7 @@ import {
   SatisfactionPrompt,
   type SatisfactionOption,
 } from "../components/SatisfactionPrompt";
+import { InLectureFeedback } from "../feedback/InLectureFeedback";
 import {
   useExtractionPlayback,
   type BoardSnapshot,
@@ -170,6 +171,9 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
   const [satisfactionOptions, setSatisfactionOptions] = useState<
     readonly SatisfactionOption[] | null
   >(null);
+  // True while the in-lecture feedback wizard is up — hides player chrome so the
+  // wizard gets the same clean backdrop the doubt flow / satisfaction prompt do.
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const room = useRoomContext();
 
   // Subtitle (closed-caption) prefs. Visibility + size persist across
@@ -506,21 +510,23 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
   );
 
   const doubtActive = doubtState !== "idle";
+  // Hide player chrome during a doubt branch OR while the feedback wizard is up.
+  const chromeHidden = doubtActive || feedbackOpen;
 
   return (
     <ImmersiveShell>
       {body}
-      {chapter && !doubtActive && (
+      {chapter && !chromeHidden && (
         <PausePlayButton paused={isPaused} onToggle={onPauseToggle} />
       )}
-      {chapter && !doubtActive && topicJumps.length > 0 && (
+      {chapter && !chromeHidden && topicJumps.length > 0 && (
         <TopicJumpMenu
           topics={topicJumps}
           currentTopicId={currentTopicId}
           onJump={onTopicJump}
         />
       )}
-      {chapter && !doubtActive && !subtitlesHidden && currentNarrationText && (
+      {chapter && !chromeHidden && !subtitlesHidden && currentNarrationText && (
         <TranscriptBand
           text={currentNarrationText}
           size={subtitleSize}
@@ -529,7 +535,7 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
         />
       )}
       {ccToast && <CCToast text={ccToast} />}
-      {chapter && !doubtActive && chapterDurationMs > 0 && (
+      {chapter && !chromeHidden && chapterDurationMs > 0 && (
         <Scrubber
           totalMs={chapterDurationMs}
           currentMs={currentLectureMs}
@@ -537,7 +543,7 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
           onSeekCommit={onSeekCommit}
         />
       )}
-      {chapter && (
+      {chapter && !feedbackOpen && (
         <AskFeynmanButton
           state={doubtState}
           onActivate={onAskFeynman}
@@ -549,6 +555,17 @@ export function LectureViewer({ chapterId }: LectureViewerProps) {
         <SatisfactionPrompt
           options={satisfactionOptions}
           onChoose={onSatisfactionChoose}
+        />
+      )}
+      {chapter && (
+        <InLectureFeedback
+          currentMs={currentLectureMs}
+          durationMs={chapterDurationMs}
+          enabled={!doubtActive && satisfactionOptions === null}
+          isPlaying={status === "playing"}
+          pause={pause}
+          play={play}
+          onOpenChange={setFeedbackOpen}
         />
       )}
     </ImmersiveShell>

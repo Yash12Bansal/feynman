@@ -13,7 +13,12 @@
 
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from "firebase/firestore";
 import { getAnalytics, isSupported as analyticsIsSupported } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -39,7 +44,19 @@ let googleProviderInstance: GoogleAuthProvider | null = null;
 if (firebaseConfigured) {
   app = initializeApp(firebaseConfig);
   authInstance = getAuth(app);
-  dbInstance = getFirestore(app);
+  // Initialize Firestore for resilience, NOT plain getFirestore():
+  //  - auto-detect long-polling: Firestore's default streaming channel
+  //    (WebChannel/gRPC) is silently blocked by many VPNs, corporate/campus
+  //    networks, HTTP/2 proxies, and privacy extensions — which surfaces as
+  //    "Failed to get document because the client is offline." Long-polling
+  //    falls back to plain HTTP that gets through.
+  //  - persistent IndexedDB cache: once a doc has been read it's served from
+  //    cache even if the transport is momentarily down, so a returning user is
+  //    never wrongly re-onboarded and writes queue + sync when it recovers.
+  dbInstance = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  });
   googleProviderInstance = new GoogleAuthProvider();
   // Always let the user pick which Google account — important for shared
   // demo machines in a feedback cohort.

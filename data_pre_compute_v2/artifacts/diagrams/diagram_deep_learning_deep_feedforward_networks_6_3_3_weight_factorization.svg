@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="dense-label" x="215" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Dense layer</text>
+<text id="factored-label" x="670" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Factored layer</text>
+<rect id="input-block" x="90" y="150" width="40" height="260" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<text id="input-n-label" x="110" y="432" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">n</text>
+<rect id="weight-matrix-w" x="150" y="230" width="130" height="100" rx="4" fill="none" stroke="#e8e8ee" stroke-width="3.5"/>
+<text id="w-symbol" x="215" y="285" font-size="20" fill="#e8e8ee" text-anchor="middle" font-weight="600">W</text>
+<text id="w-dims" x="190" y="350" font-size="13" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">n \times p</text>
+<rect id="output-block" x="300" y="150" width="40" height="260" rx="6" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="output-p-label" x="320" y="432" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">p</text>
+<text id="param-count-original" x="175" y="470" font-size="16" fill="#ff7a8a" font-style="italic" text-anchor="middle">n \times p</text>
+<rect id="factored-input" x="500" y="150" width="40" height="260" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<text id="factored-input-n" x="520" y="432" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">n</text>
+<rect id="bottleneck-block" x="655" y="240" width="30" height="80" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="bottleneck-q-label" x="670" y="340" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">q</text>
+<rect id="matrix-u" x="555" y="250" width="90" height="60" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="u-symbol" x="600" y="285" font-size="16" fill="#e8e8ee" text-anchor="middle" font-weight="600">U</text>
+<rect id="matrix-v" x="695" y="250" width="90" height="60" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="v-symbol" x="740" y="285" font-size="16" fill="#e8e8ee" text-anchor="middle" font-weight="600">V</text>
+<rect id="factored-output" x="800" y="150" width="40" height="260" rx="6" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="factored-output-p" x="820" y="432" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">p</text>
+<text id="param-count-factored" x="620" y="470" font-size="16" fill="#9effc9" font-style="italic" text-anchor="middle">(n + p)\, q</text>
+</svg>

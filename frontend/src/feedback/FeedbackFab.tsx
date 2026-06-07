@@ -1,28 +1,90 @@
 /**
- * Always-available manual feedback button, fixed bottom-left (Ask Feynman owns
- * bottom-right). Opens the lighter "manual" feedback form. Kept subtle so it
- * doesn't compete with the lecture — fades up to full opacity on hover.
+ * Always-available feedback button, fixed bottom-left (Ask Feynman owns
+ * bottom-right). Opens the full feedback wizard. Made deliberately visible (a
+ * real accent-bordered CTA, not faint chrome) and given a PERIODIC attention
+ * pulse — a short glow every ~35s, then rest — so it gently asks to be noticed
+ * without nagging. The pulse is suppressed while any feedback wizard is open,
+ * disabled under prefers-reduced-motion, held off for the first 30s, and stops
+ * for good once the user has submitted feedback this session.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FeedbackModal } from "./FeedbackModal";
+import { feedbackSession } from "./feedbackSession";
+
+const KEYFRAMES_ID = "fb-fab-keyframes";
+const FIRST_PULSE_DELAY_MS = 30_000;
+const PULSE_PERIOD_MS = 35_000;
+const PULSE_DURATION_MS = 1_800;
+
+/** Inject the attention keyframe once (mirrors AskFeynmanButton's pattern). */
+function ensureKeyframes(): void {
+  if (typeof document === "undefined" || document.getElementById(KEYFRAMES_ID)) return;
+  const el = document.createElement("style");
+  el.id = KEYFRAMES_ID;
+  el.textContent = `
+@keyframes fb-fab-attention {
+  0%   { box-shadow: 0 0 0 0 rgba(127, 212, 255, 0.55), 0 10px 30px rgba(0, 0, 0, 0.45); }
+  70%  { box-shadow: 0 0 0 14px rgba(127, 212, 255, 0), 0 10px 30px rgba(0, 0, 0, 0.45); }
+  100% { box-shadow: 0 0 0 0 rgba(127, 212, 255, 0), 0 10px 30px rgba(0, 0, 0, 0.45); }
+}`;
+  document.head.appendChild(el);
+}
 
 export function FeedbackFab() {
   const [open, setOpen] = useState(false);
+  const [pulsing, setPulsing] = useState(false);
+  const openRef = useRef(false);
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+
+  useEffect(() => {
+    ensureKeyframes();
+    if (typeof window === "undefined") return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    if (reduce) return;
+
+    let offTimer: number | undefined;
+    const tick = () => {
+      // Don't pulse while a wizard is open (anywhere) or after a submission.
+      if (openRef.current || feedbackSession.isOpen() || feedbackSession.hasSubmitted()) return;
+      setPulsing(true);
+      offTimer = window.setTimeout(() => setPulsing(false), PULSE_DURATION_MS);
+    };
+    const first = window.setTimeout(tick, FIRST_PULSE_DELAY_MS);
+    const interval = window.setInterval(tick, PULSE_PERIOD_MS);
+    return () => {
+      window.clearTimeout(first);
+      window.clearTimeout(offTimer);
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const onActivate = () => {
+    if (feedbackSession.isOpen()) return;
+    setPulsing(false);
+    feedbackSession.markOpened();
+    setOpen(true);
+  };
+
   return (
     <>
       <button
         type="button"
         aria-label="Send feedback"
-        onClick={() => setOpen(true)}
-        style={fabStyle}
+        onClick={onActivate}
+        style={{
+          ...fabStyle,
+          ...(pulsing ? { animation: "fb-fab-attention 1.6s ease-out" } : null),
+        }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "translateY(-1px)";
           e.currentTarget.style.opacity = "1";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.opacity = "0.82";
+          e.currentTarget.style.opacity = "0.95";
         }}
       >
         <ChatGlyph />
@@ -31,8 +93,14 @@ export function FeedbackFab() {
       {open && (
         <FeedbackModal
           variant="manual"
-          onClose={() => setOpen(false)}
-          onSubmitted={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            feedbackSession.markClosed();
+          }}
+          onSubmitted={() => {
+            setOpen(false);
+            feedbackSession.markSubmitted();
+          }}
         />
       )}
     </>
@@ -64,16 +132,16 @@ const fabStyle: React.CSSProperties = {
   gap: 9,
   padding: "11px 18px",
   borderRadius: 999,
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  background: "rgba(20, 20, 32, 0.62)",
+  border: "1px solid rgba(127, 212, 255, 0.40)",
+  background: "rgba(26, 40, 52, 0.82)",
   backdropFilter: "blur(8px)",
   WebkitBackdropFilter: "blur(8px)",
-  color: "rgba(232, 232, 238, 0.85)",
+  color: "#cdeeff",
   fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   fontSize: "0.88rem",
   fontWeight: 600,
   cursor: "pointer",
-  opacity: 0.82,
+  opacity: 0.95,
   transition: "transform 200ms ease, opacity 200ms ease",
   zIndex: 100,
   boxShadow: "0 10px 30px rgba(0, 0, 0, 0.45)",

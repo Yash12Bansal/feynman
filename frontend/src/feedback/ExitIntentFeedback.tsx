@@ -1,42 +1,51 @@
 /**
- * Shows the full feedback survey when the user looks like they're leaving
- * (cursor exits via the top edge). Once submitted, it stays quiet for the rest
- * of the session; after a dismiss it waits out a 60s cooldown so it doesn't
- * re-pop on every stray mouse movement toward the tab bar.
+ * Opens the full feedback survey when the user looks like they're leaving
+ * (cursor exits via the top edge, heading for the tab bar / close). Also wires
+ * the leave-signal bounce beacon. Coordinated through `feedbackSession`: it
+ * won't pop if the user already submitted, if another wizard is open, or during
+ * its 60s post-dismiss cooldown — and it stands down entirely while a lecture is
+ * on screen (the in-lecture surface owns exit-intent there, because only it can
+ * pause playback).
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useExitIntent } from "./useExitIntent";
+import { useLeaveSignals } from "./useLeaveSignals";
 import { FeedbackModal } from "./FeedbackModal";
+import { feedbackSession } from "./feedbackSession";
 
 const DISMISS_COOLDOWN_MS = 60_000;
 
 export function ExitIntentFeedback() {
   const [open, setOpen] = useState(false);
-  const submittedRef = useRef(false);
-  const lastShownRef = useRef(0);
+
+  // Best-effort logging of real leaves (independent of whether the form opened).
+  useLeaveSignals();
 
   const onTrigger = useCallback(() => {
-    if (submittedRef.current) return;
-    const now = performance.now();
-    if (lastShownRef.current !== 0 && now - lastShownRef.current < DISMISS_COOLDOWN_MS) {
-      return;
-    }
-    lastShownRef.current = now;
+    // Read live (feedbackSession isn't reactive): during a lecture the
+    // in-lecture surface owns exit-intent because only it can pause playback.
+    if (feedbackSession.isLectureActive()) return;
+    if (!feedbackSession.tryOpen("exit")) return;
     setOpen(true);
   }, []);
 
-  // Detector is inert while the modal is open.
+  // Listener stays attached whenever our own modal is closed; the live guards in
+  // onTrigger (lecture-active, tryOpen) are the real gates.
   useExitIntent({ enabled: !open, onTrigger });
 
   if (!open) return null;
   return (
     <FeedbackModal
       variant="exit"
-      onClose={() => setOpen(false)}
-      onSubmitted={() => {
-        submittedRef.current = true;
+      onClose={() => {
         setOpen(false);
+        feedbackSession.markClosed();
+        feedbackSession.startCooldown("exit", DISMISS_COOLDOWN_MS);
+      }}
+      onSubmitted={() => {
+        setOpen(false);
+        feedbackSession.markSubmitted();
       }}
     />
   );
