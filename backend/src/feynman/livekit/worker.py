@@ -44,6 +44,18 @@ def _parse_room_metadata(ctx: JobContext) -> dict:
 
 _DOUBT_TOPIC = "doubt_signal"
 
+# Spoken the instant a doubt is captured, WHILE the multi-second classify+plan
+# LLM chain runs in the background — so the student hears Feynman within ~0.5s
+# instead of sitting through dead air. Short + varied; picked by a rotating
+# index (not random) so back-to-back doubts don't repeat the same line.
+_ACKNOWLEDGEMENTS = (
+    "Good question — give me a second.",
+    "Ah, let me think about that one.",
+    "Right, let me show you.",
+    "Hmm, good one — one moment.",
+    "Let's take a look at that.",
+)
+
 
 async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
     """Lecture-mode worker loop.
@@ -99,6 +111,9 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
     # Tracks the most recent doubt so `start_over` can re-resolve with
     # `different_angle=True` carrying the prior framing as context.
     last_doubt_state: dict[str, str] = {"text": "", "summary": "", "topic_id": ""}
+    # Rotating index for the spoken acknowledgement (mutable container so the
+    # nested _resolve_and_deliver can bump it without `nonlocal`).
+    ack_counter: dict[str, int] = {"n": 0}
 
     async def _resolve_and_deliver(
         *,
@@ -117,14 +132,48 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
             )
             return None
         t0 = time.monotonic()  # Phase 6: latency clock starts when we begin work.
-        plan = await doubt_session.resolve(
-            doubt_text=doubt_text,
-            current_topic_id=topic_id,
-            cursor=cursor,
-            different_angle=different_angle,
-            prior_resolution_summary=prior_resolution_summary,
-            board_snapshot=board_snapshot,
+
+        # Idempotent: fires on the FIRST audio frame (the acknowledgement's, or
+        # beat 0's if the filler was skipped) — the true time-to-first-voice.
+        first_voice_logged = False
+
+        def _on_first_frame() -> None:
+            nonlocal first_voice_logged
+            if first_voice_logged:
+                return
+            first_voice_logged = True
+            ms = int((time.monotonic() - t0) * 1000)
+            logger.info("phase6.time_to_first_voice_ms", ms=ms)
+
+        # Run the (multi-second) classify+plan chain in the BACKGROUND and
+        # immediately acknowledge out loud, so the student hears Feynman within
+        # ~0.5s instead of waiting out the whole LLM chain in silence. The filler
+        # streams through the same TTS lock as the beats, so it plays seamlessly
+        # right before beat 0. `_on_first_frame` (time-to-first-voice telemetry)
+        # fires on the filler's first frame — the true moment Feynman starts.
+        resolve_task = asyncio.create_task(
+            doubt_session.resolve(
+                doubt_text=doubt_text,
+                current_topic_id=topic_id,
+                cursor=cursor,
+                different_angle=different_angle,
+                prior_resolution_summary=prior_resolution_summary,
+                board_snapshot=board_snapshot,
+            )
         )
+        if doubt_delivery.is_started:
+            ack = _ACKNOWLEDGEMENTS[ack_counter["n"] % len(_ACKNOWLEDGEMENTS)]
+            ack_counter["n"] += 1
+            try:
+                await doubt_delivery.speak(ack, on_first_frame=_on_first_frame)
+            except Exception:
+                logger.warning("worker.acknowledgement_failed", exc_info=True)
+
+        try:
+            plan = await resolve_task
+        except Exception:
+            logger.exception("worker.resolve_failed")
+            plan = None
         if plan is None:
             await _publish_doubt(
                 ctx, {"type": "doubt_resolution_failed", "reason": "planner_failed"}
@@ -144,12 +193,9 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
             cls = doubt_session.prior_doubts_in_session[-1].classification
             snap_elements = (board_snapshot or {}).get("elements") or []
             has_board_diagram = any(
-                isinstance(el, dict) and el.get("kind") == "diagram"
-                for el in snap_elements
+                isinstance(el, dict) and el.get("kind") == "diagram" for el in snap_elements
             )
-            carry_over = (
-                cls.type == DoubtType.LOCAL_CLARIFICATION and has_board_diagram
-            )
+            carry_over = cls.type == DoubtType.LOCAL_CLARIFICATION and has_board_diagram
 
         await _publish_doubt(
             ctx,
@@ -165,10 +211,6 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
 
         async def _publish(payload: dict[str, Any]) -> None:
             await _publish_doubt(ctx, payload)
-
-        def _on_first_frame() -> None:
-            ms = int((time.monotonic() - t0) * 1000)
-            logger.info("phase6.time_to_first_voice_ms", ms=ms)
 
         if doubt_delivery.is_started:
             try:
@@ -200,7 +242,7 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         def _on_speech_started() -> None:
             # Student has begun talking. Tell the frontend we're actively
             # listening so its short "I didn't hear anything" timeout doesn't
-            # fire mid-doubt — capture runs until 5s of continuous silence.
+            # fire mid-doubt — capture runs until a short continuous-silence gap.
             t = asyncio.create_task(_publish_doubt(ctx, {"type": "doubt_listening"}))
             pending_tasks.add(t)
             t.add_done_callback(pending_tasks.discard)

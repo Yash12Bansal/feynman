@@ -27,6 +27,8 @@ from livekit import rtc
 from livekit.agents import JobContext
 from livekit.agents import stt as stt_module
 
+from feynman.config import settings
+
 logger = structlog.get_logger()
 
 
@@ -38,9 +40,10 @@ class CapturedDoubt:
 
 # End-of-doubt detection: once the student has started speaking, finalise the
 # capture after this many seconds of continuous silence (no interim or final
-# STT events). 5s lets a student pause to gather a thought mid-doubt without
-# being cut off, while still feeling responsive once they're genuinely done.
-_SILENCE_TIMEOUT_S = 5.0
+# STT events). The STT's own VAD already endpoints at ~350ms, so this is just a
+# short "don't cut a mid-thought pause" buffer — kept small (config-backed) so
+# Feynman starts replying fast rather than sitting through seconds of dead air.
+_SILENCE_TIMEOUT_S = settings.doubt_silence_timeout_s
 # Before the student says anything (they may pause to think after tapping Ask
 # Feynman), wait this long for speech to begin. If nothing is heard, give up.
 _PRE_SPEECH_TIMEOUT_S = 15.0

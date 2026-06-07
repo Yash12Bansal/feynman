@@ -2,8 +2,9 @@
 
 Phase 3 was a stub that always returned `local_clarification`. This
 replacement keeps the exact same signature so callers don't have to
-change, but routes through a Claude Sonnet tool-use call that returns a
-real classification.
+change, but routes through a fast Claude Haiku tool-use call that returns a
+real classification (the coarse 3-way label is cheap; the planner that
+follows stays on Sonnet for teaching quality).
 
 Retry pattern mirrors `data_pre_compute_v2/.../lesson_planner.py`:
 two attempts max, attempt 2 includes the prior ValidationError so the
@@ -29,7 +30,10 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-_MODEL = "claude-sonnet-4-20250514"
+# Classification is a coarse 3-way categorization — run it on fast Haiku to keep
+# it off the critical path before the (Sonnet) planner. The planner, where
+# teaching quality matters, stays on Sonnet.
+_MODEL = "claude-haiku-4-5-20251001"
 _TOOL_NAME = "emit_classification"
 _TOOL_DESCRIPTION = "Emit the DoubtClassification for the supplied student doubt."
 _MAX_TOKENS = 1024

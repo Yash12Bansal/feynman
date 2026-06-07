@@ -69,6 +69,13 @@ class Settings(BaseSettings):
     # ingested yet.
     use_neo4j_curriculum: bool = True
 
+    # Doubt capture: seconds of continuous silence after the student stops
+    # speaking before we finalize the transcript and start reasoning. The STT's
+    # own VAD already endpoints the utterance at ~350ms, so this is only a
+    # "don't cut a mid-thought pause" buffer — kept short so Feynman begins
+    # replying fast. Raise it if students report being cut off mid-doubt.
+    doubt_silence_timeout_s: float = 1.2
+
     @property
     def is_dev(self) -> bool:
         return self.environment == "development"
