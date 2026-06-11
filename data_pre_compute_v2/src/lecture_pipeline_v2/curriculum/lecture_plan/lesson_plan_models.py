@@ -170,6 +170,12 @@ class ChoreographyStep(BaseModel):
     # guarantee every book example becomes one or more choreography steps.
     is_book_example: bool = False
     book_example_ref: int | None = None
+    # Great-teacher colour. Set ONLY by ExtendedExampleWeaver for steps it
+    # generates from Topic.extended_examples[i] (real-world anchors + fun
+    # facts). Mirrors the book-example tagging so the weaver can strip its
+    # own steps on a re-run without disturbing concept or book-example steps.
+    is_extended_example: bool = False
+    extended_example_ref: int | None = None
 
     @model_validator(mode="after")
     def question_xor_payoff(self) -> ChoreographyStep:
