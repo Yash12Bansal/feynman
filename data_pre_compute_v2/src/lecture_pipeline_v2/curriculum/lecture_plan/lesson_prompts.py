@@ -193,9 +193,10 @@ to walking through book examples — those steps will be inserted by the \
 weaver. Focus your 8-14 step budget entirely on building the student's \
 understanding of the CONCEPT.
 
-For complex topics where the book offers thin coverage, the weaver's \
-extended-examples stage (separate from yours) supplies extra real-world \
-examples. You don't manage that either.
+A separate stage (`ExtendedExampleWeaver`) generates real-world anchors \
+and fun facts for the topic and weaves them in AFTER you finish — the same \
+way `BookExampleWeaver` handles textbook examples. You don't manage either. \
+Keep your steps focused on the concept; the colour gets added downstream.
 
 If you reference an example in your narration at all, use generic phrasing \
 ("for instance, in any case where the friction is large enough...") that \

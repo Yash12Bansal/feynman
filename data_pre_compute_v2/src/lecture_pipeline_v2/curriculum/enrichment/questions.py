@@ -50,10 +50,11 @@ For a solved-example problem:
 }
 
 Rules:
+- Test what THIS section teaches. Ground every question in the explanation and examples given above — do not test outside knowledge the lecture never covered.
 - The answer must be definitively correct. If you're not sure, don't include the question.
 - For MCQ: the correct option must be unambiguously the only right one. Distractors should be plausible but wrong.
 - Questions speak in plain English. No symbolic math — say "x squared" not "x^2".
-- Mix difficulty across the set: 1-2 conceptual checks, 1-2 application problems, 1 deeper question.
+- Mix difficulty across the set: 1-2 conceptual checks, 1-2 application problems, 1 deeper question (one that asks "why", or connects this topic to another idea — not another "what is").
 - Return ONLY the JSON. No markdown. No commentary."""
 
 
@@ -63,6 +64,8 @@ Return a JSON object with exactly these fields:
 - "verdict": "correct" or "incorrect"
 - "my_answer": your independently-derived answer (the letter A/B/C/D for MCQ, or a brief solution for problems)
 - "reason": one sentence explaining your verdict
+
+For a worked solution, mark "correct" only if the final answer AND the key reasoning steps are right. A wrong final answer, or a broken load-bearing step, is "incorrect" even if the rest looks plausible.
 
 Return ONLY the JSON. No markdown. No commentary."""
 

@@ -130,6 +130,12 @@ class CypherGenerator:
         # board_snapshots / concept_visual_index pattern). Promote to nodes
         # only when a consumer needs graph traversal over examples.
         book_examples_json = json.dumps([be.model_dump() for be in t.book_examples])
+        # Generated real-world anchors + fun facts (ExtendedExampleWeaver).
+        # Same JSON-string pattern as book_examples — promote to nodes only
+        # if a consumer ever needs graph traversal over them.
+        extended_examples_json = json.dumps(
+            [ee.model_dump() for ee in t.extended_examples]
+        )
         params = {
             "topic_id": t.topic_id,
             "chapter_id": t.chapter_id,
@@ -140,6 +146,7 @@ class CypherGenerator:
             "our_understanding": t.our_understanding,
             "examples": list(t.examples),
             "book_examples": book_examples_json,
+            "extended_examples": extended_examples_json,
             "complexity_score": t.complexity_score,
             "n_extended_examples": t.n_extended_examples(),
             "next_topic_id": t.next_topic_id,
@@ -163,6 +170,7 @@ class CypherGenerator:
             "    n.our_understanding = $our_understanding,\n"
             "    n.examples = $examples,\n"
             "    n.book_examples = $book_examples,\n"
+            "    n.extended_examples = $extended_examples,\n"
             "    n.complexity_score = $complexity_score,\n"
             "    n.n_extended_examples = $n_extended_examples,\n"
             "    n.next_topic_id = $next_topic_id,\n"
