@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="rotation-axis" x1="450" y1="80" x2="450" y2="590" stroke="#7fd4ff" stroke-width="1.8" stroke-dasharray="8 6"/>
+<text id="axis-label" x="462" y="100" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">Z</text>
+<circle id="disc-body" cx="450" cy="335" r="210" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="center-dot" cx="450" cy="335" r="4" fill="#e8e8ee" stroke="#e8e8ee" stroke-width="1" stroke-dasharray=""/>
+<line id="radius-inner-start" x1="450" y1="335" x2="550" y2="335" stroke="rgba(232,232,238,0.55)" stroke-width="1.6" stroke-dasharray="5 5"/>
+<line id="radius-inner-now" x1="450" y1="335" x2="527" y2="271" stroke="#9effc9" stroke-width="2.2" stroke-dasharray=""/>
+<circle id="particle-inner" cx="527" cy="271" r="6" fill="#9effc9" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<line id="radius-outer-start" x1="450" y1="335" x2="650" y2="335" stroke="rgba(232,232,238,0.55)" stroke-width="1.6" stroke-dasharray="5 5"/>
+<line id="radius-outer-now" x1="450" y1="335" x2="604" y2="207" stroke="#ff7a8a" stroke-width="2.2" stroke-dasharray=""/>
+<circle id="particle-outer" cx="604" cy="207" r="6" fill="#ff7a8a" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray=""/>
+<path id="angle-theta" d="M 541.9253331742774 257.8654868376153 A 120.0 120.0 0 0 1 570.0 335.0" stroke="#7fd4ff" stroke-width="2" fill="none"/>
+<path id="angle-theta-inner" d="M 503.6231110183285 290.00486732194224 A 70.0 70.0 0 0 1 520.0 335.0" stroke="#7fd4ff" stroke-width="1.5" fill="none"/>
+<text id="theta-label" x="585" y="300" font-size="18" fill="#7fd4ff" font-style="italic" text-anchor="middle">\theta</text>
+<text id="inner-label" x="535" y="262" font-size="11" fill="#9effc9" text-anchor="start" font-weight="600">inner</text>
+<text id="outer-label" x="612" y="198" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="600">outer</text>
+</svg>

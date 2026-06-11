@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="south-pole" d="M 320 130 L 580 130 L 580 220 L 320 220 Z" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="south-label" x="450" y="180" font-size="20" fill="#7fd4ff" text-anchor="middle" font-weight="600">S</text>
+<path id="north-pole" d="M 320 430 L 580 430 L 580 520 L 320 520 Z" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="north-label" x="450" y="485" font-size="20" fill="#ff7a8a" text-anchor="middle" font-weight="600">N</text>
+<path id="magnet-yoke" d="M 320 130 Q 200 130 200 325 Q 200 520 320 520" stroke="rgba(232,232,238,0.55)" stroke-width="2" fill="none" stroke-dasharray=""/>
+<line id="rod" x1="300" y1="325" x2="600" y2="325" stroke="#e8e8ee" stroke-width="4" stroke-dasharray=""/>
+<text id="rod-A" x="290" y="312" font-size="13" fill="#e8e8ee" text-anchor="end" font-weight="600">A</text>
+<text id="rod-B" x="610" y="312" font-size="13" fill="#e8e8ee" text-anchor="start" font-weight="600">B</text>
+<defs><marker id="arrowhead_field-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="field-arrow" x1="450" y1="430" x2="450" y2="220" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_field-arrow)"/>
+<text id="field-label" x="462" y="250" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">B</text>
+<defs><marker id="arrowhead_current-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="current-arrow" x1="320" y1="360" x2="580" y2="360" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_current-arrow)"/>
+<text id="current-label" x="590" y="364" font-size="16" fill="#9effc9" font-style="italic" text-anchor="middle">I</text>
+<defs><marker id="arrowhead_force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="force-arrow" x1="450" y1="325" x2="700" y2="325" stroke="#ff7a8a" stroke-width="3" marker-end="url(#arrowhead_force-arrow)"/>
+<text id="force-label" x="710" y="320" font-size="16" fill="#ff7a8a" font-style="italic" text-anchor="middle">F</text>
+</svg>

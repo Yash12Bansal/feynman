@@ -160,9 +160,10 @@ async def test_deliver_resolution_publishes_board_events_per_beat(mocked_room):
     plan = ResolutionPlan(
         beats=[
             ResolutionBeat(
-                narration_text="First beat — here's the idea.",
+                # Inline <<FOCUS:trajectory>> marker — fires synced to the words,
+                # as its own interleaved message (NOT bundled at beat start).
+                narration_text="First beat. <<FOCUS:trajectory>>Watch this path.",
                 diagram=ReuseDiagram(diagram_id="d_train"),
-                annotation_actions=[FocusAction(target_role="trajectory", text="watch this")],
             ),
             ResolutionBeat(
                 narration_text="Second beat — therefore the result.",
@@ -175,7 +176,13 @@ async def test_deliver_resolution_publishes_board_events_per_beat(mocked_room):
         chapter_id="c1",
         title="t",
         topics={},
-        diagrams={"d_train": DiagramData(diagram_id="d_train", description="d")},
+        diagrams={
+            "d_train": DiagramData(
+                diagram_id="d_train",
+                description="d",
+                dictionary={"traj_el": {"role": "trajectory"}},
+            )
+        },
     )
 
     published: list[dict[str, Any]] = []
@@ -196,20 +203,25 @@ async def test_deliver_resolution_publishes_board_events_per_beat(mocked_room):
         await delivery.deliver_resolution(plan=plan, chapter_context=chapter, publish_data=_publish)
 
     beat_starts = [p for p in published if p["type"] == "doubt_beat_start"]
-    assert len(beat_starts) == 2
+    types_per_msg = [[e["type"] for e in p["board_events"]] for p in beat_starts]
+    # beat0 structural (show_diagram only — focus is inline now), a SEPARATE
+    # interleaved focus, then beat1's pointer.
+    assert ["show_diagram"] in types_per_msg
+    assert ["focus"] in types_per_msg
+    assert ["point_at"] in types_per_msg
 
-    # Beat 0: show the reused diagram, then focus on it.
-    types0 = [e["type"] for e in beat_starts[0]["board_events"]]
-    assert types0 == ["show_diagram", "focus"]
-    assert beat_starts[0]["board_events"][0]["diagram_id"] == "d_train"
-    assert beat_starts[0]["board_events"][1]["target_role"] == "trajectory"
+    show_msg = next(p for p in beat_starts if p["board_events"][0]["type"] == "show_diagram")
+    focus_msg = next(p for p in beat_starts if p["board_events"][0]["type"] == "focus")
+    # the inline marker resolved role "trajectory" → element id "traj_el"
+    assert focus_msg["board_events"][0]["target_element_id"] == "traj_el"
+    # the diagram is shown before its part is highlighted
+    assert published.index(show_msg) < published.index(focus_msg)
+    point_msg = next(p for p in beat_starts if p["board_events"][0]["type"] == "point_at")
+    assert point_msg["board_events"][0]["diagram_id"] == "d_train"
 
-    # Beat 1: keep → no new show_diagram; the pointer inherits the active diagram.
-    types1 = [e["type"] for e in beat_starts[1]["board_events"]]
-    assert types1 == ["point_at"]
-    assert beat_starts[1]["board_events"][0]["diagram_id"] == "d_train"
-
-    assert tts.synthesize.call_count == 2
+    # narration split into 3 spoken runs: "First beat." / "Watch this path." /
+    # "Second beat — therefore the result."
+    assert tts.synthesize.call_count == 3
 
 
 @pytest.mark.asyncio

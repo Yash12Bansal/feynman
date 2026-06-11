@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="stage1-label" x="230" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Oxidation</text>
+<text id="stage2-label" x="670" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Reduction</text>
+<rect id="copper-block" x="130" y="360" width="90" height="70" rx="4" fill="none" stroke="#f0a060" stroke-width="2.5"/>
+<text id="copper-label" x="175" y="402" font-size="14" fill="#f0a060" text-anchor="middle" font-weight="600">Cu</text>
+<circle id="oxygen-atom-1" cx="158" cy="175" r="16" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="oxygen-atom-2" cx="192" cy="175" r="16" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<g id="oxygen-molecule" transform="translate(0,0)"><line id="oxygen-bond" x1="172" y1="175" x2="178" y2="175" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/></g>
+<text id="oxygen-label" x="168" y="145" font-size="14" fill="#ff7a8a" font-style="italic" text-anchor="middle">O_2</text>
+<defs><marker id="arrowhead_oxygen-arrow-to-copper" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="oxygen-arrow-to-copper" x1="175" y1="200" x2="175" y2="350" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_oxygen-arrow-to-copper)"/>
+<text id="oxidised-label" x="195" y="280" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">oxidised</text>
+<rect id="copper-oxide-block" x="290" y="360" width="90" height="70" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="copper-oxide-label" x="312" y="402" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">CuO</text>
+<circle id="hydrogen-atom-1" cx="698" cy="175" r="14" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="hydrogen-atom-2" cx="730" cy="175" r="14" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<g id="hydrogen-molecule" transform="translate(0,0)"><line id="hydrogen-bond" x1="712" y1="175" x2="716" y2="175" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/></g>
+<text id="hydrogen-label" x="705" y="145" font-size="14" fill="#7fd4ff" font-style="italic" text-anchor="middle">H_2</text>
+<defs><marker id="arrowhead_oxygen-arrow-to-hydrogen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="oxygen-arrow-to-hydrogen" x1="400" y1="395" x2="600" y2="250" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_oxygen-arrow-to-hydrogen)"/>
+<text id="reduced-label" x="500" y="300" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">reduced</text>
+<circle id="water-o" cx="690" cy="410" r="16" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="water-h1" cx="662" cy="392" r="11" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="water-h2" cx="718" cy="392" r="11" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<g id="water-molecule" transform="translate(0,0)"><line id="water-bond-1" x1="678" y1="401" x2="671" y2="398" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/><line id="water-bond-2" x1="702" y1="401" x2="709" y2="398" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/></g>
+<text id="water-label" x="728" y="432" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">H_2O</text>
+<rect id="recovered-copper" x="290" y="480" width="90" height="70" rx="4" fill="none" stroke="#f0a060" stroke-width="2.5"/>
+<text id="recovered-label" x="335" y="522" font-size="14" fill="#f0a060" text-anchor="middle" font-weight="600">Cu</text>
+<defs><marker id="arrowhead_recover-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="recover-arrow" x1="335" y1="432" x2="335" y2="478" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_recover-arrow)"/>
+</svg>

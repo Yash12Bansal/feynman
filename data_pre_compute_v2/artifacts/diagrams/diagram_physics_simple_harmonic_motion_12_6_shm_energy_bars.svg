@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="centre-line" x1="230" y1="120" x2="230" y2="320" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<line id="edge-line" x1="400" y1="120" x2="400" y2="320" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<text id="centre-label" x="230" y="110" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">x = 0</text>
+<text id="edge-label" x="400" y="110" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">x = A</text>
+<path id="spring" d="M 60 250 L 90 250 L 100 235 L 120 265 L 140 235 L 160 265 L 180 235 L 200 265 L 210 250 L 350 250" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<line id="wall" x1="60" y1="200" x2="60" y2="300" stroke="#e8e8ee" stroke-width="3" stroke-dasharray=""/>
+<path id="wall-hatch" d="M 60 205 L 50 218 M 60 225 L 50 238 M 60 245 L 50 258 M 60 265 L 50 278 M 60 285 L 50 298" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="spring-mass" x="350" y="220" width="60" height="60" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="ground" x1="60" y1="320" x2="440" y2="320" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="pe-bar" x="560" y="250" width="60" height="230" rx="0" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<rect id="ke-bar" x="660" y="410" width="60" height="70" rx="0" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<rect id="total-bar" x="760" y="180" width="60" height="300" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="bar-baseline" x1="540" y1="480" x2="840" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="pe-label" x="590" y="500" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">PE</text>
+<text id="ke-label" x="690" y="500" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">KE</text>
+<text id="total-label" x="790" y="500" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">Total</text>
+</svg>

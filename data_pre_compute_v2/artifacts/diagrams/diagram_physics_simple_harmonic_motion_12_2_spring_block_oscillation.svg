@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="wall" x1="130" y1="200" x2="130" y2="420" stroke="#e8e8ee" stroke-width="3" stroke-dasharray=""/>
+<path id="wall-hatch" d="M 130 210 L 114 226 M 130 240 L 114 256 M 130 270 L 114 286 M 130 300 L 114 316 M 130 330 L 114 346 M 130 360 L 114 376 M 130 390 L 114 406" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="table" x1="130" y1="410" x2="820" y2="410" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="table-hatch" d="M 150 410 L 140 424 M 190 410 L 180 424 M 230 410 L 220 424 M 270 410 L 260 424 M 310 410 L 300 424 M 350 410 L 340 424 M 390 410 L 380 424 M 430 410 L 420 424 M 470 410 L 460 424 M 510 410 L 500 424 M 550 410 L 540 424 M 590 410 L 580 424 M 630 410 L 620 424 M 670 410 L 660 424 M 710 410 L 700 424 M 750 410 L 740 424 M 790 410 L 780 424" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<path id="spring" d="M 130 370 L 165 370 L 178 350 L 204 390 L 230 350 L 256 390 L 282 350 L 308 390 L 334 350 L 360 390 L 386 350 L 412 390 L 425 370 L 560 370" stroke="#7fd4ff" stroke-width="2" fill="none" stroke-dasharray=""/>
+<rect id="block" x="560" y="340" width="60" height="60" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<circle id="point-O" cx="420" cy="410" r="4" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<circle id="point-P" cx="590" cy="410" r="4" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<circle id="point-Q" cx="250" cy="410" r="4" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<line id="O-tick" x1="420" y1="405" x2="420" y2="440" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray="3 3"/>
+<defs><marker id="arrowhead_force-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="force-arrow" x1="560" y1="370" x2="470" y2="370" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_force-arrow)"/>
+<path id="displacement-x" d="M 420 460 L 590 460 M 420 454 L 420 466 M 590 454 L 590 466" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="O-label" x="420" y="458" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">O</text>
+<text id="P-label" x="590" y="458" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">P</text>
+<text id="Q-label" x="250" y="458" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">Q</text>
+<text id="x-label" x="500" y="485" font-size="15" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">x</text>
+<text id="F-label" x="462" y="350" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">F = -kx</text>
+</svg>

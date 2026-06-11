@@ -32,6 +32,29 @@ describe("feedbackSession", () => {
     expect(feedbackSession.canOpen("in_lecture")).toBe(true);
   });
 
+  it("auto-opens each source at most once per session (no re-pop after dismiss)", () => {
+    expect(feedbackSession.tryOpen("in_lecture")).toBe(true);
+    feedbackSession.markClosed();
+    // Dismissed — must NOT auto-open again this session, even with no cooldown.
+    expect(feedbackSession.canOpen("in_lecture")).toBe(false);
+    expect(feedbackSession.tryOpen("in_lecture")).toBe(false);
+    // A different source still gets its single auto-open.
+    expect(feedbackSession.tryOpen("exit")).toBe(true);
+  });
+
+  it("notifies subscribers on every open/close, until unsubscribed", () => {
+    let count = 0;
+    const unsub = feedbackSession.subscribe(() => {
+      count += 1;
+    });
+    feedbackSession.tryOpen("exit"); // open → notify
+    feedbackSession.markClosed(); // close → notify
+    expect(count).toBe(2);
+    unsub();
+    feedbackSession.markOpened(); // no longer subscribed
+    expect(count).toBe(2);
+  });
+
   it("tracks the lecture-active flag", () => {
     expect(feedbackSession.isLectureActive()).toBe(false);
     feedbackSession.setLectureActive(true);

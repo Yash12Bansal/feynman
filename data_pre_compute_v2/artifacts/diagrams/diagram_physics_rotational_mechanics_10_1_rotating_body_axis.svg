@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis-line" x1="450" y1="70" x2="450" y2="580" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray="8 6"/>
+<text id="axis-label" x="462" y="95" font-size="12" fill="#7fd4ff" text-anchor="start" font-weight="600">axis</text>
+<path id="rigid-body" d="M 300 250 L 660 200 L 660 430 L 300 480 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<ellipse id="circle-near" cx="450" cy="350" rx="55" ry="18" fill="none" stroke="#9effc9" stroke-width="2"/>
+<ellipse id="circle-far" cx="450" cy="330" rx="150" ry="48" fill="none" stroke="#ff7a8a" stroke-width="2"/>
+<circle id="particle-near" cx="505" cy="350" r="6" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="particle-far" cx="600" cy="330" r="6" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="foot-far" cx="450" cy="330" r="4" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="perpendicular-far" x1="450" y1="330" x2="600" y2="330" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text id="r-far-label" x="525" y="322" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">r₂</text>
+<text id="near-label" x="512" y="372" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">r₁</text>
+</svg>

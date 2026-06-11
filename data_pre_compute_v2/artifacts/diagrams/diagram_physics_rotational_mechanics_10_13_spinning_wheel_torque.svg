@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<circle id="wheel-body" cx="450" cy="325" r="180" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="wheel-inner" cx="450" cy="325" r="30" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="spoke-1" x1="450" y1="325" x2="450" y2="145" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="spoke-2" x1="450" y1="325" x2="630" y2="325" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="spoke-3" x1="450" y1="325" x2="450" y2="505" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="spoke-4" x1="450" y1="325" x2="270" y2="325" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<circle id="axis" cx="450" cy="325" r="7" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="axle-tick-h" x1="432" y1="325" x2="468" y2="325" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<line id="axle-tick-v" x1="450" y1="307" x2="450" y2="343" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<path id="torque-arrow" d="M 555 130 A 240 240 0 0 1 690 270" stroke="#9effc9" stroke-width="3" fill="none" stroke-dasharray=""/>
+<path id="torque-head" d="M 690 270 L 672 256 M 690 270 L 696 248" stroke="#9effc9" stroke-width="3" fill="none" stroke-dasharray=""/>
+<path id="omega-arrow" d="M 395.0 229.73720558371173 A 110.0 110.0 0 0 1 545.2627944162882 270.0" stroke="#7fd4ff" stroke-width="2.5" fill="none"/>
+<path id="omega-head" d="M 545 270 L 540 248 M 545 270 L 562 256" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="rim-point" cx="587" cy="197" r="6" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<path id="dtheta-arc" d="M 591.84193564921 214.1809344413815 A 180.0 180.0 0 0 1 627.2653955421974 293.7433280199525" stroke="#ff7a8a" stroke-width="1.8" fill="none"/>
+<text id="torque-label" x="710" y="250" font-size="20" fill="#9effc9" font-style="italic" text-anchor="middle">\Gamma</text>
+<text id="omega-label" x="470" y="200" font-size="18" fill="#7fd4ff" font-style="italic" text-anchor="middle">\omega</text>
+<text id="dtheta-label" x="650" y="300" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">d\theta</text>
+</svg>

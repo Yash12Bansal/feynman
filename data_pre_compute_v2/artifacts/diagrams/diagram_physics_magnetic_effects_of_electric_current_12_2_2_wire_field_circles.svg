@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="wire" x1="360" y1="110" x2="360" y2="540" stroke="#e8e8ee" stroke-width="3" stroke-dasharray=""/>
+<defs><marker id="arrowhead_current-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="current-arrow" x1="360" y1="480" x2="360" y2="150" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_current-arrow)"/>
+<text id="current-label" x="372" y="150" font-size="14" fill="#9effc9" text-anchor="start" font-weight="600">I</text>
+<circle id="field-circle-inner" cx="360" cy="325" r="80" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<path id="inner-arrowhead" d="M 360 245 L 352 252 M 360 245 L 368 252" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="field-circle-outer" cx="360" cy="325" r="150" fill="none" stroke="rgba(127,212,255,0.55)" stroke-width="1.8" stroke-dasharray=""/>
+<path id="outer-arrowhead" d="M 360 175 L 351 183 M 360 175 L 369 183" stroke="rgba(127,212,255,0.55)" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<g id="compass-needle" transform="translate(440, 325)"><circle id="compass-ring" cx="0" cy="0" r="16" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/><defs><marker id="arrowhead_compass-pointer" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="compass-pointer" x1="0" y1="13" x2="0" y2="-13" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_compass-pointer)"/></g>
+<text id="point-p-label" x="462" y="320" font-size="13" fill="#e8e8ee" text-anchor="start" font-weight="600">P</text>
+<path id="right-hand" d="M 660 380 C 640 330 648 250 670 210 C 678 195 690 195 692 212 C 694 250 690 300 690 330 C 700 320 720 318 728 330 C 740 318 760 320 766 334 C 778 326 794 332 794 348 C 800 360 796 392 786 410 C 772 436 740 448 712 446 C 686 444 668 420 660 380 Z" stroke="#e8e8ee" stroke-width="2" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_thumb-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="thumb-arrow" x1="670" y1="240" x2="668" y2="175" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_thumb-arrow)"/>
+<text id="thumb-label" x="678" y="172" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">I</text>
+<text id="field-label" x="360" y="235" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">B</text>
+</svg>

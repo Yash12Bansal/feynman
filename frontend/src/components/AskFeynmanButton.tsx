@@ -15,6 +15,7 @@
  */
 
 import { useCallback } from "react";
+import { DISPLAY_FONT } from "../styles/fonts";
 
 export type AskFeynmanState = "idle" | "listening" | "thinking" | "error";
 
@@ -76,6 +77,18 @@ export function AskFeynmanButton({
       data-state={state}
       disabled={disabled}
       onClick={onClick}
+      onMouseEnter={(e) => {
+        if (state !== "idle") return;
+        e.currentTarget.style.transform = "translateY(-1px)";
+        e.currentTarget.style.boxShadow =
+          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.4), 0 6px 24px rgba(127,212,255,0.16)";
+      }}
+      onMouseLeave={(e) => {
+        if (state !== "idle") return;
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow =
+          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.18), 0 6px 24px rgba(127,212,255,0.14)";
+      }}
       style={{
         ...buttonBaseStyle,
         ...buttonStateStyle[state],
@@ -148,7 +161,7 @@ function Spinner() {
         width: 14,
         height: 14,
         borderRadius: "50%",
-        border: "2px solid rgba(232, 232, 238, 0.25)",
+        border: "2px solid rgba(244,246,251,0.18)",
         borderTopColor: "#7fd4ff",
         animation: "afb-spin 0.9s linear infinite",
       }}
@@ -168,39 +181,45 @@ const buttonBaseStyle: React.CSSProperties = {
   padding: "14px 22px",
   borderRadius: 999,
   border: "1px solid rgba(255, 255, 255, 0.08)",
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontFamily: DISPLAY_FONT,
   fontSize: "0.95rem",
   fontWeight: 600,
   letterSpacing: "0.01em",
   cursor: "pointer",
+  backdropFilter: "blur(18px) saturate(1.2)",
+  WebkitBackdropFilter: "blur(18px) saturate(1.2)",
   transition:
-    "background 220ms ease, border-color 220ms ease, transform 220ms ease",
+    "background 220ms cubic-bezier(0.22,0.61,0.36,1), border-color 220ms ease, box-shadow 220ms ease, transform 220ms cubic-bezier(0.22,0.61,0.36,1)",
   zIndex: 10,
-  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
+  boxShadow: "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
 };
 
 const buttonStateStyle: Record<AskFeynmanState, React.CSSProperties> = {
   idle: {
-    background: "#1b3a4a",
-    color: "#7fd4ff",
-    borderColor: "rgba(127, 212, 255, 0.35)",
+    background: "rgba(18,32,48,0.6)",
+    color: "#9fdcff",
+    borderColor: "rgba(127, 212, 255, 0.4)",
+    boxShadow:
+      "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.18), 0 6px 24px rgba(127,212,255,0.14)",
   },
   listening: {
-    background: "#3a1b1f",
-    color: "#ff7a8a",
-    borderColor: "rgba(255, 122, 138, 0.35)",
+    background: "rgba(44,22,28,0.6)",
+    color: "#ff9aa6",
+    borderColor: "rgba(255, 122, 138, 0.4)",
+    boxShadow:
+      "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(255,122,138,0.22), 0 6px 26px rgba(255,122,138,0.18)",
     cursor: "default",
   },
   thinking: {
-    background: "#1a1c20",
-    color: "rgba(232, 232, 238, 0.65)",
-    borderColor: "rgba(232, 232, 238, 0.12)",
+    background: "rgba(16,18,26,0.66)",
+    color: "rgba(244,246,251,0.68)",
+    borderColor: "rgba(255, 255, 255, 0.1)",
     cursor: "default",
   },
   error: {
-    background: "#2a1a1d",
+    background: "rgba(42,22,28,0.62)",
     color: "#ffb4be",
-    borderColor: "rgba(255, 180, 190, 0.3)",
+    borderColor: "rgba(255, 180, 190, 0.32)",
     cursor: "default",
     // Slightly wider so the inline retry button fits without wrapping.
     maxWidth: 420,

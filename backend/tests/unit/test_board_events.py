@@ -11,11 +11,9 @@ import pytest
 from feynman.agent.doubt_resolution.board_events import (
     REVEAL_ALL_STEP,
     AnimateParameterBE,
-    FocusBE,
     PointAtBE,
     RevealStepBE,
     ShowDiagramBE,
-    TraceBE,
     WriteEquationBE,
     WriteKeyPointBE,
     compile_plan,
@@ -43,7 +41,10 @@ def _beat(**kw) -> ResolutionBeat:
     return ResolutionBeat(**kw)
 
 
-def test_reuse_beat_emits_show_then_notebook_then_annotations():
+def test_reuse_beat_skips_inline_focus_trace_keeps_other_annotations():
+    # focus/trace now live as inline narration markers (the delivery loop fires
+    # them synced to the spoken phrase), so compile_plan SKIPS them; other
+    # annotations (point_at, ...) still compile to beat-start events.
     beat = _beat(
         diagram=ReuseDiagram(diagram_id="diagram:phys:two_frames"),
         notebook_writes=[
@@ -53,26 +54,19 @@ def test_reuse_beat_emits_show_then_notebook_then_annotations():
         annotation_actions=[
             FocusAction(target_element_id="train-ball-arc", text="watch this"),
             TraceAction(element_id="platform-ball-arc", duration_ms=1200),
+            PointAtAction(element_id="platform-ball-arc"),
         ],
     )
     [events] = compile_plan([beat], ["diagram:phys:two_frames"])
     kinds = [e.type for e in events]
-    # show_diagram first, then both notebook writes, then both annotations.
-    assert kinds == [
-        "show_diagram",
-        "write_step",
-        "write_equation",
-        "focus",
-        "trace",
-    ]
+    # show_diagram, both notebook writes, then point_at — focus/trace dropped.
+    assert kinds == ["show_diagram", "write_step", "write_equation", "point_at"]
+    assert "focus" not in kinds and "trace" not in kinds
     assert isinstance(events[0], ShowDiagramBE)
     assert events[0].diagram_id == "diagram:phys:two_frames"
     assert isinstance(events[2], WriteEquationBE) and events[2].boxed is True
-    # annotations are stamped with the active diagram id.
-    assert isinstance(events[3], FocusBE)
+    assert isinstance(events[3], PointAtBE)
     assert events[3].diagram_id == "diagram:phys:two_frames"
-    assert isinstance(events[4], TraceBE)
-    assert events[4].diagram_id == "diagram:phys:two_frames"
 
 
 def test_keep_beat_inherits_active_diagram_for_annotations():

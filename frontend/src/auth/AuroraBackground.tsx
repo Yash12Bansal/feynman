@@ -17,6 +17,7 @@ export function AuroraBackground({ children }: { readonly children: ReactNode })
       <div style={blobThreeStyle} />
       <div style={gridStyle} />
       <div style={vignetteStyle} />
+      <div style={sheenStyle} />
       <div style={contentStyle}>{children}</div>
     </div>
   );
@@ -26,7 +27,8 @@ const rootStyle: React.CSSProperties = {
   position: "fixed",
   inset: 0,
   overflow: "hidden",
-  background: "#06060a",
+  background:
+    "radial-gradient(120% 120% at 50% 30%, #0b0c14 0%, #07070d 60%, #05050a 100%)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -37,7 +39,7 @@ const blobBase: React.CSSProperties = {
   width: "62vmax",
   height: "62vmax",
   borderRadius: "50%",
-  filter: "blur(72px)",
+  filter: "blur(80px)",
   willChange: "transform",
   pointerEvents: "none",
 };
@@ -47,7 +49,7 @@ const blobOneStyle: React.CSSProperties = {
   top: "-18vmax",
   left: "-10vmax",
   background:
-    "radial-gradient(circle at 50% 50%, rgba(96,165,250,0.40), rgba(96,165,250,0) 60%)",
+    "radial-gradient(circle at 50% 50%, rgba(127,212,255,0.34), rgba(127,212,255,0) 62%)",
   animation: "auth-aurora-1 26s ease-in-out infinite",
 };
 
@@ -56,7 +58,7 @@ const blobTwoStyle: React.CSSProperties = {
   bottom: "-22vmax",
   right: "-12vmax",
   background:
-    "radial-gradient(circle at 50% 50%, rgba(167,139,250,0.36), rgba(167,139,250,0) 60%)",
+    "radial-gradient(circle at 50% 50%, rgba(167,139,250,0.32), rgba(167,139,250,0) 62%)",
   animation: "auth-aurora-2 32s ease-in-out infinite",
 };
 
@@ -67,7 +69,7 @@ const blobThreeStyle: React.CSSProperties = {
   width: "44vmax",
   height: "44vmax",
   background:
-    "radial-gradient(circle at 50% 50%, rgba(45,212,191,0.28), rgba(45,212,191,0) 60%)",
+    "radial-gradient(circle at 50% 50%, rgba(91,157,255,0.26), rgba(91,157,255,0) 62%)",
   animation: "auth-aurora-3 38s ease-in-out infinite",
 };
 
@@ -75,12 +77,12 @@ const gridStyle: React.CSSProperties = {
   position: "absolute",
   inset: 0,
   backgroundImage:
-    "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
-  backgroundSize: "46px 46px",
+    "radial-gradient(rgba(127,212,255,0.05) 1px, transparent 1.4px)",
+  backgroundSize: "30px 30px",
   maskImage:
-    "radial-gradient(ellipse 80% 70% at 50% 45%, #000 30%, transparent 80%)",
+    "radial-gradient(ellipse 78% 66% at 50% 44%, #000 24%, transparent 78%)",
   WebkitMaskImage:
-    "radial-gradient(ellipse 80% 70% at 50% 45%, #000 30%, transparent 80%)",
+    "radial-gradient(ellipse 78% 66% at 50% 44%, #000 24%, transparent 78%)",
   pointerEvents: "none",
 };
 
@@ -88,7 +90,20 @@ const vignetteStyle: React.CSSProperties = {
   position: "absolute",
   inset: 0,
   background:
-    "radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(0,0,0,0.55) 100%)",
+    "radial-gradient(ellipse 100% 100% at 50% 48%, transparent 38%, rgba(0,0,0,0.66) 100%)",
+  pointerEvents: "none",
+};
+
+// Slow rotating overhead "light" — a very faint conic sheen for depth.
+const sheenStyle: React.CSSProperties = {
+  position: "absolute",
+  inset: "-20%",
+  background:
+    "conic-gradient(from 210deg at 50% 30%, transparent 0deg, rgba(127,212,255,0.05) 40deg, transparent 110deg, rgba(167,139,250,0.045) 200deg, transparent 300deg)",
+  filter: "blur(40px)",
+  mixBlendMode: "screen",
+  willChange: "transform",
+  animation: "auth-sheen 60s linear infinite",
   pointerEvents: "none",
 };
 
@@ -123,7 +138,14 @@ if (typeof document !== "undefined") {
   0%,100% { transform: translate(0,0) scale(0.95); }
   50%     { transform: translate(-5vmax,7vmax) scale(1.15); }
 }
-@keyframes auth-spin { to { transform: rotate(360deg); } }`;
+@keyframes auth-spin { to { transform: rotate(360deg); } }
+@keyframes auth-sheen { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  [style*="auth-aurora-1"],
+  [style*="auth-aurora-2"],
+  [style*="auth-aurora-3"],
+  [style*="auth-sheen"] { animation: none !important; }
+}`;
     document.head.appendChild(style);
   }
 }

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<ellipse id="block-top" cx="450" cy="180" rx="180" ry="55" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="block-left" x1="270" y1="180" x2="270" y2="460" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<line id="block-right" x1="630" y1="180" x2="630" y2="460" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<path id="outer-block" d="M 270 460 A 180 55 0 0 0 630 460" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="block-bottom-back" d="M 270 460 A 180 55 0 0 1 630 460" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" fill="none" stroke-dasharray="5 5"/>
+<ellipse id="cavity-rim" cx="450" cy="180" rx="110" ry="34" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<path id="removed-cavity" d="M 340 180 L 450 380 L 560 180" stroke="#7fd4ff" stroke-width="2" fill="none" stroke-dasharray="6 5"/>
+<line id="cavity-axis" x1="450" y1="180" x2="450" y2="380" stroke="rgba(127,212,255,0.55)" stroke-width="1.2" stroke-dasharray="3 4"/>
+<text id="block-label" x="660" y="320" font-size="12" fill="#e8e8ee" text-anchor="start" font-weight="normal">solid block</text>
+<text id="cavity-label" x="450" y="405" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">scooped-out cone</text>
+</svg>

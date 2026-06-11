@@ -9,6 +9,7 @@
 import { useCallback, useState } from "react";
 import { AuroraBackground } from "./AuroraBackground";
 import { useAuth } from "./authContext";
+import { DISPLAY_FONT } from "../styles/fonts";
 
 export function ProfileSetupScreen() {
   const { user, saveProfile } = useAuth();
@@ -127,27 +128,32 @@ export function ProfileSetupScreen() {
 }
 
 function focusRing(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "rgba(127, 212, 255, 0.6)";
+  e.currentTarget.style.borderColor = "rgba(127, 212, 255, 0.55)";
   e.currentTarget.style.background = "rgba(127, 212, 255, 0.06)";
+  e.currentTarget.style.boxShadow =
+    "0 0 0 1px rgba(127,212,255,0.45), 0 6px 26px rgba(127,212,255,0.18)";
 }
 function blurRing(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.12)";
+  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.10)";
   e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
+  e.currentTarget.style.boxShadow = "none";
 }
 
 const cardStyle: React.CSSProperties = {
   position: "relative",
   width: "min(420px, 92vw)",
   padding: "34px 34px 30px",
-  borderRadius: 22,
-  background: "rgba(17, 17, 24, 0.74)",
-  backdropFilter: "blur(18px)",
-  WebkitBackdropFilter: "blur(18px)",
-  border: "1px solid rgba(255, 255, 255, 0.10)",
-  boxShadow: "0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+  borderRadius: 20,
+  background:
+    "linear-gradient(180deg, rgba(20,22,32,0.68), rgba(14,15,23,0.68))",
+  backdropFilter: "blur(20px) saturate(1.2)",
+  WebkitBackdropFilter: "blur(20px) saturate(1.2)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  boxShadow:
+    "0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(127,212,255,0.06)",
   display: "flex",
   flexDirection: "column",
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 };
 
 const avatarStyle: React.CSSProperties = {
@@ -155,7 +161,8 @@ const avatarStyle: React.CSSProperties = {
   height: 56,
   borderRadius: "50%",
   alignSelf: "center",
-  border: "2px solid rgba(255,255,255,0.12)",
+  border: "2px solid rgba(127,212,255,0.28)",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
   marginBottom: 16,
   objectFit: "cover",
 };
@@ -167,7 +174,8 @@ const avatarFallbackStyle: React.CSSProperties = {
   alignSelf: "center",
   display: "grid",
   placeItems: "center",
-  background: "linear-gradient(135deg, #60a5fa, #a78bfa)",
+  background: "linear-gradient(135deg, #7fd4ff 0%, #6aa8ff 45%, #a78bfa 100%)",
+  boxShadow: "0 8px 24px rgba(127,212,255,0.32)",
   color: "#fff",
   fontSize: "1.4rem",
   fontWeight: 700,
@@ -175,46 +183,49 @@ const avatarFallbackStyle: React.CSSProperties = {
 };
 
 const titleStyle: React.CSSProperties = {
+  fontFamily: DISPLAY_FONT,
   fontSize: "1.35rem",
-  fontWeight: 700,
-  color: "#fafafa",
+  fontWeight: 600,
+  color: "#f4f6fb",
   margin: "0 0 6px",
   textAlign: "center",
-  letterSpacing: "-0.02em",
+  letterSpacing: "-0.01em",
 };
 
 const subtitleStyle: React.CSSProperties = {
   fontSize: "0.9rem",
-  color: "rgba(240, 240, 240, 0.5)",
+  color: "rgba(244,246,251,0.58)",
   margin: "0 0 24px",
   textAlign: "center",
 };
 
 const labelStyle: React.CSSProperties = {
+  fontFamily: DISPLAY_FONT,
   fontSize: "0.72rem",
   fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.06em",
-  color: "rgba(240, 240, 240, 0.5)",
+  letterSpacing: "0.08em",
+  color: "rgba(244,246,251,0.58)",
   margin: "0 0 7px 2px",
 };
 
 const inputStyle: React.CSSProperties = {
   padding: "12px 14px",
   borderRadius: 12,
-  border: "1px solid rgba(255, 255, 255, 0.12)",
+  border: "1px solid rgba(255, 255, 255, 0.10)",
   background: "rgba(255, 255, 255, 0.04)",
-  color: "#f0f0f0",
+  color: "#f4f6fb",
   fontSize: "0.95rem",
   fontFamily: "inherit",
   outline: "none",
   marginBottom: 16,
   boxSizing: "border-box",
-  transition: "border-color 150ms ease, background 150ms ease",
+  transition:
+    "border-color 160ms cubic-bezier(0.22,0.61,0.36,1), background 160ms cubic-bezier(0.22,0.61,0.36,1), box-shadow 200ms cubic-bezier(0.22,0.61,0.36,1)",
 };
 
 const readonlyInputStyle: React.CSSProperties = {
-  color: "rgba(240, 240, 240, 0.5)",
+  color: "rgba(244,246,251,0.30)",
   cursor: "not-allowed",
 };
 
@@ -227,18 +238,26 @@ const submitStyle: React.CSSProperties = {
   marginTop: 6,
   padding: "13px 18px",
   borderRadius: 12,
-  border: "1px solid rgba(127, 212, 255, 0.4)",
-  background: "#1b3a4a",
+  border: "1px solid rgba(127, 212, 255, 0.40)",
+  background:
+    "linear-gradient(180deg, rgba(127,212,255,0.16), rgba(91,157,255,0.12))",
   color: "#7fd4ff",
   fontSize: "0.96rem",
   fontWeight: 600,
   fontFamily: "inherit",
   cursor: "pointer",
-  transition: "opacity 160ms ease",
+  boxShadow:
+    "inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 26px rgba(127,212,255,0.18)",
+  transition:
+    "opacity 160ms cubic-bezier(0.22,0.61,0.36,1), box-shadow 200ms cubic-bezier(0.22,0.61,0.36,1)",
 };
 
 const errorStyle: React.CSSProperties = {
   margin: "0 0 14px",
+  padding: "8px 12px",
+  borderRadius: 10,
+  background: "rgba(255,120,140,0.08)",
+  border: "1px solid rgba(255,120,140,0.18)",
   fontSize: "0.83rem",
   color: "#ffb4be",
 };

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="left-label" x="290" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">First drops</text>
+<text id="right-label" x="610" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Excess permanganate</text>
+<path id="tube-initial" d="M 260 120 L 260 440 Q 260 480 290 480 Q 320 480 320 440 L 320 120" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="tube-initial-liquid" x1="262" y1="280" x2="318" y2="280" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="4 4"/>
+<defs><marker id="arrowhead_drop-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#c98bff"/></marker></defs><line id="drop-arrow" x1="290" y1="150" x2="290" y2="270" stroke="#c98bff" stroke-width="2.5" marker-end="url(#arrowhead_drop-arrow)"/>
+<circle id="drop" cx="290" cy="140" r="6" fill="none" stroke="#c98bff" stroke-width="2" stroke-dasharray=""/>
+<text id="initial-caption" x="290" y="580" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">colour disappears</text>
+<path id="tube-excess" d="M 580 120 L 580 440 Q 580 480 610 480 Q 640 480 640 440 L 640 120" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="purple-colour" d="M 582 290 L 582 440 Q 582 478 610 478 Q 638 478 638 440 L 638 290 Z" stroke="#c98bff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="purple-hatch" d="M 588 310 L 632 310 M 588 340 L 632 340 M 588 370 L 632 370 M 588 400 L 632 400 M 590 430 L 630 430" stroke="rgba(201,139,255,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<text id="excess-caption" x="610" y="580" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">purple persists</text>
+</svg>

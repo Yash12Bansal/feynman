@@ -11,6 +11,7 @@
  */
 
 import { useCallback } from "react";
+import { DISPLAY_FONT } from "../styles/fonts";
 
 export interface SatisfactionOption {
   readonly key: string;
@@ -93,25 +94,28 @@ const backdropStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "rgba(10, 10, 12, 0.55)",
-  backdropFilter: "blur(6px)",
-  WebkitBackdropFilter: "blur(6px)",
+  background: "rgba(7,7,13,0.6)",
+  backdropFilter: "blur(10px) saturate(1.1)",
+  WebkitBackdropFilter: "blur(10px) saturate(1.1)",
 };
 
 const cardStyle: React.CSSProperties = {
-  background: "#0f0f12",
+  background:
+    "radial-gradient(120% 100% at 50% 0%, rgba(127,212,255,0.06), transparent 55%), rgba(11,12,20,0.92)",
   borderRadius: 18,
-  border: "1px solid rgba(255, 255, 255, 0.08)",
+  border: "1px solid rgba(255, 255, 255, 0.09)",
   padding: "28px 28px 24px",
   width: "min(440px, 90vw)",
-  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6)",
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  boxShadow: "0 30px 80px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)",
+  backdropFilter: "blur(20px) saturate(1.2)",
+  WebkitBackdropFilter: "blur(20px) saturate(1.2)",
+  fontFamily: DISPLAY_FONT,
 };
 
 const titleStyle: React.CSSProperties = {
   fontSize: "1.1rem",
   fontWeight: 600,
-  color: "#fafafa",
+  color: "#f4f6fb",
   margin: "0 0 18px",
   letterSpacing: "-0.005em",
 };
@@ -137,15 +141,16 @@ const buttonBaseStyle: React.CSSProperties = {
 };
 
 const primaryButtonStyle: React.CSSProperties = {
-  background: "#1b3a4a",
-  color: "#7fd4ff",
+  background: "rgba(18,32,48,0.6)",
+  color: "#9fdcff",
   borderColor: "rgba(127, 212, 255, 0.4)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
 };
 
 const secondaryButtonStyle: React.CSSProperties = {
-  background: "#141417",
-  color: "#e8e8ee",
-  borderColor: "rgba(255, 255, 255, 0.06)",
+  background: "rgba(255,255,255,0.03)",
+  color: "#f4f6fb",
+  borderColor: "rgba(255, 255, 255, 0.08)",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -155,6 +160,6 @@ const labelStyle: React.CSSProperties = {
 
 const descStyle: React.CSSProperties = {
   fontSize: "0.82rem",
-  color: "rgba(232, 232, 238, 0.55)",
+  color: "rgba(244,246,251,0.55)",
   fontWeight: 400,
 };

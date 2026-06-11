@@ -6,8 +6,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "./authContext";
+import { DISPLAY_FONT } from "../styles/fonts";
 
-export function AccountChip() {
+export function AccountChip({ inLecture = false }: { inLecture?: boolean }) {
   const { user, profile, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -34,7 +35,7 @@ export function AccountChip() {
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
 
   return (
-    <div ref={wrapRef} style={wrapStyle}>
+    <div ref={wrapRef} style={inLecture ? wrapStyleLecture : wrapStyle}>
       <button
         type="button"
         aria-label="Account menu"
@@ -49,7 +50,7 @@ export function AccountChip() {
       </button>
 
       {open && (
-        <div style={menuStyle}>
+        <div style={inLecture ? menuStyleLecture : menuStyle}>
           <div style={menuNameStyle}>{name}</div>
           {user.email && <div style={menuMetaStyle}>{user.email}</div>}
           {profile?.phone && <div style={menuMetaStyle}>{profile.phone}</div>}
@@ -63,8 +64,7 @@ export function AccountChip() {
 }
 
 const wrapStyle: React.CSSProperties = {
-  // Top-left: the one screen corner the lecture player leaves free (Topics is
-  // top-right, Pause bottom-left, Ask Feynman bottom-right, scrubber center).
+  // Home / default position: top-left.
   position: "fixed",
   top: 16,
   left: 16,
@@ -72,20 +72,30 @@ const wrapStyle: React.CSSProperties = {
   fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 };
 
+// In a lecture the top-left holds the slide title, so the chip drops to the
+// bottom-left, stacked just above the Feedback button (bottom:100) — still one
+// tap from sign-out, but clear of all the title text. Its menu opens upward.
+const wrapStyleLecture: React.CSSProperties = {
+  ...wrapStyle,
+  top: undefined,
+  bottom: 160,
+  left: 32,
+};
+
 const chipStyle: React.CSSProperties = {
   width: 36,
   height: 36,
   borderRadius: "50%",
   padding: 0,
-  border: "1px solid rgba(255, 255, 255, 0.14)",
-  background: "rgba(20, 20, 32, 0.6)",
-  backdropFilter: "blur(8px)",
-  WebkitBackdropFilter: "blur(8px)",
+  border: "1px solid rgba(255, 255, 255, 0.10)",
+  background: "rgba(16, 18, 26, 0.62)",
+  backdropFilter: "blur(16px) saturate(1.2)",
+  WebkitBackdropFilter: "blur(16px) saturate(1.2)",
   cursor: "pointer",
   display: "grid",
   placeItems: "center",
   overflow: "hidden",
-  boxShadow: "0 6px 18px rgba(0,0,0,0.4)",
+  boxShadow: "0 6px 18px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)",
 };
 
 const avatarImgStyle: React.CSSProperties = {
@@ -95,6 +105,7 @@ const avatarImgStyle: React.CSSProperties = {
 };
 
 const avatarFallbackStyle: React.CSSProperties = {
+  fontFamily: DISPLAY_FONT,
   fontSize: "0.85rem",
   fontWeight: 700,
   color: "#7fd4ff",
@@ -107,25 +118,33 @@ const menuStyle: React.CSSProperties = {
   width: 220,
   padding: "14px 16px",
   borderRadius: 14,
-  background: "rgba(15, 15, 18, 0.92)",
-  backdropFilter: "blur(14px)",
-  WebkitBackdropFilter: "blur(14px)",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  boxShadow: "0 18px 50px rgba(0,0,0,0.6)",
+  background: "linear-gradient(180deg, rgba(20,22,32,0.86), rgba(14,15,23,0.86))",
+  backdropFilter: "blur(18px) saturate(1.2)",
+  WebkitBackdropFilter: "blur(18px) saturate(1.2)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  boxShadow: "0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
   display: "flex",
   flexDirection: "column",
   gap: 4,
 };
 
+// Lecture variant opens the card UPWARD (the chip sits near the bottom).
+const menuStyleLecture: React.CSSProperties = {
+  ...menuStyle,
+  top: undefined,
+  bottom: 44,
+};
+
 const menuNameStyle: React.CSSProperties = {
+  fontFamily: DISPLAY_FONT,
   fontSize: "0.92rem",
   fontWeight: 600,
-  color: "#fafafa",
+  color: "#f4f6fb",
 };
 
 const menuMetaStyle: React.CSSProperties = {
   fontSize: "0.78rem",
-  color: "rgba(240, 240, 240, 0.5)",
+  color: "rgba(244,246,251,0.50)",
   wordBreak: "break-all",
 };
 

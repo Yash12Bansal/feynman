@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="displacement-axis" x1="120" y1="90" x2="120" y2="540" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="center-line" x1="120" y1="315" x2="820" y2="315" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="6 5"/>
+<line id="time-axis" x1="120" y1="315" x2="840" y2="315" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="time-axis-label" x="845" y="333" font-size="14" fill="#e8e8ee" text-anchor="start" font-weight="600">t</text>
+<text id="displacement-axis-label" x="108" y="80" font-size="14" fill="#e8e8ee" text-anchor="end" font-weight="600">x</text>
+<path id="sine-curve" d="M 120 315 Q 165 130 210 130 Q 255 130 300 315 Q 345 500 390 500 Q 435 500 480 315 Q 525 130 570 130 Q 615 130 660 315 Q 705 500 750 500 Q 795 500 820 405" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="amplitude-line" x1="210" y1="315" x2="210" y2="130" stroke="#9effc9" stroke-width="2" stroke-dasharray="4 4"/>
+<text id="amplitude-label" x="222" y="220" font-size="14" fill="#9effc9" text-anchor="start" font-weight="600">A</text>
+<circle id="crest-point" cx="210" cy="130" r="6" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="trough-point" cx="390" cy="500" r="6" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<text id="trough-label" x="390" y="528" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">−A</text>
+<path id="period-bracket" d="M 210 565 L 210 555 L 570 555 L 570 565" stroke="#7fd4ff" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="period-label" x="390" y="590" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">T</text>
+</svg>

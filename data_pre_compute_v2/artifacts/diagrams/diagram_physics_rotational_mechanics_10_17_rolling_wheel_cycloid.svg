@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="road-line" x1="80" y1="470" x2="840" y2="470" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="road-hatch" d="M 90 470 L 80 485 M 130 470 L 120 485 M 170 470 L 160 485 M 210 470 L 200 485 M 250 470 L 240 485 M 290 470 L 280 485 M 330 470 L 320 485 M 370 470 L 360 485 M 410 470 L 400 485 M 450 470 L 440 485 M 490 470 L 480 485 M 530 470 L 520 485 M 570 470 L 560 485 M 610 470 L 600 485 M 650 470 L 640 485 M 690 470 L 680 485 M 730 470 L 720 485 M 770 470 L 760 485 M 810 470 L 800 485" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="centre-path" x1="200" y1="380" x2="760" y2="380" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray="6 5"/>
+<path id="rim-path" d="M 200 470 C 230 470 245 420 277 392 C 296 375 320 372 342 380 C 372 391 388 470 420 470 C 452 470 468 391 498 380 C 520 372 544 375 563 392 C 595 420 610 470 640 470" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="wheel-circle" cx="420" cy="380" r="90" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<line id="marked-spoke" x1="420" y1="380" x2="420" y2="470" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="centre-point" cx="420" cy="380" r="5" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="rim-point" cx="420" cy="470" r="6" fill="#ff7a8a" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="contact-point" cx="420" cy="470" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="centre-label" x="430" y="366" font-size="12" fill="#7fd4ff" text-anchor="start" font-weight="600">centre</text>
+<text id="rim-label" x="200" y="500" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">rim point</text>
+<text id="radius-label" x="438" y="430" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">R</text>
+</svg>

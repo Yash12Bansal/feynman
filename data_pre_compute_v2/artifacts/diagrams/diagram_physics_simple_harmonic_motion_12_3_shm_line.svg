@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="x-axis" x1="120" y1="330" x2="780" y2="330" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<defs><marker id="arrowhead_x-axis-tip" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="x-axis-tip" x1="760" y1="330" x2="800" y2="330" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_x-axis-tip)"/>
+<text id="x-axis-label" x="808" y="334" font-size="13" fill="#e8e8ee" text-anchor="start" font-weight="600">x</text>
+<circle id="origin" cx="450" cy="330" r="4" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="origin-label" x="450" y="360" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">O</text>
+<line id="amplitude-right" x1="700" y1="312" x2="700" y2="348" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text id="amplitude-right-label" x="700" y="300" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">A</text>
+<line id="amplitude-left" x1="200" y1="312" x2="200" y2="348" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text id="amplitude-left-label" x="188" y="296" font-size="14" fill="#e8e8ee" font-style="italic" text-anchor="middle">-A</text>
+<circle id="particle" cx="590" cy="330" r="13" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="particle-label" x="590" y="364" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">m</text>
+<line id="displacement-guide" x1="450" y1="410" x2="590" y2="410" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray="3 3"/>
+<text id="displacement-label" x="514" y="432" font-size="14" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">x</text>
+<defs><marker id="arrowhead_restoring-force" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="restoring-force" x1="577" y1="330" x2="487" y2="330" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_restoring-force)"/>
+<text id="restoring-force-label" x="490" y="305" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">F = -kx</text>
+</svg>

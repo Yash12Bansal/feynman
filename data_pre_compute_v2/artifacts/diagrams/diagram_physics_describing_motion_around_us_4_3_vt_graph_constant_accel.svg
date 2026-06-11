@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<defs><marker id="arrowhead_velocity-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="velocity-axis" x1="160" y1="540" x2="160" y2="110" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_velocity-axis)"/>
+<defs><marker id="arrowhead_time-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="time-axis" x1="160" y1="540" x2="760" y2="540" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_time-axis)"/>
+<text id="velocity-axis-label" x="110" y="130" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">v (m/s)</text>
+<text id="time-axis-label" x="745" y="565" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">t (s)</text>
+<rect id="area-rectangle" x="160" y="420" width="480" height="120" rx="0" fill="none" stroke="#9effc9" stroke-width="1.8"/>
+<path id="area-triangle" d="M 160 420 L 640 420 L 640 200 Z" stroke="#7fd4ff" stroke-width="1.8" fill="none" stroke-dasharray="5 4"/>
+<line id="vt-line" x1="160" y1="420" x2="640" y2="200" stroke="#e8e8ee" stroke-width="3" stroke-dasharray=""/>
+<path id="slope-triangle" d="M 640 420 L 640 200 M 160 420 L 640 420" stroke="#ff7a8a" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<text id="rise-label" x="660" y="315" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">v − u</text>
+<text id="run-label" x="400" y="438" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">t</text>
+<circle id="initial-velocity-u" cx="160" cy="420" r="5" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="final-velocity-v" cx="640" cy="200" r="5" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="u-guide" x1="160" y1="420" x2="140" y2="420" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<line id="v-guide" x1="640" y1="200" x2="140" y2="200" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray="4 4"/>
+<line id="t-guide" x1="640" y1="540" x2="640" y2="200" stroke="rgba(232,232,238,0.55)" stroke-width="1" stroke-dasharray="4 4"/>
+<text id="u-label" x="118" y="426" font-size="16" fill="#9effc9" font-style="italic" text-anchor="middle">u</text>
+<text id="v-label" x="118" y="206" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">v</text>
+<text id="t-label" x="636" y="565" font-size="16" fill="#e8e8ee" font-style="italic" text-anchor="middle">t</text>
+<text id="rect-area-label" x="360" y="490" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">u\,t</text>
+<text id="tri-area-label" x="470" y="330" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">\tfrac{1}{2}at^{2}</text>
+</svg>

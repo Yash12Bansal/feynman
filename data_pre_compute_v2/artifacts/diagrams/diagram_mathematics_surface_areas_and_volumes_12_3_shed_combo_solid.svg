@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="inside-air" d="M 300 300 L 600 300 L 660 260 L 360 260 L 300 300 Z M 300 300 L 300 470 L 600 470 L 600 300 Z M 600 300 L 660 260 L 660 430 L 600 470 Z M 300 300 A 150 75 0 0 1 600 300 Z" stroke="rgba(127,212,255,0.35)" stroke-width="1" fill="rgba(127,212,255,0.12)" stroke-dasharray=""/>
+<path id="cuboid-base" d="M 300 300 L 600 300 L 600 470 L 300 470 Z M 600 300 L 660 260 L 660 430 L 600 470 M 300 300 L 360 260 L 660 260" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="half-cylinder-roof" d="M 300 300 A 150 75 0 0 1 600 300 M 600 300 A 150 75 0 0 1 660 260 M 360 260 A 150 75 0 0 1 660 260" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="join-face" d="M 300 300 L 600 300 L 660 260 L 360 260 Z" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray="6 4"/>
+<text id="cuboid-label" x="450" y="510" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="600">cuboid base</text>
+<text id="roof-label" x="450" y="210" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">half-cylinder roof</text>
+<text id="join-label" x="685" y="270" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="600">shared face</text>
+<text id="air-label" x="450" y="400" font-size="11" fill="rgba(127,212,255,0.7)" text-anchor="middle" font-weight="normal">inside air</text>
+<text id="volume-sum" x="360" y="590" font-size="16" fill="#e8e8ee" font-style="italic" text-anchor="middle">V_{\text{total}} = V_{\text{cuboid}} + V_{\tfrac{1}{2}\text{cylinder}}</text>
+</svg>

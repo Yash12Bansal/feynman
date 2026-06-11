@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="left-label" x="230" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Air hole open</text>
+<text id="right-label" x="670" y="70" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Air hole closed</text>
+<rect id="left-barrel" x="210" y="360" width="40" height="150" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="left-base" x="175" y="510" width="110" height="16" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<path id="blue-flame" d="M 230 360 Q 205 290 230 215 Q 255 290 230 360 Z" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="blue-inner" d="M 230 358 Q 218 320 230 285 Q 242 320 230 358 Z" stroke="#9effc9" stroke-width="2" fill="none" stroke-dasharray=""/>
+<circle id="air-hole-open" cx="230" cy="430" r="11" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_air-in-left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="air-in-left" x1="165" y1="430" x2="217" y2="430" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_air-in-left)"/>
+<text id="co2-products" x="230" y="170" font-size="17" fill="#9effc9" font-style="italic" text-anchor="middle">CO_2 + H_2O</text>
+<rect id="right-barrel" x="650" y="360" width="40" height="150" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<rect id="right-base" x="615" y="510" width="110" height="16" rx="3" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<path id="yellow-flame" d="M 670 360 Q 638 280 660 200 Q 668 240 672 200 Q 684 270 700 290 Q 690 330 670 360 Z" stroke="#ffd166" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="air-hole-closed" x1="660" y1="430" x2="680" y2="430" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<line id="soot-plate" x1="615" y1="165" x2="725" y2="165" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<path id="soot-deposit" d="M 640 165 Q 660 145 680 165 Q 700 148 715 165" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="left-caption" x="230" y="585" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">complete combustion</text>
+<text id="right-caption" x="670" y="585" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">incomplete combustion</text>
+</svg>

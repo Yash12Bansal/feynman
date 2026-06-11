@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<defs><marker id="arrowhead_time-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="time-axis" x1="120" y1="520" x2="800" y2="520" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_time-axis)"/>
+<defs><marker id="arrowhead_velocity-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="velocity-axis" x1="120" y1="520" x2="120" y2="100" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_velocity-axis)"/>
+<text id="time-label" x="770" y="545" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Time (s)</text>
+<text id="velocity-label" x="90" y="110" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Velocity (m/s)</text>
+<path id="area-region" d="M 120 520 L 520 300 L 520 520 Z" stroke="rgba(159,255,201,0.45)" stroke-width="1" fill="none" stroke-dasharray="4 4"/>
+<path id="area-hatch" d="M 180 520 L 180 489 M 240 520 L 240 456 M 300 520 L 300 422 M 360 520 L 360 389 M 420 520 L 420 355 M 480 520 L 480 322" stroke="rgba(159,255,201,0.4)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="rising-line" x1="120" y1="520" x2="520" y2="300" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<line id="flat-line" x1="120" y1="250" x2="700" y2="250" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<line id="falling-line" x1="120" y1="160" x2="620" y2="460" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<path id="slope-triangle" d="M 360 389 L 480 389 L 480 322 Z" stroke="#9effc9" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<text id="run-label" x="420" y="405" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">Δt</text>
+<text id="rise-label" x="498" y="360" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">Δv</text>
+<text id="flat-tip" x="712" y="254" font-size="12" fill="#7fd4ff" text-anchor="start" font-weight="600">steady</text>
+<text id="rising-tip" x="530" y="296" font-size="12" fill="#9effc9" text-anchor="start" font-weight="600">speeding up</text>
+<text id="falling-tip" x="630" y="464" font-size="12" fill="#ff7a8a" text-anchor="start" font-weight="600">slowing down</text>
+<text id="area-note" x="250" y="480" font-size="13" fill="rgba(159,255,201,0.85)" font-style="italic" text-anchor="middle">\text{area} = \text{distance}</text>
+</svg>

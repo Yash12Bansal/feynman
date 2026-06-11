@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="beaker" d="M 180 120 L 180 540 Q 180 560 200 560 L 700 560 Q 720 560 720 540 L 720 120" stroke="rgba(232,232,238,0.55)" stroke-width="2" fill="none" stroke-dasharray=""/>
+<line id="liquid-surface" x1="180" y1="170" x2="720" y2="170" stroke="rgba(127,212,255,0.5)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<circle id="sodium-ion" cx="300" cy="270" r="30" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="sodium-label" x="300" y="275" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">Na⁺</text>
+<circle id="sulphate-ion" cx="580" cy="300" r="32" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="sulphate-label" x="580" y="305" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">SO₄²⁻</text>
+<circle id="barium-ion" cx="320" cy="410" r="32" fill="none" stroke="#ffb066" stroke-width="2.5" stroke-dasharray=""/>
+<text id="barium-label" x="320" y="415" font-size="14" fill="#ffb066" text-anchor="middle" font-weight="600">Ba²⁺</text>
+<circle id="chloride-ion" cx="600" cy="430" r="30" fill="none" stroke="#c79bff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="chloride-label" x="600" y="435" font-size="14" fill="#c79bff" text-anchor="middle" font-weight="600">Cl⁻</text>
+<defs><marker id="arrowhead_swap-arrow-a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ffb066"/></marker></defs><line id="swap-arrow-a" x1="352" y1="398" x2="548" y2="312" stroke="#ffb066" stroke-width="2.5" marker-end="url(#arrowhead_swap-arrow-a)"/>
+<defs><marker id="arrowhead_swap-arrow-b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="swap-arrow-b" x1="328" y1="290" x2="572" y2="418" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_swap-arrow-b)"/>
+<g id="swap-arrows" transform="translate(0,0)"><text id="swap-text" x="450" y="250" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">swap</text></g>
+<path id="precipitate-solid" d="M 410 510 q 14 -22 34 -8 q 18 -16 34 4 q 22 -6 18 16 q 16 12 -6 20 l -78 2 q -22 -8 -2 -22 z" stroke="#ffffff" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="precipitate-label" x="408" y="552" font-size="14" fill="#ffffff" font-style="italic" text-anchor="middle">BaSO_4\,(s)</text>
+<circle id="dissolved-product" cx="250" cy="230" r="22" fill="none" stroke="rgba(199,155,255,0.85)" stroke-width="2" stroke-dasharray=""/>
+<circle id="dissolved-na" cx="640" cy="240" r="22" fill="none" stroke="rgba(127,212,255,0.85)" stroke-width="2" stroke-dasharray=""/>
+<text id="dissolved-label" x="440" y="150" font-size="13" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">Na^+ + Cl^-\,(aq)</text>
+</svg>

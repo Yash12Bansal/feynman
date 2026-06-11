@@ -9,6 +9,7 @@
 import { useCallback, useRef, useState } from "react";
 import { AuroraBackground } from "./AuroraBackground";
 import { useAuth } from "./authContext";
+import { DISPLAY_FONT } from "../styles/fonts";
 
 export function SignInScreen() {
   const { signInWithGoogle, authError } = useAuth();
@@ -28,11 +29,17 @@ export function SignInScreen() {
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
     el.style.transform = `perspective(1100px) rotateX(${(-py * 5).toFixed(2)}deg) rotateY(${(px * 5).toFixed(2)}deg)`;
+    // Cursor-follow spotlight inside the glass (painted by cardStyle's radial).
+    el.style.setProperty("--mx", `${((px + 0.5) * 100).toFixed(1)}%`);
+    el.style.setProperty("--my", `${((py + 0.5) * 100).toFixed(1)}%`);
   }, []);
 
   const onLeave = useCallback(() => {
     const el = cardRef.current;
-    if (el) el.style.transform = "perspective(1100px) rotateX(0deg) rotateY(0deg)";
+    if (!el) return;
+    el.style.transform = "perspective(1100px) rotateX(0deg) rotateY(0deg)";
+    el.style.setProperty("--mx", "50%");
+    el.style.setProperty("--my", "0%");
   }, []);
 
   return (
@@ -47,8 +54,15 @@ export function SignInScreen() {
           onClick={onSignIn}
           disabled={busy}
           style={googleButtonStyle}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-1px)";
+            e.currentTarget.style.boxShadow =
+              "0 10px 30px rgba(0,0,0,0.40), 0 0 0 1px rgba(127,212,255,0.45), 0 6px 26px rgba(127,212,255,0.18)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.35)";
+          }}
         >
           {busy ? <Spinner /> : <GoogleGlyph />}
           <span>{busy ? "Signing you in…" : "Continue with Google"}</span>
@@ -110,18 +124,21 @@ const cardStyle: React.CSSProperties = {
   position: "relative",
   width: "min(420px, 92vw)",
   padding: "40px 36px 28px",
-  borderRadius: 22,
-  background: "rgba(17, 17, 24, 0.72)",
-  backdropFilter: "blur(18px)",
-  WebkitBackdropFilter: "blur(18px)",
-  border: "1px solid rgba(255, 255, 255, 0.10)",
-  boxShadow: "0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+  borderRadius: 20,
+  background:
+    "radial-gradient(120% 90% at var(--mx, 50%) var(--my, 0%), rgba(127,212,255,0.10), rgba(127,212,255,0) 42%), linear-gradient(180deg, rgba(20,22,32,0.66), rgba(14,15,23,0.66))",
+  backdropFilter: "blur(20px) saturate(1.2)",
+  WebkitBackdropFilter: "blur(20px) saturate(1.2)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  boxShadow:
+    "0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(127,212,255,0.06)",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   textAlign: "center",
-  transition: "transform 240ms ease",
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  transition:
+    "transform 240ms cubic-bezier(0.22,0.61,0.36,1), box-shadow 240ms cubic-bezier(0.22,0.61,0.36,1)",
+  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 };
 
 const brandOrbStyle: React.CSSProperties = {
@@ -130,22 +147,25 @@ const brandOrbStyle: React.CSSProperties = {
   borderRadius: 16,
   display: "grid",
   placeItems: "center",
-  background: "linear-gradient(135deg, #60a5fa, #a78bfa)",
-  boxShadow: "0 10px 34px rgba(96, 165, 250, 0.45)",
+  background: "linear-gradient(135deg, #7fd4ff 0%, #6aa8ff 45%, #a78bfa 100%)",
+  boxShadow:
+    "0 10px 34px rgba(127,212,255,0.40), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.10)",
+  border: "1px solid rgba(255,255,255,0.10)",
   marginBottom: 20,
 };
 
 const titleStyle: React.CSSProperties = {
+  fontFamily: DISPLAY_FONT,
   fontSize: "1.5rem",
-  fontWeight: 700,
-  color: "#fafafa",
+  fontWeight: 600,
+  color: "#f4f6fb",
   margin: "0 0 8px",
-  letterSpacing: "-0.02em",
+  letterSpacing: "-0.01em",
 };
 
 const subtitleStyle: React.CSSProperties = {
   fontSize: "0.95rem",
-  color: "rgba(240, 240, 240, 0.55)",
+  color: "rgba(244,246,251,0.58)",
   margin: "0 0 28px",
   lineHeight: 1.5,
 };
@@ -158,19 +178,24 @@ const googleButtonStyle: React.CSSProperties = {
   gap: 12,
   padding: "13px 18px",
   borderRadius: 12,
-  border: "1px solid rgba(255, 255, 255, 0.14)",
+  border: "1px solid rgba(0, 0, 0, 0.06)",
   background: "#ffffff",
   color: "#1f2227",
   fontSize: "0.96rem",
   fontWeight: 600,
   fontFamily: "inherit",
   cursor: "pointer",
-  transition: "transform 160ms ease, box-shadow 160ms ease",
+  transition:
+    "transform 160ms cubic-bezier(0.22,0.61,0.36,1), box-shadow 200ms cubic-bezier(0.22,0.61,0.36,1)",
   boxShadow: "0 8px 24px rgba(0, 0, 0, 0.35)",
 };
 
 const errorStyle: React.CSSProperties = {
   marginTop: 16,
+  padding: "8px 12px",
+  borderRadius: 10,
+  background: "rgba(255,120,140,0.08)",
+  border: "1px solid rgba(255,120,140,0.18)",
   fontSize: "0.85rem",
   color: "#ffb4be",
   lineHeight: 1.4,
@@ -180,7 +205,7 @@ const fineprintStyle: React.CSSProperties = {
   marginTop: 22,
   marginBottom: 0,
   fontSize: "0.76rem",
-  color: "rgba(240, 240, 240, 0.38)",
+  color: "rgba(244,246,251,0.30)",
   lineHeight: 1.5,
 };
 

@@ -85,9 +85,16 @@ validation:
   # Resource-constrained: one local judge. Add Claude back later if quality
   # demands it. Note: Ollama has no `qwen3.5:9b` — qwen3:8b is the closest
   # equivalent (≈5GB at 4-bit, fits comfortably on M4 Pro 24GB).
-  judge_models:
-    - provider: "ollama"
-      model: "qwen3:8b"
+  #  judge_models:
+  #    - provider: "ollama"
+  #      model: "qwen3:8b"
+  # Question-answer judging DISABLED — we trust Opus to author correct questions.
+  # The local qwen3:8b judge was ~half the ingest wall-clock (~48 min) for ZERO
+  # lecture benefit: it only verifies the practice-question answers, never the
+  # lecture (narration/diagrams/audio are Opus + Kokoro). Empty list = questions
+  # are still generated, just not judged. To turn answer-verification back on,
+  # add a judge here, e.g.  - {provider: "openai", model: "gpt-4o"}.
+  judge_models: []
   judge_agreement_threshold: 0.5
   tts_qa_drift_threshold: 0.05
   gap_fill_max_retries: 2

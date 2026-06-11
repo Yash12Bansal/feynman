@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<defs><marker id="arrowhead_time-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="time-axis" x1="140" y1="500" x2="800" y2="500" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_time-axis)"/>
+<defs><marker id="arrowhead_torque-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="torque-axis" x1="140" y1="500" x2="140" y2="120" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_torque-axis)"/>
+<text id="time-label" x="800" y="525" font-size="12" fill="#e8e8ee" text-anchor="end" font-weight="normal">time</text>
+<text id="torque-label" x="110" y="130" font-size="18" fill="#e8e8ee" font-style="italic" text-anchor="middle">\Gamma</text>
+<text id="t-tick" x="760" y="525" font-size="15" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">t</text>
+<path id="area-under-curve" d="M 160 500 L 160 200 Q 360 150 500 300 Q 640 430 760 470 L 760 500 Z" stroke="none" stroke-width="0" fill="rgba(127,212,255,0.18)" stroke-dasharray=""/>
+<path id="torque-curve" d="M 160 200 Q 360 150 500 300 Q 640 430 760 470" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="thin-strip" d="M 440 500 L 440 326 L 470 318 L 470 500 Z" stroke="#9effc9" stroke-width="1.5" fill="rgba(158,255,201,0.22)" stroke-dasharray=""/>
+<text id="strip-label" x="478" y="360" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">\Gamma\,dt</text>
+<line id="dt-bracket" x1="440" y1="512" x2="470" y2="512" stroke="#9effc9" stroke-width="1.5" stroke-dasharray=""/>
+<text id="dt-label" x="455" y="535" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">dt</text>
+<text id="impulse-label" x="300" y="420" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">\Delta L = \int \Gamma\, dt</text>
+</svg>

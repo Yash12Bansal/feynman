@@ -28,6 +28,8 @@ import {
   type SatisfactionOption,
 } from "../components/SatisfactionPrompt";
 import { InLectureFeedback } from "../feedback/InLectureFeedback";
+import { feedbackSession } from "../feedback/feedbackSession";
+import { DISPLAY_FONT, MONO_FONT } from "../styles/fonts";
 import {
   useExtractionPlayback,
   type BoardSnapshot,
@@ -36,6 +38,38 @@ import {
   type TopicJumpEntry,
 } from "../hooks/useExtractionPlayback";
 import type { DesignDiagramSpec } from "../types/visuals";
+
+// Glowing scrubber thumb — range pseudo-elements are CSS-only, so inject a tiny
+// scoped stylesheet once (mirrors AskFeynmanButton's keyframe-injection pattern).
+// Independent of SplitBoard.css, so it never touches the board's measured layout.
+if (typeof document !== "undefined") {
+  const SCRUB_KEY = "lv-scrubber-styles";
+  if (!document.getElementById(SCRUB_KEY)) {
+    const style = document.createElement("style");
+    style.id = SCRUB_KEY;
+    style.textContent = `
+.lv-scrubber-range::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:14px; height:14px; border-radius:50%;
+  background:#7fd4ff; border:2px solid rgba(7,7,13,0.9);
+  box-shadow:0 0 0 1px rgba(127,212,255,0.5), 0 0 12px rgba(127,212,255,0.55);
+  cursor:pointer; transition:box-shadow .15s ease, transform .15s ease;
+}
+.lv-scrubber-range:hover::-webkit-slider-thumb{
+  transform:scale(1.12);
+  box-shadow:0 0 0 1px rgba(127,212,255,0.7), 0 0 18px rgba(127,212,255,0.75);
+}
+.lv-scrubber-range::-moz-range-thumb{
+  width:14px; height:14px; border:2px solid rgba(7,7,13,0.9); border-radius:50%;
+  background:#7fd4ff; box-shadow:0 0 12px rgba(127,212,255,0.55); cursor:pointer;
+}
+.lv-scrubber-range:focus-visible{ outline:none; }
+.lv-scrubber-range:focus-visible::-webkit-slider-thumb{
+  box-shadow:0 0 0 2px rgba(127,212,255,0.8), 0 0 18px rgba(127,212,255,0.7);
+}`;
+    document.head.appendChild(style);
+  }
+}
 
 interface LectureViewerProps {
   readonly chapterId: string;
@@ -189,6 +223,48 @@ export function LectureViewer({
   // True while the in-lecture feedback wizard is up — hides player chrome so the
   // wizard gets the same clean backdrop the doubt flow / satisfaction prompt do.
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  // Universal feedback ↔ playback coupling. ANY feedback surface (the in-lecture
+  // prompt, the exit survey, or the always-on FAB) flips feedbackSession's open
+  // state; we mirror it here so player chrome hides AND playback PAUSES while a
+  // survey is up — audio must never play behind a modal. We resume only if WE
+  // paused, so a lecture the user paused themselves is left paused.
+  useEffect(() => feedbackSession.subscribe(() => setFeedbackOpen(feedbackSession.isOpen())), []);
+  const statusRef = useRef(status);
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+  const pausedByFeedbackRef = useRef(false);
+  useEffect(() => {
+    if (feedbackOpen) {
+      if (statusRef.current === "playing") {
+        pausedByFeedbackRef.current = true;
+        pause();
+      }
+    } else if (pausedByFeedbackRef.current) {
+      pausedByFeedbackRef.current = false;
+      void play();
+    }
+  }, [feedbackOpen, pause, play]);
+
+  // Latest playback time in a ref, so the keyboard handler can seek relative to
+  // "now" without re-binding the listener on every playback tick.
+  const currentMsRef = useRef(currentLectureMs);
+  useEffect(() => {
+    currentMsRef.current = currentLectureMs;
+  }, [currentLectureMs]);
+  // Playback hotkeys (Space / ←  / →) only act in normal watch mode — never
+  // during a doubt branch, a satisfaction prompt, or while a survey is up (where
+  // Space would resume audio behind a modal).
+  const canControlPlaybackRef = useRef(false);
+  useEffect(() => {
+    canControlPlaybackRef.current =
+      !!chapter &&
+      doubtState === "idle" &&
+      satisfactionOptions === null &&
+      !feedbackOpen;
+  }, [chapter, doubtState, satisfactionOptions, feedbackOpen]);
+
   const room = useRoomContext();
   // Lazy-connect: the room starts DISCONNECTED (watching needs no LiveKit). A
   // doubt can only publish once we're connected AND the agent has actually
@@ -240,9 +316,9 @@ export function LectureViewer({
     setSubtitlePos(null);
   }, [chapterId]);
 
-  // Keyboard shortcuts for subtitle controls. `C` toggles visibility,
-  // `+`/`=` and `-`/`_` adjust the size preset. Ignored while typing into
-  // an input/textarea so they don't collide with text entry elsewhere.
+  // Keyboard shortcuts. Subtitles: `C` toggles visibility, `+`/`=` and `-`/`_`
+  // adjust size. Playback (normal watch mode only): Space play/pauses, and
+  // ← / → seek 10s back / forward. Ignored while typing into an input/textarea.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -267,11 +343,43 @@ export function LectureViewer({
           flashCCToast(`Subtitles: ${SUBTITLE_SIZE_LABEL[next]}`);
           return next;
         });
+      } else if (
+        canControlPlaybackRef.current &&
+        (e.key === " " || e.code === "Space")
+      ) {
+        // Space → play/pause. preventDefault stops the page from scrolling.
+        e.preventDefault();
+        if (statusRef.current === "paused") void play();
+        else pause();
+      } else if (
+        canControlPlaybackRef.current &&
+        (e.key === "ArrowLeft" || e.key === "ArrowRight")
+      ) {
+        // ← / → → seek 10s. Snapshot the live position NOW — BEFORE pause()/
+        // seek mutate playback state. Reading currentMsRef inside the async
+        // IIFE (after waitForIdle) gave a stale base that collapsed to the
+        // current audio event's start, so "→ +10s" landed back in the same
+        // event (looked like it did nothing) and "← −10s" under-shot. The
+        // scrubber never hit this because it seeks to its absolute slider value.
+        e.preventDefault();
+        const delta = e.key === "ArrowLeft" ? -10_000 : 10_000;
+        const target = Math.max(
+          0,
+          Math.min(chapterDurationMs, currentMsRef.current + delta),
+        );
+        const wasPlaying = statusRef.current === "playing";
+        if (wasPlaying) pause();
+        flashCCToast(delta < 0 ? "⏪ 10s" : "⏩ 10s");
+        void (async () => {
+          await waitForIdle();
+          seekToTimeMs(target);
+          if (wasPlaying) void play();
+        })();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [flashCCToast]);
+  }, [flashCCToast, pause, play, waitForIdle, seekToTimeMs, chapterDurationMs]);
 
   // Hotfix: bound the listening / thinking states with explicit timeouts
   // so a silent backend (worker down, mic permission denied, network
@@ -729,14 +837,16 @@ function TranscriptBand({
         zIndex: 90,
         maxWidth: "min(72vw, 920px)",
         padding: "10px 22px",
-        background: "rgba(12, 13, 16, 0.78)",
-        border: "1px solid rgba(232, 232, 238, 0.10)",
+        background: "rgba(11, 12, 20, 0.72)",
+        border: "1px solid rgba(255, 255, 255, 0.07)",
         borderRadius: 14,
-        color: "rgba(232, 232, 238, 0.88)",
+        color: "rgba(244,246,251,0.90)",
         fontSize: SUBTITLE_FONT[size],
         lineHeight: 1.5,
         textAlign: "center",
-        backdropFilter: "blur(8px)",
+        backdropFilter: "blur(16px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(16px) saturate(1.2)",
+        boxShadow: "0 10px 34px rgba(0,0,0,0.45)",
         // The band catches mouse events so it can be dragged; cursor reflects
         // that affordance. Text inside is still selectable on mouseup.
         cursor: "move",
@@ -784,17 +894,27 @@ function Scrubber({
         display: "flex",
         alignItems: "center",
         gap: 14,
-        background: "rgba(12, 13, 16, 0.72)",
-        border: "1px solid rgba(232, 232, 238, 0.10)",
+        background: "rgba(16, 18, 26, 0.66)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: 999,
-        backdropFilter: "blur(8px)",
+        backdropFilter: "blur(18px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.2)",
+        boxShadow:
+          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
         fontSize: "0.72rem",
-        color: "rgba(232, 232, 238, 0.70)",
+        color: "rgba(244,246,251,0.70)",
         fontVariantNumeric: "tabular-nums",
         userSelect: "none",
       }}
     >
-      <span style={{ minWidth: 44, textAlign: "right" }}>
+      <span
+        style={{
+          minWidth: 44,
+          textAlign: "right",
+          fontFamily: MONO_FONT,
+          color: "#f4f6fb",
+        }}
+      >
         {_fmtMs(displayMs)}
       </span>
       <input
@@ -823,20 +943,22 @@ function Scrubber({
           onSeekCommit(val);
         }}
         aria-label="Seek lecture"
+        className="lv-scrubber-range"
         style={{
           flex: 1,
-          // The webkit / moz pseudo-elements that style the range are CSS-only
-          // so we leave them at the browser default for now; the surrounding
-          // pill gives the band shape. Range itself is intentionally minimal.
+          // Thumb glow comes from the injected `.lv-scrubber-range` stylesheet
+          // (pseudo-elements can't live in inline styles).
           accentColor: "#7fd4ff",
           height: 4,
           cursor: "pointer",
-          background: `linear-gradient(to right, rgba(127, 212, 255, 0.55) 0%, rgba(127, 212, 255, 0.55) ${pct}%, rgba(232, 232, 238, 0.15) ${pct}%, rgba(232, 232, 238, 0.15) 100%)`,
+          background: `linear-gradient(to right, #7fd4ff 0%, #6aa8ff ${pct}%, rgba(244,246,251,0.12) ${pct}%, rgba(244,246,251,0.12) 100%)`,
           borderRadius: 2,
           appearance: "none",
         }}
       />
-      <span style={{ minWidth: 44 }}>{_fmtMs(totalMs)}</span>
+      <span style={{ minWidth: 44, fontFamily: MONO_FONT, color: "rgba(244,246,251,0.66)" }}>
+        {_fmtMs(totalMs)}
+      </span>
     </div>
   );
 }
@@ -853,13 +975,17 @@ function CCToast({ text }: { readonly text: string }) {
         transform: "translateX(-50%)",
         zIndex: 110,
         padding: "8px 16px",
-        background: "rgba(12, 13, 16, 0.85)",
-        border: "1px solid rgba(232, 232, 238, 0.18)",
+        background: "rgba(16, 18, 26, 0.72)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: 999,
-        color: "rgba(232, 232, 238, 0.92)",
+        color: "rgba(244,246,251,0.92)",
+        fontFamily: DISPLAY_FONT,
         fontSize: "0.85rem",
         letterSpacing: "0.01em",
-        backdropFilter: "blur(8px)",
+        backdropFilter: "blur(18px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.2)",
+        boxShadow:
+          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
         pointerEvents: "none",
         userSelect: "none",
       }}
@@ -915,13 +1041,17 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
           zIndex: 100,
           padding: "10px 18px",
           borderRadius: 999,
-          background: "rgba(20, 20, 24, 0.85)",
-          border: "1px solid rgba(232, 232, 238, 0.18)",
-          color: "#e8e8ee",
+          background: "rgba(16, 18, 26, 0.66)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          color: "#f4f6fb",
+          fontFamily: DISPLAY_FONT,
           fontSize: "0.85rem",
+          letterSpacing: "0.01em",
           cursor: "pointer",
-          backdropFilter: "blur(6px)",
-          boxShadow: "0 6px 20px rgba(0, 0, 0, 0.45)",
+          backdropFilter: "blur(18px) saturate(1.2)",
+          WebkitBackdropFilter: "blur(18px) saturate(1.2)",
+          boxShadow:
+            "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
         }}
       >
         ☰ Topics
@@ -933,8 +1063,9 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
             position: "fixed",
             inset: 0,
             zIndex: 98,
-            background: "rgba(0,0,0,0.30)",
-            backdropFilter: "blur(2px)",
+            background: "rgba(7,7,13,0.45)",
+            backdropFilter: "blur(3px)",
+            WebkitBackdropFilter: "blur(3px)",
           }}
         >
           <div
@@ -948,20 +1079,28 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
               maxHeight: "70vh",
               overflowY: "auto",
               padding: "12px 0",
-              background: "rgba(18, 19, 22, 0.95)",
-              border: "1px solid rgba(232, 232, 238, 0.14)",
+              background: "rgba(11, 12, 20, 0.86)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
               borderRadius: 14,
-              boxShadow: "0 12px 40px rgba(0, 0, 0, 0.55)",
-              backdropFilter: "blur(10px)",
+              boxShadow:
+                "0 18px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+              backdropFilter: "blur(20px) saturate(1.2)",
+              WebkitBackdropFilter: "blur(20px) saturate(1.2)",
             }}
           >
             <div
               style={{
                 padding: "4px 18px 10px",
+                fontFamily: DISPLAY_FONT,
                 fontSize: "0.72rem",
-                letterSpacing: "0.05em",
+                letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: "rgba(232, 232, 238, 0.45)",
+                color: "rgba(244,246,251,0.45)",
+                backgroundImage:
+                  "linear-gradient(90deg, transparent, rgba(127,212,255,0.4), transparent)",
+                backgroundSize: "100% 1px",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "bottom",
               }}
             >
               Jump to topic
@@ -976,27 +1115,38 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
                     onJump(t.eventIndex);
                     setOpen(false);
                   }}
+                  onMouseEnter={(e) => {
+                    if (!active)
+                      e.currentTarget.style.background =
+                        "rgba(255,255,255,0.04)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active)
+                      e.currentTarget.style.background = "transparent";
+                  }}
                   style={{
                     display: "block",
                     width: "100%",
                     padding: "10px 18px",
                     background: active
-                      ? "rgba(127, 212, 255, 0.12)"
+                      ? "rgba(127, 212, 255, 0.10)"
                       : "transparent",
                     border: "none",
                     borderLeft: active
                       ? "3px solid #7fd4ff"
                       : "3px solid transparent",
                     textAlign: "left",
-                    color: active ? "#e8e8ee" : "rgba(232, 232, 238, 0.78)",
+                    color: active ? "#f4f6fb" : "rgba(244,246,251,0.78)",
                     fontSize: "0.92rem",
                     cursor: "pointer",
+                    transition: "background 0.14s ease",
                   }}
                 >
                   <div
                     style={{
+                      fontFamily: MONO_FONT,
                       fontSize: "0.7rem",
-                      color: "rgba(232, 232, 238, 0.45)",
+                      color: "rgba(244,246,251,0.42)",
                       letterSpacing: "0.04em",
                       marginBottom: 2,
                     }}
@@ -1034,21 +1184,32 @@ function PausePlayButton({ paused, onToggle }: PausePlayButtonProps) {
         width: 52,
         height: 52,
         borderRadius: 26,
-        background: "rgba(20, 20, 24, 0.85)",
-        border: "1px solid rgba(232, 232, 238, 0.18)",
-        color: "#e8e8ee",
+        background: "rgba(16, 18, 26, 0.66)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        color: "#f4f6fb",
         fontSize: 18,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        boxShadow: "0 6px 20px rgba(0, 0, 0, 0.45)",
-        backdropFilter: "blur(6px)",
-        transition: "transform 0.08s, background 0.12s",
+        boxShadow:
+          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+        backdropFilter: "blur(18px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.2)",
+        transition:
+          "transform 0.18s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.18s ease",
       }}
       onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.94)")}
       onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.boxShadow =
+          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.4), 0 6px 24px rgba(127,212,255,0.16)")
+      }
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+        e.currentTarget.style.boxShadow =
+          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)";
+      }}
     >
       {paused ? "▶" : "❚❚"}
     </button>
@@ -1065,8 +1226,12 @@ function ImmersiveShell({ children }: ImmersiveShellProps) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "#0a0a0a",
-        color: "#fafafa",
+        background:
+          "radial-gradient(120% 120% at 50% 0%, rgba(91,157,255,0.06), transparent 55%)," +
+          "radial-gradient(100% 100% at 50% 100%, rgba(167,139,250,0.05), transparent 60%)," +
+          "radial-gradient(140% 90% at 50% 50%, #0b0c14 0%, #07070d 70%)," +
+          "#07070d",
+        color: "#f4f6fb",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -1083,8 +1248,9 @@ const statusTextStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  color: "#6b7280",
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  color: "rgba(244,246,251,0.58)",
+  fontFamily: DISPLAY_FONT,
   fontSize: "0.95rem",
-  letterSpacing: "0.05em",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
 };

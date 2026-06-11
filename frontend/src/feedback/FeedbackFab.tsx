@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FeedbackModal } from "./FeedbackModal";
 import { feedbackSession } from "./feedbackSession";
+import { DISPLAY_FONT } from "../styles/fonts";
 
 const KEYFRAMES_ID = "fb-fab-keyframes";
 const FIRST_PULSE_DELAY_MS = 30_000;
@@ -24,9 +25,9 @@ function ensureKeyframes(): void {
   el.id = KEYFRAMES_ID;
   el.textContent = `
 @keyframes fb-fab-attention {
-  0%   { box-shadow: 0 0 0 0 rgba(127, 212, 255, 0.55), 0 10px 30px rgba(0, 0, 0, 0.45); }
-  70%  { box-shadow: 0 0 0 14px rgba(127, 212, 255, 0), 0 10px 30px rgba(0, 0, 0, 0.45); }
-  100% { box-shadow: 0 0 0 0 rgba(127, 212, 255, 0), 0 10px 30px rgba(0, 0, 0, 0.45); }
+  0%   { box-shadow: 0 0 0 0 rgba(127, 212, 255, 0.55), 0 10px 34px rgba(0, 0, 0, 0.5); }
+  70%  { box-shadow: 0 0 0 14px rgba(127, 212, 255, 0), 0 10px 34px rgba(0, 0, 0, 0.5); }
+  100% { box-shadow: 0 0 0 0 rgba(127, 212, 255, 0), 0 10px 34px rgba(0, 0, 0, 0.5); }
 }`;
   document.head.appendChild(el);
 }
@@ -133,18 +134,19 @@ const fabStyle: React.CSSProperties = {
   padding: "11px 18px",
   borderRadius: 999,
   border: "1px solid rgba(127, 212, 255, 0.40)",
-  background: "rgba(26, 40, 52, 0.82)",
-  backdropFilter: "blur(8px)",
-  WebkitBackdropFilter: "blur(8px)",
+  background: "rgba(18, 32, 48, 0.62)",
+  backdropFilter: "blur(18px) saturate(1.2)",
+  WebkitBackdropFilter: "blur(18px) saturate(1.2)",
   color: "#cdeeff",
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontFamily: DISPLAY_FONT,
   fontSize: "0.88rem",
   fontWeight: 600,
   cursor: "pointer",
   opacity: 0.95,
   transition: "transform 200ms ease, opacity 200ms ease",
   zIndex: 100,
-  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.45)",
+  boxShadow:
+    "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.16)",
 };
 
 const labelStyle: React.CSSProperties = {

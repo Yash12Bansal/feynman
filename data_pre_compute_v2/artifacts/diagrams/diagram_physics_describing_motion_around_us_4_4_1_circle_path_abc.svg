@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<circle id="circle" cx="450" cy="330" r="200" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<circle id="centre" cx="450" cy="330" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="radius-r" x1="450" y1="330" x2="650" y2="330" stroke="#7fd4ff" stroke-width="2" stroke-dasharray="5 4"/>
+<path id="arc-abc" d="M 650 330 A 200 200 0 0 0 450 130" stroke="#9effc9" stroke-width="3.5" fill="none" stroke-dasharray=""/>
+<line id="chord-ac" x1="650" y1="330" x2="450" y2="130" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray="6 5"/>
+<circle id="point-a" cx="650" cy="330" r="6" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="point-b" cx="591" cy="189" r="4" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="2" stroke-dasharray=""/>
+<circle id="point-c" cx="450" cy="130" r="6" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_velocity-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="velocity-arrow" x1="650" y1="330" x2="650" y2="230" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_velocity-arrow)"/>
+<text id="centre-label" x="444" y="352" font-size="12" fill="#e8e8ee" text-anchor="end" font-weight="600">O</text>
+<text id="radius-label" x="548" y="320" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">R</text>
+<text id="a-label" x="666" y="340" font-size="13" fill="#e8e8ee" text-anchor="start" font-weight="600">A</text>
+<text id="b-label" x="605" y="180" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="600">B</text>
+<text id="c-label" x="440" y="118" font-size="13" fill="#e8e8ee" text-anchor="end" font-weight="600">C</text>
+<text id="arc-caption" x="660" y="200" font-size="11" fill="#9effc9" text-anchor="start" font-weight="normal">distance travelled</text>
+<text id="chord-caption" x="540" y="245" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="normal">displacement</text>
+<text id="v-label" x="658" y="225" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">v</text>
+</svg>

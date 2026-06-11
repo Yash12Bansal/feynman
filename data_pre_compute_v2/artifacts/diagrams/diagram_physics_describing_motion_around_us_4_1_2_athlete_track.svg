@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="track-line" x1="100" y1="360" x2="820" y2="360" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<line id="tick-o" x1="130" y1="350" x2="130" y2="370" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tick-b" x1="360" y1="350" x2="360" y2="370" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tick-a" x1="790" y1="350" x2="790" y2="370" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<circle id="point-o" cx="130" cy="360" r="7" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="point-b" cx="360" cy="360" r="7" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="point-a" cx="790" cy="360" r="7" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label-o" x="130" y="395" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">O</text>
+<text id="label-b" x="360" y="395" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">B</text>
+<text id="label-a" x="790" y="395" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">A</text>
+<text id="meters-o" x="116" y="340" font-size="12" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">0\,\text{m}</text>
+<text id="meters-b" x="343" y="340" font-size="12" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">40\,\text{m}</text>
+<text id="meters-a" x="770" y="340" font-size="12" fill="rgba(232,232,238,0.55)" font-style="italic" text-anchor="middle">100\,\text{m}</text>
+<path id="path-out" d="M 130 320 Q 460 250 790 320" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="path-out-label" x="460" y="248" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="normal">out: 100 m</text>
+<path id="path-back" d="M 790 240 Q 575 175 360 240" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="path-back-label" x="575" y="170" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="normal">back: 60 m</text>
+<defs><marker id="arrowhead_displacement-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="displacement-arrow" x1="130" y1="460" x2="360" y2="460" stroke="#7fd4ff" stroke-width="3" marker-end="url(#arrowhead_displacement-arrow)"/>
+<text id="displacement-label" x="245" y="485" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">displacement = 40 m</text>
+</svg>

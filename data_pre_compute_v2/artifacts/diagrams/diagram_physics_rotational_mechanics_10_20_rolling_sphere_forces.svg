@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="table-surface" x1="180" y1="440" x2="740" y2="440" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="table-hatch" d="M 200 440 L 190 455 M 240 440 L 230 455 M 280 440 L 270 455 M 320 440 L 310 455 M 360 440 L 350 455 M 400 440 L 390 455 M 440 440 L 430 455 M 480 440 L 470 455 M 520 440 L 510 455 M 560 440 L 550 455 M 600 440 L 590 455 M 640 440 L 630 455 M 680 440 L 670 455 M 720 440 L 710 455" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<circle id="sphere" cx="450" cy="320" r="118" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="sphere-center" cx="450" cy="320" r="3" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="center-line" x1="450" y1="320" x2="450" y2="440" stroke="rgba(232,232,238,0.4)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<path id="contact-area" d="M 422 438 Q 450 446 478 438" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_velocity-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="velocity-arrow" x1="450" y1="320" x2="590" y2="320" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_velocity-arrow)"/>
+<defs><marker id="arrowhead_weight-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="weight-arrow" x1="450" y1="320" x2="450" y2="420" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_weight-arrow)"/>
+<defs><marker id="arrowhead_friction-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="friction-arrow" x1="450" y1="438" x2="350" y2="438" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_friction-arrow)"/>
+<defs><marker id="arrowhead_normal-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="normal-arrow" x1="500" y1="438" x2="500" y2="320" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_normal-arrow)"/>
+<line id="normal-shift" x1="450" y1="470" x2="500" y2="470" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="3 3"/>
+<text id="weight-label" x="458" y="412" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">mg</text>
+<text id="velocity-label" x="598" y="316" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">v</text>
+<text id="friction-label" x="338" y="432" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">f</text>
+<text id="normal-label" x="508" y="318" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">N</text>
+<text id="shift-label" x="475" y="490" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">shift forward</text>
+</svg>

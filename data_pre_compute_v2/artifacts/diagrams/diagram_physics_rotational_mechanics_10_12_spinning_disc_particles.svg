@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="rotation-axis" x1="450" y1="90" x2="450" y2="560" stroke="#7fd4ff" stroke-width="2" stroke-dasharray="6 5"/>
+<text id="axis-label" x="450" y="78" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">axis</text>
+<circle id="disc-body" cx="450" cy="325" r="180" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="disc-center" cx="450" cy="325" r="4" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<path id="omega-arc" d="M 555.0 143.1346652052679 A 210.0 210.0 0 0 1 631.8653347947321 430.0" stroke="#9effc9" stroke-width="2.5" fill="none"/>
+<defs><marker id="arrowhead_omega-head" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="omega-head" x1="622" y1="200" x2="645" y2="220" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_omega-head)"/>
+<text id="omega-label" x="660" y="200" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">\omega</text>
+<circle id="circle-path-i" cx="450" cy="325" r="120" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="5 6"/>
+<line id="radius-i" x1="450" y1="325" x2="535" y2="240" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<text id="radius-label" x="478" y="270" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">r_i</text>
+<circle id="particle-i" cx="535" cy="240" r="7" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<text id="particle-label" x="552" y="232" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">m_i</text>
+<defs><marker id="arrowhead_velocity-i" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="velocity-i" x1="535" y1="240" x2="595" y2="300" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_velocity-i)"/>
+<text id="velocity-label" x="600" y="305" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">v_i</text>
+</svg>

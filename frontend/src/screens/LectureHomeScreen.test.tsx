@@ -173,4 +173,60 @@ describe("LectureHomeScreen", () => {
       "chapter:physics:friction",
     );
   });
+
+  // ── Class tabs (default, tabbed path) ────────────────────────────
+
+  const TAB_GROUPS = [
+    { label: "A", ids: ["chapter:a:one", "chapter:a:two"] },
+    { label: "B", ids: ["chapter:b:one"] },
+  ];
+  const TAB_CHAPTERS = [
+    { id: "chapter:a:one", title: "Alpha One", idx: 1, has_manifest: true },
+    { id: "chapter:a:two", title: "Alpha Two", idx: 2, has_manifest: true },
+    { id: "chapter:b:one", title: "Beta One", idx: 3, has_manifest: true },
+  ];
+
+  it("renders a tab per class group and shows only the active group's cards", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(TAB_CHAPTERS), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findByTestId, findAllByTestId } = render(
+      <LectureHomeScreen classGroups={TAB_GROUPS} />,
+    );
+    // One tab button per group.
+    await findByTestId("class-tab-A");
+    await findByTestId("class-tab-B");
+    // Active group (first) shows its 2 cards, in order; group B's card absent.
+    const cards = await findAllByTestId("chapter-card");
+    expect(cards).toHaveLength(2);
+    expect(cards.map((c) => c.getAttribute("data-chapter-id"))).toEqual([
+      "chapter:a:one",
+      "chapter:a:two",
+    ]);
+  });
+
+  it("switches the visible cards when another class tab is clicked", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(TAB_CHAPTERS), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const { findByTestId, findAllByTestId } = render(
+      <LectureHomeScreen classGroups={TAB_GROUPS} />,
+    );
+    // Starts on group A (2 cards).
+    expect(await findAllByTestId("chapter-card")).toHaveLength(2);
+    // Switch to group B → only its single card.
+    fireEvent.click(await findByTestId("class-tab-B"));
+    const cards = await waitFor(async () => {
+      const all = await findAllByTestId("chapter-card");
+      expect(all).toHaveLength(1);
+      return all;
+    });
+    expect(cards[0].getAttribute("data-chapter-id")).toBe("chapter:b:one");
+  });
 });

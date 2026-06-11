@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from anthropic import Anthropic, AsyncAnthropic
@@ -24,6 +25,13 @@ class AnthropicProvider(LLMProvider):
             kwargs["api_key"] = config.api_key
         if config.base_url:
             kwargs["base_url"] = config.base_url
+        # Resilience to transient API blips (httpcore connection-pool drops,
+        # timeouts, 429, 5xx, 529). The SDK retries these classes with
+        # exponential backoff; the default of 2 was too few for a long ingest —
+        # a single momentary drop silently killed a whole section (no gap-fill
+        # re-extracts it). 8 retries (~25s of backoff) absorbs brief outages.
+        # Shared by the sync and async clients via `_client_kwargs`.
+        kwargs["max_retries"] = 8
         self._client_kwargs = kwargs
         self.client = Anthropic(**kwargs)
         self._aclient: AsyncAnthropic | None = None
@@ -72,7 +80,7 @@ class AnthropicProvider(LLMProvider):
         )
         response = self.generate(json_system, user_prompt)
         return LLMResponse(
-            content=_strip_fences(response.content),
+            content=_extract_json_text(response.content),
             model=response.model,
             usage=response.usage,
         )
@@ -193,6 +201,30 @@ def _strip_fences(content: str) -> str:
         ]
         content = "\n".join(lines).strip()
     return content
+
+
+def _extract_json_text(content: str) -> str:
+    """Best-effort extraction of a single JSON value from a Claude reply.
+
+    Claude has no native JSON mode, so despite the "JSON only" instruction the
+    model can still wrap the object in ```fences``` or — the case that bit topic
+    extraction — append trailing prose or a second object after the first, which
+    makes a strict ``json.loads`` raise "Extra data". We strip fences, seek the
+    first ``{``/``[``, then use ``raw_decode`` to consume EXACTLY the first
+    complete JSON value and drop anything before/after it. Falls back to the
+    fence-stripped text when no parseable value is found, so a genuinely broken
+    reply still surfaces to the caller's error path unchanged.
+    """
+    text = _strip_fences(content)
+    starts = [i for i in (text.find("{"), text.find("[")) if i != -1]
+    if not starts:
+        return text
+    start = min(starts)
+    try:
+        _, end = json.JSONDecoder().raw_decode(text[start:])
+    except ValueError:
+        return text
+    return text[start : start + end]
 
 
 def _usage(response: Any) -> dict | None:

@@ -23,6 +23,19 @@ let openCount = 0;
 let submitted = readSubmitted();
 let lectureActive = false;
 const cooldownUntil = new Map<FeedbackSource, number>();
+// Each AUTOMATIC source (in_lecture, exit) may auto-open AT MOST ONCE per
+// session. This is the hard stop on "feedback again and again": once a prompt
+// has auto-fired, the next mouse-to-top gesture or timestamp threshold won't
+// re-pop it (the post-dismiss cooldown alone let it return every 60s). The
+// manual FAB uses markOpened() and is exempt.
+const autoFired = new Set<FeedbackSource>();
+// Open/close subscribers. The lecture viewer subscribes so it can pause
+// playback whenever ANY feedback surface (in-lecture, exit, or the FAB) opens.
+const listeners = new Set<() => void>();
+
+function emit(): void {
+  for (const listener of listeners) listener();
+}
 
 function readSubmitted(): boolean {
   try {
@@ -48,6 +61,7 @@ export const feedbackSession = {
   /** Whether an automatic trigger may open right now. */
   canOpen(source: FeedbackSource): boolean {
     if (submitted || openCount > 0) return false;
+    if (autoFired.has(source)) return false; // one auto-open per source/session
     const until = cooldownUntil.get(source);
     return until == null || nowMs() >= until;
   },
@@ -56,16 +70,20 @@ export const feedbackSession = {
   tryOpen(source: FeedbackSource): boolean {
     if (!this.canOpen(source)) return false;
     openCount += 1;
+    autoFired.add(source); // never auto-open this source again this session
+    emit();
     return true;
   },
 
   /** Unconditional claim for explicit user actions (the FAB). */
   markOpened(): void {
     openCount += 1;
+    emit();
   },
 
   markClosed(): void {
     openCount = Math.max(0, openCount - 1);
+    emit();
   },
 
   markSubmitted(): void {
@@ -76,6 +94,18 @@ export const feedbackSession = {
     } catch {
       /* ignore */
     }
+    emit();
+  },
+
+  /**
+   * Subscribe to open/close transitions; returns an unsubscribe fn. Used by the
+   * lecture viewer to pause playback while any feedback surface is open.
+   */
+  subscribe(listener: () => void): () => void {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
   },
 
   startCooldown(source: FeedbackSource, ms: number): void {
@@ -100,6 +130,8 @@ export const feedbackSession = {
     submitted = false;
     lectureActive = false;
     cooldownUntil.clear();
+    autoFired.clear();
+    listeners.clear();
     try {
       sessionStorage.removeItem(SUBMITTED_KEY);
     } catch {

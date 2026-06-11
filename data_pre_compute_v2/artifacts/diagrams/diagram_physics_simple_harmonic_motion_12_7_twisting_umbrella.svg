@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ceiling" x1="300" y1="110" x2="600" y2="110" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ceiling-hatch" d="M 310 110 L 300 124 M 340 110 L 330 124 M 370 110 L 360 124 M 400 110 L 390 124 M 430 110 L 420 124 M 460 110 L 450 124 M 490 110 L 480 124 M 520 110 L 510 124 M 550 110 L 540 124 M 580 110 L 570 124" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="axis" x1="450" y1="110" x2="450" y2="330" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="pivot" cx="450" cy="330" r="6" fill="none" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="rest-line" x1="450" y1="330" x2="450" y2="540" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<line id="twisted-line" x1="450" y1="330" x2="590" y2="488" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<path id="theta-arc" d="M 450.0 450.0 A 120.0 120.0 0 0 1 530.295672763063 419.17737905728734" stroke="#9effc9" stroke-width="1.8" fill="none"/>
+<path id="restoring-torque" d="M 600 420 A 150 150 0 0 1 512 480" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="torque-head" d="M 512 480 L 524 470 M 512 480 L 522 492" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="theta-label" x="505" y="470" font-size="14" fill="#9effc9" text-anchor="middle" font-weight="600">θ</text>
+<text id="torque-label" x="612" y="408" font-size="16" fill="#ff7a8a" font-style="italic" text-anchor="middle">\tau = -k\theta</text>
+<text id="rest-caption" x="450" y="560" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">rest position</text>
+</svg>

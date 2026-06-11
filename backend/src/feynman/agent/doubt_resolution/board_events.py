@@ -93,6 +93,9 @@ class FocusBE(BaseModel):
     type: Literal["focus"] = "focus"
     diagram_id: str
     target_element_id: str | None = None
+    # Co-highlight several elements at once (the frontend reads this first, then
+    # falls back to the single id). Driven by an inline `<<FOCUS:a+b>>` marker.
+    target_element_ids: list[str] | None = None
     target_role: str | None = None
     text: str | None = None
 
@@ -307,6 +310,13 @@ def compile_plan(
         # this, but a stray annotation must never crash delivery).
         if active_diagram_id and beat.annotation_actions:
             for action in beat.annotation_actions:
+                # Focus/Trace now live as inline <<FOCUS>>/<<TRACE>> markers in
+                # the narration — the delivery loop fires them synced to the
+                # spoken phrase, so skip them here (don't ALSO dump them at
+                # beat-start, which is the old "highlights disconnected from
+                # voice" behaviour).
+                if isinstance(action, (FocusAction, TraceAction)):
+                    continue
                 events.append(_annotation_to_event(action, active_diagram_id))
 
         out.append(events)

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground" x1="150" y1="480" x2="780" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 160 480 L 150 495 M 200 480 L 190 495 M 240 480 L 230 495 M 280 480 L 270 495 M 320 480 L 310 495 M 360 480 L 350 495 M 400 480 L 390 495 M 440 480 L 430 495 M 480 480 L 470 495 M 520 480 L 510 495 M 560 480 L 550 495 M 600 480 L 590 495 M 640 480 L 630 495 M 680 480 L 670 495 M 720 480 L 710 495 M 760 480 L 750 495" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="vertical-ref" x1="520" y1="480" x2="520" y2="200" stroke="rgba(232,232,238,0.55)" stroke-width="1.3" stroke-dasharray="6 6"/>
+<line id="lean-line" x1="520" y1="480" x2="400" y2="220" stroke="rgba(232,232,238,0.45)" stroke-width="1.3" stroke-dasharray="4 5"/>
+<path id="cyclist-body" d="M 520 480 L 458 345 L 452 320 M 452 320 L 440 280 L 432 250 M 440 280 L 420 300 M 440 280 L 460 300 M 432 250 L 426 232 M 426 232 m -10 -2 a 10 10 0 1 0 20 0 a 10 10 0 1 0 -20 0" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="rear-wheel" cx="520" cy="480" r="0.5" fill="none" stroke="#e8e8ee" stroke-width="1" stroke-dasharray=""/>
+<circle id="contact-point" cx="520" cy="480" r="5" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="centre-of-mass" cx="460" cy="350" r="5" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_weight-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="weight-vector" x1="460" y1="350" x2="460" y2="460" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_weight-vector)"/>
+<defs><marker id="arrowhead_normal-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="normal-vector" x1="520" y1="480" x2="520" y2="360" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_normal-vector)"/>
+<defs><marker id="arrowhead_friction-vector" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="friction-vector" x1="520" y1="480" x2="410" y2="480" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_friction-vector)"/>
+<path id="lean-angle" d="M 520.0 410.0 A 70.0 70.0 0 0 1 549.583278321849 416.5584549074345" stroke="#e8e8ee" stroke-width="1.5" fill="none"/>
+<text id="theta-label" x="470" y="405" font-size="16" fill="#e8e8ee" font-style="italic" text-anchor="middle">\theta</text>
+<text id="weight-label" x="468" y="455" font-size="15" fill="#ff7a8a" font-style="italic" text-anchor="middle">Mg</text>
+<text id="normal-label" x="528" y="360" font-size="15" fill="#7fd4ff" font-style="italic" text-anchor="middle">N</text>
+<text id="friction-label" x="395" y="470" font-size="15" fill="#9effc9" font-style="italic" text-anchor="middle">f</text>
+<text id="A-label" x="528" y="502" font-size="13" fill="#7fd4ff" text-anchor="start" font-weight="600">A</text>
+<text id="C-label" x="442" y="348" font-size="13" fill="#9effc9" text-anchor="end" font-weight="600">C</text>
+<text id="centre-arrow-label" x="200" y="470" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">to centre of turn</text>
+</svg>

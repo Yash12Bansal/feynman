@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<path id="body-outline" d="M 320 250 Q 280 200 350 180 Q 430 150 470 220 Q 520 250 500 330 Q 480 420 400 430 Q 320 440 300 360 Q 285 300 320 250 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<circle id="centre-of-mass" cx="400" cy="300" r="5" fill="#9effc9" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="cm-label" x="414" y="296" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">C</text>
+<line id="axis-cm" x1="400" y1="110" x2="400" y2="510" stroke="#7fd4ff" stroke-width="2" stroke-dasharray="8 6"/>
+<text id="axis-cm-top" x="400" y="100" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Z</text>
+<text id="axis-cm-bottom" x="400" y="528" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">C</text>
+<line id="axis-parallel" x1="640" y1="110" x2="640" y2="510" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="8 6"/>
+<text id="axis-parallel-top" x="640" y="100" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">A</text>
+<text id="axis-parallel-bottom" x="640" y="528" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">B</text>
+<defs><marker id="arrowhead_distance-d" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="distance-d" x1="400" y1="200" x2="640" y2="200" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_distance-d)"/>
+<defs><marker id="arrowhead_distance-d-back" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="distance-d-back" x1="640" y1="200" x2="400" y2="200" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_distance-d-back)"/>
+<text id="d-label" x="514" y="188" font-size="16" fill="#e8e8ee" font-style="italic" text-anchor="middle">d</text>
+</svg>

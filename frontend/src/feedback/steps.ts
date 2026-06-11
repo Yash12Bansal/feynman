@@ -105,9 +105,11 @@ export const WIZARD_STEPS: readonly FeedbackStep[] = [
   {
     id: "willingness",
     kind: "mcq",
-    prompt: "If we built exactly that, what would you pay per month?",
+    prompt:
+      "Once we've built everything you've mentioned here — and truly solved the problem you care about most — what would you pay per month for that?",
     options: ["Wouldn't pay", "Under ₹500", "₹500–1500", "₹1500–4000", "₹4000+"],
-    commentPlaceholder: "What feels fair — and why? (No wrong answer, we won't hold you to it.)",
+    commentPlaceholder:
+      "Imagine we've nailed exactly what you need — what feels fair, and why? (No wrong answer, we won't hold you to it.)",
   },
   {
     id: "understanding",

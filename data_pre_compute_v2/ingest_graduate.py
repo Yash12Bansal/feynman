@@ -20,9 +20,9 @@ from dotenv import find_dotenv, load_dotenv
 load_dotenv(find_dotenv(usecwd=True))
 
 # ── THE one-line switch ───────────────────────────────────────────────────
-from lecture_pipeline_v2.grad_mode import enable_graduate_mode  # noqa: E402
+# from lecture_pipeline_v2.grad_mode import enable_graduate_mode  # noqa: E402
 
-enable_graduate_mode()
+# enable_graduate_mode()  # DISABLED — running stock IGCSE prompts/pipeline, not graduate mode
 # ──────────────────────────────────────────────────────────────────────────
 
 from lecture_pipeline_v2.config import PipelineConfig  # noqa: E402
@@ -51,7 +51,7 @@ def _slice_chapter() -> int:
 async def main() -> None:
     flags = set(sys.argv[1:])
     pages = _slice_chapter()
-    print(f"GRADUATE MODE on. Sliced {pages} pages -> {SLICE_PDF}")
+    print(f"GRADUATE MODE off (stock IGCSE prompts). Sliced {pages} pages -> {SLICE_PDF}")
 
     cfg = PipelineConfig.load()
     print(f"LLM: {cfg.llm.provider} ({cfg.llm.model})  subject={SUBJECT}")

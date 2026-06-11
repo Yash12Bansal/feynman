@@ -16,8 +16,6 @@ import { feedbackSession } from "./feedbackSession";
 import { useTimestampTrigger } from "./useTimestampTrigger";
 import { useExitIntent } from "./useExitIntent";
 
-const DISMISS_COOLDOWN_MS = 60_000;
-
 interface InLectureFeedbackProps {
   readonly currentMs: number;
   readonly durationMs: number;
@@ -58,6 +56,17 @@ export function InLectureFeedback({
     return true;
   }, [pause, onOpenChange]);
 
+  const close = useCallback(
+    (submitted: boolean) => {
+      setOpen(false);
+      onOpenChange?.(false);
+      if (submitted) feedbackSession.markSubmitted();
+      else feedbackSession.markClosed();
+      play();
+    },
+    [onOpenChange, play],
+  );
+
   useTimestampTrigger({
     currentMs,
     durationMs,
@@ -65,24 +74,16 @@ export function InLectureFeedback({
     onFire: fire,
   });
 
-  // A leave gesture mid-lecture also opens the survey (and pauses) — but only
-  // while playing, so we never resume a lecture the user paused themselves.
-  useExitIntent({ enabled: enabled && isPlaying && !open, onTrigger: fire });
-
-  const close = useCallback(
-    (submitted: boolean) => {
-      setOpen(false);
-      onOpenChange?.(false);
-      if (submitted) {
-        feedbackSession.markSubmitted();
-      } else {
-        feedbackSession.markClosed();
-        feedbackSession.startCooldown("in_lecture", DISMISS_COOLDOWN_MS);
-      }
-      play();
-    },
-    [onOpenChange, play],
-  );
+  // A leave gesture mid-lecture opens the survey (and pauses); a SECOND leave
+  // gesture while it's up closes it and lets the user go. Stays armed while open
+  // so the 2nd gesture is heard, but otherwise only while playing — so we never
+  // resume a lecture the user paused themselves.
+  useExitIntent({
+    enabled: enabled && (isPlaying || open),
+    isOpen: open,
+    onOpen: fire,
+    onClose: () => close(false),
+  });
 
   if (!open) return null;
   return (

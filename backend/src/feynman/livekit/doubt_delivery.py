@@ -23,7 +23,12 @@ from typing import Any, Protocol
 from livekit import rtc
 from livekit.agents import tts as tts_module
 
-from feynman.agent.doubt_resolution.board_events import compile_plan
+from feynman.agent.doubt_resolution.board_events import (
+    ClearAnnotationsBE,
+    FocusBE,
+    TraceBE,
+    compile_plan,
+)
 from feynman.agent.doubt_resolution.diagram_generator import generate_doubt_diagram
 from feynman.agent.doubt_resolution.diagram_templates import is_known
 from feynman.agent.doubt_resolution.models import (
@@ -32,6 +37,14 @@ from feynman.agent.doubt_resolution.models import (
     ResolutionPlan,
     ReuseDiagram,
     TemplateDiagram,
+)
+from feynman.agent.doubt_resolution.narration_markers import (
+    FocusFragment,
+    TextFragment,
+    TraceFragment,
+    UnfocusFragment,
+    resolve_target,
+    split_narration,
 )
 
 logger = logging.getLogger(__name__)
@@ -203,35 +216,31 @@ class DoubtDelivery:
         #    not-yet-ready generated spec doesn't block compilation.
         events_per_beat = compile_plan(beats, resolved_ids, presentation_modes=presentation_modes)
 
-        # 3. Deliver beat by beat.
+        # 3. Deliver beat by beat, INTERLEAVING highlights with speech so an
+        #    inline <<FOCUS>>/<<TRACE>> marker fires exactly as the voice names
+        #    that part — voice + diagram as ONE explanation, not separate streams.
+        #    A GENERATED diagram is shown lazily (text-first): the words lead
+        #    while it draws, then it pops in right when the first highlight needs
+        #    it. `active_diagram_id`/`active_dict` carry across keep/none beats.
         first_voice_callback = on_first_frame
+        active_diagram_id: str | None = None
+        active_dict: dict[str, Any] = {}
+
         for i, beat in enumerate(beats):
-            events = events_per_beat[i]
-            if i in gen_tasks:
-                gen_id = f"doubt-gen-{i}"
-                spec: dict[str, Any] | None = None
-                try:
-                    spec = await gen_tasks[i]
-                except Exception:
-                    logger.warning(
-                        "doubt_delivery.generation_error",
-                        extra={"beat": i},
-                        exc_info=True,
-                    )
-                if spec is not None:
-                    # Ship the generated spec before the beat that shows it.
-                    await publish_data(
-                        {
-                            "type": "doubt_diagram_ready",
-                            "diagram_id": gen_id,
-                            "spec": spec,
-                        }
-                    )
-                else:
-                    # Generation failed — drop the events that referenced the
-                    # missing diagram (show_diagram + its annotations) so the
-                    # beat degrades to narration + notebook, not a stuck slide.
-                    events = [e for e in events if getattr(e, "diagram_id", None) != gen_id]
+            events = list(events_per_beat[i])
+            new_id = resolved_ids[i]
+            gen_id = f"doubt-gen-{i}"
+            is_gen = i in gen_tasks
+
+            # Defer EVERY event that targets the generated diagram (its show +
+            # any reveal/param) so they fire together once it's drawn — the rest
+            # (notebook + non-gen visuals) plays immediately while the words lead.
+            deferred_events: list[Any] = []
+            if is_gen:
+                deferred_events = [
+                    e for e in events if getattr(e, "diagram_id", None) == gen_id
+                ]
+                events = [e for e in events if getattr(e, "diagram_id", None) != gen_id]
             elif i in template_refs:
                 concept_id, params = template_refs[i]
                 await publish_data(
@@ -243,16 +252,135 @@ class DoubtDelivery:
                         "template_params": params or None,
                     }
                 )
+
+            # Reused/template diagram is on screen now → resolve its element
+            # dictionary for marker targeting. (Generated: resolved when shown.)
+            if new_id and not is_gen:
+                active_diagram_id = new_id
+                active_dict = self._dictionary_for(new_id, chapter_context)
+
+            # Immediate structural visuals: notebook + non-spoken annotations +
+            # the reused/template diagram (generated diagram is deferred).
+            if events:
+                await publish_data(
+                    {
+                        "type": "doubt_beat_start",
+                        "beat_index": i,
+                        "board_events": [e.model_dump(by_alias=True) for e in events],
+                    }
+                )
+                await asyncio.sleep(_BEAT_VISUAL_GRACE_MS / 1000)
+
+            shown = not is_gen  # reused/template already on board; generated pending
+            for frag in split_narration(beat.narration_text):
+                if isinstance(frag, TextFragment):
+                    await self.speak(frag.text, on_first_frame=first_voice_callback)
+                    first_voice_callback = None
+                    continue
+                # A highlight — make sure the generated diagram is on screen first.
+                if not shown:
+                    shown = True
+                    active_diagram_id, active_dict = await self._show_generated(
+                        publish_data, gen_id, gen_tasks.get(i), deferred_events, i
+                    )
+                if active_diagram_id is not None:
+                    await self._publish_highlight(
+                        publish_data, i, frag, active_diagram_id, active_dict
+                    )
+
+            # No highlight referenced the deferred diagram → show it after the words.
+            if not shown:
+                active_diagram_id, active_dict = await self._show_generated(
+                    publish_data, gen_id, gen_tasks.get(i), deferred_events, i
+                )
+
+    def _dictionary_for(
+        self,
+        diagram_id: str,
+        chapter_context: ChapterContext | None,
+        spec: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """The active diagram's element dictionary (element_id -> {role, ...}) for
+        resolving inline marker targets. From the generated spec if given, else
+        the reused chapter diagram."""
+        if spec is not None:
+            dic = spec.get("dictionary")
+            return dic if isinstance(dic, dict) else {}
+        if chapter_context is not None:
+            d = chapter_context.diagrams.get(diagram_id)
+            dic = getattr(d, "dictionary", None) if d is not None else None
+            if isinstance(dic, dict):
+                return dic
+        return {}
+
+    async def _show_generated(
+        self,
+        publish_data: _PublishDataFn,
+        gen_id: str,
+        task: asyncio.Task[dict[str, Any] | None] | None,
+        deferred_events: list[Any],
+        beat_index: int,
+    ) -> tuple[str | None, dict[str, Any]]:
+        """Await a generated diagram, ship the spec + show it (with its deferred
+        events). Returns (active_diagram_id, dictionary) — or (None, {}) if
+        generation failed (the beat degrades to words/notebook only, no stuck
+        slide)."""
+        spec: dict[str, Any] | None = None
+        if task is not None:
+            try:
+                spec = await task
+            except Exception:
+                logger.warning(
+                    "doubt_delivery.generation_error", extra={"beat": beat_index}, exc_info=True
+                )
+        if spec is None:
+            return None, {}
+        await publish_data({"type": "doubt_diagram_ready", "diagram_id": gen_id, "spec": spec})
+        if deferred_events:
             await publish_data(
                 {
                     "type": "doubt_beat_start",
-                    "beat_index": i,
-                    "board_events": [e.model_dump(by_alias=True) for e in events],
+                    "beat_index": beat_index,
+                    "board_events": [e.model_dump(by_alias=True) for e in deferred_events],
                 }
             )
             await asyncio.sleep(_BEAT_VISUAL_GRACE_MS / 1000)
-            await self.speak(beat.narration_text, on_first_frame=first_voice_callback)
-            first_voice_callback = None  # consumed after the first beat fires it
+        return gen_id, self._dictionary_for(gen_id, None, spec)
+
+    async def _publish_highlight(
+        self,
+        publish_data: _PublishDataFn,
+        beat_index: int,
+        frag: Any,
+        diagram_id: str,
+        active_dict: dict[str, Any],
+    ) -> None:
+        """Emit one inline-marker highlight (focus / trace / unfocus), resolving
+        the marker's target (element_id or role) against the active diagram and
+        dropping it if it names no real part."""
+        be: Any = None
+        if isinstance(frag, FocusFragment):
+            ids = [r for t in frag.targets if (r := resolve_target(t, active_dict))]
+            if ids:
+                be = FocusBE(
+                    diagram_id=diagram_id,
+                    target_element_id=ids[0],
+                    target_element_ids=ids if len(ids) > 1 else None,
+                )
+        elif isinstance(frag, TraceFragment):
+            eid = resolve_target(frag.target, active_dict)
+            if eid:
+                be = TraceBE(diagram_id=diagram_id, element_id=eid)
+        elif isinstance(frag, UnfocusFragment):
+            be = ClearAnnotationsBE(diagram_id=diagram_id)
+        if be is not None:
+            await publish_data(
+                {
+                    "type": "doubt_beat_start",
+                    "beat_index": beat_index,
+                    "board_events": [be.model_dump(by_alias=True)],
+                }
+            )
 
     async def _resolve_generated_spec(
         self,

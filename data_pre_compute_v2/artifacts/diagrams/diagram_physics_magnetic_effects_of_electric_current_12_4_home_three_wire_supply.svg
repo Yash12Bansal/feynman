@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="house-outline" x="120" y="120" width="660" height="360" rx="4" fill="none" stroke="rgba(232,232,238,0.35)" stroke-width="1.5"/>
+<text id="mains-label" x="70" y="175" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Mains</text>
+<line id="live-wire" x1="40" y1="190" x2="700" y2="190" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<line id="neutral-wire" x1="40" y1="420" x2="700" y2="420" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<rect id="main-fuse" x="175" y="178" width="46" height="24" rx="3" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="fuse-label" x="198" y="168" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">Main fuse</text>
+<circle id="parallel-branch" cx="380" cy="190" r="5" fill="none" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="parallel-branch-neutral" cx="380" cy="420" r="5" fill="none" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<line id="branch-live-drop" x1="380" y1="190" x2="380" y2="290" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<line id="branch-neutral-drop" x1="380" y1="420" x2="380" y2="350" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<rect id="appliance-lamp" x="350" y="290" width="60" height="60" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="lamp-label" x="380" y="375" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Lamp</text>
+<line id="appliance-live-drop" x1="600" y1="190" x2="600" y2="290" stroke="#ff7a8a" stroke-width="2.5" stroke-dasharray=""/>
+<line id="appliance-neutral-drop" x1="640" y1="420" x2="640" y2="350" stroke="#e8e8ee" stroke-width="2.5" stroke-dasharray=""/>
+<rect id="appliance-body" x="560" y="290" width="120" height="90" rx="4" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="appliance-label" x="620" y="280" font-size="11" fill="#7fd4ff" text-anchor="middle" font-weight="600">Refrigerator</text>
+<line id="earth-wire" x1="560" y1="320" x2="480" y2="320" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<line id="earth-wire-down" x1="480" y1="320" x2="480" y2="560" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="earth-label" x="470" y="460" font-size="11" fill="#9effc9" text-anchor="end" font-weight="600">Earth</text>
+<line id="ground-line" x1="380" y1="540" x2="580" y2="540" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 390 540 L 380 555 M 420 540 L 410 555 M 450 540 L 440 555 M 480 540 L 470 555 M 510 540 L 500 555 M 540 540 L 530 555 M 570 540 L 560 555" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="earth-plate" x="445" y="560" width="70" height="14" rx="2" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="plate-label" x="480" y="592" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">Earth plate</text>
+</svg>

@@ -34,12 +34,26 @@ export function App() {
   return (
     <AuthProvider>
       <AuthGate>
-        <MainEntry />
-        <AccountChip />
-        <FeedbackFab />
-        <ExitIntentFeedback />
+        <AppShell />
       </AuthGate>
     </AuthProvider>
+  );
+}
+
+function AppShell() {
+  // The account chip stays available everywhere (sign-out must always be
+  // reachable), but it MOVES during a lecture: the immersive viewer puts the
+  // slide title in the top-left, so a top-left avatar would cover it. In a
+  // lecture the chip drops to the bottom-left control cluster instead. The hook
+  // is popstate-aware so the position toggles on navigation.
+  const lecture = useLectureChapterParam();
+  return (
+    <>
+      <MainEntry />
+      <AccountChip inLecture={!!lecture} />
+      <FeedbackFab />
+      <ExitIntentFeedback />
+    </>
   );
 }
 
