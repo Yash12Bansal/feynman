@@ -50,10 +50,11 @@ For a solved-example problem:
 }
 
 Rules:
+- Test what THIS section teaches. Ground every question in the explanation and examples given above — do not test outside knowledge the lecture never covered.
 - The answer must be definitively correct. If you're not sure, don't include the question.
 - For MCQ: the correct option must be unambiguously the only right one. Distractors should be plausible but wrong.
 - Questions speak in plain English. No symbolic math — say "x squared" not "x^2".
-- Mix difficulty across the set: 1-2 conceptual checks, 1-2 application problems, 1 deeper question.
+- Mix difficulty across the set: 1-2 conceptual checks, 1-2 application problems, 1 deeper question (one that asks "why", or connects this topic to another idea — not another "what is").
 - Return ONLY the JSON. No markdown. No commentary."""
 
 
@@ -63,6 +64,8 @@ Return a JSON object with exactly these fields:
 - "verdict": "correct" or "incorrect"
 - "my_answer": your independently-derived answer (the letter A/B/C/D for MCQ, or a brief solution for problems)
 - "reason": one sentence explaining your verdict
+
+For a worked solution, mark "correct" only if the final answer AND the key reasoning steps are right. A wrong final answer, or a broken load-bearing step, is "incorrect" even if the rest looks plausible.
 
 Return ONLY the JSON. No markdown. No commentary."""
 
@@ -111,7 +114,9 @@ class QuestionGenerator:
                 try:
                     self._judges.append(create_llm_provider(cfg))
                 except Exception as e:
-                    logger.warning("Could not init judge %s/%s: %s", jm.provider, jm.model, e)
+                    logger.warning(
+                        "Could not init judge %s/%s: %s", jm.provider, jm.model, e
+                    )
         return self._judges
 
     async def generate_for_topics(
@@ -128,7 +133,10 @@ class QuestionGenerator:
             return [], report
 
         semaphore = asyncio.Semaphore(self.concurrency)
-        tasks = [self._generate_for_one(topic, existing, semaphore, report) for topic in topics]
+        tasks = [
+            self._generate_for_one(topic, existing, semaphore, report)
+            for topic in topics
+        ]
         results = await asyncio.gather(*tasks)
 
         questions: list[Question] = []
@@ -154,7 +162,9 @@ class QuestionGenerator:
             try:
                 user_prompt = self._build_user_prompt(topic)
                 response = await asyncio.to_thread(
-                    self.author.generate_json, QUESTION_GEN_SYSTEM_PROMPT, user_prompt,
+                    self.author.generate_json,
+                    QUESTION_GEN_SYSTEM_PROMPT,
+                    user_prompt,
                 )
                 data = json.loads(response.content)
                 out: list[Question] = []
@@ -171,15 +181,17 @@ class QuestionGenerator:
                     question_id = generate_question_uid(topic.topic_id, name)
                     if question_id in existing:
                         continue
-                    out.append(Question(
-                        question_id=question_id,
-                        q_text=q_text,
-                        answer=answer,
-                        options=[str(o) for o in options],
-                        type=QuestionType(type_raw),
-                        source=QuestionSource.GENERATED,
-                        linked_topic_ids=[topic.topic_id],
-                    ))
+                    out.append(
+                        Question(
+                            question_id=question_id,
+                            q_text=q_text,
+                            answer=answer,
+                            options=[str(o) for o in options],
+                            type=QuestionType(type_raw),
+                            source=QuestionSource.GENERATED,
+                            linked_topic_ids=[topic.topic_id],
+                        )
+                    )
                 return out
             except Exception as e:
                 logger.warning("Question gen failed for %s: %s", topic.topic_id, e)
@@ -221,7 +233,9 @@ class QuestionGenerator:
             async def _vote(judge: LLMProvider) -> bool | None:
                 try:
                     response = await asyncio.to_thread(
-                        judge.generate_json, JUDGE_SYSTEM_PROMPT, user_prompt,
+                        judge.generate_json,
+                        JUDGE_SYSTEM_PROMPT,
+                        user_prompt,
                     )
                     data = json.loads(response.content)
                     return (data.get("verdict") or "").strip().lower() == "correct"

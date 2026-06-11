@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="old-label" x="230" y="60" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Old rules (Ind AS 17)</text>
+<text id="new-label" x="670" y="60" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">New rules (Ind AS 116)</text>
+<rect id="old-balance-sheet" x="90" y="110" width="280" height="360" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<line id="old-divider" x1="230" y1="150" x2="230" y2="430" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text id="old-assets-head" x="160" y="140" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">Assets</text>
+<text id="old-liab-head" x="300" y="140" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">Liabilities</text>
+<text id="old-cash" x="160" y="185" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Cash</text>
+<text id="old-equipment" x="160" y="215" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Equipment</text>
+<text id="old-loans" x="300" y="185" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Bank loan</text>
+<text id="old-equity" x="300" y="215" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Equity</text>
+<text id="hidden-lease-footnote" x="230" y="452" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">lease — see notes</text>
+<rect id="new-balance-sheet" x="530" y="110" width="280" height="360" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<line id="new-divider" x1="670" y1="150" x2="670" y2="450" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text id="new-assets-head" x="600" y="140" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">Assets</text>
+<text id="new-liab-head" x="740" y="140" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">Liabilities</text>
+<text id="new-cash" x="600" y="185" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Cash</text>
+<text id="new-equipment" x="600" y="215" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Equipment</text>
+<text id="new-loans" x="740" y="185" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Bank loan</text>
+<text id="new-equity" x="740" y="215" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Equity</text>
+<rect id="rou-box" x="545" y="270" width="110" height="30" rx="4" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="right-of-use-asset" x="600" y="289" font-size="10" fill="#9effc9" text-anchor="middle" font-weight="600">Right-of-use asset</text>
+<rect id="liab-box" x="685" y="270" width="110" height="30" rx="4" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="lease-liability" x="740" y="289" font-size="10" fill="#9effc9" text-anchor="middle" font-weight="600">Lease liability</text>
+<text id="lessee-label" x="670" y="500" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">Lessee (the renting party)</text>
+<defs><marker id="arrowhead_transition-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="transition-arrow" x1="385" y1="290" x2="515" y2="290" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_transition-arrow)"/>
+<text id="old-caption" x="230" y="580" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">lease hidden — only a footnote</text>
+<text id="new-caption" x="670" y="580" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">lease recognised on both sides</text>
+</svg>

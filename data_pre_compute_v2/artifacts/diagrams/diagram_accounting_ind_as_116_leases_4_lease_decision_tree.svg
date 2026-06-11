@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="identified-asset-box" x="290" y="40" width="320" height="60" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="identified-asset-text" x="450" y="75" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">Is there an identified asset?</text>
+<line id="asset-to-benefits" x1="450" y1="100" x2="450" y2="180" stroke="rgba(232,232,238,0.55)" stroke-width="2" stroke-dasharray=""/>
+<text id="asset-yes-label" x="462" y="145" font-size="11" fill="#9effc9" text-anchor="start" font-weight="600">Yes</text>
+<defs><marker id="arrowhead_asset-no-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="asset-no-arrow" x1="610" y1="70" x2="720" y2="70" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_asset-no-arrow)"/>
+<text id="asset-no-label" x="665" y="60" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">No</text>
+<rect id="economic-benefits-box" x="250" y="180" width="400" height="70" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="benefits-text-a" x="450" y="208" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Does the customer get substantially all the</text>
+<text id="benefits-text-b" x="450" y="226" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">economic benefits from using the asset?</text>
+<line id="benefits-to-direct" x1="450" y1="250" x2="450" y2="330" stroke="rgba(232,232,238,0.55)" stroke-width="2" stroke-dasharray=""/>
+<text id="benefits-yes-label" x="462" y="295" font-size="11" fill="#9effc9" text-anchor="start" font-weight="600">Yes</text>
+<defs><marker id="arrowhead_benefits-no-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="benefits-no-arrow" x1="650" y1="215" x2="720" y2="215" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_benefits-no-arrow)"/>
+<text id="benefits-no-label" x="685" y="205" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">No</text>
+<rect id="direct-use-box" x="250" y="330" width="400" height="70" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="direct-text-a" x="450" y="358" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">Does the customer have the right to direct how</text>
+<text id="direct-text-b" x="450" y="376" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">and for what purpose the asset is used?</text>
+<line id="direct-to-lease" x1="450" y1="400" x2="450" y2="480" stroke="rgba(232,232,238,0.55)" stroke-width="2" stroke-dasharray=""/>
+<text id="direct-yes-label" x="462" y="445" font-size="11" fill="#9effc9" text-anchor="start" font-weight="600">Yes</text>
+<defs><marker id="arrowhead_direct-no-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="direct-no-arrow" x1="650" y1="365" x2="720" y2="365" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_direct-no-arrow)"/>
+<text id="direct-no-label" x="685" y="355" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">No</text>
+<rect id="is-a-lease-outcome" x="300" y="480" width="300" height="60" rx="6" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="is-a-lease-text" x="450" y="515" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">The contract IS or CONTAINS a lease.</text>
+<line id="no-collector" x1="720" y1="70" x2="720" y2="365" stroke="rgba(232,232,238,0.55)" stroke-width="2" stroke-dasharray=""/>
+<line id="no-to-not-lease" x1="720" y1="365" x2="720" y2="510" stroke="rgba(232,232,238,0.55)" stroke-width="2" stroke-dasharray=""/>
+<rect id="not-a-lease-outcome" x="640" y="480" width="220" height="60" rx="6" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="2.5"/>
+<text id="not-a-lease-text" x="750" y="508" font-size="12" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">The contract does NOT</text>
+<text id="not-a-lease-text-b" x="750" y="525" font-size="12" fill="rgba(232,232,238,0.7)" text-anchor="middle" font-weight="normal">contain a lease.</text>
+<path id="control-bracket" d="M 235 180 L 222 180 L 222 400 L 235 400" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="control-label" x="200" y="295" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">CONTROL</text>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="lessee-label" x="230" y="60" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Lessee</text>
+<text id="lessor-label" x="670" y="60" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Lessor</text>
+<rect id="lessee-side" x="110" y="120" width="240" height="340" rx="6" fill="none" stroke="#ff7a8a" stroke-width="2.5"/>
+<path id="burst" d="M 230 175 L 244 205 L 276 200 L 256 226 L 282 248 L 248 250 L 240 282 L 224 252 L 192 258 L 210 230 L 188 208 L 222 206 Z" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="burst-label" x="230" y="232" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">BIG CHANGE</text>
+<line id="lessee-bs-line" x1="140" y1="320" x2="320" y2="320" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<text id="rou-asset" x="150" y="360" font-size="13" fill="#9effc9" font-style="italic" text-anchor="middle">+\ \text{Right-of-use asset}</text>
+<text id="lease-liability" x="150" y="410" font-size="13" fill="#7fd4ff" font-style="italic" text-anchor="middle">+\ \text{Lease liability}</text>
+<rect id="lessor-side" x="550" y="120" width="240" height="340" rx="6" fill="none" stroke="rgba(232,232,238,0.55)" stroke-width="2"/>
+<path id="lessor-tick" d="M 640 230 L 662 256 L 706 200" stroke="#9effc9" stroke-width="3" fill="none" stroke-dasharray=""/>
+<text id="lessor-calm-label" x="670" y="300" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">No adjustment</text>
+<path id="exception-sublease" d="M 560 370 L 560 400 L 760 400 L 745 385 L 760 370 Z" stroke="#ff7a8a" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<text id="exception-sublease-text" x="568" y="390" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="600">Exception 1: Subleases</text>
+<path id="exception-slb" d="M 560 415 L 560 445 L 780 445 L 765 430 L 780 415 Z" stroke="#ff7a8a" stroke-width="1.8" fill="none" stroke-dasharray=""/>
+<text id="exception-slb-text" x="568" y="435" font-size="11" fill="#ff7a8a" text-anchor="start" font-weight="600">Exception 2: Sale-and-leaseback</text>
+<text id="lessee-caption" x="230" y="510" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Balance sheet grows</text>
+<text id="lessor-caption" x="670" y="510" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Mostly unchanged</text>
+</svg>

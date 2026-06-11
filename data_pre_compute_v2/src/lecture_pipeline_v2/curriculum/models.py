@@ -744,6 +744,34 @@ class BookExample(BaseModel):
     )
 
 
+class ExtendedExample(BaseModel):
+    """A real-world anchor or fun fact GENERATED for a topic (not from the
+    book) to make the lecture feel like a great teacher's.
+
+    Unlike BookExample, there is no faithfulness contract to textbook numbers
+    — these are pedagogical colour. They get woven into the lesson choreography
+    by ExtendedExampleWeaver as tagged steps, the same way book examples are.
+    """
+
+    kind: Literal["real_world", "fun_fact"] = Field(
+        ...,
+        description="`real_world` = a concrete everyday situation that makes the "
+        "concept tangible; `fun_fact` = a surprising, true, memorable nugget.",
+    )
+    hook_text: str = Field(
+        ...,
+        min_length=1,
+        description="The vivid anchor or fun fact itself, in plain spoken prose "
+        "(read aloud by TTS — spell out numbers/units).",
+    )
+    concept_tie: str = Field(
+        ...,
+        min_length=1,
+        description="One sentence connecting the anchor/fact back to the concept "
+        "being taught, so it teaches rather than just entertains.",
+    )
+
+
 class Topic(BaseModel):
     # identity
     topic_id: str
@@ -766,6 +794,14 @@ class Topic(BaseModel):
         default_factory=list,
         description="Examples quoted from the textbook. Every entry MUST become "
         "a faithful beat in the lecture (allocator + writer contract).",
+    )
+    # Great-teacher colour: real-world anchors + fun facts generated for this
+    # topic (NOT from the book). Count is decided by `n_extended_examples()`;
+    # ExtendedExampleWeaver fills these in and weaves them into the lecture.
+    extended_examples: list[ExtendedExample] = Field(
+        default_factory=list,
+        description="LLM-generated real-world anchors + fun facts woven into the "
+        "lecture to make it engaging. Empty until ExtendedExampleWeaver runs.",
     )
 
     # graph navigation

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="stage1-label" x="230" y="50" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Stage 1 — Gateway</text>
+<text id="stage2-label" x="670" y="50" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Stage 2 — Tests</text>
+<rect id="gateway-box" x="90" y="100" width="290" height="150" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="gateway-title" x="235" y="128" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Gateway</text>
+<text id="condition-same-time" x="110" y="168" font-size="12" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Same / near-same time</text>
+<text id="condition-same-party" x="110" y="210" font-size="12" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Same / related counterparty</text>
+<text id="gateway-and" x="235" y="240" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">both must hold (AND)</text>
+<defs><marker id="arrowhead_gateway-pass-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="gateway-pass-arrow" x1="380" y1="175" x2="500" y2="175" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_gateway-pass-arrow)"/>
+<text id="gateway-pass-label" x="440" y="165" font-size="10" fill="#9effc9" text-anchor="middle" font-weight="normal">if open</text>
+<rect id="test-package" x="510" y="110" width="330" height="50" rx="5" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="test-package-text" x="525" y="140" font-size="12" fill="#e8e8ee" text-anchor="start" font-weight="normal">A · Negotiated as one package</text>
+<rect id="test-price-link" x="510" y="175" width="330" height="50" rx="5" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="test-price-link-text" x="525" y="205" font-size="12" fill="#e8e8ee" text-anchor="start" font-weight="normal">B · Price / performance linked</text>
+<rect id="test-single-component" x="510" y="240" width="330" height="50" rx="5" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="test-single-component-text" x="525" y="270" font-size="12" fill="#e8e8ee" text-anchor="start" font-weight="normal">C · Single lease component</text>
+<text id="any-one-label" x="675" y="320" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">any ONE match (OR)</text>
+<defs><marker id="arrowhead_combine-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="combine-arrow" x1="600" y1="340" x2="540" y2="430" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_combine-arrow)"/>
+<defs><marker id="arrowhead_separate-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="separate-arrow" x1="240" y1="270" x2="240" y2="430" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_separate-arrow)"/>
+<text id="separate-arrow-label" x="255" y="360" font-size="10" fill="#ff7a8a" text-anchor="start" font-weight="normal">gateway shut</text>
+<rect id="combine-result" x="410" y="450" width="280" height="70" rx="6" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="combine-result-text" x="550" y="492" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">One combined contract</text>
+<rect id="separate-result" x="110" y="450" width="260" height="70" rx="6" fill="none" stroke="#ff7a8a" stroke-width="2.5"/>
+<text id="separate-result-text" x="240" y="492" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">Keep separate</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="scope-fence" x="250" y="180" width="400" height="290" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="fence-label" x="450" y="165" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">Defined scope (permitted hours / area)</text>
+<circle id="benefit-in-1" cx="340" cy="270" r="26" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="benefit-in-2" cx="470" cy="330" r="26" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="benefit-in-3" cx="560" cy="250" r="26" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<g id="benefits-inside" transform="translate(0,0)"><path id="in-check-1" d="M 330 270 L 338 280 L 352 262" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/><path id="in-check-2" d="M 460 330 L 468 340 L 482 322" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/><path id="in-check-3" d="M 550 250 L 558 260 L 572 242" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/></g>
+<text id="inside-caption" x="450" y="500" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">counts</text>
+<g id="benefits-outside" transform="translate(0,0)"><circle id="benefit-out-1" cx="120" cy="260" r="26" fill="none" stroke="rgba(232,232,238,0.4)" stroke-width="2" stroke-dasharray=""/><circle id="benefit-out-2" cx="150" cy="420" r="26" fill="none" stroke="rgba(232,232,238,0.4)" stroke-width="2" stroke-dasharray=""/><circle id="benefit-out-3" cx="770" cy="300" r="26" fill="none" stroke="rgba(232,232,238,0.4)" stroke-width="2" stroke-dasharray=""/><path id="out-x-1" d="M 110 250 L 130 270 M 130 250 L 110 270" stroke="rgba(232,232,238,0.4)" stroke-width="2" fill="none" stroke-dasharray=""/><path id="out-x-2" d="M 140 410 L 160 430 M 160 410 L 140 430" stroke="rgba(232,232,238,0.4)" stroke-width="2" fill="none" stroke-dasharray=""/><path id="out-x-3" d="M 760 290 L 780 310 M 780 290 L 760 310" stroke="rgba(232,232,238,0.4)" stroke-width="2" fill="none" stroke-dasharray=""/></g>
+<text id="outside-caption" x="130" y="500" font-size="12" fill="rgba(232,232,238,0.4)" text-anchor="middle" font-weight="normal">ignored</text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="main-statements-box" x="300" y="50" width="300" height="70" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="main-statements-label" x="450" y="80" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">Main Statements</text>
+<text id="main-statements-sub" x="450" y="100" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Balance Sheet · P&amp;L · Cash Flow</text>
+<line id="main-to-disclosure" x1="450" y1="120" x2="450" y2="180" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="disclosures-node" x="350" y="180" width="200" height="56" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="disclosures-label" x="450" y="214" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">Disclosure Notes</text>
+<defs><marker id="arrowhead_finance-branch" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="finance-branch" x1="380" y1="236" x2="230" y2="320" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_finance-branch)"/>
+<text id="finance-branch-label" x="270" y="285" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">Finance Lease</text>
+<defs><marker id="arrowhead_operating-branch" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="operating-branch" x1="520" y1="236" x2="670" y2="320" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_operating-branch)"/>
+<text id="operating-branch-label" x="630" y="285" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">Operating Lease</text>
+<rect id="finance-detail" x="40" y="330" width="360" height="230" rx="6" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="finance-detail-head" x="220" y="356" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">Net investment in the lease</text>
+<text id="finance-d1" x="60" y="392" font-size="11" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Selling profit / loss</text>
+<text id="finance-d2" x="60" y="424" font-size="11" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Finance income on net investment</text>
+<text id="finance-d3" x="60" y="456" font-size="11" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Maturity analysis of payments receivable</text>
+<text id="finance-d4" x="60" y="488" font-size="11" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Significant changes in net investment</text>
+<rect id="operating-detail" x="500" y="330" width="360" height="230" rx="6" fill="none" stroke="#ff7a8a" stroke-width="2"/>
+<text id="operating-detail-head" x="680" y="356" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">Lease income</text>
+<text id="operating-d1" x="520" y="392" font-size="11" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Lease income recognised</text>
+<text id="operating-d2" x="520" y="424" font-size="11" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Variable payments not on index / rate</text>
+<text id="operating-d3" x="520" y="456" font-size="11" fill="#e8e8ee" text-anchor="start" font-weight="normal">• Asset disclosures under other standards</text>
+</svg>

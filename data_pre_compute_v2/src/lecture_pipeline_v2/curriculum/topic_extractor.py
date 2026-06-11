@@ -127,7 +127,8 @@ def slice_chapter_by_sections(
         else:
             logger.warning(
                 "Section %s '%s' not found in chapter text",
-                section.section_number, section.title,
+                section.section_number,
+                section.title,
             )
 
     positions.sort(key=lambda p: p[0])
@@ -138,6 +139,61 @@ def slice_chapter_by_sections(
         slices[section.section_number] = chapter_text[start:end].strip()
 
     return slices
+
+
+# ── Heading fallback (documents with NO numbered sections) ──────────────────
+# Standards / articles / professional material use prose headings, not "12.1.1"
+# numbering, so the regex anchor extractor finds nothing. When that happens we
+# ask the LLM to mark the topic-boundary headings, slice the text by them, and
+# synthesize sequential anchors so the normal per-section enrichment runs. This
+# path is ONLY reached when zero numbered sections were found — numbered
+# textbooks never hit it.
+
+_HEADING_SEGMENTATION_SYSTEM = """\
+You segment a chapter of teaching material into its natural TOPIC sections.
+
+This chapter has NO numbered sections — only prose headings. List the headings \
+that mark where one teachable topic ends and the next begins, in order, copied \
+VERBATIM from the text (exact characters, so they can be located again).
+
+Rules:
+- Return the real section/topic headings only — the short, standalone titles \
+that introduce a distinct idea (e.g. "Scope", "Identifying a lease", "Lessee \
+accounting"). For Q&A material, each "Question N" is a heading.
+- Copy each heading EXACTLY as it appears (same words, same case). Do not \
+paraphrase, renumber, translate, or add punctuation.
+- Order them top-to-bottom as they appear.
+- Aim for the natural teaching units — typically 5 to 25. Not every line is a \
+heading; skip ordinary body sentences.
+- Return ONLY JSON: {"headings": ["...", "..."]}. No markdown, no commentary."""
+
+
+def _build_heading_segmentation_prompt(chapter_title: str, chapter_text: str) -> str:
+    return (
+        f"Chapter: {chapter_title}\n\n"
+        "List this chapter's topic headings, verbatim and in order.\n\n"
+        "----- CHAPTER TEXT -----\n"
+        f"{chapter_text}\n"
+        "----- END CHAPTER TEXT -----"
+    )
+
+
+def _find_heading(text: str, heading: str, start: int) -> int:
+    """Index of `heading` in `text` at/after `start`, or -1.
+
+    Tries an exact substring match first (the LLM is asked to copy verbatim),
+    then falls back to flexible-whitespace, case-insensitive matching so minor
+    PDF spacing differences don't lose a heading.
+    """
+    h = heading.strip()
+    if not h:
+        return -1
+    idx = text.find(h, start)
+    if idx >= 0:
+        return idx
+    pattern = re.compile(r"\s+".join(re.escape(w) for w in h.split()), re.IGNORECASE)
+    m = pattern.search(text, start)
+    return m.start() if m else -1
 
 
 class TopicExtractor:
@@ -167,18 +223,32 @@ class TopicExtractor:
         start = time.monotonic()
 
         sections = anchors.section_numbers
-        report.sections_seen = len(sections)
+        if sections:
+            section_text_map = slice_chapter_by_sections(chapter_text, sections)
+        else:
+            # No numbered sections (prose-heading doc — a standard, article,
+            # professional material). Fall back to LLM heading segmentation so
+            # the chapter still becomes topics. Gated on the numbered path being
+            # empty, so numbered textbooks are completely unaffected.
+            logger.info(
+                "Chapter '%s' has no numbered sections — using LLM heading "
+                "fallback for topic boundaries.",
+                chapter_title,
+            )
+            sections, section_text_map = self._sections_from_headings(
+                chapter_text, chapter_title
+            )
 
+        report.sections_seen = len(sections)
         if not sections:
             logger.warning(
-                "Chapter '%s' has no anchored sections — skipping topic extraction. "
-                "(The anchor extractor found 0 numbered sections in this chapter's text.)",
+                "Chapter '%s' produced no topic sections (numbered anchors AND "
+                "heading fallback both empty) — skipping topic extraction.",
                 chapter_title,
             )
             report.elapsed_seconds = time.monotonic() - start
             return [], report
 
-        section_text_map = slice_chapter_by_sections(chapter_text, sections)
         chapter_id = generate_chapter_uid(subject, chapter_title)
         topics: list[Topic] = []
         next_id: str | None = None
@@ -187,7 +257,9 @@ class TopicExtractor:
             section_text = section_text_map.get(section.section_number, "")
             within_order = len(sections) - order + 1
 
-            topic_id = generate_topic_uid(subject, chapter_title, section.section_number)
+            topic_id = generate_topic_uid(
+                subject, chapter_title, section.section_number
+            )
 
             if topic_id in existing:
                 logger.info(
@@ -201,17 +273,23 @@ class TopicExtractor:
             if len(section_text) < self.MIN_SECTION_CHARS:
                 logger.warning(
                     "Section %s '%s' has only %d chars — extracting with thin content",
-                    section.section_number, section.title, len(section_text),
+                    section.section_number,
+                    section.title,
+                    len(section_text),
                 )
 
             try:
                 our_understanding, examples, book_examples = self._enrich_section(
-                    skeleton, chapter_title, section, section_text,
+                    skeleton,
+                    chapter_title,
+                    section,
+                    section_text,
                 )
             except Exception as e:
                 logger.exception(
                     "Topic extraction failed for %s '%s'",
-                    section.section_number, section.title,
+                    section.section_number,
+                    section.title,
                 )
                 report.topics_failed += 1
                 report.failures.append(f"{section.section_number}: {e}")
@@ -239,6 +317,77 @@ class TopicExtractor:
         logger.info(report.summary())
         return topics, report
 
+    def _sections_from_headings(
+        self, chapter_text: str, chapter_title: str
+    ) -> tuple[list[SectionAnchor], dict[str, str]]:
+        """Segment a non-numbered chapter into topics via LLM-detected headings.
+
+        Returns synthetic sequential SectionAnchors ('1', '2', ...) plus a
+        section_number -> text map, so the shared per-section loop runs
+        unchanged. Empty result if the LLM finds no usable headings.
+        """
+        headings = self._detect_headings_llm(chapter_text, chapter_title)
+        if not headings:
+            return [], {}
+
+        # Locate each heading in order; a sequential cursor handles repeated
+        # heading strings without mismatching, and preserves document order.
+        positions: list[tuple[int, str]] = []
+        cursor = 0
+        for h in headings:
+            idx = _find_heading(chapter_text, h, cursor)
+            if idx < 0:
+                logger.warning(
+                    "Heading %r not located in chapter text — skipping", h[:60]
+                )
+                continue
+            positions.append((idx, h))
+            cursor = idx + len(h)
+
+        if not positions:
+            return [], {}
+        positions.sort(key=lambda p: p[0])
+
+        sections: list[SectionAnchor] = []
+        section_text_map: dict[str, str] = {}
+        for i, (sec_start, heading) in enumerate(positions):
+            end = positions[i + 1][0] if i + 1 < len(positions) else len(chapter_text)
+            num = str(i + 1)
+            sections.append(
+                SectionAnchor(section_number=num, title=heading.strip()[:120], depth=1)
+            )
+            section_text_map[num] = chapter_text[sec_start:end].strip()
+
+        logger.info(
+            "Heading fallback segmented '%s' into %d topics.",
+            chapter_title,
+            len(sections),
+        )
+        return sections, section_text_map
+
+    def _detect_headings_llm(self, chapter_text: str, chapter_title: str) -> list[str]:
+        """Ask the LLM for the chapter's topic headings (verbatim, in order)."""
+        system = _HEADING_SEGMENTATION_SYSTEM
+        user = _build_heading_segmentation_prompt(chapter_title, chapter_text)
+        try:
+            response = self.llm.generate_json(system, user)
+            data = json.loads(response.content)
+        except Exception as e:  # noqa: BLE001 — any failure → empty, caller handles
+            logger.warning("Heading detection LLM call failed: %s", e)
+            return []
+        raw = data.get("headings") if isinstance(data, dict) else data
+        if not isinstance(raw, list):
+            logger.warning("Heading detection returned no 'headings' list")
+            return []
+        seen: set[str] = set()
+        headings: list[str] = []
+        for h in raw:
+            s = str(h).strip()
+            if s and s.lower() not in seen:
+                seen.add(s.lower())
+                headings.append(s)
+        return headings[:40]
+
     def _enrich_section(
         self,
         skeleton: BookSkeleton | None,
@@ -263,7 +412,8 @@ class TopicExtractor:
             if response.usage:
                 logger.debug(
                     "Topic LLM call %s (attempt %d): in=%s out=%s",
-                    section.section_number, attempt + 1,
+                    section.section_number,
+                    attempt + 1,
                     response.usage.get("input_tokens", "?"),
                     response.usage.get("output_tokens", "?"),
                 )
@@ -282,7 +432,10 @@ class TopicExtractor:
                 last_error = e
                 logger.warning(
                     "Topic JSON parse failed for %s (attempt %d/%d): %s",
-                    section.section_number, attempt + 1, self.MAX_RETRIES + 1, e,
+                    section.section_number,
+                    attempt + 1,
+                    self.MAX_RETRIES + 1,
+                    e,
                 )
 
         raise TopicExtractionError(

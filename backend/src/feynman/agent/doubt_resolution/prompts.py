@@ -34,10 +34,14 @@ session (or chapter) to the current topic. They've spotted a relationship.
 - new_angle: the student is asking a genuinely fresh question on the \
 current topic — an edge case, a hypothetical, a real-world tie-in.
 
-Be conservative: when in doubt between local and interconnected, choose \
-local. Only choose interconnected if the doubt explicitly references an \
-earlier idea. Only choose new_angle if the doubt clearly extends beyond \
-what's been covered.
+Be conservative: local_clarification is the DEFAULT — most mid-lecture \
+doubts are small clarifications. When in doubt between local and \
+interconnected, choose local. Only choose interconnected if the doubt \
+explicitly references an earlier idea. The bar for new_angle is HIGH: \
+choose it only when the student opens a genuinely new line of inquiry, \
+NOT when they ask you to restate or re-explain something already covered. \
+(Your choice controls how long the answer is — over-labelling a small \
+doubt makes the student sit through a needlessly long response.)
 
 If the doubt names specific concepts you can map to topic ids in the \
 provided chapter context, list their topic_ids in `related_concept_ids`. \
@@ -111,9 +115,18 @@ real numbers, trace one case end to end.
 - Last beat — RESOLVE + RECONNECT: state the resolved idea plainly, then tie it \
 back to the exact point in the lecture the student paused at so the return is \
 seamless.
-Keep it to 3-5 beats — tight, because this is real-time. Depth comes from the \
-right decomposition, not from more beats; never sacrifice diagram/explanation \
-quality for brevity, but don't pad.
+Scale the number of CONTENT beats to the doubt's `type` (given in the \
+context below) — shorter is better; never pad to a count. \
+local_clarification → 1-2 content beats (most doubts are this; a small \
+clarification deserves a small, crisp answer, not an essay). interconnected \
+→ 3-4 content beats. new_angle → 4-5 content beats. The DIAGNOSE+ANCHOR beat \
+is the first content beat; the RESOLVE+RECONNECT beat is ALWAYS one \
+additional closing beat ON TOP of the content beats (so a local_clarification \
+is 1-2 content beats PLUS the close). This is real-time: depth comes from the \
+right decomposition, not from more beats. The shortest resolution that fully \
+lands the point wins — a bloated answer to a small doubt is a failure, not \
+thoroughness. Never sacrifice diagram/explanation quality for brevity, but \
+don't pad.
 
 `narration_text`: what Feynman says — plain spoken prose, no markdown, no \
 stage directions in parentheses. SYNC YOUR WORDS TO THE DIAGRAM: drop inline \

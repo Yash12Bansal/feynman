@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="head-lessor" x="350" y="70" width="200" height="70" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="head-lessor-label" x="450" y="110" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">Head Lessor</text>
+<rect id="intermediate-lessor" x="350" y="290" width="200" height="70" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="intermediate-lessor-label" x="450" y="330" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Intermediate Lessor</text>
+<rect id="subtenant" x="350" y="510" width="200" height="70" rx="6" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="subtenant-label" x="450" y="550" font-size="14" fill="#9effc9" text-anchor="middle" font-weight="600">Subtenant</text>
+<rect id="physical-asset" x="620" y="78" width="60" height="54" rx="0" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<path id="physical-asset-roof" d="M 620 78 L 650 58 L 680 78" stroke="#7fd4ff" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="physical-asset-label" x="650" y="150" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Building (physical asset)</text>
+<rect id="rou-asset" x="620" y="298" width="60" height="54" rx="0" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="rou-asset-label" x="650" y="370" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">Right-of-use asset</text>
+<defs><marker id="arrowhead_head-rent-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="head-rent-arrow" x1="420" y1="290" x2="420" y2="140" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_head-rent-arrow)"/>
+<text id="head-rent-label" x="395" y="215" font-size="11" fill="#ff7a8a" text-anchor="end" font-weight="normal">head rent</text>
+<defs><marker id="arrowhead_sub-rent-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="sub-rent-arrow" x1="420" y1="510" x2="420" y2="360" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_sub-rent-arrow)"/>
+<text id="sub-rent-label" x="395" y="435" font-size="11" fill="#ff7a8a" text-anchor="end" font-weight="normal">sub rent</text>
+<path id="classify-link" d="M 550 325 L 620 325" stroke="#9effc9" stroke-width="1.5" fill="none" stroke-dasharray="4 4"/>
+<text id="classify-label" x="585" y="315" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">classify against</text>
+</svg>

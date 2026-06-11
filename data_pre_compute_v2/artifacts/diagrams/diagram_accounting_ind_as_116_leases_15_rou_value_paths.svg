@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<defs><marker id="arrowhead_value-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="value-axis" x1="130" y1="540" x2="130" y2="110" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_value-axis)"/>
+<defs><marker id="arrowhead_time-axis" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#e8e8ee"/></marker></defs><line id="time-axis" x1="130" y1="540" x2="800" y2="540" stroke="#e8e8ee" stroke-width="2" marker-end="url(#arrowhead_time-axis)"/>
+<text id="value-axis-label" x="110" y="100" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">Carrying amount</text>
+<text id="time-axis-label" x="805" y="558" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="end" font-weight="normal">Time (years)</text>
+<circle id="start-value-point" cx="130" cy="160" r="6" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="start-value-label" x="145" y="150" font-size="12" fill="#7fd4ff" text-anchor="start" font-weight="600">initial measurement</text>
+<path id="cost-model-path" d="M 130 160 Q 400 360 760 500" stroke="#9effc9" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="revaluation-model-path" d="M 130 160 L 430 310 L 430 200 L 760 360" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="revaluation-date-guide" x1="430" y1="540" x2="430" y2="200" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray="5 5"/>
+<text id="revaluation-date-label" x="430" y="558" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">revaluation date</text>
+<text id="cost-model-label" x="770" y="502" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">Cost model</text>
+<text id="revaluation-model-label" x="770" y="358" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">Revaluation model</text>
+</svg>

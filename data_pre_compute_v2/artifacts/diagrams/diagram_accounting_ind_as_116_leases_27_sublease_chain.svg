@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="landlord-box" x="70" y="280" width="160" height="90" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<text id="landlord-label" x="150" y="320" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">Landlord</text>
+<text id="landlord-sub" x="150" y="340" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">owns the building</text>
+<rect id="intermediate-box" x="370" y="280" width="160" height="90" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="intermediate-label" x="450" y="318" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">Intermediate Lessor</text>
+<text id="intermediate-sub" x="450" y="340" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">rents, then rents out</text>
+<rect id="subtenant-box" x="670" y="280" width="160" height="90" rx="6" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<text id="subtenant-label" x="750" y="320" font-size="14" fill="#9effc9" text-anchor="middle" font-weight="600">Subtenant</text>
+<text id="subtenant-sub" x="750" y="340" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">occupies the building</text>
+<defs><marker id="arrowhead_head-lease-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="head-lease-arrow" x1="235" y1="325" x2="365" y2="325" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_head-lease-arrow)"/>
+<text id="head-lease-label" x="300" y="312" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">Head Lease</text>
+<defs><marker id="arrowhead_sublease-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="sublease-arrow" x1="535" y1="325" x2="665" y2="325" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_sublease-arrow)"/>
+<text id="sublease-label" x="600" y="312" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">Sublease</text>
+<circle id="reassess-marker" cx="600" cy="325" r="30" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray="5 4"/>
+<text id="reassess-label" x="600" y="392" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="normal">reassess on transition</text>
+</svg>

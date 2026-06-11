@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="liability-box" x="330" y="40" width="240" height="50" rx="6" fill="none" stroke="#7fd4ff" stroke-width="2"/>
+<text id="liability-text" x="450" y="70" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="normal">Lease liability already on the books</text>
+<defs><marker id="arrowhead_arrow-1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="arrow-1" x1="450" y1="90" x2="450" y2="130" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_arrow-1)"/>
+<rect id="trigger-event" x="335" y="130" width="230" height="50" rx="6" fill="none" stroke="#e8e8ee" stroke-width="2"/>
+<text id="trigger-text" x="450" y="160" font-size="12" fill="#e8e8ee" text-anchor="middle" font-weight="normal">A fact you assumed has changed</text>
+<defs><marker id="arrowhead_arrow-2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="arrow-2" x1="450" y1="180" x2="450" y2="230" stroke="rgba(232,232,238,0.55)" stroke-width="2" marker-end="url(#arrowhead_arrow-2)"/>
+<path id="fork-question" d="M 450 230 L 600 320 L 450 410 L 300 320 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<text id="fork-text-1" x="450" y="312" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">NATURE of the lease,</text>
+<text id="fork-text-2" x="450" y="330" font-size="11" fill="#e8e8ee" text-anchor="middle" font-weight="normal">or only the CASH amounts?</text>
+<defs><marker id="arrowhead_arrow-left" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="arrow-left" x1="300" y1="320" x2="180" y2="430" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_arrow-left)"/>
+<text id="left-branch-tag" x="220" y="360" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">NATURE</text>
+<defs><marker id="arrowhead_arrow-right" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="arrow-right" x1="600" y1="320" x2="720" y2="430" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_arrow-right)"/>
+<text id="right-branch-tag" x="680" y="360" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">CASH</text>
+<rect id="path-revised-rate" x="40" y="430" width="280" height="70" rx="6" fill="none" stroke="#9effc9" stroke-width="2"/>
+<text id="revised-line-1" x="180" y="458" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="normal">Change in lease term or purchase option</text>
+<text id="revised-line-2" x="180" y="480" font-size="11" fill="#9effc9" text-anchor="middle" font-weight="600">remeasure with a REVISED discount rate</text>
+<rect id="path-same-rate" x="580" y="430" width="280" height="70" rx="6" fill="none" stroke="#ff7a8a" stroke-width="2"/>
+<text id="same-line-1" x="720" y="458" font-size="10" fill="#ff7a8a" text-anchor="middle" font-weight="normal">Change in residual value guarantee or index/rate</text>
+<text id="same-line-2" x="720" y="480" font-size="11" fill="#ff7a8a" text-anchor="middle" font-weight="600">remeasure with the ORIGINAL discount rate</text>
+<text id="revised-rate-label" x="180" y="540" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">new rate = implicit rate or incremental</text>
+<text id="revised-rate-label-2" x="180" y="556" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">borrowing rate at reassessment date</text>
+<text id="same-rate-label" x="720" y="540" font-size="10" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">discount rate unchanged</text>
+</svg>

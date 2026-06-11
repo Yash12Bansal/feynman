@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<text id="building-label" x="230" y="60" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">A floor in a building</text>
+<text id="cable-label" x="670" y="60" font-size="14" fill="#e8e8ee" text-anchor="middle" font-weight="600">Capacity in a fibre cable</text>
+<rect id="building-outline" x="150" y="130" width="160" height="360" rx="0" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="floor-div-1" x1="150" y1="220" x2="310" y2="220" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<line id="floor-div-2" x1="150" y1="310" x2="310" y2="310" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<line id="floor-div-3" x1="150" y1="400" x2="310" y2="400" stroke="#e8e8ee" stroke-width="1.8" stroke-dasharray=""/>
+<path id="rented-floor" d="M 154 314 L 306 314 L 306 396 L 154 396 L 168 388 M 154 360 L 168 352 M 178 314 L 164 322 M 220 314 L 206 322 M 262 314 L 248 322 M 296 320 L 282 328 M 296 360 L 282 368 M 280 396 L 294 388 M 238 396 L 252 388 M 196 396 L 210 388" stroke="rgba(127,212,255,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="floor-boundary" x="150" y="310" width="160" height="90" rx="0" fill="none" stroke="#7fd4ff" stroke-width="3"/>
+<line id="ground" x1="110" y1="490" x2="350" y2="490" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<rect id="cable-outline" x="500" y="280" width="340" height="90" rx="45" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="fibre-1" x1="510" y1="300" x2="830" y2="300" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="fibre-2" x1="510" y1="318" x2="830" y2="318" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="fibre-3" x1="510" y1="336" x2="830" y2="336" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="fibre-4" x1="510" y1="354" x2="830" y2="354" stroke="rgba(232,232,238,0.4)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="cable-capacity-slice" d="M 540 302 L 600 302 M 660 318 L 730 318 M 560 354 L 620 354 M 700 300 L 770 300 M 580 336 L 650 336 M 760 354 L 820 354" stroke="#ff7a8a" stroke-width="3" fill="none" stroke-dasharray="8 6"/>
+<text id="slice-note" x="670" y="405" font-size="12" fill="rgba(255,122,138,0.85)" text-anchor="middle" font-weight="normal">any strand, any time</text>
+<text id="building-caption" x="230" y="560" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">fixed walls — identified asset</text>
+<text id="cable-caption" x="670" y="560" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">no fixed fibre — not identified</text>
+</svg>

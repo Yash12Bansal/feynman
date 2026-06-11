@@ -83,6 +83,12 @@ const CLASS_GROUPS: readonly ClassGroup[] = [
       "chapter:deep_learning:deep_feedforward_networks", // Deep Feedforward Networks (graduate)
     ],
   },
+  {
+    label: "CA",
+    ids: [
+      "chapter:accounting:ind_as_116_leases", // Ind AS 116 — Leases (ICAI Educational Material)
+    ],
+  },
 ];
 
 /** Filter + order a fetched chapter list down to the curated allow-list.
@@ -167,7 +173,10 @@ export function LectureHomeScreen({
               />
             ) : (
               <FlatChapters
-                chapters={curateChapters(state.chapters, visibleChapterIds ?? null)}
+                chapters={curateChapters(
+                  state.chapters,
+                  visibleChapterIds ?? null,
+                )}
               />
             ))}
         </main>
@@ -468,7 +477,8 @@ const wordmarkUnderlineStyle: React.CSSProperties = {
   height: 2,
   margin: "14px auto 0",
   borderRadius: 999,
-  background: "linear-gradient(90deg, transparent, #7fd4ff, #a78bfa, transparent)",
+  background:
+    "linear-gradient(90deg, transparent, #7fd4ff, #a78bfa, transparent)",
   opacity: 0.8,
 };
 
@@ -698,7 +708,8 @@ const cardCtaArrowStyle: React.CSSProperties = {
 };
 
 const skeletonStyle: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(20,22,32,0.5), rgba(14,15,23,0.45))",
+  background:
+    "linear-gradient(180deg, rgba(20,22,32,0.5), rgba(14,15,23,0.45))",
   borderColor: "rgba(255,255,255,0.05)",
   cursor: "default",
 };

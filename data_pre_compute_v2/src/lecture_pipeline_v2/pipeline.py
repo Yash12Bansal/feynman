@@ -43,6 +43,7 @@ from .curriculum.ingestion.neo4j_writer import Neo4jWriter
 from .curriculum.lecture_plan.chapter_planner import ChapterLecturePlanner
 from .curriculum.lecture_plan.curriculum_adapter import CurriculumAdapter
 from .curriculum.lecture_plan.book_example_weaver import BookExampleWeaver
+from .curriculum.lecture_plan.extended_example_weaver import ExtendedExampleWeaver
 from .curriculum.lecture_plan.lesson_diagram_generator import LessonDiagramGenerator
 from .curriculum.lecture_plan.lesson_judge import PlanJudge
 from .curriculum.lecture_plan.lesson_narrator import LessonNarrator, TopicNarration
@@ -420,9 +421,7 @@ class CurriculumPipelineV2:
             # correctly-targeted, well-timed spotlights. Only narration_chapter
             # (what the lecture plays, run through the composer) is realigned.
             if chapter_scripts and diagrams:
-                diagrams_by_id = {
-                    d.diagram_id: (d.render_data or {}) for d in diagrams
-                }
+                diagrams_by_id = {d.diagram_id: (d.render_data or {}) for d in diagrams}
                 if any(rd.get("dictionary") for rd in diagrams_by_id.values()):
                     from .curriculum.lecture_plan.highlight_aligner import (
                         AlignerReport,
@@ -439,10 +438,10 @@ class CurriculumPipelineV2:
                             text = seg.get("narration_chapter") or ""
                             if not text:
                                 continue
-                            seg["narration_chapter"] = (
-                                await aligner.realign_chapter_narration(
-                                    text, diagrams_by_id, align_report
-                                )
+                            seg[
+                                "narration_chapter"
+                            ] = await aligner.realign_chapter_narration(
+                                text, diagrams_by_id, align_report
                             )
                     logger.info(
                         "Phase 8b highlight aligner: %s", align_report.summary()
@@ -663,16 +662,39 @@ class CurriculumPipelineV2:
             if p.topic_id in plans_by_tid
         ]
 
-        # Re-render narration ONLY for topics whose plans the weaver
-        # actually modified (i.e., any step now has is_book_example=True).
-        # Untouched topics keep the gate-produced narration — that's
-        # important because the gate's narration may carry prosody / other
-        # adjustments that a fresh render wouldn't reproduce.
+        # ExtendedExampleWeaver — generates real-world anchors + fun facts and
+        # weaves them in AFTER book examples, so a lecture isn't just correct
+        # but engaging. Runs only on topics whose n_extended_examples() rule
+        # allocates extras; the rest are skipped (no LLM call). Mutates
+        # plans_by_tid + topic.extended_examples in place, same as the book
+        # weaver. The shared re-narration pass below picks up its steps too.
+        notify(
+            "extended_example_weaver",
+            "Weaving real-world examples + fun facts into per-topic choreographies...",
+        )
+        ext_weaver = ExtendedExampleWeaver(self.config, provider=main_provider)
+        await ext_weaver.weave_for_chapter(
+            chapter_lesson_plans=plans_by_tid,
+            topics_by_id=topics_by_tid,
+        )
+        chapter.lesson_plans = [
+            plans_by_tid[p.topic_id]
+            for p in chapter.lesson_plans
+            if p.topic_id in plans_by_tid
+        ]
+
+        # Re-render narration for topics either weaver modified (a step now
+        # carries is_book_example OR is_extended_example). Untouched topics
+        # keep the gate-produced narration — that may carry prosody / other
+        # adjustments a fresh render wouldn't reproduce.
         narrations_by_tid: dict[str, Any] = {
             n.topic_id: n for n in chapter.lesson_narrations
         }
         for plan in chapter.lesson_plans:
-            woven = any(step.is_book_example for step in plan.choreography)
+            woven = any(
+                step.is_book_example or step.is_extended_example
+                for step in plan.choreography
+            )
             if not woven:
                 continue
             short_to_long = _diagram_id_short_to_long(plan, plan.topic_id)
