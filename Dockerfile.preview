@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+# Feynman lecture-API / preview server — serves chapter manifests (JSON) from
+# Neo4j for the LectureHome picker + LectureViewer.
+#
+# SLIM: installs ONLY the deps the server actually imports (fastapi, uvicorn,
+# neo4j, pydantic, pyyaml, numpy) — NOT the heavy ingestion stack
+# (torch/PyMuPDF/sentence-transformers) the full pyproject declares. In prod the
+# 521MB of audio/diagrams are served from GCS, not by this service.
+#
+# BUILD CONTEXT = REPO ROOT (path-dep on ../feynman_teaching_kernel):
+#   docker build -f Dockerfile.preview -t feynman-preview .
+#
+# NOTE: this is the image most likely to need a one-line fix on first build — if
+# importing lecture_pipeline_v2.config / tts.chunker pulls another dependency,
+# the build/start error names it; add it to the pip line below. (Alternative:
+# fold the two /lecture-api endpoints into the main backend and drop this image.)
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+
+# Kernel (path dep) + the pipeline package source + config. .dockerignore strips
+# the heavy artifacts/ and out/ dirs, so this stays small.
+COPY feynman_teaching_kernel/src/ ./feynman_teaching_kernel/src/
+COPY data_pre_compute_v2/ ./data_pre_compute_v2/
+
+RUN pip install --no-cache-dir \
+        "fastapi>=0.115" "uvicorn[standard]>=0.32" "neo4j>=5.20" \
+        "pydantic>=2.5" "pydantic-settings>=2.1" "pyyaml>=6.0" "numpy>=1.26"
+
+ENV PYTHONPATH="/app/data_pre_compute_v2/src:/app/feynman_teaching_kernel/src" \
+    PORT=8080
+WORKDIR /app/data_pre_compute_v2
+EXPOSE 8080
+
+CMD ["sh", "-c", "python tools/preview_server.py --host 0.0.0.0 --port ${PORT:-8080}"]

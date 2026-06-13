@@ -1,0 +1,47 @@
+# syntax=docker/dockerfile:1
+# Feynman backend API + LiveKit agent worker (ONE image, two commands).
+#
+# BUILD CONTEXT = REPO ROOT — the backend has a uv path-dependency on
+# ../feynman_teaching_kernel, so both dirs must be in context:
+#   docker build -f Dockerfile.backend -t feynman-backend .
+#
+# Run as API (default):   uvicorn feynman.main:app
+# Run as worker (MIG):    python -m feynman.livekit.worker start
+FROM python:3.13-slim
+
+# System libs the LiveKit voice plugins need at runtime:
+#   libgomp1  -> onnxruntime (silero VAD, turn-detector)
+#   ffmpeg    -> audio decode/encode
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libgomp1 ffmpeg ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# uv — fast, reproducible installs
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+WORKDIR /app
+# Path dependency must exist before `uv sync`
+COPY feynman_teaching_kernel/ ./feynman_teaching_kernel/
+COPY backend/ ./backend/
+# diagram_generator.py file-loads design_agent/backend/prompts.py from the repo
+# root (parents[5] == /app) at runtime for live-doubt diagram generation. Ship
+# just the prompt source (the 37M venv is excluded via .dockerignore).
+COPY design_agent/backend/ ./design_agent/backend/
+
+WORKDIR /app/backend
+RUN uv sync --no-dev
+
+ENV PATH="/app/backend/.venv/bin:$PATH" \
+    PYTHONPATH="/app/backend/src:/app/feynman_teaching_kernel/src" \
+    PORT=8000
+EXPOSE 8000
+
+# Default command = API server. Cloud Run injects $PORT.
+# The worker MIG overrides CMD with: python -m feynman.livekit.worker start
+# (Optional for the worker: bake plugin models in to avoid first-job latency:
+#   RUN python -m feynman.livekit.worker download-files )
+CMD ["sh", "-c", "uvicorn feynman.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

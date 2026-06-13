@@ -1,0 +1,28 @@
+# Controls what `gcloud builds submit` uploads as the build context (gcloud uses
+# THIS, not .dockerignore, for the source upload). Keep the upload small + source-only.
+.git/
+**/__pycache__/
+**/.venv/
+**/venv/
+**/node_modules/
+# design_agent: only backend/ prompt source is needed in the image
+design_agent/frontend/
+design_agent/generated/
+frontend/dist/
+# old v1 pipeline — not built
+data_pre_compute/
+# heavy precompute outputs — served from GCS, never in an image
+data_pre_compute_v2/artifacts/
+data_pre_compute_v2/out/
+data_pre_compute_v2/*.pdf
+# docs / memory / local caches
+docs/
+memory/
+.claude/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.pytest_cache/
+# never upload secrets
+**/.env
+**/.env.*
+*.log

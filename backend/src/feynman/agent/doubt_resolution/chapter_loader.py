@@ -17,7 +17,7 @@ import json
 from typing import Any
 
 import structlog
-from neo4j import AsyncGraphDatabase
+from neo4j import AsyncDriver, AsyncGraphDatabase
 
 from feynman.agent.doubt_resolution.models import (
     ChapterContext,
@@ -28,6 +28,35 @@ from feynman.agent.doubt_resolution.models import (
 from feynman.config import settings
 
 logger = structlog.get_logger()
+
+
+_driver: AsyncDriver | None = None
+
+
+def _get_driver() -> AsyncDriver:
+    """Reused, module-level Neo4j driver.
+
+    Creating a driver per call means a fresh TLS handshake + connection-pool
+    spin-up every time — wasteful, and a connection-churn risk under hundreds of
+    concurrent session-starts. The driver is thread-safe and pools connections
+    internally, so create it once and reuse it. Closed via `close_driver()`.
+    """
+    global _driver
+    if _driver is None:
+        _driver = AsyncGraphDatabase.driver(
+            settings.neo4j_uri,
+            auth=(settings.neo4j_user, settings.neo4j_password),
+            max_connection_pool_size=20,
+        )
+    return _driver
+
+
+async def close_driver() -> None:
+    """Close the shared Neo4j driver (call on app/worker shutdown)."""
+    global _driver
+    if _driver is not None:
+        await _driver.close()
+        _driver = None
 
 
 _LOAD_CHAPTER_CYPHER = """
@@ -127,17 +156,10 @@ def _parse_visual_index(value: Any) -> list[dict[str, Any]]:
 
 async def load_chapter_by_id(chapter_id: str) -> ChapterContext | None:
     """Hydrate a ChapterContext from Neo4j. Returns None when no rows match."""
-    uri = settings.neo4j_uri
-    auth = (settings.neo4j_user, settings.neo4j_password)
-    database = settings.neo4j_database
-
-    driver = AsyncGraphDatabase.driver(uri, auth=auth)
-    try:
-        async with driver.session(database=database) as session:
-            result = await session.run(_LOAD_CHAPTER_CYPHER, {"chapter_id": chapter_id})
-            record = await result.single()
-    finally:
-        await driver.close()
+    driver = _get_driver()
+    async with driver.session(database=settings.neo4j_database) as session:
+        result = await session.run(_LOAD_CHAPTER_CYPHER, {"chapter_id": chapter_id})
+        record = await result.single()
 
     if record is None or not record["chapter_id"]:
         logger.warning("chapter_loader.not_found", chapter_id=chapter_id)

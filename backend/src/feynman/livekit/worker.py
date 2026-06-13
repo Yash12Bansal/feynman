@@ -396,6 +396,18 @@ server = AgentServer(
     ws_url=settings.livekit_url,
     api_key=settings.livekit_api_key,
     api_secret=settings.livekit_api_secret,
+    # --- Production hardening -------------------------------------------------
+    # On the `start` subcommand, ServerEnvOption prod defaults already apply:
+    #   load_threshold=0.7  -> stop accepting jobs at 70% CPU, so the MIG
+    #                          autoscales out instead of one VM melting down.
+    #   drain_timeout=1800  -> in-flight doubts finish on scale-in / redeploy.
+    # The one unsafe default is job_memory_limit_mb=0 (unbounded): cap it so a
+    # single leaky/runaway session is killed before it OOMs the whole VM.
+    job_memory_limit_mb=900,
+    job_memory_warn_mb=500,
+    # Keep a couple of warm job-processes for instant doubt start without
+    # hoarding RAM (the prod default of 10 is heavier than one VM needs).
+    num_idle_processes=2,
 )
 
 

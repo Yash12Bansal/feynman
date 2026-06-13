@@ -7,6 +7,7 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from feynman.agent.doubt_resolution.chapter_loader import close_driver
 from feynman.api.router import router
 from feynman.common.logging import setup_logging
 from feynman.config import settings
@@ -45,6 +46,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
     await redis.aclose()
     await engine.dispose()
+    await close_driver()
     logger.info("feynman.shutdown")
 
 

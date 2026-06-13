@@ -22,6 +22,7 @@ End-to-end engineering deep-dive of the Feynman AI teaching agent. Read these in
 | 11 | [Precompute Playback Flow](./11-precompute-playback-flow.md) | Deep file:line trace of lecture playback — the sync model, event coverage, render path, known issues | ...want to know exactly how a lecture plays and stays in sync. |
 | 12 | [Ask Feynman Flow](./12-ask-feynman-flow.md) | Deep file:line trace of the doubt pipeline — capture → classify → plan → match → deliver → resume, sync analysis, known issues | ...want to know how Ask Feynman works and where board/planning sync is weak. |
 | 13 | [Redundant-Code Audit](./13-redundant-code-audit.md) | Inventory of code not used by the three active pipelines + a sequenced deletion plan | ...want to remove the parked interactive subsystem and other dead code. |
+| 14 | [GCP Deployment & Operations](./14-gcp-deployment-and-operations.md) | How the LIVE product is deployed on GCP (`feynman-basic`) — every resource + networking, request flows, build/deploy flow, **all incidents** (incl. the lectures outage + root causes) + the ops runbook | ...are running, debugging, redeploying, or onboarding to the production system. |
 
 > **Active-product note:** the product today is precompute teaching + Ask Feynman (docs 11, 12). The **interactive live-teaching mode** described in docs 03–04 (state machine, ~40 tools, board manager, anticipation) is **parked** — see doc 13 for what that makes redundant. Docs 03–04 remain accurate descriptions of that subsystem, but it is not in the active runtime path.
 
@@ -51,9 +52,9 @@ End-to-end engineering deep-dive of the Feynman AI teaching agent. Read these in
 
 00 → [01-precompute-pipeline.md](./01-precompute-pipeline.md) → [10-data-stores.md](./10-data-stores.md) → [05-feynman-teaching-kernel.md](./05-feynman-teaching-kernel.md).
 
-### "I'm shipping this to production"
+### "I'm shipping this to production" / "it's live and I'm operating it"
 
-00 → [10-data-stores.md](./10-data-stores.md) §11 → [02-backend-fastapi.md](./02-backend-fastapi.md) → [04-livekit-agent-worker.md](./04-livekit-agent-worker.md) → 09 §"Critical timings".
+[14-gcp-deployment-and-operations.md](./14-gcp-deployment-and-operations.md) is the authoritative deploy + ops + incident reference for the live system. For deeper context: 00 → [10-data-stores.md](./10-data-stores.md) §11 → [02-backend-fastapi.md](./02-backend-fastapi.md) → [04-livekit-agent-worker.md](./04-livekit-agent-worker.md) → 09 §"Critical timings".
 
 ## Conventions in these docs
 

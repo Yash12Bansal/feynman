@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 from urllib.parse import urlparse
@@ -30,16 +31,50 @@ from lecture_pipeline_v2.config import PipelineConfig
 from lecture_pipeline_v2.tts.chunker import TextFragment, split_script
 
 cfg = PipelineConfig.load()
+# Production: env overrides the local-dev Neo4j settings baked into config.yaml,
+# so the deployed preview server talks to the real graph. (The backend/worker read
+# these same NEO4J_* vars natively via pydantic settings.)
+cfg.neo4j.uri = os.environ.get("NEO4J_URI", cfg.neo4j.uri)
+cfg.neo4j.username = os.environ.get("NEO4J_USER", cfg.neo4j.username)
+cfg.neo4j.password = os.environ.get("NEO4J_PASSWORD", cfg.neo4j.password)
+cfg.neo4j.database = os.environ.get("NEO4J_DATABASE", cfg.neo4j.database)
 artifacts_base = Path(cfg.artifacts.base_dir).resolve()
 static_dir = Path(__file__).parent / "preview_static"
 
+# Production serves artifacts from a CDN/GCS bucket. When set, manifest URLs are
+# rewritten to absolute `{ARTIFACTS_BASE_URL}/<relpath>` and the local static mount
+# is skipped (the files aren't shipped in the container). Unset in dev → the local
+# /lecture-artifacts mount serves them off disk as before.
+ARTIFACTS_BASE_URL = os.environ.get("ARTIFACTS_BASE_URL", "").rstrip("/")
+
 app = FastAPI(title="Lecture Player")
 # /lecture-artifacts/ namespace avoids colliding with the live LiveKit backend's /artifacts/
-# when both servers are running simultaneously behind the Vite dev proxy.
-app.mount(
-    "/lecture-artifacts", StaticFiles(directory=str(artifacts_base)), name="artifacts"
-)
+# when both servers run behind the Vite dev proxy. Skipped in prod (ARTIFACTS_BASE_URL set):
+# the artifacts live in GCS, and StaticFiles would crash at startup if the directory isn't
+# present in the container.
+if not ARTIFACTS_BASE_URL and artifacts_base.is_dir():
+    app.mount(
+        "/lecture-artifacts", StaticFiles(directory=str(artifacts_base)), name="artifacts"
+    )
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
+_neo4j_driver = None
+
+
+def _get_neo4j_driver():
+    """Reused Neo4j driver — created once, not per request. A driver per call
+    means a fresh TLS handshake + connection-pool spin-up every time, which
+    churns connections under concurrent lecture-list / chapter fetches. The
+    driver is thread-safe and pools internally. (Closed on process exit.)"""
+    global _neo4j_driver
+    if _neo4j_driver is None:
+        _neo4j_driver = AsyncGraphDatabase.driver(
+            cfg.neo4j.uri,
+            auth=(cfg.neo4j.username, cfg.neo4j.password),
+            max_connection_pool_size=20,
+        )
+    return _neo4j_driver
 
 
 _TOPIC_START_RE = re.compile(r"<<TOPIC_START:([^>]+)>>")
@@ -104,17 +139,26 @@ def _attach_transcript(
     return out
 
 
+def _artifact_url(rel: str) -> str:
+    """Map an artifact relpath to a fetchable URL — absolute GCS/CDN in prod
+    (ARTIFACTS_BASE_URL set), local /lecture-artifacts mount in dev."""
+    rel = rel.lstrip("/")
+    if ARTIFACTS_BASE_URL:
+        return f"{ARTIFACTS_BASE_URL}/{rel}"
+    return f"/lecture-artifacts/{rel}"
+
+
 def rewrite_url(url: str | None) -> str | None:
-    """file://./artifacts/... or file:///abs/... → /lecture-artifacts/... so the browser can fetch."""
+    """file://./artifacts/... or file:///abs/... → fetchable URL (CDN in prod)."""
     if not url:
         return url
     if url.startswith("file://./artifacts/"):
-        return "/lecture-artifacts/" + url[len("file://./artifacts/") :]
+        return _artifact_url(url[len("file://./artifacts/") :])
     if url.startswith("file://"):
         path = urlparse(url).path
         try:
             rel = Path(path).resolve().relative_to(artifacts_base)
-            return f"/lecture-artifacts/{rel.as_posix()}"
+            return _artifact_url(rel.as_posix())
         except ValueError:
             return url
     return url
@@ -127,30 +171,21 @@ async def root() -> FileResponse:
 
 @app.get("/lecture-api/chapters")
 async def list_chapters() -> JSONResponse:
-    driver = AsyncGraphDatabase.driver(
-        cfg.neo4j.uri,
-        auth=(cfg.neo4j.username, cfg.neo4j.password),
-    )
-    try:
-        async with driver.session(database=cfg.neo4j.database) as session:
-            result = await session.run(
-                "MATCH (c:Chapter) "
-                "RETURN c.chapter_id AS id, c.title AS title, c.chapter_index AS idx, "
-                "       c.chapter_manifest IS NOT NULL AS has_manifest "
-                "ORDER BY c.chapter_index"
-            )
-            chapters = [dict(r) async for r in result]
-    finally:
-        await driver.close()
+    driver = _get_neo4j_driver()
+    async with driver.session(database=cfg.neo4j.database) as session:
+        result = await session.run(
+            "MATCH (c:Chapter) "
+            "RETURN c.chapter_id AS id, c.title AS title, c.chapter_index AS idx, "
+            "       c.chapter_manifest IS NOT NULL AS has_manifest "
+            "ORDER BY c.chapter_index"
+        )
+        chapters = [dict(r) async for r in result]
     return JSONResponse(chapters)
 
 
 @app.get("/lecture-api/chapter/{chapter_id:path}")
 async def chapter_data(chapter_id: str) -> JSONResponse:
-    driver = AsyncGraphDatabase.driver(
-        cfg.neo4j.uri,
-        auth=(cfg.neo4j.username, cfg.neo4j.password),
-    )
+    driver = _get_neo4j_driver()
     try:
         async with driver.session(database=cfg.neo4j.database) as session:
             result = await session.run(
@@ -242,7 +277,8 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
                         "section": r["section"],
                     }
     finally:
-        await driver.close()
+        # shared driver — not closed per request (lives for the process)
+        pass
 
     # Live transcript: re-chunk narration_text and attach `text` to each
     # AudioEvent so the frontend can render the currently-spoken sentence.

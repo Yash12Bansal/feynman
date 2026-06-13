@@ -1,0 +1,31 @@
+# Docker build context excludes (applies to Dockerfile.backend + Dockerfile.preview,
+# both of which build from the REPO ROOT). Keep the context small + secret-free.
+
+.git
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/venv/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/node_modules/
+frontend/dist/
+
+# Old v1 pipeline — not deployed
+data_pre_compute/
+
+# Heavy precompute outputs — served from GCS, NEVER baked into an image
+data_pre_compute_v2/artifacts/
+data_pre_compute_v2/out/
+data_pre_compute_v2/*.pdf
+
+# Docs / memory / local tooling
+docs/
+memory/
+.claude/
+
+# Never bake secrets into an image (Cloud Run injects them at runtime)
+**/.env
+**/.env.*
+*.log

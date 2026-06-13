@@ -29,6 +29,18 @@ _CH47_FIXTURE = (
 )
 
 
+@pytest.fixture(autouse=True)
+def _reset_neo4j_singleton():
+    """`load_chapter_by_id` now reuses a module-level Neo4j driver. Reset it
+    around each test so the per-test `AsyncGraphDatabase.driver` patch is honored
+    and module state doesn't leak between tests."""
+    from feynman.agent.doubt_resolution import chapter_loader
+
+    chapter_loader._driver = None
+    yield
+    chapter_loader._driver = None
+
+
 # ── chapter_context_from_extraction (synthetic) ────────────────────────────
 
 

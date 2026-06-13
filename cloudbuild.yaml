@@ -1,0 +1,14 @@
+# Reusable Cloud Build config — builds one image from a named Dockerfile.
+# Usage:
+#   gcloud builds submit --config cloudbuild.yaml \
+#     --substitutions=_DOCKERFILE=Dockerfile.backend,_IMAGE=<ar>/backend:latest .
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-f', '${_DOCKERFILE}', '-t', '${_IMAGE}', '.']
+  - name: gcr.io/cloud-builders/docker
+    args: ['push', '${_IMAGE}']
+images:
+  - '${_IMAGE}'
+options:
+  machineType: 'E2_HIGHCPU_8'
+timeout: '1800s'
