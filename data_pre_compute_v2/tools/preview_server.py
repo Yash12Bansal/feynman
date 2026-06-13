@@ -54,7 +54,9 @@ app = FastAPI(title="Lecture Player")
 # present in the container.
 if not ARTIFACTS_BASE_URL and artifacts_base.is_dir():
     app.mount(
-        "/lecture-artifacts", StaticFiles(directory=str(artifacts_base)), name="artifacts"
+        "/lecture-artifacts",
+        StaticFiles(directory=str(artifacts_base)),
+        name="artifacts",
     )
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
@@ -73,6 +75,12 @@ def _get_neo4j_driver():
             cfg.neo4j.uri,
             auth=(cfg.neo4j.username, cfg.neo4j.password),
             max_connection_pool_size=20,
+            # Self-heal after a Neo4j/VM restart: health-check a pooled connection
+            # before reusing it if it's been idle >30s, and retire connections after
+            # 5 min. Without this the singleton kept reusing dead connections after
+            # the data-VM reboot and every query timed out (the lectures outage).
+            liveness_check_timeout=30,
+            max_connection_lifetime=300,
         )
     return _neo4j_driver
 

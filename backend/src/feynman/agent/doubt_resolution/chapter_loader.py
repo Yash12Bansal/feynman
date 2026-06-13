@@ -47,6 +47,11 @@ def _get_driver() -> AsyncDriver:
             settings.neo4j_uri,
             auth=(settings.neo4j_user, settings.neo4j_password),
             max_connection_pool_size=20,
+            # Self-heal after a Neo4j/VM restart: health-check an idle (>30s) pooled
+            # connection before reuse and retire connections after 5 min, so a
+            # severed connection is replaced instead of wedging the worker's doubts.
+            liveness_check_timeout=30,
+            max_connection_lifetime=300,
         )
     return _driver
 
