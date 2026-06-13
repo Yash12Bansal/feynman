@@ -12,6 +12,7 @@ from feynman.common.logging import setup_logging
 from feynman.config import settings
 from feynman.db.base import Base
 from feynman.db.engine import create_engine, create_session_factory
+from feynman.knowledge import StudentGraphStore
 from feynman.redis.client import create_redis_client
 from feynman.session.manager import SessionManager
 
@@ -40,6 +41,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     app.state.db_factory = db_factory
     app.state.redis = redis
     app.state.session_manager = SessionManager(db_factory, redis)
+
+    # Student-memory graph: ensure uniqueness constraints so concurrent session
+    # opens can't create duplicate nodes. Best-effort — the memory layer is an
+    # enhancement, so a Neo4j hiccup here must not block app startup.
+    try:
+        store = StudentGraphStore.connect()
+        try:
+            await store.ensure_constraints()
+        finally:
+            await store.close()
+    except Exception as exc:
+        # Memory is an enhancement, not a startup dependency — never block boot.
+        logger.warning("memory.constraints_init_failed", error=str(exc)[:200])
 
     yield
 

@@ -21,8 +21,10 @@ from feynman.agent.doubt_resolution import (
     load_chapter_by_id,
 )
 from feynman.agent.doubt_resolution.doubt_capture import capture_student_doubt
+from feynman.agent.doubt_resolution.narration_markers import strip_markers
 from feynman.common.logging import setup_logging
 from feynman.config import settings
+from feynman.knowledge import StudentGraphStore
 from feynman.livekit.doubt_delivery import DoubtDelivery
 from feynman.livekit.pipeline import create_stt, create_tts
 
@@ -57,7 +59,13 @@ _ACKNOWLEDGEMENTS = (
 )
 
 
-async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
+async def _run_lecture_mode(
+    ctx: JobContext,
+    *,
+    chapter_id: str,
+    student_id: str | None = None,
+    study_session_id: str | None = None,
+) -> None:
     """Lecture-mode worker loop.
 
     The precomputed lecture plays from the frontend; the worker stays in the
@@ -114,6 +122,41 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
     # Rotating index for the spoken acknowledgement (mutable container so the
     # nested _resolve_and_deliver can bump it without `nonlocal`).
     ack_counter: dict[str, int] = {"n": 0}
+
+    # Memory layer: the StudySession was already created on lecture-open (the
+    # frontend POSTs /students/{id}/sessions and threads `study_session_id`
+    # here via room metadata). The worker only RECORDS doubts to it — it never
+    # creates the session, so attempts that happen without any doubt still
+    # share one session per sitting. Writes are fire-and-forget + guarded so a
+    # Neo4j hiccup never touches the live doubt experience.
+    memory_store: StudentGraphStore | None = None
+    if student_id and study_session_id:
+        try:
+            memory_store = StudentGraphStore.connect()
+        except Exception:
+            logger.exception("worker.memory_store_connect_failed")
+            memory_store = None
+
+    def _remember_doubt(*, doubt_text: str, response: str, topic_id: str | None) -> None:
+        """Fire-and-forget write of a resolved doubt to the student graph."""
+        if memory_store is None or study_session_id is None:
+            return
+
+        async def _write() -> None:
+            try:
+                await memory_store.record_doubt(
+                    session_id=study_session_id,
+                    topic_id=topic_id or "",
+                    doubt_text=doubt_text,
+                    response=response,
+                    created_at=int(time.time() * 1000),
+                )
+            except Exception:
+                logger.warning("worker.remember_doubt_failed", exc_info=True)
+
+        task = asyncio.create_task(_write())
+        pending_tasks.add(task)
+        task.add_done_callback(pending_tasks.discard)
 
     async def _resolve_and_deliver(
         *,
@@ -184,6 +227,16 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         last_doubt_state["text"] = doubt_text
         last_doubt_state["summary"] = " | ".join(beat.narration_text[:80] for beat in plan.beats)
         last_doubt_state["topic_id"] = topic_id or ""
+
+        # Memory layer: persist the doubt + the answer the student got, so it
+        # surfaces on their next-session memory card for this chapter.
+        # Strip the inline <<FOCUS>>/<<TRACE>>/<<UNFOCUS>> board markers — the
+        # memory card shows the spoken answer as plain prose, not delivery markup.
+        _remember_doubt(
+            doubt_text=doubt_text,
+            response=strip_markers(" ".join(beat.narration_text for beat in plan.beats)),
+            topic_id=topic_id,
+        )
 
         # Carry-over (Delta 2): a local clarification about a diagram already on
         # the board → the frontend seeds the doubt board with a copy of the
@@ -357,6 +410,11 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         await asyncio.Event().wait()
     finally:
         await doubt_delivery.stop(ctx.room)
+        if memory_store is not None:
+            try:
+                await memory_store.close()
+            except Exception:
+                logger.warning("worker.memory_store_close_failed", exc_info=True)
 
 
 _SATISFACTION_OPTIONS: list[dict[str, str]] = [
@@ -419,7 +477,12 @@ async def entrypoint(ctx: JobContext) -> None:
             room_name=ctx.room.name,
             chapter_id=lecture_chapter_id,
         )
-        await _run_lecture_mode(ctx, chapter_id=lecture_chapter_id)
+        await _run_lecture_mode(
+            ctx,
+            chapter_id=lecture_chapter_id,
+            student_id=meta.get("student_id"),
+            study_session_id=meta.get("study_session_id"),
+        )
         return
 
 

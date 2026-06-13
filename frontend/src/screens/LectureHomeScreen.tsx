@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AuroraBackground } from "../auth/AuroraBackground";
+import { GlobalMemoryButton } from "../components/GlobalMemoryButton";
 import { DISPLAY_FONT, MONO_FONT } from "../styles/fonts";
 
 interface ChapterListEntry {
@@ -153,6 +154,7 @@ export function LectureHomeScreen({
           <h1 style={wordmarkStyle}>Feynman</h1>
           <div style={wordmarkUnderlineStyle} aria-hidden />
           <p style={subtitleStyle}>Choose a lecture</p>
+          <GlobalMemoryButton />
         </header>
 
         <main style={mainStyle}>

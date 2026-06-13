@@ -15,6 +15,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import asyncio
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -28,6 +30,7 @@ from neo4j import AsyncGraphDatabase
 
 from lecture_pipeline_v2.config import PipelineConfig
 from lecture_pipeline_v2.tts.chunker import TextFragment, split_script
+from lecture_pipeline_v2.tts.factory import create_tts_provider
 
 cfg = PipelineConfig.load()
 artifacts_base = Path(cfg.artifacts.base_dir).resolve()
@@ -123,6 +126,41 @@ def rewrite_url(url: str | None) -> str | None:
 @app.get("/")
 async def root() -> FileResponse:
     return FileResponse(static_dir / "index.html")
+
+
+# ── Checkpoint narration (TTS) ──────────────────────────────────────────────
+# The in-lecture question checkpoint reads its prompt + explanation aloud in the
+# SAME local Kokoro voice as the lecture (free, no API cost, voice-consistent).
+# Synthesis is blocking (torch + ffmpeg) so it runs in a thread; results are
+# cached on disk by text hash, so a question narrated once is instant forever.
+_tts_provider = None
+_tts_cache_dir = artifacts_base / "_tts_cache"
+
+
+def _tts():
+    global _tts_provider
+    if _tts_provider is None:
+        _tts_provider = create_tts_provider(cfg.tts)
+    return _tts_provider
+
+
+@app.get("/lecture-api/tts")
+async def tts(text: str) -> FileResponse:
+    text = (text or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="empty text")
+    text = text[:2000]  # short narration only; guards against abuse
+    _tts_cache_dir.mkdir(parents=True, exist_ok=True)
+    key = hashlib.sha256(f"{cfg.tts.voice}|{text}".encode()).hexdigest()[:20]
+    out = _tts_cache_dir / f"{key}.{cfg.tts.output_format}"
+    if not out.exists():
+        await asyncio.to_thread(_tts().synthesize, text, out)
+    media = (
+        "audio/mpeg"
+        if cfg.tts.output_format == "mp3"
+        else f"audio/{cfg.tts.output_format}"
+    )
+    return FileResponse(str(out), media_type=media)
 
 
 @app.get("/lecture-api/chapters")
