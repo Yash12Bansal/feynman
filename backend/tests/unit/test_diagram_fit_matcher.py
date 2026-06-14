@@ -138,6 +138,7 @@ async def test_match_assigns_diagram_when_verifier_accepts():
         ]
     )
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="The ball moves with the train.",
@@ -173,6 +174,7 @@ async def test_match_assigns_diagram_when_verifier_accepts():
 async def test_match_leaves_diagram_none_when_verifier_rejects_all():
     ctx = _ctx([_diagram("d_a", "irrelevant"), _diagram("d_b", "also irrelevant")])
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="resolution",
@@ -206,6 +208,7 @@ async def test_match_low_confidence_rejected():
     """confidence < 0.7 → don't assign even if fits=True."""
     ctx = _ctx([_diagram("d_x", "thing")])
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="x",
@@ -244,6 +247,7 @@ async def test_match_skip_stage2_uses_top_stage1_above_threshold():
         ]
     )
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="ball toss in train",

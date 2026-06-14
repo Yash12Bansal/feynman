@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 import structlog
 
 from feynman.agent.doubt_resolution.diagram_templates import is_known
-from feynman.agent.doubt_resolution.doubt_classifier import classify_doubt
 from feynman.agent.doubt_resolution.models import (
     ChapterContext,
     DoubtRecord,
@@ -60,27 +59,11 @@ class LectureDoubtSession:
         responsible for delivery (Phase 5).
         """
         t0 = time.monotonic()
-        topic_meta = self.chapter_context.topic(current_topic_id)
-        topic_summary = topic_meta.summary if topic_meta else ""
 
-        classification = await classify_doubt(
-            doubt_text=doubt_text,
-            current_topic_id=current_topic_id,
-            current_topic_context_snippet=topic_summary,
-            prior_doubts_in_session=[r.doubt_text for r in self.prior_doubts_in_session],
-            chapter_context=self.chapter_context,
-        )
-        logger.info(
-            "lecture_session.classified",
-            type=classification.type.value,
-            related=classification.related_concept_ids,
-            rationale=classification.rationale,
-            cursor=cursor,
-        )
-
+        # ONE CoT call classifies AND plans — the plan carries `.classification`,
+        # so there's no separate classify round-trip on the critical path.
         plan = await plan_resolution(
             doubt_text=doubt_text,
-            classification=classification,
             chapter_context=self.chapter_context,
             current_topic_id=current_topic_id,
             prior_doubts=self.prior_doubts_in_session,
@@ -91,6 +74,15 @@ class LectureDoubtSession:
         if plan is None:
             logger.error("lecture_session.planner_failed", cursor=cursor)
             return None
+
+        classification = plan.classification
+        logger.info(
+            "lecture_session.classified",
+            type=classification.type.value,
+            related=classification.related_concept_ids,
+            rationale=classification.rationale,
+            cursor=cursor,
+        )
 
         # The planner now decides each beat's diagram directly — it sees the
         # full diagram catalog with element semantics and chooses reuse /

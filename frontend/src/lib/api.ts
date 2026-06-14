@@ -67,7 +67,7 @@ export async function fetchSolution(questionId: string): Promise<Solution> {
 
 /** The spoken intro + question shown when the checkpoint pops. */
 export function promptNarration(qText: string): string {
-  return `Let's test your understanding, genius. ${qText}`;
+  return `Let's test your understanding. ${qText}`;
 }
 
 /** The spoken intro + explanation read out on reveal. */

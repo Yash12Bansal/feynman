@@ -158,6 +158,7 @@ async def test_deliver_resolution_publishes_board_events_per_beat(mocked_room):
     audio_source, track = _patch_rtc_primitives()
 
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 # Inline <<FOCUS:trajectory>> marker — fires synced to the words,
@@ -233,6 +234,7 @@ async def test_deliver_resolution_generates_and_publishes_spec_before_beat(mocke
     audio_source, track = _patch_rtc_primitives()
 
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="Start with the diagram you already have.",
@@ -304,6 +306,7 @@ async def test_deliver_resolution_generation_failure_degrades(mocked_room):
     audio_source, track = _patch_rtc_primitives()
 
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="A quick sketch would make this concrete.",
@@ -377,6 +380,7 @@ async def test_deliver_resolution_on_first_frame_fires_once_across_beats(mocked_
     callback = MagicMock()
 
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="Here's the first idea.",
