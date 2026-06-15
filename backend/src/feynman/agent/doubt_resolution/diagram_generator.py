@@ -32,7 +32,7 @@ logger = structlog.get_logger()
 
 # Sonnet for quality — a doubt diagram must be correct, not just fast. Latency
 # is hidden behind narration by the caller, not by downgrading the model.
-_MODEL = "claude-sonnet-4-20250514"
+_MODEL = "claude-sonnet-4-6"
 _MAX_TOKENS = 8192
 _DEFAULT_WIDTH = 900
 _DEFAULT_HEIGHT = 650

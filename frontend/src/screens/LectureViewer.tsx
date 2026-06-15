@@ -788,6 +788,7 @@ export function LectureViewer({
       )}
       {checkpoint.question && (
         <QuestionCheckpoint
+          key={checkpoint.question.question_id}
           question={checkpoint.question}
           solution={checkpoint.solution}
           outcome={checkpoint.outcome}

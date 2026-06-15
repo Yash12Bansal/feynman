@@ -32,7 +32,7 @@ _RETURN = (
     "q.solution_diagram_built AS solution_diagram_built, "
     "q.solution_diagram_needed AS solution_diagram_needed, "
     "q.solution_diagram_spec AS solution_diagram_spec, "
-    "q.solution_explanation AS solution_explanation"
+    "q.solution_steps AS solution_steps"
 )
 _LOAD_TOPIC_QUESTIONS = (
     "MATCH (t:Topic {topic_id: $topic_id})-[:HAS_QUESTION]->(q:Question) "
@@ -72,7 +72,7 @@ def _to_question(row: dict[str, Any], topic_id: str = "") -> Question:
         solution_diagram_built=bool(row.get("solution_diagram_built")),
         solution_diagram_needed=bool(row.get("solution_diagram_needed")),
         solution_diagram_spec=_parse_spec(row.get("solution_diagram_spec")),
-        solution_explanation=row.get("solution_explanation") or "",
+        solution_steps=list(row.get("solution_steps") or []),
     )
 
 
@@ -103,24 +103,24 @@ async def _cache_diagram(
     prefix: str,
     diagram_needed: bool,
     diagram_spec: dict[str, Any] | None,
-    explanation: str | None = None,
+    steps: list[str] | None = None,
 ) -> None:
     """Persist a generated diagram on the Question node (curriculum graph —
     shared, so every future student reuses it; the LLM runs once). `prefix` is
-    'question' or 'solution'. `explanation` (solution only) is cached alongside
-    so the reveal's worked answer is generated once too."""
-    set_explanation = ", q.solution_explanation = $explanation" if explanation is not None else ""
+    'question' or 'solution'. `steps` (solution only) is the worked-solution
+    step list, cached alongside so the reveal is generated once too."""
+    set_steps = ", q.solution_steps = $steps" if steps is not None else ""
     await _run(
         f"MATCH (q:Question {{question_id: $question_id}}) "
         f"SET q.{prefix}_diagram_built = true, "
         f"q.{prefix}_diagram_needed = $needed, "
         f"q.{prefix}_diagram_spec = $spec"
-        f"{set_explanation}",
+        f"{set_steps}",
         {
             "question_id": question_id,
             "needed": diagram_needed,
             "spec": json.dumps(diagram_spec) if diagram_spec else None,
-            "explanation": explanation,
+            "steps": steps,
         },
     )
 
@@ -130,14 +130,14 @@ async def cache_solution_diagram(
     *,
     diagram_needed: bool,
     diagram_spec: dict[str, Any] | None,
-    explanation: str = "",
+    steps: list[str] | None = None,
 ) -> None:
     await _cache_diagram(
         question_id,
         prefix="solution",
         diagram_needed=diagram_needed,
         diagram_spec=diagram_spec,
-        explanation=explanation,
+        steps=steps,
     )
 
 

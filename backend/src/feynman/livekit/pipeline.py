@@ -38,8 +38,8 @@ def create_stt() -> stt.STT:
 
 
 def create_llm() -> anthropic.LLM:
-    logger.info("pipeline.llm", provider="anthropic", model="claude-sonnet-4-20250514")
-    kwargs: dict = {"model": "claude-sonnet-4-20250514"}
+    logger.info("pipeline.llm", provider="anthropic", model="claude-sonnet-4-6")
+    kwargs: dict = {"model": "claude-sonnet-4-6"}
     if api_key := _key_or_none(settings.anthropic_api_key):
         kwargs["api_key"] = api_key
     return anthropic.LLM(**kwargs)

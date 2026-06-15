@@ -22,7 +22,7 @@ def _q(
     built: bool = False,
     needed: bool = False,
     spec: dict | None = None,
-    explanation: str = "",
+    steps: list[str] | None = None,
 ) -> Question:
     return Question(
         question_id="q1",
@@ -34,7 +34,7 @@ def _q(
         solution_diagram_built=built,
         solution_diagram_needed=needed,
         solution_diagram_spec=spec,
-        solution_explanation=explanation,
+        solution_steps=steps or [],
     )
 
 
@@ -58,9 +58,9 @@ def _patch_anthropic(payload: dict[str, Any] | Exception):
 @pytest.mark.asyncio
 async def test_cache_hit_skips_llm():
     spec = {"title": "t", "elements": []}
-    # A real cache hit has BOTH the diagram decision AND the explanation — the
-    # gate falls through (regenerates) if the explanation is missing.
-    cached = _q(built=True, needed=True, spec=spec, explanation="Shared velocity.")
+    # A real cache hit has BOTH the diagram decision AND the steps — the gate
+    # falls through (regenerates) if the steps are missing.
+    cached = _q(built=True, needed=True, spec=spec, steps=["Shared velocity."])
     with (
         patch("feynman.interaction.solution.load_question", AsyncMock(return_value=cached)),
         _patch_anthropic(RuntimeError("must not be called")) as anth,
@@ -96,46 +96,41 @@ async def test_cache_miss_generates_and_persists():
 
 
 @pytest.mark.asyncio
-async def test_explanation_is_generated_cached_and_served():
-    """The solution call returns a plain-language explanation, which is served
-    to the client AND cached on the node for the next student."""
+async def test_steps_are_generated_cached_and_served():
+    """The solution call returns ordered worked-solution steps, served to the
+    client AND cached on the node for the next student."""
     writer = AsyncMock()
+    steps = ["Both ball and train share the same horizontal velocity.", "So it lands back."]
     with (
         patch("feynman.interaction.solution.load_question", AsyncMock(return_value=_q())),
         _patch_anthropic(
-            {
-                "explanation": "Inertia keeps the ball moving with the train.",
-                "diagram_needed": False,
-                "diagram_spec": None,
-            }
+            {"steps": steps, "diagram_needed": False, "diagram_spec": None}
         ),
         patch("feynman.interaction.solution.cache_solution_diagram", writer),
     ):
         sol = await get_or_build_solution("q1")
     assert sol is not None
-    assert sol.explanation == "Inertia keeps the ball moving with the train."
+    assert sol.steps == steps
     # Persisted alongside the diagram decision.
-    assert writer.await_args.kwargs["explanation"] == (
-        "Inertia keeps the ball moving with the train."
-    )
+    assert writer.await_args.kwargs["steps"] == steps
 
 
 @pytest.mark.asyncio
-async def test_stale_cache_without_explanation_regenerates():
-    """A node built BEFORE explanations existed (built=true, explanation empty)
+async def test_stale_cache_without_steps_regenerates():
+    """A node built BEFORE stepped solutions existed (built=true, no steps)
     must NOT be served as-is — it regenerates once to self-heal."""
     writer = AsyncMock()
-    stale = _q(built=True, needed=False, spec=None, explanation="")
+    stale = _q(built=True, needed=False, spec=None, steps=[])
     with (
         patch("feynman.interaction.solution.load_question", AsyncMock(return_value=stale)),
         _patch_anthropic(
-            {"explanation": "Now explained.", "diagram_needed": False, "diagram_spec": None}
+            {"steps": ["Now explained."], "diagram_needed": False, "diagram_spec": None}
         ) as anth,
         patch("feynman.interaction.solution.cache_solution_diagram", writer),
     ):
         sol = await get_or_build_solution("q1")
     anth.return_value.messages.create.assert_called_once()  # regenerated
-    assert sol is not None and sol.explanation == "Now explained."
+    assert sol is not None and sol.steps == ["Now explained."]
     writer.assert_awaited_once()
 
 

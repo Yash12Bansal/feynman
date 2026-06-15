@@ -12,10 +12,9 @@
  * pause/resume.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   checkpointTtsUrl,
-  explanationNarration,
   promptNarration,
   type AttemptOutcome,
   type CheckpointQuestion,
@@ -43,7 +42,19 @@ export function QuestionCheckpoint({
 }: QuestionCheckpointProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(SOLVE_GATE_SECONDS);
+  // "Show next step" taps (wrong-answer path). revealedCount is DERIVED from it
+  // — no setState-in-effect. The parent remounts this per question (keyed on
+  // question_id), so this resets cleanly between checkpoints.
+  const [extraReveals, setExtraReveals] = useState(0);
   const revealed = outcome !== null;
+  const steps = useMemo(() => solution?.steps ?? [], [solution]);
+  const stepCount = steps.length;
+  // CORRECT → all steps at once; WRONG → 1, then +1 per "Show next step".
+  const revealedCount = !revealed
+    ? 0
+    : outcome.correct
+      ? stepCount
+      : Math.min(1 + extraReveals, stepCount);
 
   // Solve-gate countdown (prompt phase only).
   useEffect(() => {
@@ -54,34 +65,56 @@ export function QuestionCheckpoint({
     return () => window.clearInterval(id);
   }, [revealed]);
 
-  // Narrate in the lecture's own voice (Kokoro, via the preview server):
-  // the prompt + question while solving, then the explanation on reveal.
+  // Narrate in the lecture's own voice (Kokoro). `playSequence` plays a list of
+  // texts back-to-back; a token cancels any in-flight sequence so a new reveal /
+  // next-step never overlaps the previous audio.
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const playTts = (text: string) => {
+  const seqRef = useRef(0);
+  const playSequence = useCallback((texts: string[]) => {
     audioRef.current?.pause();
-    const audio = new Audio(checkpointTtsUrl(text));
-    audioRef.current = audio;
-    void audio.play().catch(() => {});
-  };
+    const token = ++seqRef.current;
+    let i = 0;
+    const playNext = () => {
+      if (token !== seqRef.current || i >= texts.length) return;
+      const audio = new Audio(checkpointTtsUrl(texts[i]));
+      audioRef.current = audio;
+      audio.onended = () => {
+        i += 1;
+        playNext();
+      };
+      void audio.play().catch(() => {});
+    };
+    playNext();
+  }, []);
 
-  // Prompt phase — "Let's test your understanding, genius. <question>".
+  // Prompt phase — narrate "Let's test your understanding. <question>".
   useEffect(() => {
     if (revealed) return;
-    playTts(promptNarration(question.q_text));
+    playSequence([promptNarration(question.q_text)]);
     return () => audioRef.current?.pause();
-  }, [revealed, question.q_text]);
+  }, [revealed, question.q_text, playSequence]);
 
-  // Reveal phase — "Let me help you understand. <explanation>". Re-fires if the
-  // explanation arrives just after reveal (it's prefetched, usually ready).
+  // Reveal phase — narrate the initially-shown steps ONCE the steps have loaded
+  // (audio only; no state change). CORRECT → narrate all; WRONG → narrate step 1.
+  const narratedInitRef = useRef(false);
   useEffect(() => {
-    if (!revealed) return;
-    const explanation = solution?.explanation ?? "";
-    if (!explanation) return;
-    playTts(explanationNarration(explanation));
+    if (!revealed || narratedInitRef.current || stepCount === 0) return;
+    narratedInitRef.current = true;
+    const count = outcome.correct ? stepCount : 1;
+    playSequence(steps.slice(0, count));
     return () => audioRef.current?.pause();
-  }, [revealed, solution?.explanation]);
+  }, [revealed, stepCount, outcome, steps, playSequence]);
+
+  // "Show next step" (wrong-answer path) — reveal + narrate the next step only.
+  const showNextStep = useCallback(() => {
+    if (revealedCount >= stepCount) return;
+    playSequence([steps[revealedCount]]);
+    setExtraReveals((n) => n + 1);
+  }, [revealedCount, stepCount, steps, playSequence]);
 
   const canSubmit = !revealed && selected !== null && secondsLeft === 0;
+  const moreSteps =
+    revealed && !outcome.correct && stepCount > 0 && revealedCount < stepCount;
 
   return (
     <div style={OVERLAY}>
@@ -145,16 +178,37 @@ export function QuestionCheckpoint({
                 />
               </div>
             )}
-            {/* Field 2 — answer-neutral reasoning for the question (shared). */}
-            <div style={REASONING_LABEL}>Reasoning</div>
-            {solution?.explanation ? (
-              <p style={ANSWER}>{solution.explanation}</p>
+            {/* Field 2 — worked solution as steps. CORRECT shows all; WRONG
+                reveals one at a time so the student works through it. */}
+            <div style={REASONING_LABEL}>
+              {outcome!.correct ? "Worked solution" : "Let's walk through it"}
+            </div>
+            {stepCount === 0 ? (
+              <p style={SUBTLE_NOTE}>Working through the solution…</p>
             ) : (
-              <p style={SUBTLE_NOTE}>Working through the reasoning…</p>
+              <ol style={STEP_LIST}>
+                {steps.slice(0, revealedCount).map((s, i) => (
+                  <li key={i} style={STEP_ITEM}>
+                    {s}
+                  </li>
+                ))}
+              </ol>
             )}
-            <button style={PRIMARY} onClick={onDismiss}>
-              Continue the lecture
-            </button>
+            {moreSteps ? (
+              <>
+                <p style={NUDGE}>
+                  Take a moment — what do you think the next step is? Tap when
+                  you're ready.
+                </p>
+                <button style={SECONDARY} onClick={showNextStep}>
+                  Show next step
+                </button>
+              </>
+            ) : (
+              <button style={PRIMARY} onClick={onDismiss}>
+                Continue the lecture
+              </button>
+            )}
           </>
         )}
       </div>
@@ -275,7 +329,35 @@ const DIAGRAM_WRAP: React.CSSProperties = {
   borderRadius: 12,
   overflow: "hidden",
 };
-const ANSWER: React.CSSProperties = { fontSize: "0.98rem", lineHeight: 1.55, marginBottom: 20 };
+const STEP_LIST: React.CSSProperties = {
+  margin: "0 0 18px",
+  paddingLeft: 22,
+  display: "flex",
+  flexDirection: "column",
+  gap: 10,
+};
+const STEP_ITEM: React.CSSProperties = {
+  fontSize: "0.98rem",
+  lineHeight: 1.55,
+  paddingLeft: 4,
+};
+const NUDGE: React.CSSProperties = {
+  fontSize: "0.92rem",
+  lineHeight: 1.5,
+  color: "rgba(127, 212, 255, 0.85)",
+  marginBottom: 12,
+};
+const SECONDARY: React.CSSProperties = {
+  width: "100%",
+  padding: "11px 0",
+  background: "transparent",
+  color: "#7fd4ff",
+  border: "1px solid rgba(127, 212, 255, 0.45)",
+  borderRadius: 10,
+  fontSize: "0.95rem",
+  fontWeight: 600,
+  cursor: "pointer",
+};
 const CORRECT_LINE: React.CSSProperties = {
   fontSize: "1rem",
   lineHeight: 1.5,

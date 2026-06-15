@@ -108,7 +108,7 @@ async def test_record_attempt_passes_all_fields() -> None:
     store, driver = _store()
     await store.record_attempt(
         session_id="s1", question_id="q1", topic_id="t1", q_text="Why?",
-        options=["A. yes", "B. no"], solution="B", explanation="Inertia.",
+        options=["A. yes", "B. no"], solution="B", solution_steps=["Inertia keeps it moving."],
         correct=False, mode="mcq", created_at=2000,
     )
     cypher, params = driver.calls[-1]
@@ -118,7 +118,7 @@ async def test_record_attempt_passes_all_fields() -> None:
     assert params["q_text"] == "Why?"
     assert params["options"] == ["A. yes", "B. no"]
     assert params["solution"] == "B"
-    assert params["explanation"] == "Inertia."
+    assert params["solution_steps"] == ["Inertia keeps it moving."]
 
 
 @pytest.mark.asyncio

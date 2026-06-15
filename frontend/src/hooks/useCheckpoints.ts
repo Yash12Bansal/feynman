@@ -13,7 +13,6 @@
 import { useCallback, useRef, useState } from "react";
 import {
   checkpointTtsUrl,
-  explanationNarration,
   fetchCheckpoint,
   fetchSolution,
   promptNarration,
@@ -95,14 +94,13 @@ export function useCheckpoints({
         setSolution(null);
         setQuestion(cp);
         // Prefetch the SOLUTION now — it generates during the student's solving
-        // window, so its diagram + explanation are ready by submit. Also warm
-        // the explanation NARRATION so it's synthesized + cached before reveal
-        // (instant playback even for the first student to reach this question).
+        // window, so its diagram + steps are ready by submit. Also warm each
+        // step's NARRATION so it's synthesized + cached before reveal (instant
+        // playback even for the first student to reach this question).
         fetchSolution(cp.question_id)
           .then((sol) => {
             setSolution(sol);
-            if (sol.explanation)
-              void fetch(checkpointTtsUrl(explanationNarration(sol.explanation)));
+            sol.steps.forEach((s) => void fetch(checkpointTtsUrl(s)));
           })
           .catch(() => {});
       })();

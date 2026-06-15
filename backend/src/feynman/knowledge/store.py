@@ -141,7 +141,7 @@ class StudentGraphStore:
         q_text: str,
         options: list[str],
         solution: str,
-        explanation: str,
+        solution_steps: list[str],
         correct: bool,
         mode: Literal["mcq", "subjective"],
         created_at: int,
@@ -152,7 +152,8 @@ class StudentGraphStore:
             CREATE (a:AttemptMemory {
                 question_id: $question_id, topic_id: $topic_id,
                 chapter_id: ses.chapter_id, q_text: $q_text,
-                options: $options, solution: $solution, explanation: $explanation,
+                options: $options, solution: $solution,
+                solution_steps: $solution_steps,
                 correct: $correct, mode: $mode, created_at: $created_at
             })
             MERGE (ses)-[:ATTEMPTED]->(a)
@@ -164,7 +165,7 @@ class StudentGraphStore:
                 "q_text": q_text,
                 "options": options,
                 "solution": solution,
-                "explanation": explanation,
+                "solution_steps": solution_steps,
                 "correct": correct,
                 "mode": mode,
                 "created_at": created_at,

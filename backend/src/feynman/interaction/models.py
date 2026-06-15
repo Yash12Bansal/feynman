@@ -47,21 +47,27 @@ class Question(BaseModel):
     solution_diagram_built: bool = False
     solution_diagram_needed: bool = False
     solution_diagram_spec: dict | None = None
-    # A plain-language explanation of WHY the answer is correct — generated in
-    # the same cached solution call, so the reveal actually teaches instead of
-    # just flashing the right letter.
-    solution_explanation: str = ""
+    # The worked solution as an ORDERED LIST OF STEPS — generated in the same
+    # cached solution call. An easy question yields ONE step (the direct answer);
+    # a complex one yields several, each building on the last. Stepping powers
+    # the gated reveal: a student who answered WRONG sees one step at a time and
+    # is nudged to think before the next is shown.
+    solution_steps: list[str] = Field(default_factory=list)
 
 
 class Solution(BaseModel):
-    """The worked solution served to the client after submit: the explanation,
-    audio, plus a board diagram when the concept needs one. `answer` is the raw
-    stored answer (an MCQ letter); the client resolves it to the full option."""
+    """The worked solution served to the client after submit: the ordered
+    `steps`, plus a board diagram when the concept needs one. `answer` is the raw
+    stored answer (an MCQ letter); the client resolves it to the full option.
+
+    The client gates the reveal on correctness: CORRECT → show all steps;
+    WRONG → reveal one step at a time (student thinks, then taps "Show next
+    step"). Each step's audio is the lecture-voice TTS of its text (cached)."""
 
     diagram_needed: bool = False
     diagram_spec: dict | None = None
     answer: str = ""
-    explanation: str = ""  # why the correct answer is correct (student-facing)
+    steps: list[str] = Field(default_factory=list)  # ordered worked-solution steps
     answer_audio_url: str | None = None
 
 

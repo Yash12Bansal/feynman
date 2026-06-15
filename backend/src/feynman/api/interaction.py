@@ -87,11 +87,11 @@ async def submit_attempt(body: AttemptRequest) -> AttemptOutcome:
         correct = False
         mode = "subjective"
 
-    # The explanation is generated + cached during the solving window; read it
-    # back (cache hit → instant) so the memory card can show WHY, not just the
-    # letter. Best-effort — a miss just means the card omits the explanation.
+    # The worked steps are generated + cached during the solving window; read
+    # them back (cache hit → instant) so the memory card can show the reasoning,
+    # not just the letter. Best-effort — a miss just omits the steps.
     solution = await get_or_build_solution(question.question_id)
-    explanation = solution.explanation if solution else ""
+    solution_steps = solution.steps if solution else []
 
     store = StudentGraphStore.connect()
     try:
@@ -102,7 +102,7 @@ async def submit_attempt(body: AttemptRequest) -> AttemptOutcome:
             q_text=question.q_text,
             options=question.options,
             solution=question.answer,
-            explanation=explanation,
+            solution_steps=solution_steps,
             correct=correct,
             mode=mode,
             created_at=int(time.time() * 1000),

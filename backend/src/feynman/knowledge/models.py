@@ -26,7 +26,7 @@ class AttemptMemory(BaseModel):
     q_text: str
     options: list[str] = Field(default_factory=list)  # collapsible on the card
     solution: str = ""  # the correct answer (an MCQ letter)
-    explanation: str = ""  # why it's correct — collapsible on the card
+    solution_steps: list[str] = Field(default_factory=list)  # worked steps, on the card
     correct: bool
     mode: Literal["mcq", "subjective"]
     created_at: int  # epoch ms

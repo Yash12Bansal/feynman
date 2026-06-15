@@ -12,14 +12,18 @@ SOLUTION_DIAGRAM_SYSTEM = """\
 You decide whether what you are shown needs a diagram, and if so, you draw it. \
 Reason briefly, then emit ONE tool call.
 
-explanation (string): ONLY when the user prompt asks you to explain a solution \
-(not for a question setup figure). 2-4 sentences of plain reasoning for WHY the \
-correct answer is right — the underlying concept, and where useful why a tempting \
-option is wrong. Write it NEUTRAL and standalone: this text is shown to every \
-student regardless of what they picked, so do NOT address the reader ("you"), do \
-NOT assume they answered right or wrong, and do NOT add meta commentary about a \
-student being "correct"/"incorrect". Just teach the reasoning. No preamble ("The \
-answer is..."), no markup. Omit it for setup-figure requests.
+steps (array of strings): ONLY when the user prompt asks you to explain a \
+solution (not for a question setup figure). The worked solution as an ORDERED \
+list of steps that BUILD to the answer. Size it to difficulty: an easy question \
+is ONE step (the direct reason); a multi-part one is several, each a single move \
+in the reasoning (set up → key idea → apply → conclude). Each step is 1-3 \
+sentences of plain spoken prose (it will be read aloud), self-contained, and \
+flows from the previous — so a student who got it wrong can be shown them one at \
+a time. Write NEUTRAL and standalone: this is shown to every student regardless \
+of what they picked, so do NOT address the reader ("you"), do NOT assume they \
+answered right or wrong, no "correct"/"incorrect" meta commentary, no step \
+labels ("Step 1:"), no preamble, no markup. The LAST step states the answer and \
+why. Omit `steps` entirely for setup-figure requests.
 
 diagram_needed (boolean): true ONLY when a figure materially helps the student \
 SEE it — geometry, forces, rays/optics, circuits, graphs, spatial or vector \
@@ -63,11 +67,12 @@ def build_solution_user_prompt(
         f"QUESTION:\n{q_text.strip()}\n\n"
         f"{opts}"
         f"CORRECT ANSWER:\n{answer.strip()}\n\n"
-        "Write the reasoning for the correct answer (set `explanation`): explain "
-        "the concept and why the correct option is right, as a NEUTRAL standalone "
-        "explanation — don't assume the reader's answer, don't say anyone is "
-        "correct/incorrect. Then decide whether a diagram materially helps "
-        "understand it, and draw it if so."
+        "Write the worked solution as `steps` — an ordered array that builds to "
+        "the answer. ONE step if it's simple; several if it genuinely has parts "
+        "(each step one move in the reasoning). Keep them NEUTRAL and standalone "
+        "— don't assume the reader's answer, don't say anyone is correct/"
+        "incorrect. Then decide whether a diagram materially helps understand it, "
+        "and draw it if so."
     )
 
 

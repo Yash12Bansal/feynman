@@ -103,8 +103,8 @@ async def test_checkpoint_returns_null_when_no_match():
 # ── Attempt submission ──────────────────────────────────────────────────────
 
 
-def _sol(explanation: str = "Because C is correct."):
-    return SimpleNamespace(explanation=explanation)
+def _sol(steps: list[str] | None = None):
+    return SimpleNamespace(steps=steps or ["Because C is correct."])
 
 
 @pytest.mark.asyncio
@@ -131,13 +131,13 @@ async def test_submit_correct_mcq_records_and_reveals():
     assert out.answer == "C"
     assert out.answer_audio_url == "/audio/q2.mp3"
     # Recorded to the student graph with the right correctness + mode, and the
-    # denormalised options + explanation the memory card needs.
+    # denormalised options + worked steps the memory card needs.
     store.record_attempt.assert_awaited_once()
     kwargs = store.record_attempt.await_args.kwargs
     assert kwargs["correct"] is True
     assert kwargs["mode"] == "mcq"
     assert kwargs["session_id"] == "s1"
-    assert kwargs["explanation"] == "Because C is correct."
+    assert kwargs["solution_steps"] == ["Because C is correct."]
     assert kwargs["options"] == _q("q2", "mcq", answer="C").options
     store.close.assert_awaited_once()
 

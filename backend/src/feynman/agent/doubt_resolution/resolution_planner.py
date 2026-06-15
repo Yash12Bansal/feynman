@@ -28,7 +28,7 @@ from feynman.config import settings
 
 logger = structlog.get_logger()
 
-_MODEL = "claude-sonnet-4-20250514"
+_MODEL = "claude-sonnet-4-6"
 _TOOL_NAME = "emit_resolution_plan"
 _TOOL_DESCRIPTION = (
     "Emit the ResolutionPlan as a structured list of beats. "

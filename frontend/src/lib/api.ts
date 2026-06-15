@@ -29,7 +29,7 @@ export interface Solution {
   // DesignDiagramSpec — opaque to the API layer; rendered by DesignDiagramContent.
   diagram_spec: Record<string, unknown> | null;
   answer: string; // raw stored answer (an MCQ letter) — client resolves to the option
-  explanation: string; // why the correct answer is correct (student-facing)
+  steps: string[]; // ordered worked-solution steps (1 = easy, several = complex)
   answer_audio_url: string | null;
 }
 
@@ -70,12 +70,8 @@ export function promptNarration(qText: string): string {
   return `Let's test your understanding. ${qText}`;
 }
 
-/** The spoken intro + explanation read out on reveal. */
-export function explanationNarration(explanation: string): string {
-  return `Let me help you understand. ${explanation}`;
-}
-
-/** URL the browser can play directly; the server synthesizes + caches by text. */
+/** URL the browser can play directly; the server synthesizes + caches by text.
+ *  Solution steps are narrated by passing each step's text straight through. */
 export function checkpointTtsUrl(text: string): string {
   return `/lecture-api/tts?text=${encodeURIComponent(text)}`;
 }
@@ -109,7 +105,7 @@ export interface AttemptMemory {
   q_text: string;
   options: string[]; // collapsible on the card
   solution: string; // correct answer (an MCQ letter)
-  explanation: string; // why it's correct — collapsible on the card
+  solution_steps: string[]; // worked steps — collapsible on the card
   correct: boolean;
   mode: "mcq" | "subjective";
   created_at: number;

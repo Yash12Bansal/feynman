@@ -33,7 +33,7 @@ from feynman.interaction.solution_prompt import (
 
 logger = structlog.get_logger()
 
-_MODEL = "claude-sonnet-4-20250514"
+_MODEL = "claude-sonnet-4-6"
 _MAX_TOKENS = 4096
 _TOOL_NAME = "emit_solution_diagram"
 _TOOL_DESCRIPTION = (
@@ -42,7 +42,7 @@ _TOOL_DESCRIPTION = (
 _INPUT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
-        "explanation": {"type": "string"},
+        "steps": {"type": "array", "items": {"type": "string"}},
         "diagram_needed": {"type": "boolean"},
         "diagram_spec": {"type": ["object", "null"]},
     },
@@ -55,7 +55,7 @@ def _solution_from_question(q: Question) -> Solution:
         diagram_needed=q.solution_diagram_needed,
         diagram_spec=q.solution_diagram_spec,
         answer=q.answer,
-        explanation=q.solution_explanation,
+        steps=q.solution_steps,
         answer_audio_url=q.answer_audio_url,
     )
 
@@ -68,13 +68,13 @@ async def get_or_build_solution(question_id: str) -> Solution | None:
     q = await load_question(question_id)
     if q is None:
         return None
-    # Cache hit only when a prior build ALSO produced the explanation. Nodes
-    # cached before explanations existed (built=true, explanation empty) fall
-    # through and regenerate once, self-healing the stale cache.
-    if q.solution_diagram_built and q.solution_explanation:
+    # Cache hit only when a prior build ALSO produced the steps. Nodes cached
+    # before stepped solutions existed (built=true, no steps) fall through and
+    # regenerate once, self-healing the stale cache.
+    if q.solution_diagram_built and q.solution_steps:
         return _solution_from_question(q)
 
-    explanation, needed, spec = await _call_diagram_llm(
+    steps, needed, spec = await _call_diagram_llm(
         build_solution_user_prompt(
             q_text=q.q_text, answer=q.answer, options=q.options
         ),
@@ -83,11 +83,11 @@ async def get_or_build_solution(question_id: str) -> Solution | None:
 
     if needed is None:
         # Generation errored — serve text-only now, leave UNcached so a later
-        # request retries. The student still gets the answer (+ any explanation).
+        # request retries. The student still gets the answer (+ any steps).
         return Solution(
             diagram_needed=False,
             answer=q.answer,
-            explanation=explanation,
+            steps=steps,
             answer_audio_url=q.answer_audio_url,
         )
 
@@ -96,7 +96,7 @@ async def get_or_build_solution(question_id: str) -> Solution | None:
             question_id,
             diagram_needed=needed,
             diagram_spec=spec,
-            explanation=explanation,
+            steps=steps,
         )
     except Exception:
         logger.warning("solution.cache_write_failed", question_id=question_id)
@@ -105,7 +105,7 @@ async def get_or_build_solution(question_id: str) -> Solution | None:
         diagram_needed=needed,
         diagram_spec=spec if needed else None,
         answer=q.answer,
-        explanation=explanation,
+        steps=steps,
         answer_audio_url=q.answer_audio_url,
     )
 
@@ -119,7 +119,7 @@ async def build_question_visual(q: Question) -> None:
     """
     if q.question_diagram_built:
         return
-    _explanation, needed, spec = await _call_diagram_llm(
+    _steps, needed, spec = await _call_diagram_llm(
         build_question_user_prompt(q_text=q.q_text), question_id=q.question_id
     )
     if needed is None:
@@ -151,10 +151,10 @@ def checkpoint_from_question(q: Question, kind: str) -> CheckpointQuestion:
 
 async def _call_diagram_llm(
     user_prompt: str, *, question_id: str
-) -> tuple[str, bool | None, dict[str, Any] | None]:
-    """One Anthropic CoT call → (explanation, diagram_needed, diagram_spec).
-    `explanation` is "" for question-setup calls (which don't request it).
-    Returns ("", None, None) on any failure so the caller can fall back without
+) -> tuple[list[str], bool | None, dict[str, Any] | None]:
+    """One Anthropic CoT call → (steps, diagram_needed, diagram_spec).
+    `steps` is [] for question-setup calls (which don't request it).
+    Returns ([], None, None) on any failure so the caller can fall back without
     caching."""
     try:
         client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key or "")
@@ -174,7 +174,7 @@ async def _call_diagram_llm(
         )
     except Exception as exc:
         logger.warning("diagram_llm.failed", question_id=question_id, error=str(exc)[:200])
-        return "", None, None
+        return [], None, None
 
     for block in response.content:
         if (
@@ -183,8 +183,13 @@ async def _call_diagram_llm(
         ):
             payload = block.input
             if not isinstance(payload, dict):
-                return "", None, None
-            explanation = str(payload.get("explanation") or "").strip()
+                return [], None, None
+            raw_steps = payload.get("steps")
+            steps = (
+                [str(s).strip() for s in raw_steps if str(s).strip()]
+                if isinstance(raw_steps, list)
+                else []
+            )
             needed = bool(payload.get("diagram_needed"))
             spec = payload.get("diagram_spec") if needed else None
             spec = spec if isinstance(spec, dict) else None
@@ -192,6 +197,6 @@ async def _call_diagram_llm(
             # caching a broken diagram.
             if needed and spec is None:
                 needed = False
-            return explanation, needed, spec
+            return steps, needed, spec
 
-    return "", None, None
+    return [], None, None

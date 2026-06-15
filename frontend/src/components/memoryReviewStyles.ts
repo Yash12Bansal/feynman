@@ -103,6 +103,13 @@ export const EXPLAIN: React.CSSProperties = {
   lineHeight: 1.5,
   color: "rgba(232, 232, 238, 0.78)",
 };
+export const STEP_OL: React.CSSProperties = {
+  margin: "6px 0 0",
+  paddingLeft: 20,
+  display: "flex",
+  flexDirection: "column",
+  gap: 6,
+};
 export const TAG: React.CSSProperties = {
   display: "inline-block",
   marginRight: 8,

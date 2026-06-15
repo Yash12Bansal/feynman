@@ -33,6 +33,7 @@ import {
   OVERLAY,
   SECTION,
   SECTION_LABEL,
+  STEP_OL,
   SUBTLE,
   SUMMARY,
   TAG,
@@ -78,10 +79,16 @@ export function MemoryReviewSections({ card, showChapterTag = false }: SectionsP
                     </ul>
                   </details>
                 )}
-                {a.explanation && (
+                {a.solution_steps && a.solution_steps.length > 0 && (
                   <details style={DISCLOSURE}>
-                    <summary style={SUMMARY}>Why</summary>
-                    <p style={EXPLAIN}>{a.explanation}</p>
+                    <summary style={SUMMARY}>Solution</summary>
+                    <ol style={STEP_OL}>
+                      {a.solution_steps.map((s, i) => (
+                        <li key={i} style={EXPLAIN}>
+                          {s}
+                        </li>
+                      ))}
+                    </ol>
                   </details>
                 )}
               </li>
