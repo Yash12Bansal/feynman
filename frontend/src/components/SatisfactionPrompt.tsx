@@ -94,19 +94,19 @@ const backdropStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "rgba(7,7,13,0.6)",
+  background: "var(--lv-scrim)",
   backdropFilter: "blur(10px) saturate(1.1)",
   WebkitBackdropFilter: "blur(10px) saturate(1.1)",
 };
 
 const cardStyle: React.CSSProperties = {
   background:
-    "radial-gradient(120% 100% at 50% 0%, rgba(127,212,255,0.06), transparent 55%), rgba(11,12,20,0.92)",
+    "radial-gradient(120% 100% at 50% 0%, var(--lv-accent-glow-soft), transparent 55%), var(--lv-panel-strong)",
   borderRadius: 18,
-  border: "1px solid rgba(255, 255, 255, 0.09)",
+  border: "1px solid var(--lv-border)",
   padding: "28px 28px 24px",
   width: "min(440px, 90vw)",
-  boxShadow: "0 30px 80px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)",
+  boxShadow: "var(--lv-shadow), var(--lv-inset)",
   backdropFilter: "blur(20px) saturate(1.2)",
   WebkitBackdropFilter: "blur(20px) saturate(1.2)",
   fontFamily: DISPLAY_FONT,
@@ -115,7 +115,7 @@ const cardStyle: React.CSSProperties = {
 const titleStyle: React.CSSProperties = {
   fontSize: "1.1rem",
   fontWeight: 600,
-  color: "#f4f6fb",
+  color: "var(--lv-ink)",
   margin: "0 0 18px",
   letterSpacing: "-0.005em",
 };
@@ -130,7 +130,7 @@ const buttonBaseStyle: React.CSSProperties = {
   textAlign: "left",
   padding: "14px 18px",
   borderRadius: 12,
-  border: "1px solid rgba(255, 255, 255, 0.08)",
+  border: "1px solid var(--lv-border)",
   cursor: "pointer",
   display: "flex",
   flexDirection: "column",
@@ -141,16 +141,16 @@ const buttonBaseStyle: React.CSSProperties = {
 };
 
 const primaryButtonStyle: React.CSSProperties = {
-  background: "rgba(18,32,48,0.6)",
-  color: "#9fdcff",
-  borderColor: "rgba(127, 212, 255, 0.4)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+  background: "var(--lv-accent-bg)",
+  color: "var(--lv-accent-text)",
+  borderColor: "var(--lv-accent-glow)",
+  boxShadow: "var(--lv-inset)",
 };
 
 const secondaryButtonStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  color: "#f4f6fb",
-  borderColor: "rgba(255, 255, 255, 0.08)",
+  background: "var(--lv-hover)",
+  color: "var(--lv-ink)",
+  borderColor: "var(--lv-border)",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -160,6 +160,6 @@ const labelStyle: React.CSSProperties = {
 
 const descStyle: React.CSSProperties = {
   fontSize: "0.82rem",
-  color: "rgba(244,246,251,0.55)",
+  color: "var(--lv-ink-muted)",
   fontWeight: 400,
 };

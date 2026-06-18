@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FeedbackModal } from "./FeedbackModal";
 import { feedbackSession } from "./feedbackSession";
+import { useTheme } from "../theme/themeContext";
 import { DISPLAY_FONT } from "../styles/fonts";
 
 const KEYFRAMES_ID = "fb-fab-keyframes";
@@ -28,11 +29,19 @@ function ensureKeyframes(): void {
   0%   { box-shadow: 0 0 0 0 rgba(127, 212, 255, 0.55), 0 10px 34px rgba(0, 0, 0, 0.5); }
   70%  { box-shadow: 0 0 0 14px rgba(127, 212, 255, 0), 0 10px 34px rgba(0, 0, 0, 0.5); }
   100% { box-shadow: 0 0 0 0 rgba(127, 212, 255, 0), 0 10px 34px rgba(0, 0, 0, 0.5); }
+}
+@keyframes fb-fab-attention-light {
+  0%   { box-shadow: 0 0 0 0 rgba(39, 64, 221, 0.5), 0 12px 26px -16px rgba(27, 25, 22, 0.45); }
+  70%  { box-shadow: 0 0 0 14px rgba(39, 64, 221, 0), 0 12px 26px -16px rgba(27, 25, 22, 0.45); }
+  100% { box-shadow: 0 0 0 0 rgba(39, 64, 221, 0), 0 12px 26px -16px rgba(27, 25, 22, 0.45); }
 }`;
   document.head.appendChild(el);
 }
 
-export function FeedbackFab() {
+export function FeedbackFab({ inLecture = false }: { inLecture?: boolean }) {
+  const { theme } = useTheme();
+  // Dark pill only inside a dark lecture; light on the home + a light lecture.
+  const useDark = inLecture && theme === "dark";
   const [open, setOpen] = useState(false);
   const [pulsing, setPulsing] = useState(false);
   const openRef = useRef(false);
@@ -76,8 +85,12 @@ export function FeedbackFab() {
         aria-label="Send feedback"
         onClick={onActivate}
         style={{
-          ...fabStyle,
-          ...(pulsing ? { animation: "fb-fab-attention 1.6s ease-out" } : null),
+          ...(useDark ? fabStyle : fabLightStyle),
+          ...(pulsing
+            ? {
+                animation: `${useDark ? "fb-fab-attention" : "fb-fab-attention-light"} 1.6s ease-out`,
+              }
+            : null),
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "translateY(-1px)";
@@ -94,6 +107,7 @@ export function FeedbackFab() {
       {open && (
         <FeedbackModal
           variant="manual"
+          theme={useDark ? "dark" : "light"}
           onClose={() => {
             setOpen(false);
             feedbackSession.markClosed();
@@ -147,6 +161,20 @@ const fabStyle: React.CSSProperties = {
   zIndex: 100,
   boxShadow:
     "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.16)",
+};
+
+// Light variant for the "Living Notebook" home screen (dark fab above is for the
+// lecture board). Mirrors the marketing palette: paper pill, fountain-pen blue.
+const fabLightStyle: React.CSSProperties = {
+  ...fabStyle,
+  border: "1px solid rgba(39, 64, 221, 0.4)",
+  background: "#fffdf8",
+  backdropFilter: "none",
+  WebkitBackdropFilter: "none",
+  color: "#2740dd",
+  fontFamily: "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+  boxShadow:
+    "0 12px 26px -16px rgba(27,25,22,0.45), inset 0 1px 0 rgba(255,255,255,0.9)",
 };
 
 const labelStyle: React.CSSProperties = {

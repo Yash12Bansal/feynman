@@ -1,0 +1,60 @@
+/*
+ * Feedback wizard theme tokens. The wizard's root <div role="dialog"> carries
+ * `.fb-shell` + `data-theme`, and feedbackStyles.ts reads these `--fb-*` vars
+ * (var() in inline styles resolves fine). Dark = the original "deep-space glass"
+ * values (byte-identical to before); light reuses the notebook/lecture palette.
+ * Self-scoped on purpose — the modal renders in varying tree positions, so it
+ * can't rely on inheriting `--lv-*`.
+ */
+
+.fb-shell {
+  /* ── dark (default) ── */
+  --fb-scrim: rgba(7, 7, 13, 0.62);
+  --fb-card-bg: radial-gradient(
+      120% 100% at 50% 0%,
+      rgba(127, 212, 255, 0.05),
+      transparent 55%
+    ),
+    rgba(11, 12, 20, 0.92);
+  --fb-border: rgba(255, 255, 255, 0.1);
+  --fb-shadow: 0 30px 80px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --fb-ink: #f4f6fb;
+  --fb-ink-muted: rgba(244, 246, 251, 0.55);
+  --fb-ink-faint: rgba(244, 246, 251, 0.4);
+  --fb-accent: #7fd4ff;
+  --fb-accent-text: #9fdcff;
+  --fb-accent-bg: rgba(18, 32, 48, 0.6);
+  --fb-accent-border: rgba(127, 212, 255, 0.5);
+  --fb-accent-glow: rgba(127, 212, 255, 0.35);
+  --fb-pill-bg: rgba(255, 255, 255, 0.03);
+  --fb-field-bg: rgba(255, 255, 255, 0.04);
+  --fb-track: rgba(255, 255, 255, 0.1);
+  --fb-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.fb-shell[data-theme="light"] {
+  /* ── light ── */
+  --fb-scrim: rgba(27, 25, 22, 0.28);
+  --fb-card-bg: radial-gradient(
+      120% 100% at 50% 0%,
+      rgba(31, 55, 196, 0.05),
+      transparent 55%
+    ),
+    #fffdf8;
+  --fb-border: rgba(27, 25, 22, 0.12);
+  --fb-shadow: 0 30px 80px -30px rgba(27, 25, 22, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --fb-ink: #1b1916;
+  --fb-ink-muted: rgba(27, 25, 22, 0.6);
+  --fb-ink-faint: rgba(27, 25, 22, 0.4);
+  --fb-accent: #1f37c4;
+  --fb-accent-text: #1f37c4;
+  --fb-accent-bg: rgba(31, 55, 196, 0.08);
+  --fb-accent-border: rgba(31, 55, 196, 0.4);
+  --fb-accent-glow: rgba(31, 55, 196, 0.28);
+  --fb-pill-bg: rgba(27, 25, 22, 0.04);
+  --fb-field-bg: #ffffff;
+  --fb-track: rgba(27, 25, 22, 0.12);
+  --fb-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}

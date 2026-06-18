@@ -1,0 +1,169 @@
+/*
+ * Lecture viewer chrome — themed "room" + floating board slab + control tokens.
+ *
+ * The board (.sb-root) is themed in SplitBoard.css. Here we theme the ROOM
+ * around it and the glassy controls. The control components keep their inline
+ * styles but read these `--lv-*` variables, so a single `data-theme` flip on
+ * `.lv-shell` re-themes everything (and `var()` in inline styles works in every
+ * browser). Dark = refreshed near-black cinema; light = airy paper studio.
+ */
+
+.lv-shell {
+  /* ── dark (default) ── */
+  --lv-room:
+    radial-gradient(120% 120% at 50% 0%, rgba(91, 157, 255, 0.06), transparent 55%),
+    radial-gradient(100% 100% at 50% 100%, rgba(167, 139, 250, 0.05), transparent 60%),
+    radial-gradient(140% 90% at 50% 50%, #0b0c14 0%, #07070d 70%), #07070d;
+  --lv-ink: #f4f6fb;
+  --lv-ink-muted: rgba(244, 246, 251, 0.7);
+  --lv-ink-faint: rgba(244, 246, 251, 0.45);
+  --lv-panel: rgba(16, 18, 26, 0.66);
+  --lv-panel-2: rgba(11, 12, 20, 0.72);
+  --lv-panel-strong: rgba(11, 12, 20, 0.86);
+  --lv-border: rgba(255, 255, 255, 0.08);
+  --lv-border-soft: rgba(255, 255, 255, 0.07);
+  --lv-hover: rgba(255, 255, 255, 0.04);
+  --lv-scrim: rgba(7, 7, 13, 0.45);
+  --lv-accent: #7fd4ff;
+  --lv-accent-2: #6aa8ff;
+  --lv-accent-text: #9fdcff;
+  --lv-accent-bg: rgba(18, 32, 48, 0.6);
+  --lv-accent-glow: rgba(127, 212, 255, 0.4);
+  --lv-accent-glow-soft: rgba(127, 212, 255, 0.16);
+  --lv-danger: #ff9aa6;
+  --lv-danger-bg: rgba(44, 22, 28, 0.6);
+  --lv-danger-border: rgba(255, 122, 138, 0.4);
+  --lv-track: rgba(244, 246, 251, 0.12);
+  --lv-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  --lv-inset: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --lv-slab-radius: 18px;
+  --lv-slab-shadow:
+    0 30px 80px -30px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(127, 212, 255, 0.06);
+  --lv-pad: clamp(0px, 1.6vh, 18px);
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: var(--lv-pad);
+  background: var(--lv-room);
+  color: var(--lv-ink);
+  transition:
+    background 0.45s ease,
+    color 0.45s ease;
+}
+
+.lv-shell[data-theme="light"] {
+  /* ── light ── */
+  --lv-room:
+    radial-gradient(120% 120% at 50% 0%, rgba(31, 55, 196, 0.05), transparent 55%),
+    radial-gradient(100% 100% at 50% 100%, rgba(15, 122, 55, 0.04), transparent 60%),
+    radial-gradient(140% 90% at 50% 50%, #efece3 0%, #e9e5da 75%), #ece8de;
+  --lv-ink: #1b1916;
+  --lv-ink-muted: rgba(27, 25, 22, 0.66);
+  --lv-ink-faint: rgba(27, 25, 22, 0.45);
+  --lv-panel: rgba(255, 253, 248, 0.82);
+  --lv-panel-2: rgba(255, 253, 248, 0.86);
+  --lv-panel-strong: #fffdf8;
+  --lv-border: rgba(27, 25, 22, 0.12);
+  --lv-border-soft: rgba(27, 25, 22, 0.08);
+  --lv-hover: rgba(27, 25, 22, 0.05);
+  --lv-scrim: rgba(27, 25, 22, 0.22);
+  --lv-accent: #1f37c4;
+  --lv-accent-2: #2740dd;
+  --lv-accent-text: #1f37c4;
+  --lv-accent-bg: rgba(31, 55, 196, 0.08);
+  --lv-accent-glow: rgba(31, 55, 196, 0.36);
+  --lv-accent-glow-soft: rgba(31, 55, 196, 0.13);
+  --lv-danger: #b5271a;
+  --lv-danger-bg: rgba(181, 39, 26, 0.08);
+  --lv-danger-border: rgba(181, 39, 26, 0.4);
+  --lv-track: rgba(27, 25, 22, 0.14);
+  --lv-shadow: 0 16px 40px -18px rgba(27, 25, 22, 0.45);
+  --lv-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --lv-slab-shadow:
+    0 34px 80px -30px rgba(27, 25, 22, 0.5), 0 0 0 1px rgba(27, 25, 22, 0.06);
+}
+
+/* The board floats as a slab inside the room. Scoped to the lecture so the
+   standalone preview / doubt-elsewhere uses of SplitBoard are untouched. The
+   flex:1 + height:auto fills the padded area without the height:100%+padding
+   overflow ambiguity. */
+.lv-shell .sb-root {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  border-radius: var(--lv-slab-radius);
+  box-shadow: var(--lv-slab-shadow);
+  transition: box-shadow 0.45s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lv-shell,
+  .lv-shell .sb-root {
+    transition: none;
+  }
+}
+
+/* ── FeynmanPresence (audio-reactive voice aura) ──────────────────────────── */
+.fp-presence {
+  position: fixed;
+  bottom: 44px;
+  left: 100px;
+  z-index: 96;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 15px 7px 12px;
+  border-radius: 999px;
+  background: var(--lv-panel);
+  border: 1px solid var(--lv-border);
+  box-shadow: var(--lv-shadow), var(--lv-inset);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  color: var(--lv-accent);
+  pointer-events: none;
+  user-select: none;
+}
+.fp-presence[data-state="listening"] {
+  color: var(--lv-danger);
+}
+.fp-orb {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+  opacity: 0.8;
+  flex: none;
+}
+.fp-bars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+}
+.fp-bar {
+  width: 3px;
+  height: 22px;
+  border-radius: 3px;
+  background: currentColor;
+  opacity: 0.92;
+  transform: scaleY(0.2);
+  transform-origin: center;
+}
+.fp-label {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lv-ink-faint);
+}
+/* Never crowd the centered scrubber on narrow viewports. */
+@media (max-width: 1100px) {
+  .fp-presence {
+    display: none;
+  }
+}

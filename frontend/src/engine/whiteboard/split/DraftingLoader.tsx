@@ -34,9 +34,9 @@ export function DraftingLoader({
               patternUnits="userSpaceOnUse"
             >
               <path
+                className="sb-loader-grid-line"
                 d="M 20 0 L 0 0 0 20"
                 fill="none"
-                stroke="rgba(127, 212, 255, 0.35)"
                 strokeWidth="0.4"
               />
             </pattern>

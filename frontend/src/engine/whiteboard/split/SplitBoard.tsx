@@ -9,6 +9,7 @@ import "./SplitBoard.css";
 import type { NotebookState, PanelMode, SlideState } from "./types";
 import { SlidePanel } from "./SlidePanel";
 import { Notebook } from "./Notebook";
+import { useTheme } from "../../../theme/themeContext";
 
 interface SplitBoardProps {
   readonly slide: SlideState;
@@ -38,10 +39,11 @@ export function SplitBoard({
   viewport = "responsive",
   interactive,
 }: SplitBoardProps) {
+  const { theme } = useTheme();
   const className =
     viewport === "preview" ? "sb-root sb-root--preview" : "sb-root";
   return (
-    <div className={className} data-mode={mode}>
+    <div className={className} data-mode={mode} data-theme={theme}>
       <SlidePanel state={slide} interactive={interactive} />
       <Notebook state={notebook} title={notebookTitle} />
     </div>

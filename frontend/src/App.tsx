@@ -2,10 +2,22 @@ import { lazy, Suspense } from "react";
 import { LectureHomeScreen } from "./screens/LectureHomeScreen";
 import { AuthProvider } from "./auth/AuthProvider";
 import { AuthGate } from "./auth/AuthGate";
+import { ThemeProvider } from "./theme/ThemeProvider";
+import { MarketingLanding } from "./marketing/MarketingLanding";
 import { AccountChip } from "./auth/AccountChip";
 import { FeedbackFab } from "./feedback/FeedbackFab";
 import { ExitIntentFeedback } from "./feedback/ExitIntentFeedback";
 import { useLectureChapterParam } from "./hooks/useLectureChapterParam";
+import { useTheme } from "./theme/themeContext";
+
+// Spinner keyframe for the lecture-loading fallback (inline styles can't carry
+// @keyframes; inject once — the established pattern in this codebase).
+if (typeof document !== "undefined" && !document.getElementById("lv-load-kf")) {
+  const s = document.createElement("style");
+  s.id = "lv-load-kf";
+  s.textContent = "@keyframes lv-load-spin { to { transform: rotate(360deg); } }";
+  document.head.appendChild(s);
+}
 
 // The immersive lecture experience (ClassroomScreen + the whiteboard engine,
 // LiveKit, katex, charts, gsap, roughjs…) is the bulk of the JS bundle. It is
@@ -19,12 +31,25 @@ const MainApp = lazy(() =>
 export function App() {
   // Gate the entire product behind Google sign-in + profile completion. The
   // feedback surfaces mount inside the gate so only signed-in users see them.
+  //
+  // `?preview=landing` renders the public marketing page standalone (inside the
+  // AuthProvider so its Try-Now sign-in works, but bypassing the gate) — so the
+  // light landing page can be viewed without a live auth session, even when
+  // VITE_AUTH_DISABLED is set or Firebase isn't configured locally.
+  const previewLanding =
+    new URLSearchParams(window.location.search).get("preview") === "landing";
   return (
-    <AuthProvider>
-      <AuthGate>
-        <AppShell />
-      </AuthGate>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        {previewLanding ? (
+          <MarketingLanding />
+        ) : (
+          <AuthGate>
+            <AppShell />
+          </AuthGate>
+        )}
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
@@ -39,7 +64,7 @@ function AppShell() {
     <>
       <MainEntry />
       <AccountChip inLecture={!!lecture} />
-      <FeedbackFab />
+      <FeedbackFab inLecture={!!lecture} />
       <ExitIntentFeedback />
     </>
   );
@@ -61,19 +86,39 @@ function MainEntry() {
 }
 
 function LectureLoading() {
-  // Minimal, theme-neutral placeholder shown for the fraction of a second while
-  // the lecture chunk loads on first open (cached thereafter).
+  // Themed placeholder shown for the fraction of a second while the lecture
+  // chunk loads on first open — matches the lecture "room" so the hand-off is
+  // seamless (renders before `.lv-shell`, so it reads the theme directly).
+  const { theme } = useTheme();
+  const dark = theme === "dark";
   return (
     <div
       style={{
         minHeight: "100vh",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        color: "#888",
-        fontFamily: "system-ui, sans-serif",
+        gap: 16,
+        background: dark ? "#07070d" : "#ece8de",
+        color: dark ? "rgba(244,246,251,0.7)" : "rgba(27,25,22,0.66)",
+        fontFamily: "'Hanken Grotesk', -apple-system, system-ui, sans-serif",
+        fontSize: "0.82rem",
+        letterSpacing: "0.14em",
+        textTransform: "uppercase",
       }}
     >
+      <span
+        aria-hidden
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: "50%",
+          border: `2px solid ${dark ? "rgba(127,212,255,0.18)" : "rgba(31,55,196,0.16)"}`,
+          borderTopColor: dark ? "#7fd4ff" : "#1f37c4",
+          animation: "lv-load-spin 0.8s linear infinite",
+        }}
+      />
       Loading…
     </div>
   );

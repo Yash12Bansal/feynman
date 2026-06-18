@@ -130,7 +130,7 @@ def _attach_transcript(
     """
     if not texts_by_topic:
         return events
-    current_topic: str | None = None
+    current_topic: str | None = None 
     text_idx = 0
     out: list[dict] = []
     for ev in events:

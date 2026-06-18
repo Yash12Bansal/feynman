@@ -18,6 +18,9 @@ import type {
   DesignDiagramGraph,
 } from "../../../types/visuals";
 import { compile, resolveCoord } from "../../expr/evaluate";
+import { mapColor } from "../colorRemap";
+import { useTheme } from "../../../theme/themeContext";
+import type { Theme } from "../../../theme/themeContext";
 
 // Coordinate expressions are resolved by the shared, sandboxed evaluator in
 // `engine/expr/evaluate` (memoized expr-eval). `resolveCoord(val, params)` is
@@ -272,6 +275,7 @@ function renderSvgElement(
   params: Record<string, number>,
   focusIds?: ReadonlySet<string> | null,
   revealedElementIds?: ReadonlySet<string> | null,
+  theme: Theme = "dark",
 ): React.ReactNode {
   try {
     // Staged reveal (Workstream B): when a revealed-set is present, leaf
@@ -298,7 +302,7 @@ function renderSvgElement(
       : "";
     const focusStyle: React.CSSProperties = focused
       ? ({
-          ["--dd-focus-color" as string]: pickFocusColor(el),
+          ["--dd-focus-color" as string]: pickFocusColor(el, theme),
         } as React.CSSProperties)
       : {};
     const groupFocusAttr = focused
@@ -336,7 +340,7 @@ function renderSvgElement(
             y1={y1}
             x2={x2}
             y2={y2}
-            stroke={el.stroke ?? "var(--sb-ink, #222)"}
+            stroke={mapColor(el.stroke, theme) ?? "var(--sb-ink, #222)"}
             strokeWidth={el.strokeWidth ?? 2}
             strokeDasharray={el.strokeDasharray || undefined}
             {...strokeAttr}
@@ -357,8 +361,8 @@ function renderSvgElement(
             y={y}
             width={w}
             height={h}
-            fill={el.fill ?? "none"}
-            stroke={el.stroke ?? "var(--sb-ink, #222)"}
+            fill={mapColor(el.fill, theme, "fill") ?? "none"}
+            stroke={mapColor(el.stroke, theme) ?? "var(--sb-ink, #222)"}
             strokeWidth={el.strokeWidth ?? 2}
             rx={rx}
             {...strokeAttr}
@@ -376,8 +380,8 @@ function renderSvgElement(
             cx={cx}
             cy={cy}
             r={r}
-            stroke={el.stroke ?? "var(--sb-ink, #222)"}
-            fill={el.fill ?? "none"}
+            stroke={mapColor(el.stroke, theme) ?? "var(--sb-ink, #222)"}
+            fill={mapColor(el.fill, theme, "fill") ?? "none"}
             strokeWidth={el.strokeWidth ?? 2}
             strokeDasharray={el.strokeDasharray || undefined}
             {...strokeAttr}
@@ -397,8 +401,8 @@ function renderSvgElement(
             cy={cy}
             rx={rx}
             ry={ry}
-            stroke={el.stroke ?? "var(--sb-ink, #222)"}
-            fill={el.fill ?? "none"}
+            stroke={mapColor(el.stroke, theme) ?? "var(--sb-ink, #222)"}
+            fill={mapColor(el.fill, theme, "fill") ?? "none"}
             strokeWidth={el.strokeWidth ?? 2}
             {...strokeAttr}
             {...dataAttr}
@@ -410,9 +414,9 @@ function renderSvgElement(
           <path
             key={idx}
             d={el.d ?? ""}
-            stroke={el.stroke ?? "var(--sb-ink, #222)"}
+            stroke={mapColor(el.stroke, theme) ?? "var(--sb-ink, #222)"}
             strokeWidth={el.strokeWidth ?? 2}
-            fill={el.fill ?? "none"}
+            fill={mapColor(el.fill, theme, "fill") ?? "none"}
             strokeDasharray={el.strokeDasharray || undefined}
             {...strokeAttr}
             {...dataAttr}
@@ -434,7 +438,7 @@ function renderSvgElement(
             x={x}
             y={y}
             fontSize={el.fontSize ?? 14}
-            fill={el.fill ?? "var(--sb-ink, #222)"}
+            fill={mapColor(el.fill, theme, "text") ?? "var(--sb-ink, #222)"}
             textAnchor={anchor}
             dominantBaseline={baseline}
             fontWeight={el.fontWeight ?? "normal"}
@@ -458,9 +462,9 @@ function renderSvgElement(
           <path
             key={idx}
             d={d}
-            stroke={el.stroke ?? "var(--sb-ink, #222)"}
+            stroke={mapColor(el.stroke, theme) ?? "var(--sb-ink, #222)"}
             strokeWidth={el.strokeWidth ?? 2}
-            fill={el.fill ?? "none"}
+            fill={mapColor(el.fill, theme, "fill") ?? "none"}
             strokeDasharray={el.strokeDasharray || undefined}
             {...strokeAttr}
             {...dataAttr}
@@ -476,7 +480,14 @@ function renderSvgElement(
             {...dataAttr}
           >
             {(el.elements ?? []).map((child, ci) =>
-              renderSvgElement(child, ci, params, focusIds, revealedElementIds),
+              renderSvgElement(
+                child,
+                ci,
+                params,
+                focusIds,
+                revealedElementIds,
+                theme,
+              ),
             )}
           </g>
         );
@@ -488,7 +499,7 @@ function renderSvgElement(
         const y1 = resolveCoord(el.y1, params);
         const x2 = resolveCoord(el.x2, params);
         const y2 = resolveCoord(el.y2, params);
-        const color = el.stroke ?? "var(--sb-ink, #222)";
+        const color = mapColor(el.stroke, theme) ?? "var(--sb-ink, #222)";
         const markerId = `da-arrow-${idx}`;
         return (
           <g key={idx} {...groupFocusAttr} {...dataAttr}>
@@ -586,7 +597,7 @@ function renderSvgElement(
             el={el}
             params={params}
             focused={focused}
-            focusColor={focused ? pickFocusColor(el) : undefined}
+            focusColor={focused ? pickFocusColor(el, theme) : undefined}
             revealedElementIds={revealedElementIds}
           />
         );
@@ -609,6 +620,7 @@ function LatexOverlay({
   order,
   focused,
   revealedElementIds,
+  theme = "dark",
 }: {
   el: DesignDiagramElement & { type: "svg_latex" };
   params: Record<string, number>;
@@ -617,6 +629,7 @@ function LatexOverlay({
   order: number;
   focused?: boolean;
   revealedElementIds?: ReadonlySet<string> | null;
+  theme?: Theme;
 }) {
   const x = resolveCoord(el.x, params);
   const y = resolveCoord(el.y, params);
@@ -663,7 +676,7 @@ function LatexOverlay({
           left: leftPct,
           top: topPct,
           fontSize: el.fontSize ?? 16,
-          color: el.color ?? "var(--sb-ink, #222)",
+          color: mapColor(el.color, theme, "text") ?? "var(--sb-ink, #222)",
           pointerEvents: "none",
           whiteSpace: "nowrap",
           ["--sb-stroke-order" as string]: order,
@@ -698,13 +711,13 @@ const SCALE_SAFE_TYPES = new Set([
   "svg_arc",
 ]);
 
-function pickFocusColor(el: DesignDiagramElement): string {
+function pickFocusColor(el: DesignDiagramElement, theme: Theme = "dark"): string {
   const stroke = (el as { stroke?: string }).stroke;
-  if (stroke && stroke !== "none") return stroke;
+  if (stroke && stroke !== "none") return mapColor(stroke, theme) ?? stroke;
   const fill = (el as { fill?: string }).fill;
-  if (fill && fill !== "none") return fill;
+  if (fill && fill !== "none") return mapColor(fill, theme, "fill") ?? fill;
   const color = (el as { color?: string }).color;
-  if (color) return color;
+  if (color) return mapColor(color, theme) ?? color;
   return "var(--sb-neon, #7fd4ff)";
 }
 
@@ -744,6 +757,7 @@ export function DesignDiagramContent({
    */
   paramOverrides?: Readonly<Record<string, number>>;
 }) {
+  const { theme } = useTheme();
   const spec: DesignDiagramSpec = instruction.spec ?? {};
   const elements = spec.elements ?? [];
   const width = spec.width ?? 900;
@@ -921,7 +935,14 @@ export function DesignDiagramContent({
           }}
         >
           {elements.map((el, i) =>
-            renderSvgElement(el, i, effectiveParams, focusIds, revealedElementIds),
+            renderSvgElement(
+              el,
+              i,
+              effectiveParams,
+              focusIds,
+              revealedElementIds,
+              theme,
+            ),
           )}
         </svg>
 
@@ -936,6 +957,7 @@ export function DesignDiagramContent({
             order={elements.length + i}
             focused={!!el.id && focusIds.has(el.id)}
             revealedElementIds={revealedElementIds}
+            theme={theme}
           />
         ))}
       </div>

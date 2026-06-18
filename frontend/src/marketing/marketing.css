@@ -1,0 +1,994 @@
+/*
+ * Feynman — marketing landing page ("The Living Notebook").
+ *
+ * The product is a teacher who DRAWS on a board in real time as it explains.
+ * So the page itself behaves like that board: it is a warm sheet of paper, and
+ * as you scroll, ink draws itself — diagrams assemble stroke-by-stroke,
+ * equations write themselves left-to-right, key phrases get a highlighter
+ * swipe, a hand circles a word, the doubt-branch draws and merges back.
+ *
+ * Everything is scoped under `.fey-mkt` so it cannot leak into the dark product
+ * UI (which keeps its own Space Grotesk / deep-space-glass identity). Keyframes
+ * are prefixed `mkt-`. This light theme is intentional and lives ONLY here.
+ */
+
+.fey-mkt {
+  /* Colour + font tokens come from the shared `.notebook` theme
+     (styles/notebook-theme.css) — this root carries both classes. */
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.fey-mkt *,
+.fey-mkt *::before,
+.fey-mkt *::after {
+  box-sizing: border-box;
+}
+
+/* ── Atmosphere: paper grain + a faint engineering grid behind the hero ───── */
+
+.fey-mkt__grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+}
+
+.fey-mkt__content {
+  position: relative;
+  z-index: 1;
+}
+
+.fey-mkt__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 72%);
+}
+
+/* ── Layout shell ─────────────────────────────────────────────────────────── */
+
+.fey-mkt__wrap {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.fey-mkt section {
+  position: relative;
+}
+
+/* ── Top nav (sticky) ─────────────────────────────────────────────────────── */
+
+.fey-mkt__nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(10px) saturate(1.1);
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  background: rgba(250, 246, 238, 0.74);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.fey-mkt__nav.is-stuck {
+  border-bottom-color: var(--line);
+  background: rgba(250, 246, 238, 0.86);
+}
+.fey-mkt__nav-inner {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.fey-mkt__brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.42rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+  position: relative;
+}
+.fey-mkt__brand .dot {
+  color: var(--blue);
+}
+.fey-mkt__brand-underline {
+  position: absolute;
+  left: 0;
+  right: 8px;
+  bottom: -5px;
+  height: 7px;
+  overflow: visible;
+}
+.fey-mkt__nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.fey-mkt__nav-link {
+  font-size: 0.93rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.2s ease;
+}
+.fey-mkt__nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -3px;
+  height: 2px;
+  background: var(--blue);
+  border-radius: 2px;
+  transition: right 0.28s cubic-bezier(0.5, 0.05, 0.2, 1);
+}
+.fey-mkt__nav-link:hover {
+  color: var(--ink);
+}
+.fey-mkt__nav-link:hover::after {
+  right: 0;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+
+.fey-mkt__btn {
+  font-family: var(--body);
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: 12px;
+  padding: 12px 22px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  transition: transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.24s ease, background 0.2s ease;
+  white-space: nowrap;
+}
+.fey-mkt__btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+.fey-mkt__btn--primary {
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 10px 24px -10px rgba(39, 64, 221, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.fey-mkt__btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px -12px rgba(39, 64, 221, 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  background: var(--blue-deep);
+}
+.fey-mkt__btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+.fey-mkt__btn--ghost:hover {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+.fey-mkt__btn--lg {
+  font-size: 1.04rem;
+  padding: 15px 30px;
+  border-radius: 14px;
+}
+.fey-mkt__btn .arrow {
+  transition: transform 0.24s cubic-bezier(0.5, 0.05, 0.2, 1);
+}
+.fey-mkt__btn:hover .arrow {
+  transform: translateX(4px);
+}
+.fey-mkt__btn .spark {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.8);
+  animation: mkt-pulse 2.4s ease-in-out infinite;
+}
+
+/* ── Typography helpers ───────────────────────────────────────────────────── */
+
+.fey-mkt .eyebrow {
+  font-family: var(--body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.fey-mkt .eyebrow .tick {
+  width: 22px;
+  height: 1.5px;
+  background: var(--ink-faint);
+  display: inline-block;
+}
+
+.fey-mkt h1,
+.fey-mkt h2,
+.fey-mkt h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.04;
+  color: var(--ink);
+  font-optical-sizing: auto;
+}
+.fey-mkt h1 {
+  font-size: clamp(2.6rem, 6.4vw, 5rem);
+  font-weight: 560;
+}
+.fey-mkt h2 {
+  font-size: clamp(2rem, 4.4vw, 3.3rem);
+}
+.fey-mkt h3 {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  letter-spacing: -0.015em;
+}
+.fey-mkt .lede {
+  font-size: clamp(1.05rem, 1.7vw, 1.28rem);
+  line-height: 1.62;
+  color: var(--ink-soft);
+  max-width: 36ch;
+}
+
+/* a phrase the teacher highlights with a marker */
+.fey-mkt .hl {
+  position: relative;
+  white-space: nowrap;
+}
+.fey-mkt .hl::before {
+  content: "";
+  position: absolute;
+  left: -0.12em;
+  right: -0.12em;
+  top: 16%;
+  bottom: 4%;
+  background: var(--hi);
+  border-radius: 4px 11px 5px 10px;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  rotate: -0.7deg;
+  mix-blend-mode: multiply;
+  z-index: 0;
+  transition: transform 0.78s cubic-bezier(0.6, 0.05, 0.2, 1) 0.2s;
+}
+.fey-mkt .reveal.is-visible .hl::before {
+  transform: scaleX(1);
+}
+
+/* a word the teacher circles by hand */
+.fey-mkt .circled {
+  position: relative;
+  white-space: nowrap;
+  color: var(--blue);
+}
+.fey-mkt .circled svg {
+  position: absolute;
+  left: -14%;
+  top: -26%;
+  width: 128%;
+  height: 152%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* handwritten margin note, in the teacher's pen */
+.fey-mkt .hand {
+  font-family: var(--hand);
+  font-weight: 600;
+  color: var(--coral);
+  font-size: 1.32rem;
+  line-height: 1.05;
+  transform: rotate(-3deg);
+}
+
+/* ── Reveal-on-scroll ─────────────────────────────────────────────────────── */
+
+.fey-mkt .reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+.fey-mkt .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* a stroke of ink that draws itself; JS sets dasharray/offset from path length */
+.fey-mkt .pen {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke-dashoffset 1.35s cubic-bezier(0.62, 0.04, 0.2, 1);
+}
+
+/* SVG ink colours + faces as classes — `var()` does NOT resolve inside SVG
+   presentation attributes in Safari, but it does in these CSS rules. */
+.fey-mkt .s-ink { stroke: var(--ink); }
+.fey-mkt .s-soft { stroke: var(--ink-soft); }
+.fey-mkt .s-blue { stroke: var(--blue); }
+.fey-mkt .s-coral { stroke: var(--coral); }
+.fey-mkt .f-blue { fill: var(--blue); }
+.fey-mkt .f-coral { fill: var(--coral); }
+.fey-mkt .f-soft { fill: var(--ink-soft); }
+.fey-mkt .t-hand { font-family: var(--hand); }
+.fey-mkt .t-body { font-family: var(--body); }
+
+/* an equation that writes itself left → right */
+.fey-mkt .wipe {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.05s cubic-bezier(0.62, 0.04, 0.2, 1) 0.35s;
+}
+.fey-mkt .reveal.is-visible .wipe {
+  clip-path: inset(0 0 0 0);
+}
+
+/* SVG labels fade in (after their stroke draws), per-element delay inline */
+.fey-mkt .lbl {
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+.fey-mkt .reveal.is-visible .lbl {
+  opacity: 1;
+}
+
+/* a dashed construction/guide line that stays dashed (not a self-drawing pen) */
+.fey-mkt .guide {
+  fill: none;
+  stroke-dasharray: 5 5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.5s;
+}
+.fey-mkt .reveal.is-visible .guide {
+  opacity: 1;
+}
+
+/* the handwritten equation strip beneath a board diagram */
+.fey-mkt .mkt-eq {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.18rem;
+  color: var(--ink);
+  margin-top: 14px;
+}
+.fey-mkt .mkt-eq .frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+  font-size: 0.84em;
+  vertical-align: middle;
+}
+.fey-mkt .mkt-eq .frac .den {
+  border-top: 1.5px solid var(--ink);
+  padding-top: 1px;
+}
+.fey-mkt .mkt-eq .frac .num {
+  padding-bottom: 1px;
+}
+.fey-mkt .mkt-eq .var {
+  color: var(--blue);
+}
+.fey-mkt .mkt-eq .caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  background: var(--blue);
+  margin-left: 2px;
+  animation: mkt-caret 1.05s step-end infinite;
+}
+
+/* a handwritten note pinned over a board, with the teacher's pen */
+.fey-mkt .note {
+  position: absolute;
+  font-family: var(--hand);
+  font-weight: 600;
+  color: var(--coral);
+  font-size: 1.28rem;
+  line-height: 1.05;
+  pointer-events: none;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+
+.fey-mkt__hero {
+  padding: clamp(48px, 8vh, 96px) 0 clamp(56px, 9vh, 110px);
+}
+.fey-mkt__hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(28px, 4vw, 64px);
+  align-items: center;
+}
+.fey-mkt__hero h1 {
+  margin: 22px 0 0;
+}
+.fey-mkt__hero .lede {
+  margin-top: 26px;
+  max-width: 42ch;
+}
+.fey-mkt__hero-cta {
+  margin-top: 34px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.fey-mkt__hero-note {
+  margin-top: 18px;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* the live board panel that draws itself */
+.fey-mkt__board {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 20px 22px 18px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 30px 60px -34px rgba(27, 25, 22, 0.4),
+    0 4px 14px -8px rgba(27, 25, 22, 0.18);
+  transform: rotate(0.5deg);
+}
+.fey-mkt__board::after {
+  /* a strip of tape, top-left, pinning the sheet to the wall */
+  content: "";
+  position: absolute;
+  top: -13px;
+  left: 34px;
+  width: 86px;
+  height: 26px;
+  background: rgba(255, 226, 79, 0.55);
+  border: 1px solid rgba(27, 25, 22, 0.06);
+  rotate: -5deg;
+  border-radius: 2px;
+  box-shadow: 0 4px 10px -6px rgba(27, 25, 22, 0.4);
+}
+.fey-mkt__board-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.fey-mkt__board-title {
+  font-family: var(--hand);
+  font-size: 1.3rem;
+  color: var(--ink-soft);
+}
+.fey-mkt__board svg.board-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* live voice indicator: a row of bars + a breathing dot */
+.fey-mkt__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.fey-mkt__live .live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--coral);
+  box-shadow: 0 0 0 0 rgba(226, 86, 59, 0.6);
+  animation: mkt-pulse 1.9s ease-in-out infinite;
+}
+.fey-mkt__wave {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 16px;
+}
+.fey-mkt__wave i {
+  width: 2.5px;
+  border-radius: 2px;
+  background: var(--blue);
+  height: 30%;
+  animation: mkt-wave 1.1s ease-in-out infinite;
+  animation-delay: calc(var(--d, 0) * 1ms);
+}
+
+/* ── Generic section rhythm ───────────────────────────────────────────────── */
+
+.fey-mkt__section {
+  padding: clamp(60px, 11vh, 130px) 0;
+}
+.fey-mkt__section--alt {
+  background: linear-gradient(180deg, transparent, var(--paper-deep) 22%, var(--paper-deep) 78%, transparent);
+}
+.fey-mkt__head {
+  max-width: 60ch;
+}
+.fey-mkt__head .eyebrow {
+  margin-bottom: 18px;
+}
+.fey-mkt__head .lede {
+  margin-top: 20px;
+  max-width: 54ch;
+}
+
+/* ── The Feynman loop (3 beats + branch graphic) ──────────────────────────── */
+
+.fey-mkt__loop {
+  margin-top: 54px;
+  display: grid;
+  gap: 26px;
+}
+.fey-mkt__branch {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.fey-mkt__beats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 8px;
+}
+.fey-mkt__beat {
+  padding-top: 22px;
+  border-top: 2px solid var(--ink);
+}
+.fey-mkt__beat .num {
+  font-family: var(--display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: 0.04em;
+}
+.fey-mkt__beat h3 {
+  margin: 8px 0 8px;
+}
+.fey-mkt__beat p {
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+}
+
+/* ── The living board showcase ────────────────────────────────────────────── */
+
+.fey-mkt__show {
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: clamp(30px, 5vw, 72px);
+  align-items: center;
+  margin-top: 50px;
+}
+.fey-mkt__capabilities {
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.fey-mkt__capabilities li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.fey-mkt__capabilities li:first-child {
+  border-top: 1px solid var(--line-soft);
+}
+.fey-mkt__capabilities .ic {
+  flex: none;
+  margin-top: 1px;
+  color: var(--blue);
+}
+.fey-mkt__capabilities b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.fey-mkt__capabilities span {
+  color: var(--ink-soft);
+}
+
+/* ── Parent / trust beat ──────────────────────────────────────────────────── */
+
+.fey-mkt__trust-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: clamp(28px, 5vw, 64px);
+  align-items: center;
+  margin-top: 18px;
+}
+.fey-mkt__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 30px;
+}
+.fey-mkt__chip {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.fey-mkt__chip .d {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+.fey-mkt__quote {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  line-height: 1.32;
+  color: var(--ink);
+  position: relative;
+  padding-left: 26px;
+}
+.fey-mkt__quote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 4px;
+  background: var(--blue);
+}
+
+/* ── Pricing ──────────────────────────────────────────────────────────────── */
+
+.fey-mkt__price {
+  margin-top: 46px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: clamp(28px, 4vw, 46px);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 30px;
+  align-items: center;
+  box-shadow: 0 30px 60px -40px rgba(27, 25, 22, 0.42);
+}
+.fey-mkt__price .amount {
+  font-family: var(--display);
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.fey-mkt__price .amount sub {
+  font-family: var(--body);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ink-faint);
+  letter-spacing: 0;
+  vertical-align: baseline;
+}
+.fey-mkt__price .plist {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+}
+.fey-mkt__price .plist li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--ink-soft);
+  font-size: 0.96rem;
+}
+.fey-mkt__price .plist .ic {
+  color: var(--blue);
+  flex: none;
+}
+
+/* ── Final CTA ────────────────────────────────────────────────────────────── */
+
+.fey-mkt__final {
+  text-align: center;
+  padding: clamp(72px, 13vh, 150px) 0;
+}
+.fey-mkt__final h2 {
+  max-width: 18ch;
+  margin: 0 auto;
+}
+.fey-mkt__final .lede {
+  margin: 22px auto 36px;
+  max-width: 46ch;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+
+.fey-mkt__footer {
+  border-top: 1px solid var(--line);
+  padding: 34px 0 48px;
+}
+.fey-mkt__footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  color: var(--ink-faint);
+  font-size: 0.88rem;
+}
+.fey-mkt__footer .made {
+  font-family: var(--hand);
+  font-size: 1.18rem;
+  color: var(--ink-soft);
+}
+
+/* ── Try Now modal ────────────────────────────────────────────────────────── */
+
+.fey-mkt-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(27, 25, 22, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: mkt-fade 0.26s ease both;
+  font-family: var(--body);
+}
+.fey-mkt-modal__card {
+  position: relative;
+  width: min(424px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 38px 34px 30px;
+  text-align: center;
+  box-shadow: 0 40px 90px -30px rgba(27, 25, 22, 0.6);
+  animation: mkt-pop 0.34s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+.fey-mkt-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 1.05rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.fey-mkt-modal__close:hover {
+  background: var(--paper-deep);
+  color: var(--ink);
+}
+.fey-mkt-modal__mark {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 18px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--blue), var(--blue-deep));
+  box-shadow: 0 14px 30px -12px rgba(39, 64, 221, 0.7);
+}
+.fey-mkt-modal__card h2 {
+  font-size: 1.55rem;
+  margin: 0 0 8px;
+}
+.fey-mkt-modal__card p {
+  color: var(--ink-soft);
+  font-size: 0.96rem;
+  margin: 0 0 26px;
+  line-height: 1.5;
+}
+.fey-mkt-modal__google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: #1f2227;
+  font-family: var(--body);
+  font-size: 0.97rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 24px -14px rgba(27, 25, 22, 0.5);
+  transition: transform 0.16s ease, box-shadow 0.22s ease, border-color 0.2s ease;
+}
+.fey-mkt-modal__google:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(39, 64, 221, 0.4);
+  box-shadow: 0 16px 30px -14px rgba(27, 25, 22, 0.5);
+}
+.fey-mkt-modal__google:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+.fey-mkt-modal__err {
+  margin: 16px 0 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(226, 86, 59, 0.08);
+  border: 1px solid rgba(226, 86, 59, 0.22);
+  color: #b23a23;
+  font-size: 0.85rem;
+}
+.fey-mkt-modal__fine {
+  margin: 22px 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  line-height: 1.5;
+}
+.fey-mkt__spin {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(31, 34, 39, 0.22);
+  border-top-color: #1f2227;
+  animation: mkt-spin 0.8s linear infinite;
+}
+
+/* ── Keyframes ────────────────────────────────────────────────────────────── */
+
+/* mkt-pulse / mkt-spin / mkt-caret live in the shared notebook-theme.css */
+@keyframes mkt-wave {
+  0%, 100% {
+    height: 26%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+@keyframes mkt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes mkt-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 920px) {
+  .fey-mkt__hero-grid,
+  .fey-mkt__show,
+  .fey-mkt__trust-grid {
+    grid-template-columns: 1fr;
+  }
+  .fey-mkt__board {
+    order: -1;
+    max-width: 480px;
+  }
+  .fey-mkt__show .fey-mkt__board {
+    order: 0;
+  }
+  .fey-mkt__beats {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .fey-mkt__beat {
+    padding: 22px 0;
+  }
+  .fey-mkt__price {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+}
+@media (max-width: 560px) {
+  .fey-mkt__nav-links .fey-mkt__nav-link {
+    display: none;
+  }
+  .fey-mkt__wrap {
+    padding: 0 20px;
+  }
+  .fey-mkt__nav-inner {
+    padding: 14px 20px;
+  }
+}
+
+/* ── Reduced motion: everything resolves to its final state, no drawing ───── */
+
+@media (prefers-reduced-motion: reduce) {
+  .fey-mkt,
+  .fey-mkt * {
+    scroll-behavior: auto !important;
+  }
+  .fey-mkt .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .fey-mkt .pen {
+    transition: none !important;
+  }
+  .fey-mkt .wipe {
+    clip-path: none !important;
+    transition: none !important;
+  }
+  .fey-mkt .hl::before {
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+  .fey-mkt .live-dot,
+  .fey-mkt__wave i,
+  .fey-mkt__btn .spark {
+    animation: none !important;
+  }
+}

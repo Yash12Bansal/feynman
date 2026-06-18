@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 import { config } from "../lib/config";
 import { AuroraBackground } from "./AuroraBackground";
 import { useAuth } from "./authContext";
-import { SignInScreen } from "./SignInScreen";
+import { MarketingLanding } from "../marketing/MarketingLanding";
 import { ProfileSetupScreen } from "./ProfileSetupScreen";
 import { DISPLAY_FONT } from "../styles/fonts";
 
@@ -23,7 +23,9 @@ export function AuthGate({ children }: { readonly children: ReactNode }) {
 
   if (!configured) return <NotConfiguredNotice />;
   if (initializing) return <AuthSplash />;
-  if (!user) return <SignInScreen />;
+  // Logged-out visitors land on the public marketing page; its "Try now" CTAs
+  // open the Google sign-in popup, after which the gate advances past `!user`.
+  if (!user) return <MarketingLanding />;
   // A signed-in user's profile is still loading — wait on the splash rather than
   // flashing the setup form at a returning user whose profile just hasn't
   // arrived yet.

@@ -25,6 +25,9 @@
   /* Stroke-reveal stagger cap — a 40-element diagram shouldn't take 7s
      to come alive. Per-element delay = min(idx * 180ms, this cap). */
   --sb-stroke-max-delay: 3600ms;
+  /* Drafting-loader glow + grid (theme-aware so the loader reads on light). */
+  --sb-glow: rgba(127, 212, 255, 0.6);
+  --sb-grid: rgba(127, 212, 255, 0.35);
 }
 
 .sb-root {
@@ -44,6 +47,53 @@
   --sb-slide-frac: 0.38;
   --sb-notebook-frac: 0.62;
   --sb-divider: rgba(127, 212, 255, 0.1);
+}
+
+/* ── Light theme ─────────────────────────────────────────────────
+   The board is authored dark; diagram element colours are remapped at render
+   time (colorRemap.ts). Here we flip the surfaces + the --sb-* ink/accent
+   tokens so board chrome, text and KaTeX (which all read these variables)
+   follow. No [data-theme] / data-theme="dark" → the dark defaults above stand
+   (byte-identical to today). */
+.sb-root[data-theme="light"] {
+  --sb-ink: #1b1916;
+  --sb-ink-muted: rgba(27, 25, 22, 0.62);
+  --sb-ink-faint: rgba(27, 25, 22, 0.34);
+  --sb-neon: #1f37c4;
+  --sb-neon-dim: rgba(31, 55, 196, 0.22);
+  --sb-answer: #0f7a37;
+  --sb-danger: #b5271a;
+  --sb-divider: rgba(27, 25, 22, 0.1);
+  --sb-glow: rgba(31, 55, 196, 0.42);
+  --sb-grid: rgba(31, 55, 196, 0.28);
+  background: #f6f4ee;
+  color: #1b1916;
+}
+.sb-root[data-theme="light"] .sb-slide {
+  background:
+    radial-gradient(
+      ellipse at 50% 36%,
+      rgba(39, 64, 221, 0.05),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(21, 128, 61, 0.035),
+      transparent 70%
+    ),
+    #f2efe6;
+}
+.sb-root[data-theme="light"] .sb-notebook {
+  background: #fbfaf6;
+}
+.sb-root[data-theme="light"] .sb-notebook::before {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 47px,
+    rgba(27, 25, 22, 0.05) 47px,
+    rgba(27, 25, 22, 0.05) 48px
+  );
 }
 
 /* Phase 3 preview mode — pins SplitBoard to fixed dimensions matching the
@@ -303,6 +353,12 @@
   animation: sb-loader-grid-fade 0.6s ease forwards;
 }
 
+/* Grid stroke set via CSS (not an SVG presentation attr) so it's theme-aware
+   — var() doesn't resolve inside SVG `stroke="…"` attributes in Safari. */
+.sb-loader-grid-line {
+  stroke: var(--sb-grid);
+}
+
 @keyframes sb-loader-grid-fade {
   to {
     opacity: 0.3;
@@ -317,7 +373,7 @@
   stroke-dasharray: 360;
   stroke-dashoffset: 360;
   animation: sb-loader-line-draw 2s cubic-bezier(0.45, 0, 0.2, 1) infinite;
-  filter: drop-shadow(0 0 4px rgba(127, 212, 255, 0.55));
+  filter: drop-shadow(0 0 4px var(--sb-glow));
 }
 
 .sb-loader-line-1 {
@@ -363,7 +419,7 @@
   stroke-dashoffset: 220;
   animation: sb-loader-arc-draw 2s cubic-bezier(0.45, 0, 0.2, 1) infinite;
   animation-delay: 0.4s;
-  filter: drop-shadow(0 0 4px rgba(127, 212, 255, 0.55));
+  filter: drop-shadow(0 0 4px var(--sb-glow));
 }
 
 @keyframes sb-loader-arc-draw {
@@ -425,7 +481,7 @@
   opacity: 0;
   animation: sb-loader-center-pulse 2s ease-in-out infinite;
   animation-delay: 0.6s;
-  filter: drop-shadow(0 0 8px rgba(127, 212, 255, 0.7));
+  filter: drop-shadow(0 0 8px var(--sb-glow));
 }
 
 @keyframes sb-loader-center-pulse {

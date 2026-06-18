@@ -1,0 +1,71 @@
+/*
+ * "Living Notebook" — shared light design system.
+ *
+ * Single source of truth for the light theme used by the public marketing
+ * landing page AND the post-sign-in chapter picker (and any future pre-lesson
+ * surface). Both roots carry the `.notebook` class to pick up these tokens.
+ *
+ * This file holds ONLY surface-agnostic things: colour/font tokens, the paper
+ * grain, and broadly-useful keyframes. Per-surface layout lives in that
+ * surface's own stylesheet (marketing.css, lecture-home.css). Scoped to
+ * `.notebook` so it can never leak into the dark product UI / teaching board.
+ */
+
+.notebook {
+  /* warm paper + fountain-pen ink + a single highlighter accent */
+  --paper: #faf6ee;
+  --paper-deep: #f1ead9;
+  --panel: #fffdf8;
+  --ink: #1b1916;
+  --ink-soft: #565049;
+  --ink-faint: #938b7c;
+  --blue: #2740dd;
+  --blue-deep: #1b2ca6;
+  --hi: #ffe24f;
+  --coral: #e2563b;
+  --line: rgba(27, 25, 22, 0.12);
+  --line-soft: rgba(27, 25, 22, 0.07);
+
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+  --hand: "Caveat", "Segoe Script", cursive;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Paper grain — a fixed, low-opacity fractal-noise overlay multiplied over the
+   warm paper for tactile depth. Drop into any `.notebook` surface. */
+.notebook .nb-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+}
+
+/* ── Shared keyframes (global names; defined once here) ────────────────────── */
+
+@keyframes mkt-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(226, 86, 59, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(226, 86, 59, 0);
+  }
+}
+@keyframes mkt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes mkt-caret {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}

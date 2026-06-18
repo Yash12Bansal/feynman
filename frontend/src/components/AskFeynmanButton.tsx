@@ -81,13 +81,13 @@ export function AskFeynmanButton({
         if (state !== "idle") return;
         e.currentTarget.style.transform = "translateY(-1px)";
         e.currentTarget.style.boxShadow =
-          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.4), 0 6px 24px rgba(127,212,255,0.16)";
+          "var(--lv-shadow), var(--lv-inset), 0 0 0 1px var(--lv-accent-glow), 0 6px 24px var(--lv-accent-glow-soft)";
       }}
       onMouseLeave={(e) => {
         if (state !== "idle") return;
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.boxShadow =
-          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.18), 0 6px 24px rgba(127,212,255,0.14)";
+          "var(--lv-shadow), var(--lv-inset), 0 0 0 1px var(--lv-accent-glow-soft), 0 6px 24px var(--lv-accent-glow-soft)";
       }}
       style={{
         ...buttonBaseStyle,
@@ -145,7 +145,7 @@ function PulsingDot() {
         width: 10,
         height: 10,
         borderRadius: "50%",
-        background: "#ff7a8a",
+        background: "var(--lv-danger)",
         boxShadow: "0 0 0 0 rgba(255, 122, 138, 0.7)",
         animation: "afb-pulse 1.6s ease-out infinite",
       }}
@@ -161,8 +161,8 @@ function Spinner() {
         width: 14,
         height: 14,
         borderRadius: "50%",
-        border: "2px solid rgba(244,246,251,0.18)",
-        borderTopColor: "#7fd4ff",
+        border: "2px solid var(--lv-border)",
+        borderTopColor: "var(--lv-accent)",
         animation: "afb-spin 0.9s linear infinite",
       }}
     />
@@ -180,7 +180,7 @@ const buttonBaseStyle: React.CSSProperties = {
   gap: 12,
   padding: "14px 22px",
   borderRadius: 999,
-  border: "1px solid rgba(255, 255, 255, 0.08)",
+  border: "1px solid var(--lv-border)",
   fontFamily: DISPLAY_FONT,
   fontSize: "0.95rem",
   fontWeight: 600,
@@ -191,35 +191,35 @@ const buttonBaseStyle: React.CSSProperties = {
   transition:
     "background 220ms cubic-bezier(0.22,0.61,0.36,1), border-color 220ms ease, box-shadow 220ms ease, transform 220ms cubic-bezier(0.22,0.61,0.36,1)",
   zIndex: 10,
-  boxShadow: "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+  boxShadow: "var(--lv-shadow), var(--lv-inset)",
 };
 
 const buttonStateStyle: Record<AskFeynmanState, React.CSSProperties> = {
   idle: {
-    background: "rgba(18,32,48,0.6)",
-    color: "#9fdcff",
-    borderColor: "rgba(127, 212, 255, 0.4)",
+    background: "var(--lv-accent-bg)",
+    color: "var(--lv-accent-text)",
+    borderColor: "var(--lv-accent-glow)",
     boxShadow:
-      "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.18), 0 6px 24px rgba(127,212,255,0.14)",
+      "var(--lv-shadow), var(--lv-inset), 0 0 0 1px var(--lv-accent-glow-soft), 0 6px 24px var(--lv-accent-glow-soft)",
   },
   listening: {
-    background: "rgba(44,22,28,0.6)",
-    color: "#ff9aa6",
-    borderColor: "rgba(255, 122, 138, 0.4)",
+    background: "var(--lv-danger-bg)",
+    color: "var(--lv-danger)",
+    borderColor: "var(--lv-danger-border)",
     boxShadow:
-      "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(255,122,138,0.22), 0 6px 26px rgba(255,122,138,0.18)",
+      "var(--lv-shadow), var(--lv-inset), 0 0 0 1px var(--lv-danger-border), 0 6px 26px var(--lv-danger-bg)",
     cursor: "default",
   },
   thinking: {
-    background: "rgba(16,18,26,0.66)",
-    color: "rgba(244,246,251,0.68)",
-    borderColor: "rgba(255, 255, 255, 0.1)",
+    background: "var(--lv-panel)",
+    color: "var(--lv-ink-muted)",
+    borderColor: "var(--lv-border)",
     cursor: "default",
   },
   error: {
-    background: "rgba(42,22,28,0.62)",
-    color: "#ffb4be",
-    borderColor: "rgba(255, 180, 190, 0.32)",
+    background: "var(--lv-danger-bg)",
+    color: "var(--lv-danger)",
+    borderColor: "var(--lv-danger-border)",
     cursor: "default",
     // Slightly wider so the inline retry button fits without wrapping.
     maxWidth: 420,
@@ -250,8 +250,8 @@ const errorMessageStyle: React.CSSProperties = {
 
 const retryButtonStyle: React.CSSProperties = {
   background: "transparent",
-  border: "1px solid rgba(255, 180, 190, 0.5)",
-  color: "#ffb4be",
+  border: "1px solid var(--lv-danger-border)",
+  color: "var(--lv-danger)",
   fontFamily: "inherit",
   fontSize: "0.8rem",
   fontWeight: 600,

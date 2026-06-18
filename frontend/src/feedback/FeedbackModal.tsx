@@ -13,9 +13,15 @@ interface FeedbackModalProps {
   readonly variant: "exit" | "manual";
   readonly onClose: () => void;
   readonly onSubmitted: () => void;
+  readonly theme?: "light" | "dark";
 }
 
-export function FeedbackModal({ variant, onClose, onSubmitted }: FeedbackModalProps) {
+export function FeedbackModal({
+  variant,
+  onClose,
+  onSubmitted,
+  theme,
+}: FeedbackModalProps) {
   const source: FeedbackSource = variant === "exit" ? "exit" : "manual";
   return (
     <FeedbackWizard
@@ -23,6 +29,7 @@ export function FeedbackModal({ variant, onClose, onSubmitted }: FeedbackModalPr
       source={source}
       onClose={onClose}
       onSubmitted={onSubmitted}
+      theme={theme}
     />
   );
 }

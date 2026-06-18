@@ -4,8 +4,10 @@
  * exactly one set of consts. Inline `CSSProperties` matches the codebase
  * convention (no CSS modules / tailwind).
  *
- * "Premium Deep-Space Glass" redesign: colors/glass only — every geometric
- * value (sizes, padding, radii, gaps, heights) is preserved.
+ * Theme-aware: every colour reads a `--fb-*` variable defined per theme in
+ * feedback.css (`.fb-shell[data-theme]`). The FeedbackWizard root carries that
+ * class + data-theme, so the modal is light on the home / a light lecture and
+ * dark inside a dark lecture. Geometry (sizes, padding, radii) is unchanged.
  */
 
 import { DISPLAY_FONT, MONO_FONT } from "../styles/fonts";
@@ -18,7 +20,7 @@ export const backdropStyle: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   padding: 20,
-  background: "rgba(7, 7, 13, 0.62)",
+  background: "var(--fb-scrim)",
   backdropFilter: "blur(10px) saturate(1.1)",
   WebkitBackdropFilter: "blur(10px) saturate(1.1)",
 };
@@ -27,12 +29,11 @@ export const cardStyle: React.CSSProperties = {
   width: "min(480px, 94vw)",
   maxHeight: "88vh",
   overflowY: "auto",
-  background:
-    "radial-gradient(120% 100% at 50% 0%, rgba(127,212,255,0.05), transparent 55%), rgba(11,12,20,0.92)",
+  background: "var(--fb-card-bg)",
   borderRadius: 20,
-  border: "1px solid rgba(255, 255, 255, 0.1)",
+  border: "1px solid var(--fb-border)",
   padding: "26px 26px 22px",
-  boxShadow: "0 30px 80px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)",
+  boxShadow: "var(--fb-shadow)",
   backdropFilter: "blur(20px) saturate(1.2)",
   WebkitBackdropFilter: "blur(20px) saturate(1.2)",
   fontFamily: DISPLAY_FONT,
@@ -41,14 +42,14 @@ export const cardStyle: React.CSSProperties = {
 export const titleStyle: React.CSSProperties = {
   fontSize: "1.2rem",
   fontWeight: 700,
-  color: "#f4f6fb",
+  color: "var(--fb-ink)",
   margin: "0 0 6px",
   letterSpacing: "-0.01em",
 };
 
 export const subtitleStyle: React.CSSProperties = {
   fontSize: "0.88rem",
-  color: "rgba(244,246,251,0.55)",
+  color: "var(--fb-ink-muted)",
   margin: "0 0 22px",
 };
 
@@ -61,13 +62,13 @@ export const bodyStyle: React.CSSProperties = {
 export const promptStyle: React.CSSProperties = {
   fontSize: "0.98rem",
   fontWeight: 600,
-  color: "#f4f6fb",
+  color: "var(--fb-ink)",
   lineHeight: 1.45,
 };
 
 export const helperStyle: React.CSSProperties = {
   fontSize: "0.8rem",
-  color: "rgba(127, 212, 255, 0.72)",
+  color: "var(--fb-accent)",
   lineHeight: 1.45,
   margin: "6px 0 0",
 };
@@ -83,9 +84,9 @@ export const pillStyle: React.CSSProperties = {
   minWidth: 72,
   padding: "10px 12px",
   borderRadius: 10,
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  background: "rgba(255, 255, 255, 0.03)",
-  color: "rgba(244,246,251,0.72)",
+  border: "1px solid var(--fb-border)",
+  background: "var(--fb-pill-bg)",
+  color: "var(--fb-ink-muted)",
   fontSize: "0.8rem",
   fontWeight: 500,
   fontFamily: "inherit",
@@ -94,9 +95,9 @@ export const pillStyle: React.CSSProperties = {
 };
 
 export const pillActiveStyle: React.CSSProperties = {
-  background: "rgba(18,32,48,0.6)",
-  borderColor: "rgba(127, 212, 255, 0.5)",
-  color: "#9fdcff",
+  background: "var(--fb-accent-bg)",
+  borderColor: "var(--fb-accent-border)",
+  color: "var(--fb-accent-text)",
   fontWeight: 600,
 };
 
@@ -109,13 +110,13 @@ export const fieldStyle: React.CSSProperties = {
 export const fieldLabelStyle: React.CSSProperties = {
   fontSize: "0.82rem",
   fontWeight: 600,
-  color: "#f4f6fb",
+  color: "var(--fb-ink)",
 };
 
 export const commentLabelStyle: React.CSSProperties = {
   fontSize: "0.78rem",
   fontWeight: 500,
-  color: "rgba(244,246,251,0.55)",
+  color: "var(--fb-ink-muted)",
 };
 
 export const textareaStyle: React.CSSProperties = {
@@ -123,9 +124,9 @@ export const textareaStyle: React.CSSProperties = {
   minHeight: 44,
   padding: "10px 12px",
   borderRadius: 10,
-  border: "1px solid rgba(255, 255, 255, 0.10)",
-  background: "rgba(255, 255, 255, 0.04)",
-  color: "#f4f6fb",
+  border: "1px solid var(--fb-border)",
+  background: "var(--fb-field-bg)",
+  color: "var(--fb-ink)",
   fontSize: "0.88rem",
   fontFamily: "inherit",
   lineHeight: 1.5,
@@ -145,9 +146,9 @@ export const footerStyle: React.CSSProperties = {
 export const ghostButtonStyle: React.CSSProperties = {
   padding: "11px 18px",
   borderRadius: 11,
-  border: "1px solid rgba(255, 255, 255, 0.1)",
+  border: "1px solid var(--fb-border)",
   background: "transparent",
-  color: "rgba(244,246,251,0.7)",
+  color: "var(--fb-ink-muted)",
   fontSize: "0.9rem",
   fontWeight: 600,
   fontFamily: "inherit",
@@ -157,14 +158,14 @@ export const ghostButtonStyle: React.CSSProperties = {
 export const submitButtonStyle: React.CSSProperties = {
   padding: "11px 20px",
   borderRadius: 11,
-  border: "1px solid rgba(127, 212, 255, 0.4)",
-  background: "rgba(18,32,48,0.6)",
-  color: "#9fdcff",
+  border: "1px solid var(--fb-accent-border)",
+  background: "var(--fb-accent-bg)",
+  color: "var(--fb-accent-text)",
   fontSize: "0.9rem",
   fontWeight: 600,
   fontFamily: "inherit",
   cursor: "pointer",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+  boxShadow: "var(--fb-inset)",
 };
 
 // ── Wizard chrome ────────────────────────────────────────────────
@@ -180,12 +181,12 @@ export const progressSegStyle: React.CSSProperties = {
   flex: 1,
   height: 3,
   borderRadius: 999,
-  background: "rgba(255, 255, 255, 0.1)",
+  background: "var(--fb-track)",
   transition: "background 200ms ease",
 };
 
 export const progressSegFilledStyle: React.CSSProperties = {
-  background: "linear-gradient(90deg, #7fd4ff, #6aa8ff)",
+  background: "var(--fb-accent)",
 };
 
 export const progressLabelStyle: React.CSSProperties = {
@@ -194,7 +195,7 @@ export const progressLabelStyle: React.CSSProperties = {
   fontWeight: 600,
   letterSpacing: "0.06em",
   textTransform: "uppercase",
-  color: "rgba(244,246,251,0.4)",
+  color: "var(--fb-ink-faint)",
   marginLeft: 8,
   whiteSpace: "nowrap",
 };
@@ -204,7 +205,7 @@ export const progressLabelStyle: React.CSSProperties = {
 export const introTitleStyle: React.CSSProperties = {
   fontSize: "1.35rem",
   fontWeight: 700,
-  color: "#f4f6fb",
+  color: "var(--fb-ink)",
   margin: "0 0 18px",
   letterSpacing: "-0.01em",
   lineHeight: 1.3,
@@ -224,7 +225,7 @@ export const bulletItemStyle: React.CSSProperties = {
   gap: 11,
   fontSize: "0.92rem",
   lineHeight: 1.5,
-  color: "rgba(244,246,251,0.82)",
+  color: "var(--fb-ink)",
 };
 
 export const bulletDotStyle: React.CSSProperties = {
@@ -233,7 +234,7 @@ export const bulletDotStyle: React.CSSProperties = {
   height: 7,
   marginTop: 7,
   borderRadius: "50%",
-  background: "linear-gradient(135deg, #7fd4ff, #6aa8ff)",
+  background: "var(--fb-accent)",
 };
 
 // ── Thank-you ────────────────────────────────────────────────────
@@ -252,20 +253,20 @@ export const checkOrbStyle: React.CSSProperties = {
   borderRadius: "50%",
   display: "grid",
   placeItems: "center",
-  background: "linear-gradient(135deg, #7fd4ff, #a78bfa)",
-  boxShadow: "0 10px 30px rgba(127,212,255,0.35)",
+  background: "var(--fb-accent)",
+  boxShadow: "0 10px 30px var(--fb-accent-glow)",
   marginBottom: 16,
 };
 
 export const thankYouTitleStyle: React.CSSProperties = {
   fontSize: "1.15rem",
   fontWeight: 700,
-  color: "#f4f6fb",
+  color: "var(--fb-ink)",
   marginBottom: 6,
 };
 
 export const thankYouBodyStyle: React.CSSProperties = {
   fontSize: "0.88rem",
-  color: "rgba(244,246,251,0.55)",
+  color: "var(--fb-ink-muted)",
   lineHeight: 1.5,
 };

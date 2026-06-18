@@ -28,15 +28,24 @@ import {
   type FeedbackSource,
 } from "./feedbackService";
 import * as fs from "./feedbackStyles";
+import "./feedback.css";
 
 interface FeedbackWizardProps {
   readonly steps: readonly FeedbackStep[];
   readonly source: FeedbackSource;
   readonly onClose: () => void;
   readonly onSubmitted: () => void;
+  /** Light on the home / a light lecture; dark only inside a dark lecture. */
+  readonly theme?: "light" | "dark";
 }
 
-export function FeedbackWizard({ steps, source, onClose, onSubmitted }: FeedbackWizardProps) {
+export function FeedbackWizard({
+  steps,
+  source,
+  onClose,
+  onSubmitted,
+  theme = "light",
+}: FeedbackWizardProps) {
   const { user, profile } = useAuth();
   const [index, setIndex] = useState(0);
   const [ratings, setRatings] = useState<Record<string, number | null>>({});
@@ -155,6 +164,8 @@ export function FeedbackWizard({ steps, source, onClose, onSubmitted }: Feedback
 
   return (
     <div
+      className="fb-shell"
+      data-theme={theme}
       role="dialog"
       aria-modal="true"
       aria-label="Feedback"
@@ -362,10 +373,10 @@ function ThankYou() {
 // ── Local style helpers ──────────────────────────────────────────
 
 function focusBorder(e: React.FocusEvent<HTMLTextAreaElement>) {
-  e.currentTarget.style.borderColor = "rgba(127, 212, 255, 0.5)";
+  e.currentTarget.style.borderColor = "var(--fb-accent-border)";
 }
 function blurBorder(e: React.FocusEvent<HTMLTextAreaElement>) {
-  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.10)";
+  e.currentTarget.style.borderColor = "var(--fb-border)";
 }
 
 const nextDisabledStyle: React.CSSProperties = {
@@ -374,7 +385,7 @@ const nextDisabledStyle: React.CSSProperties = {
 };
 
 const requiredStarStyle: React.CSSProperties = {
-  color: "rgba(127, 212, 255, 0.8)",
+  color: "var(--fb-accent)",
 };
 
 const closeBtnStyle: React.CSSProperties = {
@@ -386,9 +397,9 @@ const closeBtnStyle: React.CSSProperties = {
   display: "grid",
   placeItems: "center",
   borderRadius: 8,
-  border: "1px solid rgba(255, 255, 255, 0.08)",
-  background: "rgba(255, 255, 255, 0.03)",
-  color: "rgba(232, 232, 238, 0.6)",
+  border: "1px solid var(--fb-border)",
+  background: "var(--fb-pill-bg)",
+  color: "var(--fb-ink-muted)",
   cursor: "pointer",
   padding: 0,
   zIndex: 1,

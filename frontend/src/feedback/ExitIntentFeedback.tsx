@@ -38,6 +38,7 @@ export function ExitIntentFeedback() {
   return (
     <FeedbackModal
       variant="exit"
+      theme="light"
       onClose={() => {
         setOpen(false);
         feedbackSession.markClosed();

@@ -27,6 +27,7 @@ import {
   SatisfactionPrompt,
   type SatisfactionOption,
 } from "../components/SatisfactionPrompt";
+import { FeynmanPresence } from "../components/FeynmanPresence";
 import { InLectureFeedback } from "../feedback/InLectureFeedback";
 import { feedbackSession } from "../feedback/feedbackSession";
 import { DISPLAY_FONT, MONO_FONT } from "../styles/fonts";
@@ -38,6 +39,9 @@ import {
   type TopicJumpEntry,
 } from "../hooks/useExtractionPlayback";
 import type { DesignDiagramSpec } from "../types/visuals";
+import { useTheme } from "../theme/themeContext";
+import { ThemeToggle } from "../theme/ThemeToggle";
+import "./lecture-viewer.css";
 
 // Glowing scrubber thumb — range pseudo-elements are CSS-only, so inject a tiny
 // scoped stylesheet once (mirrors AskFeynmanButton's keyframe-injection pattern).
@@ -51,21 +55,21 @@ if (typeof document !== "undefined") {
 .lv-scrubber-range::-webkit-slider-thumb{
   -webkit-appearance:none; appearance:none;
   width:14px; height:14px; border-radius:50%;
-  background:#7fd4ff; border:2px solid rgba(7,7,13,0.9);
-  box-shadow:0 0 0 1px rgba(127,212,255,0.5), 0 0 12px rgba(127,212,255,0.55);
+  background:var(--lv-accent, #7fd4ff); border:2px solid var(--lv-panel-strong, rgba(7,7,13,0.9));
+  box-shadow:0 0 0 1px var(--lv-accent-glow, rgba(127,212,255,0.5)), 0 0 12px var(--lv-accent-glow, rgba(127,212,255,0.55));
   cursor:pointer; transition:box-shadow .15s ease, transform .15s ease;
 }
 .lv-scrubber-range:hover::-webkit-slider-thumb{
   transform:scale(1.12);
-  box-shadow:0 0 0 1px rgba(127,212,255,0.7), 0 0 18px rgba(127,212,255,0.75);
+  box-shadow:0 0 0 1px var(--lv-accent, rgba(127,212,255,0.7)), 0 0 18px var(--lv-accent-glow, rgba(127,212,255,0.75));
 }
 .lv-scrubber-range::-moz-range-thumb{
-  width:14px; height:14px; border:2px solid rgba(7,7,13,0.9); border-radius:50%;
-  background:#7fd4ff; box-shadow:0 0 12px rgba(127,212,255,0.55); cursor:pointer;
+  width:14px; height:14px; border:2px solid var(--lv-panel-strong, rgba(7,7,13,0.9)); border-radius:50%;
+  background:var(--lv-accent, #7fd4ff); box-shadow:0 0 12px var(--lv-accent-glow, rgba(127,212,255,0.55)); cursor:pointer;
 }
 .lv-scrubber-range:focus-visible{ outline:none; }
 .lv-scrubber-range:focus-visible::-webkit-slider-thumb{
-  box-shadow:0 0 0 2px rgba(127,212,255,0.8), 0 0 18px rgba(127,212,255,0.7);
+  box-shadow:0 0 0 2px var(--lv-accent, rgba(127,212,255,0.8)), 0 0 18px var(--lv-accent-glow, rgba(127,212,255,0.7));
 }`;
     document.head.appendChild(style);
   }
@@ -608,6 +612,17 @@ export function LectureViewer({
     setDoubtErrorMessage("");
   }, [clearStuckTimeout]);
 
+  // Combined <audio> ref: feed the playback hook AND keep a handle for the
+  // voice aura's Web Audio analyser. Stable identity so the ref doesn't churn.
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const attachAudio = useCallback(
+    (el: HTMLAudioElement | null) => {
+      audioElRef.current = el;
+      setAudioElement(el);
+    },
+    [setAudioElement],
+  );
+
   const body = useMemo(() => {
     if (fetchError) {
       return (
@@ -625,10 +640,10 @@ export function LectureViewer({
           mode="split"
           notebookTitle={chapter.title}
         />
-        <audio ref={setAudioElement} preload="auto" />
+        <audio ref={attachAudio} preload="auto" />
       </>
     );
-  }, [chapter, fetchError, notebook, setAudioElement, slide]);
+  }, [chapter, fetchError, notebook, attachAudio, slide]);
 
   // Pause/resume — toggles the playback engine. The doubt path already uses
   // pause()/play() internally; we explicitly hide this button while a doubt
@@ -686,6 +701,14 @@ export function LectureViewer({
       {body}
       {chapter && !chromeHidden && (
         <PausePlayButton paused={isPaused} onToggle={onPauseToggle} />
+      )}
+      {chapter && !chromeHidden && <ThemeToggle />}
+      {chapter && !chromeHidden && (
+        <FeynmanPresence
+          audioRef={audioElRef}
+          state={doubtState}
+          paused={isPaused}
+        />
       )}
       {chapter && !chromeHidden && topicJumps.length > 0 && (
         <TopicJumpMenu
@@ -837,16 +860,16 @@ function TranscriptBand({
         zIndex: 90,
         maxWidth: "min(72vw, 920px)",
         padding: "10px 22px",
-        background: "rgba(11, 12, 20, 0.72)",
-        border: "1px solid rgba(255, 255, 255, 0.07)",
+        background: "var(--lv-panel-2)",
+        border: "1px solid var(--lv-border-soft)",
         borderRadius: 14,
-        color: "rgba(244,246,251,0.90)",
+        color: "var(--lv-ink)",
         fontSize: SUBTITLE_FONT[size],
         lineHeight: 1.5,
         textAlign: "center",
         backdropFilter: "blur(16px) saturate(1.2)",
         WebkitBackdropFilter: "blur(16px) saturate(1.2)",
-        boxShadow: "0 10px 34px rgba(0,0,0,0.45)",
+        boxShadow: "var(--lv-shadow)",
         // The band catches mouse events so it can be dragged; cursor reflects
         // that affordance. Text inside is still selectable on mouseup.
         cursor: "move",
@@ -894,15 +917,14 @@ function Scrubber({
         display: "flex",
         alignItems: "center",
         gap: 14,
-        background: "rgba(16, 18, 26, 0.66)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        background: "var(--lv-panel)",
+        border: "1px solid var(--lv-border)",
         borderRadius: 999,
         backdropFilter: "blur(18px) saturate(1.2)",
         WebkitBackdropFilter: "blur(18px) saturate(1.2)",
-        boxShadow:
-          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+        boxShadow: "var(--lv-shadow), var(--lv-inset)",
         fontSize: "0.72rem",
-        color: "rgba(244,246,251,0.70)",
+        color: "var(--lv-ink-muted)",
         fontVariantNumeric: "tabular-nums",
         userSelect: "none",
       }}
@@ -912,7 +934,7 @@ function Scrubber({
           minWidth: 44,
           textAlign: "right",
           fontFamily: MONO_FONT,
-          color: "#f4f6fb",
+          color: "var(--lv-ink)",
         }}
       >
         {_fmtMs(displayMs)}
@@ -948,15 +970,15 @@ function Scrubber({
           flex: 1,
           // Thumb glow comes from the injected `.lv-scrubber-range` stylesheet
           // (pseudo-elements can't live in inline styles).
-          accentColor: "#7fd4ff",
+          accentColor: "var(--lv-accent)",
           height: 4,
           cursor: "pointer",
-          background: `linear-gradient(to right, #7fd4ff 0%, #6aa8ff ${pct}%, rgba(244,246,251,0.12) ${pct}%, rgba(244,246,251,0.12) 100%)`,
+          background: `linear-gradient(to right, var(--lv-accent) 0%, var(--lv-accent-2) ${pct}%, var(--lv-track) ${pct}%, var(--lv-track) 100%)`,
           borderRadius: 2,
           appearance: "none",
         }}
       />
-      <span style={{ minWidth: 44, fontFamily: MONO_FONT, color: "rgba(244,246,251,0.66)" }}>
+      <span style={{ minWidth: 44, fontFamily: MONO_FONT, color: "var(--lv-ink-muted)" }}>
         {_fmtMs(totalMs)}
       </span>
     </div>
@@ -975,17 +997,16 @@ function CCToast({ text }: { readonly text: string }) {
         transform: "translateX(-50%)",
         zIndex: 110,
         padding: "8px 16px",
-        background: "rgba(16, 18, 26, 0.72)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        background: "var(--lv-panel-2)",
+        border: "1px solid var(--lv-border)",
         borderRadius: 999,
-        color: "rgba(244,246,251,0.92)",
+        color: "var(--lv-ink)",
         fontFamily: DISPLAY_FONT,
         fontSize: "0.85rem",
         letterSpacing: "0.01em",
         backdropFilter: "blur(18px) saturate(1.2)",
         WebkitBackdropFilter: "blur(18px) saturate(1.2)",
-        boxShadow:
-          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+        boxShadow: "var(--lv-shadow), var(--lv-inset)",
         pointerEvents: "none",
         userSelect: "none",
       }}
@@ -1037,21 +1058,20 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
         style={{
           position: "fixed",
           top: 32,
-          right: 32,
+          right: 84,
           zIndex: 100,
           padding: "10px 18px",
           borderRadius: 999,
-          background: "rgba(16, 18, 26, 0.66)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          color: "#f4f6fb",
+          background: "var(--lv-panel)",
+          border: "1px solid var(--lv-border)",
+          color: "var(--lv-ink)",
           fontFamily: DISPLAY_FONT,
           fontSize: "0.85rem",
           letterSpacing: "0.01em",
           cursor: "pointer",
           backdropFilter: "blur(18px) saturate(1.2)",
           WebkitBackdropFilter: "blur(18px) saturate(1.2)",
-          boxShadow:
-            "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+          boxShadow: "var(--lv-shadow), var(--lv-inset)",
         }}
       >
         ☰ Topics
@@ -1063,7 +1083,7 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
             position: "fixed",
             inset: 0,
             zIndex: 98,
-            background: "rgba(7,7,13,0.45)",
+            background: "var(--lv-scrim)",
             backdropFilter: "blur(3px)",
             WebkitBackdropFilter: "blur(3px)",
           }}
@@ -1079,11 +1099,10 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
               maxHeight: "70vh",
               overflowY: "auto",
               padding: "12px 0",
-              background: "rgba(11, 12, 20, 0.86)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              background: "var(--lv-panel-strong)",
+              border: "1px solid var(--lv-border)",
               borderRadius: 14,
-              boxShadow:
-                "0 18px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+              boxShadow: "var(--lv-shadow), var(--lv-inset)",
               backdropFilter: "blur(20px) saturate(1.2)",
               WebkitBackdropFilter: "blur(20px) saturate(1.2)",
             }}
@@ -1095,9 +1114,9 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
                 fontSize: "0.72rem",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: "rgba(244,246,251,0.45)",
+                color: "var(--lv-ink-faint)",
                 backgroundImage:
-                  "linear-gradient(90deg, transparent, rgba(127,212,255,0.4), transparent)",
+                  "linear-gradient(90deg, transparent, var(--lv-accent-glow), transparent)",
                 backgroundSize: "100% 1px",
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "bottom",
@@ -1117,8 +1136,7 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
                   }}
                   onMouseEnter={(e) => {
                     if (!active)
-                      e.currentTarget.style.background =
-                        "rgba(255,255,255,0.04)";
+                      e.currentTarget.style.background = "var(--lv-hover)";
                   }}
                   onMouseLeave={(e) => {
                     if (!active)
@@ -1129,14 +1147,14 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
                     width: "100%",
                     padding: "10px 18px",
                     background: active
-                      ? "rgba(127, 212, 255, 0.10)"
+                      ? "var(--lv-accent-glow-soft)"
                       : "transparent",
                     border: "none",
                     borderLeft: active
-                      ? "3px solid #7fd4ff"
+                      ? "3px solid var(--lv-accent)"
                       : "3px solid transparent",
                     textAlign: "left",
-                    color: active ? "#f4f6fb" : "rgba(244,246,251,0.78)",
+                    color: active ? "var(--lv-ink)" : "var(--lv-ink-muted)",
                     fontSize: "0.92rem",
                     cursor: "pointer",
                     transition: "background 0.14s ease",
@@ -1146,7 +1164,7 @@ function TopicJumpMenu({ topics, currentTopicId, onJump }: TopicJumpMenuProps) {
                     style={{
                       fontFamily: MONO_FONT,
                       fontSize: "0.7rem",
-                      color: "rgba(244,246,251,0.42)",
+                      color: "var(--lv-ink-faint)",
                       letterSpacing: "0.04em",
                       marginBottom: 2,
                     }}
@@ -1184,16 +1202,15 @@ function PausePlayButton({ paused, onToggle }: PausePlayButtonProps) {
         width: 52,
         height: 52,
         borderRadius: 26,
-        background: "rgba(16, 18, 26, 0.66)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
-        color: "#f4f6fb",
+        background: "var(--lv-panel)",
+        border: "1px solid var(--lv-border)",
+        color: "var(--lv-ink)",
         fontSize: 18,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        boxShadow:
-          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+        boxShadow: "var(--lv-shadow), var(--lv-inset)",
         backdropFilter: "blur(18px) saturate(1.2)",
         WebkitBackdropFilter: "blur(18px) saturate(1.2)",
         transition:
@@ -1203,12 +1220,11 @@ function PausePlayButton({ paused, onToggle }: PausePlayButtonProps) {
       onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
       onMouseEnter={(e) =>
         (e.currentTarget.style.boxShadow =
-          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(127,212,255,0.4), 0 6px 24px rgba(127,212,255,0.16)")
+          "var(--lv-shadow), var(--lv-inset), 0 0 0 1px var(--lv-accent-glow), 0 6px 24px var(--lv-accent-glow-soft)")
       }
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "scale(1)";
-        e.currentTarget.style.boxShadow =
-          "0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)";
+        e.currentTarget.style.boxShadow = "var(--lv-shadow), var(--lv-inset)";
       }}
     >
       {paused ? "▶" : "❚❚"}
@@ -1221,22 +1237,11 @@ interface ImmersiveShellProps {
 }
 
 function ImmersiveShell({ children }: ImmersiveShellProps) {
+  const { theme } = useTheme();
+  // Room background, colours + the floating-slab framing live in
+  // lecture-viewer.css, switched by `data-theme`. Controls inside read --lv-*.
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background:
-          "radial-gradient(120% 120% at 50% 0%, rgba(91,157,255,0.06), transparent 55%)," +
-          "radial-gradient(100% 100% at 50% 100%, rgba(167,139,250,0.05), transparent 60%)," +
-          "radial-gradient(140% 90% at 50% 50%, #0b0c14 0%, #07070d 70%)," +
-          "#07070d",
-        color: "#f4f6fb",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
+    <div className="lv-shell" data-theme={theme}>
       {children}
     </div>
   );
@@ -1248,7 +1253,7 @@ const statusTextStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  color: "rgba(244,246,251,0.58)",
+  color: "var(--lv-ink-muted)",
   fontFamily: DISPLAY_FONT,
   fontSize: "0.95rem",
   letterSpacing: "0.08em",

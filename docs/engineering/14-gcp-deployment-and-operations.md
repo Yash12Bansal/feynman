@@ -77,6 +77,42 @@ hosting).
   `roles/secretmanager.secretAccessor` + `roles/artifactregistry.reader`. `USE_NEO4J_CURRICULUM=false`
   (the flag is vestigial — read nowhere in code).
 
+### Data stores — why GCS *and* Neo4j (what data lives where)
+
+A common point of confusion: "if Neo4j holds the data, what's the GCS bucket for?" They hold
+**different kinds of data** — you need both. Rule of thumb: **Neo4j = the script + pointers (small,
+structured, queryable); GCS = the actual media files (large, binary).**
+
+| Store | Holds |
+|---|---|
+| **Neo4j** (data VM) | Curriculum structure (`Chapter→Topic→Diagram→Question`), the per-chapter `chapter_manifest` (the playback timeline), narration text, and **file references** to the media — not the bytes |
+| **GCS bucket** `feynman-basic-artifacts` | The ~14,198 audio MP3 fragments + diagram PNG/SVG (521 MB of binary blobs) |
+| **Cloud SQL** (Postgres) | User accounts / sessions |
+| **Firestore** | Sign-in profiles + feedback |
+| **Redis** (data VM) | Ephemeral hot session state |
+
+**How they work together when a lecture plays**
+
+1. Browser asks the preview server for a chapter → preview queries Neo4j → gets the manifest (the timeline) + the file references.
+2. The preview server rewrites those references into GCS URLs (e.g. `https://storage.googleapis.com/feynman-basic-artifacts/artifacts/…001.mp3`) — this is what my `rewrite_url`/`ARTIFACTS_BASE_URL` change does.
+3. The browser then fetches the actual audio + images straight from GCS and plays them in the order the manifest dictates.
+
+So Neo4j tells the player what to play, when, and where the file lives; GCS hands over the file itself.
+
+**Why not just put the audio in Neo4j?**
+
+Because that's the wrong tool, and it'd be a disaster:
+- Databases are for structured, queryable data + small text — not 521 MB of binary blobs. Stuffing media into Neo4j would bloat it, wreck query performance, and balloon its memory (the little 4 GB VM that already fell over once).
+- Object storage (GCS) is purpose-built to store + serve files cheaply, at scale, in parallel, straight to the browser — bypassing your servers entirely.
+- This split is also why watching a lecture is cheap: the heavy bytes stream from GCS (CDN-style), and Neo4j gets hit just once for the tiny manifest.
+
+**The analogy**
+
+- Neo4j = a playlist + sheet music + a library catalog: the track order, the timing, and the shelf location of each track.
+- GCS = the shelf of actual MP3s/images: the real audio and pictures.
+
+The catalog (Neo4j) is small and you query it constantly; the shelf (GCS) is huge and you just grab files off it. You'd never photocopy every album into the catalog.
+
 ---
 
 ## 2. How components communicate (request flows)

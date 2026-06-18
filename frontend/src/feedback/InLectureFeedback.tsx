@@ -15,6 +15,7 @@ import { WIZARD_STEPS } from "./steps";
 import { feedbackSession } from "./feedbackSession";
 import { useTimestampTrigger } from "./useTimestampTrigger";
 import { useExitIntent } from "./useExitIntent";
+import { useTheme } from "../theme/themeContext";
 
 interface InLectureFeedbackProps {
   readonly currentMs: number;
@@ -39,6 +40,7 @@ export function InLectureFeedback({
   play,
   onOpenChange,
 }: InLectureFeedbackProps) {
+  const { theme } = useTheme();
   const [open, setOpen] = useState(false);
 
   // Mark a lecture on screen so the global exit survey stands down (it can't
@@ -92,6 +94,7 @@ export function InLectureFeedback({
       source="in_lecture"
       onClose={() => close(false)}
       onSubmitted={() => close(true)}
+      theme={theme}
     />
   );
 }

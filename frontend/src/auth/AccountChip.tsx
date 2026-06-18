@@ -6,10 +6,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "./authContext";
+import { useTheme } from "../theme/themeContext";
 import { DISPLAY_FONT } from "../styles/fonts";
 
 export function AccountChip({ inLecture = false }: { inLecture?: boolean }) {
   const { user, profile, signOut } = useAuth();
+  const { theme } = useTheme();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +35,9 @@ export function AccountChip({ inLecture = false }: { inLecture?: boolean }) {
 
   const name = profile?.name || user.displayName || "Account";
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
+  // Dark chip only inside a DARK lecture; the home screen and a light lecture
+  // both use the light variant. Position still keys off `inLecture`.
+  const useDark = inLecture && theme === "dark";
 
   return (
     <div ref={wrapRef} style={inLecture ? wrapStyleLecture : wrapStyle}>
@@ -40,21 +45,41 @@ export function AccountChip({ inLecture = false }: { inLecture?: boolean }) {
         type="button"
         aria-label="Account menu"
         onClick={() => setOpen((o) => !o)}
-        style={chipStyle}
+        style={useDark ? chipStyle : chipLightStyle}
       >
         {user.photoURL ? (
           <img src={user.photoURL} alt="" referrerPolicy="no-referrer" style={avatarImgStyle} />
         ) : (
-          <span style={avatarFallbackStyle}>{initial}</span>
+          <span style={useDark ? avatarFallbackStyle : avatarFallbackLightStyle}>
+            {initial}
+          </span>
         )}
       </button>
 
       {open && (
-        <div style={inLecture ? menuStyleLecture : menuStyle}>
-          <div style={menuNameStyle}>{name}</div>
-          {user.email && <div style={menuMetaStyle}>{user.email}</div>}
-          {profile?.phone && <div style={menuMetaStyle}>{profile.phone}</div>}
-          <button type="button" onClick={onSignOut} style={signOutStyle}>
+        <div
+          style={{
+            ...(useDark ? menuStyle : menuLightStyle),
+            // In a lecture the chip sits low → open the card upward.
+            ...(inLecture ? { top: undefined, bottom: 44 } : null),
+          }}
+        >
+          <div style={useDark ? menuNameStyle : menuNameLightStyle}>{name}</div>
+          {user.email && (
+            <div style={useDark ? menuMetaStyle : menuMetaLightStyle}>
+              {user.email}
+            </div>
+          )}
+          {profile?.phone && (
+            <div style={useDark ? menuMetaStyle : menuMetaLightStyle}>
+              {profile.phone}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={onSignOut}
+            style={useDark ? signOutStyle : signOutLightStyle}
+          >
             Sign out
           </button>
         </div>
@@ -128,13 +153,6 @@ const menuStyle: React.CSSProperties = {
   gap: 4,
 };
 
-// Lecture variant opens the card UPWARD (the chip sits near the bottom).
-const menuStyleLecture: React.CSSProperties = {
-  ...menuStyle,
-  top: undefined,
-  bottom: 44,
-};
-
 const menuNameStyle: React.CSSProperties = {
   fontFamily: DISPLAY_FONT,
   fontSize: "0.92rem",
@@ -158,6 +176,67 @@ const signOutStyle: React.CSSProperties = {
   fontSize: "0.85rem",
   fontWeight: 600,
   fontFamily: "inherit",
+  cursor: "pointer",
+  textAlign: "center",
+};
+
+// ── Light variants (home / "Living Notebook" surface) ────────────────────────
+// The chip overlays the dark teaching board in a lecture (dark styles above) but
+// the light paper home screen otherwise. These mirror the marketing palette
+// (paper / ink / fountain-pen blue / coral) so the chip reads on light paper.
+const LIGHT_FONT = "'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif";
+
+const chipLightStyle: React.CSSProperties = {
+  ...chipStyle,
+  border: "1px solid rgba(27, 25, 22, 0.14)",
+  background: "#fffdf8",
+  backdropFilter: "none",
+  WebkitBackdropFilter: "none",
+  boxShadow:
+    "0 4px 14px -6px rgba(27,25,22,0.4), inset 0 1px 0 rgba(255,255,255,0.9)",
+};
+
+const avatarFallbackLightStyle: React.CSSProperties = {
+  fontFamily: LIGHT_FONT,
+  fontSize: "0.85rem",
+  fontWeight: 700,
+  color: "#2740dd",
+};
+
+const menuLightStyle: React.CSSProperties = {
+  ...menuStyle,
+  background: "#fffdf8",
+  backdropFilter: "none",
+  WebkitBackdropFilter: "none",
+  border: "1px solid rgba(27, 25, 22, 0.12)",
+  boxShadow:
+    "0 20px 50px -28px rgba(27,25,22,0.5), inset 0 1px 0 rgba(255,255,255,0.9)",
+};
+
+const menuNameLightStyle: React.CSSProperties = {
+  fontFamily: LIGHT_FONT,
+  fontSize: "0.92rem",
+  fontWeight: 600,
+  color: "#1b1916",
+};
+
+const menuMetaLightStyle: React.CSSProperties = {
+  fontFamily: LIGHT_FONT,
+  fontSize: "0.78rem",
+  color: "rgba(27,25,22,0.55)",
+  wordBreak: "break-all",
+};
+
+const signOutLightStyle: React.CSSProperties = {
+  marginTop: 10,
+  padding: "9px 12px",
+  borderRadius: 10,
+  border: "1px solid rgba(226, 86, 59, 0.35)",
+  background: "transparent",
+  color: "#c0452c",
+  fontFamily: LIGHT_FONT,
+  fontSize: "0.85rem",
+  fontWeight: 600,
   cursor: "pointer",
   textAlign: "center",
 };
