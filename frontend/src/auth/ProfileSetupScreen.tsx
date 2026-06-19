@@ -4,12 +4,14 @@
  * Name (prefilled from Google, editable) + email (from Google, read-only) +
  * phone (required, India-first +91 default). Writes `users/{uid}` with
  * profileComplete:true, which flips the gate open.
+ *
+ * Light "Living Notebook" skin — warm paper, ink + a single blue accent,
+ * Fraunces/Hanken — matching the home picker, marketing landing, and the
+ * loading splashes so sign-up reads as one continuous light product.
  */
 
-import { useCallback, useState } from "react";
-import { AuroraBackground } from "./AuroraBackground";
+import { useCallback, useState, type FormEvent } from "react";
 import { useAuth } from "./authContext";
-import { DISPLAY_FONT } from "../styles/fonts";
 
 export function ProfileSetupScreen() {
   const { user, saveProfile } = useAuth();
@@ -24,7 +26,7 @@ export function ProfileSetupScreen() {
     name.trim().length > 0 && /^\+\d{1,4}$/.test(code) && digits.length >= 7;
 
   const onSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
       const cleanDigits = phone.replace(/\D/g, "");
       if (
@@ -50,13 +52,21 @@ export function ProfileSetupScreen() {
   );
 
   return (
-    <AuroraBackground>
+    <div style={pageStyle}>
       <form onSubmit={onSubmit} style={cardStyle}>
         {user?.photoURL ? (
-          <img src={user.photoURL} alt="" referrerPolicy="no-referrer" style={avatarStyle} />
+          <img
+            src={user.photoURL}
+            alt=""
+            referrerPolicy="no-referrer"
+            style={avatarStyle}
+          />
         ) : (
           <div style={avatarFallbackStyle} aria-hidden>
-            {(user?.displayName ?? user?.email ?? "?").trim().charAt(0).toUpperCase()}
+            {(user?.displayName ?? user?.email ?? "?")
+              .trim()
+              .charAt(0)
+              .toUpperCase()}
           </div>
         )}
 
@@ -118,42 +128,55 @@ export function ProfileSetupScreen() {
         <button
           type="submit"
           disabled={busy || !canSubmit}
-          style={{ ...submitStyle, opacity: busy || !canSubmit ? 0.55 : 1 }}
+          style={{ ...submitStyle, opacity: busy || !canSubmit ? 0.5 : 1 }}
         >
           {busy ? "Saving…" : "Start learning"}
         </button>
       </form>
-    </AuroraBackground>
+    </div>
   );
 }
 
+const BODY_FONT =
+  '"Hanken Grotesk", -apple-system, BlinkMacSystemFont, sans-serif';
+const DISPLAY_SERIF = '"Fraunces", Georgia, "Times New Roman", serif';
+const INPUT_BG = "#fbf8f1";
+const LINE = "rgba(27, 25, 22, 0.14)";
+
 function focusRing(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "rgba(127, 212, 255, 0.55)";
-  e.currentTarget.style.background = "rgba(127, 212, 255, 0.06)";
+  e.currentTarget.style.borderColor = "#2740dd"; // --blue
+  e.currentTarget.style.background = "#fffdf8";
   e.currentTarget.style.boxShadow =
-    "0 0 0 1px rgba(127,212,255,0.45), 0 6px 26px rgba(127,212,255,0.18)";
+    "0 0 0 1px rgba(39,64,221,0.30), 0 4px 16px -6px rgba(39,64,221,0.30)";
 }
 function blurRing(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.10)";
-  e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
+  e.currentTarget.style.borderColor = LINE;
+  e.currentTarget.style.background = INPUT_BG;
   e.currentTarget.style.boxShadow = "none";
 }
+
+const pageStyle: React.CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 24,
+  background: "#faf6ee", // --paper
+};
 
 const cardStyle: React.CSSProperties = {
   position: "relative",
   width: "min(420px, 92vw)",
   padding: "34px 34px 30px",
   borderRadius: 20,
-  background:
-    "linear-gradient(180deg, rgba(20,22,32,0.68), rgba(14,15,23,0.68))",
-  backdropFilter: "blur(20px) saturate(1.2)",
-  WebkitBackdropFilter: "blur(20px) saturate(1.2)",
-  border: "1px solid rgba(255, 255, 255, 0.08)",
+  background: "#fffdf8", // --panel
+  border: `1px solid ${LINE}`,
   boxShadow:
-    "0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(127,212,255,0.06)",
+    "0 1px 0 rgba(255,255,255,0.8) inset, 0 30px 60px -34px rgba(27,25,22,0.45)",
   display: "flex",
   flexDirection: "column",
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontFamily: BODY_FONT,
 };
 
 const avatarStyle: React.CSSProperties = {
@@ -161,8 +184,8 @@ const avatarStyle: React.CSSProperties = {
   height: 56,
   borderRadius: "50%",
   alignSelf: "center",
-  border: "2px solid rgba(127,212,255,0.28)",
-  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+  border: "2px solid rgba(39,64,221,0.22)",
+  boxShadow: "0 8px 22px -10px rgba(27,25,22,0.4)",
   marginBottom: 16,
   objectFit: "cover",
 };
@@ -174,49 +197,50 @@ const avatarFallbackStyle: React.CSSProperties = {
   alignSelf: "center",
   display: "grid",
   placeItems: "center",
-  background: "linear-gradient(135deg, #7fd4ff 0%, #6aa8ff 45%, #a78bfa 100%)",
-  boxShadow: "0 8px 24px rgba(127,212,255,0.32)",
+  background: "#2740dd", // --blue
+  boxShadow: "0 8px 22px -8px rgba(39,64,221,0.5)",
   color: "#fff",
+  fontFamily: DISPLAY_SERIF,
   fontSize: "1.4rem",
-  fontWeight: 700,
+  fontWeight: 600,
   marginBottom: 16,
 };
 
 const titleStyle: React.CSSProperties = {
-  fontFamily: DISPLAY_FONT,
-  fontSize: "1.35rem",
+  fontFamily: DISPLAY_SERIF,
+  fontSize: "1.5rem",
   fontWeight: 600,
-  color: "#f4f6fb",
+  color: "#1b1916", // --ink
   margin: "0 0 6px",
   textAlign: "center",
-  letterSpacing: "-0.01em",
+  letterSpacing: "-0.02em",
 };
 
 const subtitleStyle: React.CSSProperties = {
-  fontSize: "0.9rem",
-  color: "rgba(244,246,251,0.58)",
+  fontSize: "0.92rem",
+  color: "#565049", // --ink-soft
   margin: "0 0 24px",
   textAlign: "center",
 };
 
 const labelStyle: React.CSSProperties = {
-  fontFamily: DISPLAY_FONT,
-  fontSize: "0.72rem",
-  fontWeight: 600,
+  fontFamily: BODY_FONT,
+  fontSize: "0.7rem",
+  fontWeight: 700,
   textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "rgba(244,246,251,0.58)",
+  letterSpacing: "0.1em",
+  color: "#938b7c", // --ink-faint
   margin: "0 0 7px 2px",
 };
 
 const inputStyle: React.CSSProperties = {
   padding: "12px 14px",
   borderRadius: 12,
-  border: "1px solid rgba(255, 255, 255, 0.10)",
-  background: "rgba(255, 255, 255, 0.04)",
-  color: "#f4f6fb",
+  border: `1px solid ${LINE}`,
+  background: INPUT_BG,
+  color: "#1b1916", // --ink
   fontSize: "0.95rem",
-  fontFamily: "inherit",
+  fontFamily: BODY_FONT,
   outline: "none",
   marginBottom: 16,
   boxSizing: "border-box",
@@ -225,7 +249,8 @@ const inputStyle: React.CSSProperties = {
 };
 
 const readonlyInputStyle: React.CSSProperties = {
-  color: "rgba(244,246,251,0.30)",
+  color: "#938b7c", // --ink-faint
+  background: "#f1ead9", // --paper-deep
   cursor: "not-allowed",
 };
 
@@ -238,16 +263,14 @@ const submitStyle: React.CSSProperties = {
   marginTop: 6,
   padding: "13px 18px",
   borderRadius: 12,
-  border: "1px solid rgba(127, 212, 255, 0.40)",
-  background:
-    "linear-gradient(180deg, rgba(127,212,255,0.16), rgba(91,157,255,0.12))",
-  color: "#7fd4ff",
+  border: "none",
+  background: "#2740dd", // --blue
+  color: "#fff",
   fontSize: "0.96rem",
   fontWeight: 600,
-  fontFamily: "inherit",
+  fontFamily: BODY_FONT,
   cursor: "pointer",
-  boxShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 26px rgba(127,212,255,0.18)",
+  boxShadow: "0 10px 24px -10px rgba(39,64,221,0.6)",
   transition:
     "opacity 160ms cubic-bezier(0.22,0.61,0.36,1), box-shadow 200ms cubic-bezier(0.22,0.61,0.36,1)",
 };
@@ -256,8 +279,8 @@ const errorStyle: React.CSSProperties = {
   margin: "0 0 14px",
   padding: "8px 12px",
   borderRadius: 10,
-  background: "rgba(255,120,140,0.08)",
-  border: "1px solid rgba(255,120,140,0.18)",
+  background: "rgba(226,86,59,0.08)", // --coral
+  border: "1px solid rgba(226,86,59,0.22)",
   fontSize: "0.83rem",
-  color: "#ffb4be",
+  color: "#b23a22",
 };
