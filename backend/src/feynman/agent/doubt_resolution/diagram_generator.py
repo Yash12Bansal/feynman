@@ -32,7 +32,7 @@ logger = structlog.get_logger()
 
 # Sonnet for quality — a doubt diagram must be correct, not just fast. Latency
 # is hidden behind narration by the caller, not by downgrading the model.
-_MODEL = "claude-sonnet-4-20250514"
+_MODEL = "claude-sonnet-4-6"
 _MAX_TOKENS = 8192
 _DEFAULT_WIDTH = 900
 _DEFAULT_HEIGHT = 650
@@ -49,9 +49,7 @@ def _load_design_system_prompt() -> str | None:
     try:
         repo_root = Path(__file__).resolve().parents[5]
         prompt_path = repo_root / "design_agent" / "backend" / "prompts.py"
-        spec = importlib.util.spec_from_file_location(
-            "_design_agent_prompts", prompt_path
-        )
+        spec = importlib.util.spec_from_file_location("_design_agent_prompts", prompt_path)
         if spec is None or spec.loader is None:
             logger.warning("diagram_generator.prompt_spec_none", path=str(prompt_path))
             return None

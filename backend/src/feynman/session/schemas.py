@@ -29,6 +29,14 @@ class SessionCreate(BaseModel):
     # connected to the room but silent; doubts are handled by the doubt-
     # resolution pipeline (Phase 3+).
     lecture_chapter_id: str | None = None
+    # Firebase uid of the signed-in student. Rides the room metadata to the
+    # worker so the memory layer can attribute doubts + attempts. Null for
+    # anonymous / dev sessions (memory writes are then skipped).
+    student_id: str | None = None
+    # The StudySession opened on lecture-open (POST /students/{id}/sessions).
+    # Threaded to the worker so resolved doubts attach to the SAME session as
+    # the student's question attempts. Null → worker skips memory writes.
+    study_session_id: str | None = None
 
 
 class SessionInfo(BaseModel):

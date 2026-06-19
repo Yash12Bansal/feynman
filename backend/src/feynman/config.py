@@ -58,6 +58,16 @@ class Settings(BaseSettings):
     neo4j_password: str = "password"
     neo4j_database: str = "neo4j"
 
+    # Personalised memory layer. The student knowledge graph is an INDEPENDENT
+    # Neo4j subgraph (own labels) — it links to the curriculum graph by id
+    # strings only, never by shared nodes.
+    memory_lookback_sessions: int = 2  # how many past study-days a chapter card spans
+    memory_global_limit: int = 8  # max items per kind on the user-level global card
+    interaction_question_mode: str = "mcq"  # "mcq" | "mcq_subjective"
+    # NOTE: the student graph is RETAINED in full — never pruned. `lookback`
+    # controls only what the memory card SHOWS; the underlying history (for
+    # mastery-over-time + analytics) is the product's moat and is kept forever.
+
     # When True (default), the agent loads curriculum from Neo4j at session
     # start (and on `set_lesson_topic`) — every topic must exist in the graph
     # or `CurriculumNotFoundError` aborts the session. When False, Neo4j is
@@ -72,9 +82,14 @@ class Settings(BaseSettings):
     # Doubt capture: seconds of continuous silence after the student stops
     # speaking before we finalize the transcript and start reasoning. The STT's
     # own VAD already endpoints the utterance at ~350ms, so this is only a
-    # "don't cut a mid-thought pause" buffer — kept short so Feynman begins
-    # replying fast. Raise it if students report being cut off mid-doubt.
-    doubt_silence_timeout_s: float = 1.2
+    # "don't cut a mid-thought pause" buffer. A doubt is question-shaped and
+    # often has a thinking pause mid-sentence ("which state has the… [pause]
+    # …weakest forces?"). 1.2s cut those off, truncating the doubt and making
+    # Feynman answer the wrong thing. 3s balances pause-room against the dead
+    # air after the student finishes (a fixed timer can't tell "thinking" from
+    # "done" — see the semantic-endpointing item in todo.md for the real fix).
+    # Tune via env.
+    doubt_silence_timeout_s: float = 3.0
 
     @property
     def is_dev(self) -> bool:

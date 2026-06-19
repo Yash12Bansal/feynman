@@ -1,0 +1,404 @@
+/*
+ * In-lecture question checkpoint — "Deep-Space Glass".
+ *
+ * The board's "your turn" moment: a glass card rises over a dimmed room, the
+ * student attempts the question behind a short solve-gate, then the worked
+ * solution reveals (all at once if right; one gated step at a time if wrong).
+ *
+ * Themed entirely off the viewer's `--lv-*` tokens (the overlay mounts inside
+ * `.lv-shell`), so it re-skins dark↔light with the lecture. Fallbacks keep it
+ * legible even if ever mounted outside the shell. Scoped under `.cp-root`.
+ */
+
+.cp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--lv-scrim, rgba(7, 8, 13, 0.62));
+  backdrop-filter: blur(8px) saturate(1.1);
+  -webkit-backdrop-filter: blur(8px) saturate(1.1);
+  animation: cp-fade 0.3s ease both;
+}
+
+.cp-card {
+  position: relative;
+  width: min(94vw, 640px);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 30px 32px 28px;
+  color: var(--lv-ink, #f4f6fb);
+  font-family:
+    "Hanken Grotesk",
+    -apple-system,
+    system-ui,
+    sans-serif;
+  background: var(--lv-panel-strong, rgba(11, 12, 20, 0.92));
+  backdrop-filter: blur(26px) saturate(1.3);
+  -webkit-backdrop-filter: blur(26px) saturate(1.3);
+  border: 1px solid var(--lv-border, rgba(255, 255, 255, 0.1));
+  border-radius: 22px;
+  box-shadow:
+    var(--lv-shadow, 0 30px 80px rgba(0, 0, 0, 0.6)),
+    0 0 0 1px var(--lv-accent-glow-soft, rgba(127, 212, 255, 0.12));
+  animation: cp-rise 0.46s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+/* One-shot green bloom when the student gets it right — the quiet celebration. */
+.cp-card.is-correct {
+  animation:
+    cp-rise 0.46s cubic-bezier(0.2, 0.7, 0.2, 1) both,
+    cp-bloom 1.5s ease-out 0.1s;
+}
+
+.cp-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lv-accent-text, #9fdcff);
+}
+.cp-kicker__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--lv-accent, #7fd4ff);
+  box-shadow: 0 0 9px var(--lv-accent, #7fd4ff);
+}
+.cp-qtext {
+  margin: 12px 0 22px;
+  font-size: 1.3rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--lv-ink, #f4f6fb);
+}
+
+.cp-diagram {
+  width: 100%;
+  aspect-ratio: 900 / 650;
+  margin-bottom: 20px;
+  background: #07070d;
+  border: 1px solid var(--lv-border, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* ── Options ────────────────────────────────────────────────────────────────── */
+.cp-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.cp-option {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 16px;
+  background: var(--lv-panel, rgba(16, 18, 26, 0.66));
+  border: 1px solid var(--lv-border, rgba(255, 255, 255, 0.1));
+  border-radius: 13px;
+  color: var(--lv-ink, #f4f6fb);
+  font-family: inherit;
+  font-size: 0.96rem;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.2s ease;
+}
+.cp-option:hover {
+  transform: translateY(-1px);
+  border-color: var(--lv-accent-glow, rgba(127, 212, 255, 0.4));
+  background: var(--lv-hover, rgba(255, 255, 255, 0.04));
+}
+.cp-option.is-selected {
+  border-color: var(--lv-accent, #7fd4ff);
+  background: var(--lv-accent-bg, rgba(18, 32, 48, 0.6));
+  box-shadow:
+    0 0 0 1px var(--lv-accent, #7fd4ff),
+    0 8px 26px -12px var(--lv-accent-glow, rgba(127, 212, 255, 0.4));
+}
+.cp-option__letter {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--lv-ink-muted, rgba(244, 246, 251, 0.7));
+  background: var(--lv-hover, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--lv-border, rgba(255, 255, 255, 0.1));
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+.cp-option.is-selected .cp-option__letter {
+  color: #06121d;
+  background: var(--lv-accent, #7fd4ff);
+  border-color: var(--lv-accent, #7fd4ff);
+}
+.cp-option__text {
+  flex: 1;
+}
+
+/* ── Submit + solve-gate ────────────────────────────────────────────────────── */
+.cp-submit {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 14px 0;
+  border: 1px solid var(--lv-border, rgba(255, 255, 255, 0.12));
+  border-radius: 13px;
+  background: var(--lv-panel, rgba(16, 18, 26, 0.66));
+  color: var(--lv-ink-muted, rgba(244, 246, 251, 0.7));
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+/* The gate "charges" left→right behind the label as the timer ticks down. */
+.cp-submit__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--lv-accent-glow-soft, rgba(127, 212, 255, 0.16));
+  transition: width 1s linear;
+  pointer-events: none;
+}
+.cp-submit__label {
+  position: relative;
+}
+.cp-submit.is-ready {
+  cursor: pointer;
+  background: var(--lv-accent, #7fd4ff);
+  border-color: var(--lv-accent, #7fd4ff);
+  color: #06121d;
+  box-shadow: 0 10px 30px -12px var(--lv-accent-glow, rgba(127, 212, 255, 0.5));
+}
+.cp-submit.is-ready:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+.cp-submit.is-ready .cp-submit__fill {
+  display: none;
+}
+
+/* ── Reveal ─────────────────────────────────────────────────────────────────── */
+.cp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 15px;
+  border-radius: 999px;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 16px;
+}
+.cp-badge--correct {
+  color: #06160d;
+  background: var(--lv-good, #7cffb2);
+  box-shadow: 0 6px 22px -8px var(--lv-good, #7cffb2);
+}
+.cp-badge--wrong {
+  color: var(--lv-danger, #ff9aa6);
+  background: var(--lv-danger-bg, rgba(44, 22, 28, 0.6));
+  border: 1px solid var(--lv-danger-border, rgba(255, 122, 138, 0.4));
+}
+
+.cp-answer {
+  margin: 0 0 18px;
+  padding: 12px 15px;
+  background: var(--cp-good-soft, rgba(124, 255, 178, 0.09));
+  border: 1px solid var(--cp-good-border, rgba(124, 255, 178, 0.26));
+  border-radius: 12px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.cp-answer__label {
+  display: block;
+  margin-bottom: 4px;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lv-good, #7cffb2);
+}
+
+.cp-steps-label {
+  margin-bottom: 10px;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lv-ink-faint, rgba(244, 246, 251, 0.5));
+}
+.cp-steps {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  counter-reset: cp-step;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.cp-step {
+  position: relative;
+  padding: 11px 15px 11px 46px;
+  background: var(--lv-panel, rgba(16, 18, 26, 0.55));
+  border: 1px solid var(--lv-border-soft, rgba(255, 255, 255, 0.07));
+  border-radius: 12px;
+  font-size: 0.97rem;
+  line-height: 1.55;
+  color: var(--lv-ink, #f4f6fb);
+  counter-increment: cp-step;
+  animation: cp-step-in 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+.cp-step::before {
+  content: counter(cp-step);
+  position: absolute;
+  left: 13px;
+  top: 11px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--lv-accent-text, #9fdcff);
+  background: var(--lv-accent-bg, rgba(18, 32, 48, 0.6));
+  border: 1px solid var(--lv-accent-glow-soft, rgba(127, 212, 255, 0.18));
+}
+
+.cp-nudge {
+  margin: 0 0 14px;
+  padding: 11px 15px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--lv-accent-text, #9fdcff);
+  background: var(--lv-accent-bg, rgba(18, 32, 48, 0.45));
+  border: 1px solid var(--lv-accent-glow-soft, rgba(127, 212, 255, 0.18));
+  border-radius: 12px;
+}
+.cp-subtle {
+  font-size: 0.9rem;
+  color: var(--lv-ink-faint, rgba(244, 246, 251, 0.5));
+  margin-bottom: 20px;
+}
+
+.cp-primary,
+.cp-secondary {
+  width: 100%;
+  padding: 13px 0;
+  border-radius: 13px;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 0.2s ease,
+    background 0.2s ease;
+}
+.cp-primary {
+  border: none;
+  background: var(--lv-accent, #7fd4ff);
+  color: #06121d;
+  box-shadow: 0 10px 30px -12px var(--lv-accent-glow, rgba(127, 212, 255, 0.5));
+}
+.cp-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+.cp-secondary {
+  background: transparent;
+  color: var(--lv-accent-text, #9fdcff);
+  border: 1px solid var(--lv-accent-glow, rgba(127, 212, 255, 0.45));
+}
+.cp-secondary:hover {
+  transform: translateY(-2px);
+  background: var(--lv-accent-bg, rgba(18, 32, 48, 0.4));
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────────────────── */
+@keyframes cp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes cp-bloom {
+  0% {
+    box-shadow:
+      var(--lv-shadow, 0 30px 80px rgba(0, 0, 0, 0.6)),
+      0 0 0 1px var(--lv-good, #7cffb2),
+      0 0 60px -10px var(--lv-good, #7cffb2);
+  }
+  100% {
+    box-shadow:
+      var(--lv-shadow, 0 30px 80px rgba(0, 0, 0, 0.6)),
+      0 0 0 1px var(--lv-accent-glow-soft, rgba(127, 212, 255, 0.12));
+  }
+}
+@keyframes cp-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-overlay,
+  .cp-card,
+  .cp-card.is-correct,
+  .cp-step {
+    animation: none;
+  }
+  .cp-submit__fill {
+    transition: none;
+  }
+}

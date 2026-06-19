@@ -17,7 +17,6 @@ import anthropic
 import structlog
 from pydantic import ValidationError
 
-from feynman.agent.doubt_resolution.doubt_classifier import DoubtClassification
 from feynman.agent.doubt_resolution.models import (
     ChapterContext,
     DoubtRecord,
@@ -29,7 +28,7 @@ from feynman.config import settings
 
 logger = structlog.get_logger()
 
-_MODEL = "claude-sonnet-4-20250514"
+_MODEL = "claude-sonnet-4-6"
 _TOOL_NAME = "emit_resolution_plan"
 _TOOL_DESCRIPTION = (
     "Emit the ResolutionPlan as a structured list of beats. "
@@ -42,7 +41,6 @@ _MAX_ATTEMPTS = 2
 async def plan_resolution(
     *,
     doubt_text: str,
-    classification: DoubtClassification,
     chapter_context: ChapterContext,
     current_topic_id: str | None = None,
     prior_doubts: list[DoubtRecord] | None = None,
@@ -50,7 +48,11 @@ async def plan_resolution(
     prior_resolution_summary: str = "",
     board_snapshot: dict | None = None,
 ) -> ResolutionPlan | None:
-    """Plan a doubt resolution as 3-5 beats.
+    """Classify + plan a doubt resolution in ONE CoT call (3-5 beats).
+
+    The returned plan carries `.classification` — the planner reasons out the
+    doubt's category first (which sets the depth) and emits it alongside the
+    beats, so there's no separate classify round-trip.
 
     Returns None on persistent failure — caller (LectureDoubtSession) is
     responsible for the fallback path. Most callers should treat None as
@@ -61,7 +63,6 @@ async def plan_resolution(
         try:
             plan = await _call_once(
                 doubt_text=doubt_text,
-                classification=classification,
                 chapter_context=chapter_context,
                 current_topic_id=current_topic_id,
                 prior_doubts=prior_doubts or [],
@@ -98,7 +99,6 @@ async def plan_resolution(
 async def _call_once(
     *,
     doubt_text: str,
-    classification: DoubtClassification,
     chapter_context: ChapterContext,
     current_topic_id: str | None,
     prior_doubts: list[DoubtRecord],
@@ -109,7 +109,6 @@ async def _call_once(
 ) -> ResolutionPlan | None:
     user_message = _build_user_message(
         doubt_text=doubt_text,
-        classification=classification,
         chapter_context=chapter_context,
         current_topic_id=current_topic_id,
         prior_doubts=prior_doubts,
@@ -167,9 +166,7 @@ def _format_visual_terms(chapter_context: ChapterContext, diagram_id: str) -> st
     it can write narration that names elements students can actually point
     at — "look at the force_arrow on the block" rather than vague gestures.
     """
-    entries = [
-        e for e in chapter_context.visual_index if e.diagram_id == diagram_id
-    ]
+    entries = [e for e in chapter_context.visual_index if e.diagram_id == diagram_id]
     if not entries:
         return ""
     lines = [f"ELEMENT SEMANTICS for active diagram ({diagram_id}):"]
@@ -243,7 +240,6 @@ def _format_board_snapshot(snapshot: dict | None) -> str:
 def _build_user_message(
     *,
     doubt_text: str,
-    classification: DoubtClassification,
     chapter_context: ChapterContext,
     current_topic_id: str | None,
     prior_doubts: list[DoubtRecord],
@@ -263,12 +259,17 @@ def _build_user_message(
 
     parts.append(f"STUDENT DOUBT:\n{doubt_text}")
 
-    parts.append(
-        "CLASSIFICATION:\n"
-        f"  type: {classification.type.value}\n"
-        f"  related_concept_ids: {classification.related_concept_ids}\n"
-        f"  rationale: {classification.rationale}"
-    )
+    # Whole-chapter topic list — the floor for `related_concept_ids` (the merged
+    # call now classifies too, so it needs to see every topic it could map to).
+    topic_lines = [
+        f"  - {t.topic_id} ({t.section_number}): {t.topic_name}"
+        for t in chapter_context.topics.values()
+    ]
+    if topic_lines:
+        parts.append(
+            "CHAPTER TOPICS (map the doubt to these ids for "
+            "related_concept_ids):\n" + "\n".join(topic_lines)
+        )
 
     current_topic = chapter_context.topic(current_topic_id)
     if current_topic:
@@ -301,8 +302,7 @@ def _build_user_message(
     prereqs = walk_prereqs(chapter_context, current_topic_id)
     if prereqs:
         prereq_lines = [
-            f"  - {p.section_number} {p.topic_name}: {p.summary or '(no summary)'}"
-            for p in prereqs
+            f"  - {p.section_number} {p.topic_name}: {p.summary or '(no summary)'}" for p in prereqs
         ]
         parts.append(
             "PREREQ CHAIN (curriculum-graph traversal — concepts the current "
@@ -349,10 +349,15 @@ def _build_user_message(
         )
 
     parts.append(
-        "Emit the plan via `emit_resolution_plan`. Example shape (note the "
-        "first beat reuses or writes — it never generates):\n"
+        "Emit the plan via `emit_resolution_plan`. Classify FIRST, then the "
+        "beats (the first beat reuses or writes — it never generates):\n"
         + json.dumps(
             {
+                "classification": {
+                    "type": "local_clarification",
+                    "related_concept_ids": [],
+                    "rationale": "one-sentence reason for the bucket",
+                },
                 "beats": [
                     {
                         "narration_text": (
@@ -378,9 +383,7 @@ def _build_user_message(
                         ],
                     },
                     {
-                        "narration_text": (
-                            "Now from the platform, the path bends into an arc."
-                        ),
+                        "narration_text": ("Now from the platform, the path bends into an arc."),
                         "diagram": {
                             "mode": "generate",
                             "brief": (
@@ -399,7 +402,7 @@ def _build_user_message(
                             }
                         ],
                     },
-                ]
+                ],
             },
             indent=2,
         )

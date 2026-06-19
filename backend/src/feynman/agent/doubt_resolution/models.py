@@ -301,8 +301,16 @@ class ResolutionBeat(BaseModel):
 
 
 class ResolutionPlan(BaseModel):
-    """The doubt-resolution planner's full output."""
+    """The doubt-resolution planner's full output.
 
+    One CoT call: the planner FIRST reasons out the doubt's `classification`
+    (which controls how deep it goes), THEN writes the beats. Field order
+    matters — classification is declared first so the model emits it before
+    planning, the same "think, then act" shape a separate classify call gave us
+    but without the extra round-trip.
+    """
+
+    classification: DoubtClassification
     beats: list[ResolutionBeat] = Field(..., min_length=1, max_length=6)
 
 

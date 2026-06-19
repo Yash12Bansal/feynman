@@ -1,0 +1,584 @@
+/*
+ * Memory-review surfaces — shared, theme-aware skin.
+ *
+ * One renderer (MemoryReview.tsx) backs three surfaces (auto-pop card,
+ * in-lecture weakness drawer, home-screen global card) across BOTH of the
+ * product's design languages. The look is driven entirely by `--mem-*` tokens
+ * set on the `.mem-root` element, exactly like the feedback system's
+ * `.fb-shell` + `--fb-*` pattern:
+ *
+ *   .mem-root.mem-root--notebook                  → "Living Notebook" (home, light)
+ *   .mem-root.mem-root--space[data-theme="dark"]  → "Deep-Space Glass" (in-lecture)
+ *   .mem-root.mem-root--space[data-theme="light"] → paper-studio glass (in-lecture, light)
+ *
+ * The component markup never hard-codes a colour — flip the variant/theme and
+ * every surface re-skins. Scoped under `.mem-root` so nothing leaks.
+ */
+
+/* ── Tokens: Living Notebook (warm paper, fountain-pen ink, one highlighter) ── */
+.mem-root--notebook {
+  --mem-scrim: rgba(27, 25, 22, 0.34);
+  --mem-panel: #fffdf8;
+  --mem-panel-2: #faf6ee;
+  --mem-border: rgba(27, 25, 22, 0.12);
+  --mem-border-soft: rgba(27, 25, 22, 0.07);
+  --mem-ink: #1b1916;
+  --mem-ink-soft: #565049;
+  --mem-ink-faint: #938b7c;
+  --mem-accent: #2740dd;
+  --mem-accent-soft: rgba(39, 64, 221, 0.08);
+  --mem-warn: #e2563b;
+  --mem-warn-soft: rgba(226, 86, 59, 0.09);
+  --mem-good: #2f7d50;
+  --mem-good-soft: rgba(47, 125, 80, 0.1);
+  --mem-good-border: rgba(47, 125, 80, 0.28);
+  --mem-shadow:
+    0 34px 80px -34px rgba(27, 25, 22, 0.5), 0 0 0 1px rgba(27, 25, 22, 0.05);
+  --mem-blur: none;
+  --mem-radius: 20px;
+  --mem-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --mem-body: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+  --mem-hand: "Caveat", "Segoe Script", cursive;
+}
+
+/* ── Tokens: Deep-Space Glass (cinema dark) ─────────────────────────────────── */
+.mem-root--space[data-theme="dark"] {
+  --mem-scrim: rgba(7, 8, 13, 0.7);
+  --mem-panel: rgba(17, 19, 28, 0.86);
+  --mem-panel-2: rgba(255, 255, 255, 0.045);
+  --mem-border: rgba(255, 255, 255, 0.1);
+  --mem-border-soft: rgba(255, 255, 255, 0.06);
+  --mem-ink: #f4f6fb;
+  --mem-ink-soft: rgba(244, 246, 251, 0.72);
+  --mem-ink-faint: rgba(244, 246, 251, 0.44);
+  --mem-accent: #7fd4ff;
+  --mem-accent-soft: rgba(127, 212, 255, 0.12);
+  --mem-warn: #ff9aa6;
+  --mem-warn-soft: rgba(255, 122, 138, 0.1);
+  --mem-good: #7cffb2;
+  --mem-good-soft: rgba(124, 255, 178, 0.1);
+  --mem-good-border: rgba(124, 255, 178, 0.24);
+  --mem-shadow:
+    0 30px 80px -24px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(127, 212, 255, 0.07);
+  --mem-blur: blur(22px) saturate(1.3);
+  --mem-radius: 20px;
+  --mem-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+  --mem-body: "Hanken Grotesk", -apple-system, system-ui, sans-serif;
+  --mem-hand: var(--mem-display);
+}
+
+/* ── Tokens: Deep-Space Glass, light (paper studio) ─────────────────────────── */
+.mem-root--space[data-theme="light"] {
+  --mem-scrim: rgba(27, 25, 22, 0.24);
+  --mem-panel: rgba(255, 253, 248, 0.92);
+  --mem-panel-2: rgba(27, 25, 22, 0.04);
+  --mem-border: rgba(27, 25, 22, 0.12);
+  --mem-border-soft: rgba(27, 25, 22, 0.07);
+  --mem-ink: #1b1916;
+  --mem-ink-soft: rgba(27, 25, 22, 0.66);
+  --mem-ink-faint: rgba(27, 25, 22, 0.44);
+  --mem-accent: #1f37c4;
+  --mem-accent-soft: rgba(31, 55, 196, 0.08);
+  --mem-warn: #b5271a;
+  --mem-warn-soft: rgba(181, 39, 26, 0.08);
+  --mem-good: #1f7a37;
+  --mem-good-soft: rgba(31, 122, 55, 0.1);
+  --mem-good-border: rgba(31, 122, 55, 0.26);
+  --mem-shadow:
+    0 30px 70px -30px rgba(27, 25, 22, 0.46), 0 0 0 1px rgba(27, 25, 22, 0.05);
+  --mem-blur: blur(22px) saturate(1.2);
+  --mem-radius: 20px;
+  --mem-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+  --mem-body: "Hanken Grotesk", -apple-system, system-ui, sans-serif;
+  --mem-hand: var(--mem-display);
+}
+
+/* ── Shells: modal overlay + side drawer ────────────────────────────────────── */
+.mem-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--mem-scrim);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  animation: mem-fade 0.28s ease both;
+}
+
+.mem-card {
+  position: relative;
+  width: min(92vw, 540px);
+  max-height: min(84vh, 760px);
+  overflow-y: auto;
+  padding: 30px 32px 26px;
+  color: var(--mem-ink);
+  font-family: var(--mem-body);
+  background: var(--mem-panel);
+  backdrop-filter: var(--mem-blur);
+  -webkit-backdrop-filter: var(--mem-blur);
+  border: 1px solid var(--mem-border);
+  border-radius: var(--mem-radius);
+  box-shadow: var(--mem-shadow);
+  animation: mem-rise 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mem-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  /* Deliberately light — the board stays readable; the review sits BESIDE the
+     lecture, not on top of it. */
+  background: color-mix(in srgb, var(--mem-scrim) 60%, transparent);
+  animation: mem-fade 0.28s ease both;
+}
+
+.mem-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(94vw, 416px);
+  display: flex;
+  flex-direction: column;
+  color: var(--mem-ink);
+  font-family: var(--mem-body);
+  background: var(--mem-panel);
+  backdrop-filter: var(--mem-blur);
+  -webkit-backdrop-filter: var(--mem-blur);
+  border-left: 1px solid var(--mem-border);
+  box-shadow: -28px 0 70px -24px rgba(0, 0, 0, 0.5);
+  animation: mem-slide-right 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mem-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--mem-border-soft);
+}
+.mem-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px 30px;
+}
+
+/* ── Heads ──────────────────────────────────────────────────────────────────── */
+.mem-kicker {
+  font-family: var(--mem-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mem-accent);
+}
+.mem-title {
+  position: relative;
+  margin: 8px 0 20px;
+  font-family: var(--mem-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--mem-ink);
+}
+.mem-drawer-title {
+  margin: 7px 0 0;
+  font-family: var(--mem-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--mem-ink);
+}
+/* A drawn accent under the modal title — coral pen on paper, cyan on glass. */
+.mem-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -7px;
+  width: 46px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--mem-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  animation: mem-underline 0.5s cubic-bezier(0.5, 0.05, 0.2, 1) 0.25s forwards;
+}
+.mem-root--notebook .mem-title::after {
+  background: var(--mem-warn);
+  height: 4px;
+  border-radius: 4px;
+}
+
+.mem-close {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--mem-border);
+  color: var(--mem-ink-faint);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+.mem-close:hover {
+  color: var(--mem-ink);
+  border-color: var(--mem-accent);
+  background: var(--mem-accent-soft);
+}
+
+/* ── Sections + items ───────────────────────────────────────────────────────── */
+.mem-section {
+  margin-bottom: 22px;
+}
+.mem-section:last-of-type {
+  margin-bottom: 8px;
+}
+.mem-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mem-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mem-ink-faint);
+  margin-bottom: 12px;
+}
+.mem-section-label::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+.mem-section--missed .mem-section-label::before {
+  background: var(--mem-warn);
+  box-shadow: 0 0 8px var(--mem-warn);
+}
+.mem-section--doubts .mem-section-label::before {
+  background: var(--mem-accent);
+  box-shadow: 0 0 8px var(--mem-accent);
+}
+
+.mem-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mem-item {
+  position: relative;
+  padding: 14px 16px 14px 18px;
+  background: var(--mem-panel-2);
+  border: 1px solid var(--mem-border-soft);
+  border-radius: 13px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--mem-ink);
+  animation: mem-item-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+/* A coloured "margin rule" down the left edge — red-pen for misses, ink-blue
+   for doubts, just like a teacher's notebook. */
+.mem-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 3px;
+}
+.mem-section--missed .mem-item::before {
+  background: var(--mem-warn);
+}
+.mem-section--doubts .mem-item::before {
+  background: var(--mem-accent);
+}
+.mem-item-text {
+  font-weight: 500;
+}
+
+.mem-tag {
+  display: inline-block;
+  margin: 0 8px 5px 0;
+  padding: 2px 9px;
+  font-family: var(--mem-display);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 7px;
+  background: var(--mem-accent-soft);
+  color: var(--mem-accent);
+  vertical-align: middle;
+}
+
+/* ── Collapsibles (options / worked solution / answer) ──────────────────────── */
+.mem-disclosure {
+  margin-top: 10px;
+}
+.mem-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-family: var(--mem-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mem-accent);
+  padding: 3px 0;
+}
+.mem-summary::-webkit-details-marker {
+  display: none;
+}
+.mem-summary::before {
+  content: "+";
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+.mem-disclosure[open] .mem-summary::before {
+  content: "\2212"; /* minus */
+}
+
+.mem-opt-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mem-opt {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--mem-ink-soft);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.mem-opt--correct {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--mem-good);
+  background: var(--mem-good-soft);
+  border: 1px solid var(--mem-good-border);
+  font-weight: 600;
+}
+.mem-opt-badge {
+  flex: none;
+  font-family: var(--mem-display);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mem-good);
+}
+.mem-explain {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--mem-ink-soft);
+}
+.mem-step-ol {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.mem-step-ol li {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--mem-ink-soft);
+}
+
+/* ── States + button ────────────────────────────────────────────────────────── */
+.mem-subtle {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--mem-ink-faint);
+}
+.mem-empty {
+  margin: 6px 0 20px;
+  padding: 18px 18px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--mem-ink-soft);
+  background: var(--mem-panel-2);
+  border: 1px dashed var(--mem-border);
+  border-radius: 14px;
+}
+.mem-btn {
+  margin-top: 18px;
+  width: 100%;
+  padding: 13px 0;
+  font-family: var(--mem-display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--mem-panel);
+  background: var(--mem-accent);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.16s cubic-bezier(0.5, 0.05, 0.2, 1),
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+  box-shadow: 0 10px 26px -12px var(--mem-accent);
+}
+.mem-root--notebook .mem-btn {
+  color: #fffdf8;
+}
+.mem-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 16px 32px -12px var(--mem-accent);
+}
+.mem-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Home-screen entry pill ("Living Notebook" only) ────────────────────────── */
+.mem-home-pill {
+  display: flex;
+  width: fit-content;
+  align-self: flex-start;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 10px 18px 10px 15px;
+  font-family: var(--body, "Hanken Grotesk", sans-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ink, #1b1916);
+  background: var(--panel, #fffdf8);
+  border: 1px solid var(--line, rgba(27, 25, 22, 0.14));
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 12px 26px -20px rgba(27, 25, 22, 0.5);
+  transition:
+    transform 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.22s ease,
+    border-color 0.2s ease;
+}
+.mem-home-pill:hover {
+  transform: translateY(-2px);
+  border-color: rgba(39, 64, 221, 0.36);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 18px 34px -22px rgba(27, 25, 22, 0.55),
+    0 0 0 1px rgba(39, 64, 221, 0.12);
+}
+.mem-home-pill__spark {
+  flex: none;
+  overflow: visible;
+}
+.mem-home-pill__spark path {
+  fill: none;
+  stroke: var(--blue, #2740dd);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: mem-draw 0.6s cubic-bezier(0.62, 0.04, 0.2, 1) 0.3s forwards;
+}
+.mem-home-pill__arrow {
+  color: var(--blue, #2740dd);
+  transition: transform 0.22s cubic-bezier(0.5, 0.05, 0.2, 1);
+}
+.mem-home-pill:hover .mem-home-pill__arrow {
+  transform: translateX(3px);
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────────────────── */
+@keyframes mem-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes mem-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes mem-slide-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes mem-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes mem-underline {
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes mem-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mem-overlay,
+  .mem-card,
+  .mem-drawer,
+  .mem-drawer-scrim,
+  .mem-item,
+  .mem-title::after,
+  .mem-home-pill__spark path {
+    animation: none;
+  }
+  .mem-title::after {
+    transform: scaleX(1);
+  }
+  .mem-home-pill__spark path {
+    stroke-dashoffset: 0;
+  }
+}

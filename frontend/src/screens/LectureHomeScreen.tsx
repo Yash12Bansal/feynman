@@ -18,6 +18,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/authContext";
+import { GlobalMemoryButton } from "../components/GlobalMemoryButton";
 import "../styles/notebook-theme.css";
 import "./lecture-home.css";
 
@@ -120,9 +121,7 @@ function subjectLabel(id: string | null): string {
     accounting: "Accounting",
   };
   if (known[seg]) return known[seg];
-  return seg
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return seg.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 interface LectureHomeScreenProps {
@@ -177,7 +176,11 @@ export function LectureHomeScreen({
         <header className="fey-home__header">
           <span className="fey-home__brand">
             Feynman<span className="dot">.</span>
-            <svg className="fey-home__brand-underline" viewBox="0 0 100 8" aria-hidden>
+            <svg
+              className="fey-home__brand-underline"
+              viewBox="0 0 100 8"
+              aria-hidden
+            >
               <path d="M2 5 C 22 2, 52 7, 98 3" />
             </svg>
           </span>
@@ -185,6 +188,7 @@ export function LectureHomeScreen({
             Where shall we pick up{firstName ? `, ${firstName}` : ""}?
           </h1>
           <span className="fey-home__sub">ready when you are</span>
+          <GlobalMemoryButton />
         </header>
 
         <main className="fey-home__main">
@@ -374,7 +378,10 @@ function ChapterCard({ chapter, index }: ChapterCardProps) {
         )}
         {!disabled && (
           <span className="fey-home__cta">
-            Open <span className="fey-home__cta-arrow" aria-hidden>→</span>
+            Open{" "}
+            <span className="fey-home__cta-arrow" aria-hidden>
+              →
+            </span>
           </span>
         )}
       </div>

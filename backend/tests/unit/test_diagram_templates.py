@@ -55,6 +55,7 @@ def test_is_known_and_prompt_block() -> None:
 def test_template_directive_validates_into_plan() -> None:
     plan = ResolutionPlan.model_validate(
         {
+            "classification": {"type": "local_clarification"},
             "beats": [
                 {
                     "narration_text": "The angle of elevation is the key.",
@@ -64,7 +65,7 @@ def test_template_directive_validates_into_plan() -> None:
                         "params": {"theta": 30},
                     },
                 }
-            ]
+            ],
         }
     )
     d = plan.beats[0].diagram

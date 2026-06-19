@@ -158,6 +158,7 @@ async def test_deliver_resolution_publishes_board_events_per_beat(mocked_room):
     audio_source, track = _patch_rtc_primitives()
 
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 # Inline <<FOCUS:trajectory>> marker — fires synced to the words,
@@ -170,7 +171,7 @@ async def test_deliver_resolution_publishes_board_events_per_beat(mocked_room):
                 diagram=KeepDiagram(),
                 annotation_actions=[PointAtAction(element_id="ball", from_side="left")],
             ),
-        ]
+        ],
     )
     chapter = ChapterContext(
         chapter_id="c1",
@@ -233,6 +234,7 @@ async def test_deliver_resolution_generates_and_publishes_spec_before_beat(mocke
     audio_source, track = _patch_rtc_primitives()
 
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="Start with the diagram you already have.",
@@ -242,7 +244,7 @@ async def test_deliver_resolution_generates_and_publishes_spec_before_beat(mocke
                 narration_text="Now let me sketch the platform view.",
                 diagram=GenerateDiagram(brief="a relative-velocity triangle", title="Triangle"),
             ),
-        ]
+        ],
     )
     chapter = ChapterContext(
         chapter_id="c1",
@@ -304,6 +306,7 @@ async def test_deliver_resolution_generation_failure_degrades(mocked_room):
     audio_source, track = _patch_rtc_primitives()
 
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="A quick sketch would make this concrete.",
@@ -311,7 +314,7 @@ async def test_deliver_resolution_generation_failure_degrades(mocked_room):
                 notebook_writes=[WriteStepBlock(text="key step")],
                 annotation_actions=[FocusAction(target_role="r")],
             )
-        ]
+        ],
     )
     chapter = ChapterContext(chapter_id="c1", title="t", topics={}, diagrams={})
     published: list[dict[str, Any]] = []
@@ -377,6 +380,7 @@ async def test_deliver_resolution_on_first_frame_fires_once_across_beats(mocked_
     callback = MagicMock()
 
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="Here's the first idea.",
@@ -386,7 +390,7 @@ async def test_deliver_resolution_on_first_frame_fires_once_across_beats(mocked_
                 narration_text="Here's the second idea.",
                 visual_intent_description="b",
             ),
-        ]
+        ],
     )
     chapter = ChapterContext(chapter_id="c1", title="t", topics={}, diagrams={})
 

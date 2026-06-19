@@ -42,6 +42,10 @@ import type { DesignDiagramSpec } from "../types/visuals";
 import { useTheme } from "../theme/themeContext";
 import { ThemeToggle } from "../theme/ThemeToggle";
 import "./lecture-viewer.css";
+import { useResumePosition } from "../hooks/useResumePosition";
+import { useCheckpoints } from "../hooks/useCheckpoints";
+import { QuestionCheckpoint } from "../components/QuestionCheckpoint";
+import { ChapterWeaknessButton } from "../components/ChapterWeaknessButton";
 
 // Glowing scrubber thumb — range pseudo-elements are CSS-only, so inject a tiny
 // scoped stylesheet once (mirrors AskFeynmanButton's keyframe-injection pattern).
@@ -77,8 +81,14 @@ if (typeof document !== "undefined") {
 
 interface LectureViewerProps {
   readonly chapterId: string;
+  /** Firebase uid — keys the per-(student, chapter) resume position. */
+  readonly studentId?: string | null;
+  /** Study session — attributes question attempts to this sitting. */
+  readonly studySessionId?: string | null;
   /** Lazy-connect: spin up the LiveKit session/room/agent on the first doubt. */
   readonly onRequestDoubtSession?: () => void;
+  /** Fired once when playback reaches the end of the lecture. */
+  readonly onLectureComplete?: () => void;
 }
 
 const DOUBT_TOPIC = "doubt_signal";
@@ -177,7 +187,10 @@ type DoubtServerPayload =
 
 export function LectureViewer({
   chapterId,
+  studentId,
+  studySessionId,
   onRequestDoubtSession,
+  onLectureComplete,
 }: LectureViewerProps) {
   const [chapter, setChapter] = useState<ChapterPayload | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -219,6 +232,51 @@ export function LectureViewer({
     clearDoubtAnnotations,
   } = useExtractionPlayback({ chapter, autoStart: true });
 
+  // Resume: persist + restore playback position per (student, chapter).
+  const resume = useResumePosition({
+    studentId,
+    chapterId,
+    ready: chapter !== null,
+    currentMs: currentLectureMs,
+    isPlaying: status === "playing",
+    seekToTimeMs,
+  });
+
+  // Question checkpoints — when a topic ends, pose its question (if any).
+  const checkpoint = useCheckpoints({
+    studentId,
+    sessionId: studySessionId,
+    pause,
+    play,
+  });
+  // currentTopicId flips when a NEW topic starts → (a) warm THIS topic's
+  // question so its diagram generates during the topic, and (b) the PREVIOUS
+  // topic just ended, so checkpoint that one.
+  const prevTopicRef = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = prevTopicRef.current;
+    if (currentTopicId) checkpoint.prefetchForTopic(currentTopicId);
+    if (prev && currentTopicId && prev !== currentTopicId) {
+      checkpoint.triggerForTopic(prev);
+    }
+    prevTopicRef.current = currentTopicId;
+  }, [currentTopicId, checkpoint]);
+
+  // On lecture end (once): the FINAL topic never hits a topic-transition, so its
+  // checkpoint is fired here. Then clear the saved resume position + mark the
+  // study session complete. The overlay shows over the finished board; its
+  // dismiss calls play(), a safe no-op once status is "finished".
+  const completedRef = useRef(false);
+  useEffect(() => {
+    if (status === "finished" && !completedRef.current) {
+      completedRef.current = true;
+      const lastTopic = currentTopicId ?? prevTopicRef.current;
+      if (lastTopic) checkpoint.triggerForTopic(lastTopic);
+      resume.clear();
+      onLectureComplete?.();
+    }
+  }, [status, currentTopicId, checkpoint, resume, onLectureComplete]);
+
   const [doubtState, setDoubtState] = useState<AskFeynmanState>("idle");
   const [doubtErrorMessage, setDoubtErrorMessage] = useState<string>("");
   const [satisfactionOptions, setSatisfactionOptions] = useState<
@@ -233,7 +291,13 @@ export function LectureViewer({
   // state; we mirror it here so player chrome hides AND playback PAUSES while a
   // survey is up — audio must never play behind a modal. We resume only if WE
   // paused, so a lecture the user paused themselves is left paused.
-  useEffect(() => feedbackSession.subscribe(() => setFeedbackOpen(feedbackSession.isOpen())), []);
+  useEffect(
+    () =>
+      feedbackSession.subscribe(() =>
+        setFeedbackOpen(feedbackSession.isOpen()),
+      ),
+    [],
+  );
   const statusRef = useRef(status);
   useEffect(() => {
     statusRef.current = status;
@@ -734,6 +798,9 @@ export function LectureViewer({
           onSeekCommit={onSeekCommit}
         />
       )}
+      {chapter && !chromeHidden && (
+        <ChapterWeaknessButton studentId={studentId} chapterId={chapterId} />
+      )}
       {chapter && !feedbackOpen && (
         <AskFeynmanButton
           state={doubtState}
@@ -746,6 +813,16 @@ export function LectureViewer({
         <SatisfactionPrompt
           options={satisfactionOptions}
           onChoose={onSatisfactionChoose}
+        />
+      )}
+      {checkpoint.question && (
+        <QuestionCheckpoint
+          key={checkpoint.question.question_id}
+          question={checkpoint.question}
+          solution={checkpoint.solution}
+          outcome={checkpoint.outcome}
+          onSubmit={checkpoint.submit}
+          onDismiss={checkpoint.dismiss}
         />
       )}
       {chapter && (
@@ -978,7 +1055,13 @@ function Scrubber({
           appearance: "none",
         }}
       />
-      <span style={{ minWidth: 44, fontFamily: MONO_FONT, color: "var(--lv-ink-muted)" }}>
+      <span
+        style={{
+          minWidth: 44,
+          fontFamily: MONO_FONT,
+          color: "var(--lv-ink-muted)",
+        }}
+      >
         {_fmtMs(totalMs)}
       </span>
     </div>

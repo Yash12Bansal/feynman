@@ -138,12 +138,13 @@ async def test_match_assigns_diagram_when_verifier_accepts():
         ]
     )
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="The ball moves with the train.",
                 visual_intent_description="ball toss in train",
             )
-        ]
+        ],
     )
 
     create_mock = AsyncMock(
@@ -173,12 +174,13 @@ async def test_match_assigns_diagram_when_verifier_accepts():
 async def test_match_leaves_diagram_none_when_verifier_rejects_all():
     ctx = _ctx([_diagram("d_a", "irrelevant"), _diagram("d_b", "also irrelevant")])
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="resolution",
                 visual_intent_description="some visual",
             )
-        ]
+        ],
     )
     create_mock = AsyncMock(
         return_value=_verdict_response({"fits": False, "confidence": 0.2, "rationale": "no match"})
@@ -206,12 +208,13 @@ async def test_match_low_confidence_rejected():
     """confidence < 0.7 → don't assign even if fits=True."""
     ctx = _ctx([_diagram("d_x", "thing")])
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="x",
                 visual_intent_description="thing",
             )
-        ]
+        ],
     )
     create_mock = AsyncMock(
         return_value=_verdict_response({"fits": True, "confidence": 0.55, "rationale": "weak"})
@@ -244,12 +247,13 @@ async def test_match_skip_stage2_uses_top_stage1_above_threshold():
         ]
     )
     plan = ResolutionPlan(
+        classification={"type": "local_clarification"},
         beats=[
             ResolutionBeat(
                 narration_text="ball toss in train",
                 visual_intent_description="ball toss in train",
             )
-        ]
+        ],
     )
     classification = DoubtClassification(
         type=DoubtType.LOCAL_CLARIFICATION, related_concept_ids=["t1"]

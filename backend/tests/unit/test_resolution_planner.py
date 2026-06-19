@@ -16,8 +16,6 @@ import pytest
 from feynman.agent.doubt_resolution import (
     ChapterContext,
     DiagramData,
-    DoubtClassification,
-    DoubtType,
     ResolutionPlan,
     TopicMeta,
     plan_resolution,
@@ -57,8 +55,16 @@ def _ctx() -> ChapterContext:
     )
 
 
+_CLASSIFICATION = {
+    "type": "local_clarification",
+    "related_concept_ids": [],
+    "rationale": "small clarification about the current topic",
+}
+
+
 def _valid_plan_payload() -> dict[str, Any]:
     return {
+        "classification": dict(_CLASSIFICATION),
         "beats": [
             {
                 "narration_text": "Here's what's happening: in any inertial frame, the physics is identical.",
@@ -74,7 +80,7 @@ def _valid_plan_payload() -> dict[str, Any]:
                 "annotation_actions": [],
                 "target_diagram_id": None,
             },
-        ]
+        ],
     }
 
 
@@ -91,7 +97,6 @@ async def test_plan_resolution_returns_valid_plan():
     ):
         plan = await plan_resolution(
             doubt_text="why does the ball toss look the same?",
-            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
             chapter_context=_ctx(),
             current_topic_id="t1",
         )
@@ -115,7 +120,6 @@ async def test_plan_resolution_includes_topic_context_in_prompt():
     ):
         await plan_resolution(
             doubt_text="why?",
-            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
             chapter_context=_ctx(),
             current_topic_id="t1",
         )
@@ -142,7 +146,6 @@ async def test_plan_resolution_different_angle_emits_replanning_instruction():
     ):
         await plan_resolution(
             doubt_text="why?",
-            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
             chapter_context=_ctx(),
             current_topic_id="t1",
             different_angle=True,
@@ -167,7 +170,6 @@ async def test_plan_resolution_returns_none_after_two_failures():
     ):
         plan = await plan_resolution(
             doubt_text="x",
-            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
             chapter_context=_ctx(),
         )
     assert plan is None
@@ -175,7 +177,7 @@ async def test_plan_resolution_returns_none_after_two_failures():
 
 @pytest.mark.asyncio
 async def test_plan_resolution_recovers_on_retry_after_validation_error():
-    bad = {"beats": []}  # min_length=1 → ValidationError
+    bad = {"classification": dict(_CLASSIFICATION), "beats": []}  # min_length=1 → ValidationError
     good = _valid_plan_payload()
     create_mock = AsyncMock(side_effect=[_plan_response(bad), _plan_response(good)])
     client = AsyncMock()
@@ -188,7 +190,6 @@ async def test_plan_resolution_recovers_on_retry_after_validation_error():
     ):
         plan = await plan_resolution(
             doubt_text="x",
-            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
             chapter_context=_ctx(),
         )
 
@@ -202,6 +203,7 @@ async def test_plan_resolution_rejects_banned_opener_and_retries():
     validation; the planner's 2-attempt retry catches it + re-prompts.
     """
     bad = {
+        "classification": dict(_CLASSIFICATION),
         "beats": [
             {
                 "narration_text": "Great question! Let me explain the idea.",
@@ -209,7 +211,7 @@ async def test_plan_resolution_rejects_banned_opener_and_retries():
                 "annotation_actions": [],
                 "target_diagram_id": None,
             }
-        ]
+        ],
     }
     good = _valid_plan_payload()
     create_mock = AsyncMock(side_effect=[_plan_response(bad), _plan_response(good)])
@@ -223,7 +225,6 @@ async def test_plan_resolution_rejects_banned_opener_and_retries():
     ):
         plan = await plan_resolution(
             doubt_text="why?",
-            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
             chapter_context=_ctx(),
         )
 
@@ -237,6 +238,7 @@ async def test_plan_resolution_accepts_directive_and_notebook_shape():
     """The planner now decides the diagram (reuse/generate) and writes notebook
     lines directly — no downstream matcher in the planning path."""
     payload = {
+        "classification": dict(_CLASSIFICATION),
         "beats": [
             {
                 "narration_text": "Here's the piece that's off: the speed carries over.",
@@ -259,7 +261,7 @@ async def test_plan_resolution_accepts_directive_and_notebook_shape():
                 "notebook_writes": [],
                 "annotation_actions": [],
             },
-        ]
+        ],
     }
     create_mock = AsyncMock(return_value=_plan_response(payload))
     client = AsyncMock()
@@ -272,7 +274,6 @@ async def test_plan_resolution_accepts_directive_and_notebook_shape():
     ):
         plan = await plan_resolution(
             doubt_text="why is it the same?",
-            classification=DoubtClassification(type=DoubtType.LOCAL_CLARIFICATION),
             chapter_context=_ctx(),
             current_topic_id="t1",
         )

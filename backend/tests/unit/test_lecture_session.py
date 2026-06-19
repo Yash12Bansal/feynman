@@ -1,8 +1,9 @@
-"""Integration of classifier → planner → matcher under LectureDoubtSession.
+"""Integration of classify+plan under LectureDoubtSession.
 
-All three LLM stages are mocked; the test exercises the wiring: history
-gets appended, shown diagrams flow into the matcher, and the returned
-plan is well-formed.
+The planner is one CoT call that classifies AND plans (it emits
+`classification` alongside the beats), so each `resolve()` is a single mocked
+LLM call. The test exercises the wiring: history gets appended, valid reuse
+ids flow into the shown set, and the returned plan is well-formed.
 """
 
 from __future__ import annotations
@@ -20,10 +21,26 @@ from feynman.agent.doubt_resolution import (
     TopicMeta,
 )
 
+# The classification the planner now emits as part of its plan. Folded into
+# every plan payload below (the merged CoT call returns both).
+_CLASSIFICATION = {
+    "type": "local_clarification",
+    "related_concept_ids": [],
+    "rationale": "small clarification about the current topic",
+}
+
 
 def _resp(name: str, payload: dict[str, Any]):
     block = SimpleNamespace(type="tool_use", name=name, input=payload)
     return SimpleNamespace(content=[block])
+
+
+def _plan(beats: list[dict[str, Any]]) -> Any:
+    """A planner tool response: classification + beats, the merged CoT shape."""
+    return _resp(
+        "emit_resolution_plan",
+        {"classification": dict(_CLASSIFICATION), "beats": beats},
+    )
 
 
 def _ctx() -> ChapterContext:
@@ -49,12 +66,12 @@ def _ctx() -> ChapterContext:
 
 
 def _make_client(responses: list[Any]) -> AsyncMock:
-    """Single AsyncMock shared across all three pipeline stages.
+    """Single AsyncMock for the planner call(s).
 
     `anthropic.AsyncAnthropic` is one module attribute regardless of which
-    submodule imported it, so a single patch is enough — but the side
-    effects must be sequenced in invocation order: classifier → planner
-    → matcher (which calls Haiku per beat).
+    submodule imported it, so patching it once is enough. Each `resolve()` now
+    makes exactly ONE planner call (classify + plan merged), so `responses` is
+    one entry per resolve (plus retries on failure).
     """
     create_mock = AsyncMock(side_effect=responses)
     client = AsyncMock()
@@ -65,34 +82,22 @@ def _make_client(responses: list[Any]) -> AsyncMock:
 
 @pytest.mark.asyncio
 async def test_resolve_runs_full_pipeline_and_records_history():
-    classifier_resp = _resp(
-        "emit_classification",
-        {
-            "type": "local_clarification",
-            "related_concept_ids": [],
-            "rationale": "stub",
-        },
-    )
-    planner_resp = _resp(
-        "emit_resolution_plan",
-        {
-            "beats": [
-                {
-                    "narration_text": "Here's the idea.",
-                    "diagram": {"mode": "reuse", "diagram_id": "d1"},
-                    "notebook_writes": [],
-                    "annotation_actions": [],
-                }
-            ]
-        },
+    planner_resp = _plan(
+        [
+            {
+                "narration_text": "Here's the idea.",
+                "diagram": {"mode": "reuse", "diagram_id": "d1"},
+                "notebook_writes": [],
+                "annotation_actions": [],
+            }
+        ]
     )
 
-    # No matcher stage anymore — the planner picks the diagram directly.
-    client = _make_client([classifier_resp, planner_resp])
+    client = _make_client([planner_resp])
     session = LectureDoubtSession(chapter_context=_ctx())
 
     with patch(
-        "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+        "feynman.agent.doubt_resolution.resolution_planner.anthropic.AsyncAnthropic",
         return_value=client,
     ):
         plan = await session.resolve(
@@ -104,6 +109,8 @@ async def test_resolve_runs_full_pipeline_and_records_history():
     assert plan is not None
     assert len(plan.beats) == 1
     assert plan.beats[0].target_diagram_id == "d1"
+    # Classification now rides on the plan.
+    assert plan.classification.type.value == "local_clarification"
 
     assert len(session.prior_doubts_in_session) == 1
     assert session.prior_doubts_in_session[0].doubt_text == (
@@ -114,69 +121,38 @@ async def test_resolve_runs_full_pipeline_and_records_history():
 
 @pytest.mark.asyncio
 async def test_resolve_returns_none_when_planner_fails():
-    classifier_resp = _resp(
-        "emit_classification",
-        {"type": "local_clarification", "related_concept_ids": [], "rationale": "ok"},
-    )
-    client = _make_client(
-        [
-            classifier_resp,
-            RuntimeError("fail"),
-            RuntimeError("again"),
-        ]
-    )
+    # Both planner attempts fail → no plan, no history.
+    client = _make_client([RuntimeError("fail"), RuntimeError("again")])
     session = LectureDoubtSession(chapter_context=_ctx())
 
     with patch(
-        "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+        "feynman.agent.doubt_resolution.resolution_planner.anthropic.AsyncAnthropic",
         return_value=client,
     ):
         plan = await session.resolve(doubt_text="x", current_topic_id="t1")
 
     assert plan is None
-    # No history recorded when the planner fails.
     assert session.prior_doubts_in_session == []
 
 
 @pytest.mark.asyncio
 async def test_resolve_accumulates_prior_doubts_across_calls():
-    """Phase 6: three doubts in a row → prior_doubts_in_session grows to 3.
-
-    This is the most common multi-doubt path a student walks (counter-doubt
-    or start-over after each resolution). We verify the planner sees the
-    growing history on each subsequent call.
-    """
-    classifier_payload = {
-        "type": "local_clarification",
-        "related_concept_ids": [],
-        "rationale": "ok",
-    }
-    plan_payload = {
-        "beats": [
-            {
-                "narration_text": "Here's the idea — for this doubt.",
-                "visual_intent_description": "",
-                "annotation_actions": [],
-                "target_diagram_id": None,
-            }
-        ]
-    }
-    matcher_payload = {"fits": True, "confidence": 0.9, "rationale": "ok"}
-
-    # Sequence: classifier, planner, matcher x 3 doubts = 9 calls.
-    responses = [
-        _resp("emit_classification", classifier_payload),
-        _resp("emit_resolution_plan", plan_payload),
-        _resp("emit_fit_verdict", matcher_payload),
-    ] * 3
-    # NOTE: when classification is local_clarification, lecture_session
-    # passes skip_stage2=True so the Haiku verifier is bypassed. The
-    # matcher_payload responses above are extra — they'll go unused.
+    """Three doubts in a row → prior_doubts_in_session grows to 3. One planner
+    call per doubt now (classify + plan merged)."""
+    beats = [
+        {
+            "narration_text": "Here's the idea — for this doubt.",
+            "visual_intent_description": "",
+            "annotation_actions": [],
+            "target_diagram_id": None,
+        }
+    ]
+    responses = [_plan(beats) for _ in range(3)]
     client = _make_client(responses)
     session = LectureDoubtSession(chapter_context=_ctx())
 
     with patch(
-        "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+        "feynman.agent.doubt_resolution.resolution_planner.anthropic.AsyncAnthropic",
         return_value=client,
     ):
         await session.resolve(doubt_text="doubt one", current_topic_id="t1")
@@ -196,13 +172,8 @@ async def test_resolve_validates_reuse_id():
     """The planner decides the diagram; resolve() validates reuse picks against
     the real chapter diagrams — a hallucinated id degrades to NoDiagram, a real
     one is mirrored to target_diagram_id + the recency set."""
-    classifier_payload = {
-        "type": "local_clarification",
-        "related_concept_ids": [],
-        "rationale": "small clarification",
-    }
-    plan_payload = {
-        "beats": [
+    planner_resp = _plan(
+        [
             {
                 "narration_text": "Here's what's happening, step by step.",
                 "diagram": {"mode": "reuse", "diagram_id": "d1"},
@@ -216,17 +187,12 @@ async def test_resolve_validates_reuse_id():
                 "annotation_actions": [],
             },
         ]
-    }
-    client = _make_client(
-        [
-            _resp("emit_classification", classifier_payload),
-            _resp("emit_resolution_plan", plan_payload),
-        ]
     )
+    client = _make_client([planner_resp])
     session = LectureDoubtSession(chapter_context=_ctx())
 
     with patch(
-        "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+        "feynman.agent.doubt_resolution.resolution_planner.anthropic.AsyncAnthropic",
         return_value=client,
     ):
         plan = await session.resolve(doubt_text="what does inertial mean?", current_topic_id="t1")
@@ -244,13 +210,8 @@ async def test_resolve_validates_reuse_id():
 async def test_resolve_degrades_unknown_template():
     """A `template` directive with an invented concept_id degrades to NoDiagram
     (the narration still answers); a known canonical id is left intact."""
-    classifier_payload = {
-        "type": "local_clarification",
-        "related_concept_ids": [],
-        "rationale": "small clarification",
-    }
-    plan_payload = {
-        "beats": [
+    planner_resp = _plan(
+        [
             {
                 "narration_text": "Picture the right triangle for this.",
                 "diagram": {"mode": "template", "concept_id": "right-triangle-trig"},
@@ -264,17 +225,12 @@ async def test_resolve_degrades_unknown_template():
                 "annotation_actions": [],
             },
         ]
-    }
-    client = _make_client(
-        [
-            _resp("emit_classification", classifier_payload),
-            _resp("emit_resolution_plan", plan_payload),
-        ]
     )
+    client = _make_client([planner_resp])
     session = LectureDoubtSession(chapter_context=_ctx())
 
     with patch(
-        "feynman.agent.doubt_resolution.doubt_classifier.anthropic.AsyncAnthropic",
+        "feynman.agent.doubt_resolution.resolution_planner.anthropic.AsyncAnthropic",
         return_value=client,
     ):
         plan = await session.resolve(doubt_text="how do I find the angle?", current_topic_id="t1")
