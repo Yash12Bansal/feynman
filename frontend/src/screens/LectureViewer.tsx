@@ -704,7 +704,7 @@ export function LectureViewer({
           mode="split"
           notebookTitle={chapter.title}
         />
-        <audio ref={attachAudio} preload="auto" />
+        <audio ref={attachAudio} preload="auto" crossOrigin="anonymous" />
       </>
     );
   }, [chapter, fetchError, notebook, attachAudio, slide]);
