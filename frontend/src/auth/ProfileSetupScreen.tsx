@@ -23,24 +23,24 @@ export function ProfileSetupScreen() {
 
   const digits = phone.replace(/\D/g, "");
   const canSubmit =
-    name.trim().length > 0 && /^\+\d{1,4}$/.test(code) && digits.length >= 7;
+    name.trim().length > 0 &&
+    /^\+?\d{1,4}$/.test(code.trim()) &&
+    digits.length >= 7;
 
   const onSubmit = useCallback(
     async (e: FormEvent) => {
       e.preventDefault();
       const cleanDigits = phone.replace(/\D/g, "");
-      if (
-        name.trim().length === 0 ||
-        !/^\+\d{1,4}$/.test(code) ||
-        cleanDigits.length < 7
-      ) {
+      // Normalize the country code: "91" / "+91" / autofilled digits -> "+91".
+      const cc = `+${code.replace(/\D/g, "").slice(0, 4)}`;
+      if (name.trim().length === 0 || cc === "+" || cleanDigits.length < 7) {
         setErr("Please enter your name and a valid phone number.");
         return;
       }
       setBusy(true);
       setErr(null);
       try {
-        await saveProfile({ name, phone: `${code} ${cleanDigits}` });
+        await saveProfile({ name, phone: `${cc} ${cleanDigits}` });
         // On success the profile flips profileComplete → the gate unmounts us.
       } catch (saveErr) {
         console.error("[auth] failed to save profile", saveErr);
@@ -95,7 +95,9 @@ export function ProfileSetupScreen() {
             aria-label="Country code"
             style={{ ...inputStyle, width: 72, textAlign: "center" }}
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={(e) =>
+              setCode("+" + e.target.value.replace(/\D/g, "").slice(0, 4))
+            }
             inputMode="tel"
             onFocus={focusRing}
             onBlur={blurRing}
