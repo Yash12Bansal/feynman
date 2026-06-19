@@ -8,14 +8,14 @@ import { AccountChip } from "./auth/AccountChip";
 import { FeedbackFab } from "./feedback/FeedbackFab";
 import { ExitIntentFeedback } from "./feedback/ExitIntentFeedback";
 import { useLectureChapterParam } from "./hooks/useLectureChapterParam";
-import { useTheme } from "./theme/themeContext";
 
 // Spinner keyframe for the lecture-loading fallback (inline styles can't carry
 // @keyframes; inject once — the established pattern in this codebase).
 if (typeof document !== "undefined" && !document.getElementById("lv-load-kf")) {
   const s = document.createElement("style");
   s.id = "lv-load-kf";
-  s.textContent = "@keyframes lv-load-spin { to { transform: rotate(360deg); } }";
+  s.textContent =
+    "@keyframes lv-load-spin { to { transform: rotate(360deg); } }";
   document.head.appendChild(s);
 }
 
@@ -86,11 +86,13 @@ function MainEntry() {
 }
 
 function LectureLoading() {
-  // Themed placeholder shown for the fraction of a second while the lecture
-  // chunk loads on first open — matches the lecture "room" so the hand-off is
-  // seamless (renders before `.lv-shell`, so it reads the theme directly).
-  const { theme } = useTheme();
-  const dark = theme === "dark";
+  // Shown for the fraction of a second while the lecture chunk loads on first
+  // open. The product shell is the light "Living Notebook" skin (home picker +
+  // marketing landing), so this hand-off renders in the same warm-paper palette
+  // — opening a lecture from the home stays continuous and light instead of
+  // flashing to a dark screen before the room mounts. Inline values mirror the
+  // `.notebook` tokens (styles/notebook-theme.css): this renders outside that
+  // scope, so it can't read the CSS variables directly.
   return (
     <div
       style={{
@@ -99,12 +101,13 @@ function LectureLoading() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 16,
-        background: dark ? "#07070d" : "#ece8de",
-        color: dark ? "rgba(244,246,251,0.7)" : "rgba(27,25,22,0.66)",
-        fontFamily: "'Hanken Grotesk', -apple-system, system-ui, sans-serif",
-        fontSize: "0.82rem",
-        letterSpacing: "0.14em",
+        gap: 18,
+        background: "#faf6ee", // --paper
+        color: "rgba(27, 25, 22, 0.5)", // --ink, faded for a quiet label
+        fontFamily: "'Hanken Grotesk', -apple-system, system-ui, sans-serif", // --body
+        fontSize: "0.78rem",
+        fontWeight: 600,
+        letterSpacing: "0.18em",
         textTransform: "uppercase",
       }}
     >
@@ -114,8 +117,8 @@ function LectureLoading() {
           width: 26,
           height: 26,
           borderRadius: "50%",
-          border: `2px solid ${dark ? "rgba(127,212,255,0.18)" : "rgba(31,55,196,0.16)"}`,
-          borderTopColor: dark ? "#7fd4ff" : "#1f37c4",
+          border: "2px solid rgba(39, 64, 221, 0.16)", // --blue @ low alpha
+          borderTopColor: "#2740dd", // --blue
           animation: "lv-load-spin 0.8s linear infinite",
         }}
       />

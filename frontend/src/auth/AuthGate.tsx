@@ -16,7 +16,8 @@ import { ProfileSetupScreen } from "./ProfileSetupScreen";
 import { DISPLAY_FONT } from "../styles/fonts";
 
 export function AuthGate({ children }: { readonly children: ReactNode }) {
-  const { configured, initializing, profileLoading, user, profileComplete } = useAuth();
+  const { configured, initializing, profileLoading, user, profileComplete } =
+    useAuth();
 
   // Local-dev escape hatch — render the product directly.
   if (config.authDisabled) return <>{children}</>;
@@ -35,13 +36,20 @@ export function AuthGate({ children }: { readonly children: ReactNode }) {
 }
 
 function AuthSplash() {
+  // Light "Living Notebook" boot splash — warm paper + the Fraunces brand
+  // wordmark, matching the home picker / marketing landing so first paint and
+  // the hand-off into the product read as one continuous light surface. (The
+  // dark aurora is the old neon theme; it stays only on the dev-only
+  // NotConfiguredNotice below.)
   return (
-    <AuroraBackground>
+    <div style={splashRootStyle}>
       <div style={splashStyle}>
         <span style={splashSpinnerStyle} aria-hidden />
-        <span style={splashTextStyle}>Feynman</span>
+        <span style={splashTextStyle}>
+          Feynman<span style={splashDotStyle}>.</span>
+        </span>
       </div>
-    </AuroraBackground>
+    </div>
   );
 }
 
@@ -66,31 +74,41 @@ function NotConfiguredNotice() {
   );
 }
 
+const splashRootStyle: React.CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "#faf6ee", // --paper (Living Notebook)
+};
+
 const splashStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   gap: 18,
-  fontFamily: DISPLAY_FONT,
 };
 
 const splashSpinnerStyle: React.CSSProperties = {
   width: 28,
   height: 28,
   borderRadius: "50%",
-  border: "2px solid rgba(127,212,255,0.14)",
-  borderTopColor: "#7fd4ff",
-  boxShadow: "0 0 18px rgba(127,212,255,0.35)",
+  border: "2px solid rgba(39, 64, 221, 0.16)", // --blue @ low alpha
+  borderTopColor: "#2740dd", // --blue
   animation: "auth-spin 0.9s linear infinite",
 };
 
 const splashTextStyle: React.CSSProperties = {
-  fontFamily: DISPLAY_FONT,
-  fontSize: "0.95rem",
+  fontFamily: '"Fraunces", Georgia, "Times New Roman", serif', // --display
+  fontSize: "1.3rem",
   fontWeight: 600,
-  letterSpacing: "0.16em",
-  textTransform: "uppercase",
-  color: "rgba(244,246,251,0.58)",
+  letterSpacing: "-0.02em",
+  color: "#1b1916", // --ink
+};
+
+const splashDotStyle: React.CSSProperties = {
+  color: "#2740dd", // --blue
 };
 
 const noticeCardStyle: React.CSSProperties = {
