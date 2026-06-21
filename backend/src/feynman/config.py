@@ -45,6 +45,12 @@ class Settings(BaseSettings):
     # Speech Providers
     deepgram_api_key: str = ""
     cartesia_api_key: str = ""
+    elevenlabs_api_key: str = ""
+
+    # Config-driven TTS options: "cartesia", "elevenlabs", or "openai"
+    tts_provider: str = "cartesia"
+    tts_model: str = "sonic-3.5"
+    tts_voice: str = ""
 
     # Database
     database_url: str = "postgresql+asyncpg://feynman:feynman@localhost:5433/feynman"
