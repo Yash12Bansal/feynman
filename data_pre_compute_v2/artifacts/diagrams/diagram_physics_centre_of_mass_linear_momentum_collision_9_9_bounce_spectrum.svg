@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground" x1="80" y1="470" x2="820" y2="470" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 90 470 L 80 485 M 130 470 L 120 485 M 170 470 L 160 485 M 210 470 L 200 485 M 250 470 L 240 485 M 290 470 L 280 485 M 330 470 L 320 485 M 370 470 L 360 485 M 410 470 L 400 485 M 450 470 L 440 485 M 490 470 L 480 485 M 530 470 L 520 485 M 570 470 L 560 485 M 610 470 L 600 485 M 650 470 L 640 485 M 690 470 L 680 485 M 730 470 L 720 485 M 770 470 L 760 485 M 810 470 L 800 485" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<line id="drop-line" x1="450" y1="130" x2="450" y2="470" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<line id="drop-tick" x1="430" y1="130" x2="470" y2="130" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="drop-label" x="478" y="135" font-size="15" fill="rgba(232,232,238,0.7)" font-style="italic" text-anchor="middle">h_0</text>
+<path id="elastic-arc" d="M 230 470 Q 175 160 230 150" stroke="rgba(159,255,201,0.35)" stroke-width="1.5" fill="none" stroke-dasharray="4 5"/>
+<line id="elastic-level" x1="200" y1="145" x2="260" y2="145" stroke="#9effc9" stroke-width="1.2" stroke-dasharray="3 4"/>
+<circle id="elastic-ball" cx="230" cy="165" r="20" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<path id="real-arc" d="M 450 470 Q 410 320 450 305" stroke="rgba(127,212,255,0.35)" stroke-width="1.5" fill="none" stroke-dasharray="4 5"/>
+<line id="real-level" x1="420" y1="300" x2="480" y2="300" stroke="#7fd4ff" stroke-width="1.2" stroke-dasharray="3 4"/>
+<circle id="real-ball" cx="450" cy="320" r="20" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<path id="clay-arc" d="M 670 470 Q 660 455 670 452" stroke="rgba(255,122,138,0.3)" stroke-width="1.5" fill="none" stroke-dasharray="4 5"/>
+<path id="clay-blob" d="M 638 470 Q 638 450 670 449 Q 702 450 702 470 Z" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="e-scale" x1="200" y1="560" x2="720" y2="560" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="e-scale-tick0" x1="200" y1="553" x2="200" y2="567" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<line id="e-scale-tick1" x1="720" y1="553" x2="720" y2="567" stroke="#e8e8ee" stroke-width="2" stroke-dasharray=""/>
+<text id="e-scale-zero" x="182" y="590" font-size="14" fill="#ff7a8a" font-style="italic" text-anchor="middle">e=0</text>
+<text id="e-scale-one" x="702" y="590" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">e=1</text>
+<circle id="marker-clay" cx="250" cy="560" r="5" fill="none" stroke="#ff7a8a" stroke-width="2" stroke-dasharray=""/>
+<circle id="marker-real" cx="460" cy="560" r="5" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="marker-elastic" cx="680" cy="560" r="5" fill="none" stroke="#9effc9" stroke-width="2" stroke-dasharray=""/>
+<text id="elastic-name" x="230" y="100" font-size="12" fill="#9effc9" text-anchor="middle" font-weight="600">super-ball</text>
+<text id="real-name" x="450" y="258" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">real ball</text>
+<text id="clay-name" x="670" y="432" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">clay</text>
+<text id="elastic-e" x="200" y="530" font-size="12" fill="#9effc9" font-style="italic" text-anchor="middle">e\approx 0.95</text>
+<text id="real-e" x="430" y="530" font-size="12" fill="#7fd4ff" font-style="italic" text-anchor="middle">e\approx 0.5</text>
+<text id="clay-e" x="225" y="530" font-size="12" fill="#ff7a8a" font-style="italic" text-anchor="middle">e\approx 0</text>
+</svg>

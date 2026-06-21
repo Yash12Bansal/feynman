@@ -74,6 +74,7 @@ const CLASS_GROUPS: readonly ClassGroup[] = [
       "chapter:physics:fluid_mechanics", // Fluid Mechanics
       "chapter:physics:rotational_mechanics", // Rotational Mechanics (HC Verma)
       "chapter:physics:simple_harmonic_motion", // Simple Harmonic Motion (HC Verma)
+      "chapter:physics:centre_of_mass_linear_momentum_collision", // Centre of Mass, Linear Momentum, Collision (HC Verma)
     ],
   },
   {

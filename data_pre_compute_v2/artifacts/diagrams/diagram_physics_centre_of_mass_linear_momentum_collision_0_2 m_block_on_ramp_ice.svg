@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ice-surface" x1="120" y1="470" x2="780" y2="470" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ice-hatch" d="M 140 470 L 128 486 M 180 470 L 168 486 M 220 470 L 208 486 M 260 470 L 248 486 M 300 470 L 288 486 M 340 470 L 328 486 M 380 470 L 368 486 M 420 470 L 408 486 M 460 470 L 448 486 M 500 470 L 488 486 M 540 470 L 528 486 M 580 470 L 568 486 M 620 470 L 608 486 M 660 470 L 648 486 M 700 470 L 688 486 M 740 470 L 728 486 M 770 470 L 758 486" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<text id="ice-label" x="450" y="510" font-size="11" fill="rgba(232,232,238,0.55)" text-anchor="middle" font-weight="normal">frictionless ice</text>
+<path id="ramp-block" d="M 330 470 L 560 470 L 560 280 Q 560 470 330 470 Z" stroke="#e8e8ee" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<rect id="small-block" x="538" y="256" width="44" height="36" rx="3" fill="none" stroke="#7fd4ff" stroke-width="2.5"/>
+<defs><marker id="arrowhead_block-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="block-velocity" x1="590" y1="274" x2="690" y2="274" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_block-velocity)"/>
+<text id="block-velocity-label" x="698" y="272" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">vₘ</text>
+<defs><marker id="arrowhead_ramp-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="ramp-velocity" x1="380" y1="440" x2="280" y2="440" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_ramp-velocity)"/>
+<text id="ramp-velocity-label" x="272" y="438" font-size="13" fill="#ff7a8a" text-anchor="end" font-weight="600">V_R</text>
+<line id="com-axis" x1="470" y1="180" x2="470" y2="470" stroke="rgba(232,232,238,0.45)" stroke-width="1.5" stroke-dasharray="6 5"/>
+<circle id="com-marker" cx="470" cy="360" r="9" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<path id="com-cross" d="M 470 351 L 470 369 M 461 360 L 479 360" stroke="#7fd4ff" stroke-width="1.5" fill="none" stroke-dasharray=""/>
+<text id="com-label" x="470" y="168" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">centre of mass (fixed)</text>
+</svg>

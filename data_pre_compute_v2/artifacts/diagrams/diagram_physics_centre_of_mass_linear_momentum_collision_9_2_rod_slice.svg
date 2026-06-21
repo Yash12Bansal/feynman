@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<rect id="rod-body" x="150" y="300" width="600" height="60" rx="2" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<line id="axis" x1="120" y1="420" x2="800" y2="420" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<defs><marker id="arrowhead_axis-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="rgba(232,232,238,0.55)"/></marker></defs><line id="axis-arrow" x1="760" y1="420" x2="810" y2="420" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" marker-end="url(#arrowhead_axis-arrow)"/>
+<text id="axis-label" x="818" y="424" font-size="13" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">x</text>
+<circle id="origin-mark" cx="150" cy="420" r="5" fill="none" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="origin-tick" x1="150" y1="300" x2="150" y2="430" stroke="#7fd4ff" stroke-width="1" stroke-dasharray="4 4"/>
+<text id="origin-label" x="150" y="452" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">0</text>
+<line id="length-dim" x1="150" y1="270" x2="750" y2="270" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" stroke-dasharray=""/>
+<text id="length-label" x="445" y="258" font-size="16" fill="#e8e8ee" font-style="italic" text-anchor="middle">L</text>
+<rect id="slice-element" x="150 + 600*x_pos - 5" y="300" width="10" height="60" rx="0" fill="none" stroke="#9effc9" stroke-width="2.5"/>
+<path id="slice-hatch" d="M ${150 + 600*x_pos - 5} 312 L ${150 + 600*x_pos + 5} 300 M ${150 + 600*x_pos - 5} 330 L ${150 + 600*x_pos + 5} 318 M ${150 + 600*x_pos - 5} 348 L ${150 + 600*x_pos + 5} 336 M ${150 + 600*x_pos - 5} 360 L ${150 + 600*x_pos + 5} 348" stroke="#9effc9" stroke-width="1" fill="none" stroke-dasharray=""/>
+<text id="dm-label" x="150 + 600*x_pos - 12" y="290" font-size="14" fill="#9effc9" font-style="italic" text-anchor="middle">dm</text>
+<line id="slice-position" x1="150" y1="480" x2="150 + 600*x_pos" y2="480" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<line id="slice-pos-tick" x1="150 + 600*x_pos" y1="360" x2="150 + 600*x_pos" y2="488" stroke="#7fd4ff" stroke-width="1" stroke-dasharray="4 4"/>
+<text id="slice-pos-label" x="150 + 300*x_pos - 4" y="502" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">x</text>
+<path id="com-point" d="M 450 285 L 456 303 L 475 303 L 460 314 L 466 332 L 450 321 L 434 332 L 440 314 L 425 303 L 444 303 Z" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<text id="com-label" x="510" y="200" font-size="18" fill="#ff7a8a" font-style="italic" text-anchor="middle">X = \frac{1}{M}\int x\,dm</text>
+</svg>

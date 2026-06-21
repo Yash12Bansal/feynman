@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground-line" x1="80" y1="540" x2="820" y2="540" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 100 540 L 90 555 M 150 540 L 140 555 M 200 540 L 190 555 M 250 540 L 240 555 M 300 540 L 290 555 M 350 540 L 340 555 M 400 540 L 390 555 M 450 540 L 440 555 M 500 540 L 490 555 M 550 540 L 540 555 M 600 540 L 590 555 M 650 540 L 640 555 M 700 540 L 690 555 M 750 540 L 740 555 M 800 540 L 790 555" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<path id="centre-parabola" d="M 130 480 Q 450 100 770 480" stroke="#7fd4ff" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<path id="surface-tangled-path" d="M 130 480 C 150 420 160 540 200 470 C 230 415 215 350 255 360 C 295 370 250 290 290 270 C 330 250 300 215 345 230 C 385 243 355 190 400 195 C 440 199 415 170 450 185 C 485 170 460 199 500 195 C 545 190 515 243 555 230 C 600 215 570 250 610 270 C 650 290 605 370 645 360 C 685 350 670 415 700 470 C 740 540 750 420 770 480" stroke="#ff7a8a" stroke-width="2" fill="none" stroke-dasharray=""/>
+<circle id="centre-dot" cx="130 + 640*t" cy="480 - 4*380*t*(1-t)" r="8" fill="#7fd4ff" stroke="#7fd4ff" stroke-width="2" stroke-dasharray=""/>
+<circle id="surface-dot" cx="130 + 640*t + 38*cos(2*PI*5*t)" cy="480 - 4*380*t*(1-t) + 38*sin(2*PI*5*t)" r="5" fill="#ff7a8a" stroke="#ff7a8a" stroke-width="1.5" stroke-dasharray=""/>
+<text id="centre-label" x="450" y="130" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">centre</text>
+<text id="surface-label" x="450" y="168" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">surface point</text>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="axis-line" x1="120" y1="330" x2="780" y2="330" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="axis-label" x="790" y="334" font-size="12" fill="rgba(232,232,238,0.55)" text-anchor="start" font-weight="normal">x</text>
+<line id="path-a" x1="220" y1="330" x2="470" y2="330" stroke="rgba(127,212,255,0.25)" stroke-width="1.2" stroke-dasharray="5 5"/>
+<line id="path-b" x1="680" y1="330" x2="555" y2="330" stroke="rgba(255,122,138,0.25)" stroke-width="1.2" stroke-dasharray="5 5"/>
+<circle id="particle-a" cx="220 + 250 * t" cy="330" r="18" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="particle-b" cx="680 - 125 * t" cy="330" r="30" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<text id="label-a" x="220 + 250 * t" y="300" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">m₁</text>
+<text id="label-b" x="680 - 125 * t" y="288" font-size="13" fill="#7fd4ff" text-anchor="middle" font-weight="600">m₂</text>
+<defs><marker id="arrowhead_force-on-a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="force-on-a" x1="243 + 250 * t" y1="330" x2="333 + 250 * t" y2="330" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_force-on-a)"/>
+<defs><marker id="arrowhead_force-on-b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="force-on-b" x1="650 - 125 * t" y1="330" x2="560 - 125 * t" y2="330" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_force-on-b)"/>
+<text id="force-a-label" x="288 + 250 * t" y="318" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">F</text>
+<text id="force-b-label" x="605 - 125 * t" y="318" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">F</text>
+<path id="com-point" d="M 527 318 L 547 342 M 547 318 L 527 342" stroke="#ff7a8a" stroke-width="2.5" fill="none" stroke-dasharray=""/>
+<line id="com-guide" x1="537" y1="360" x2="537" y2="420" stroke="rgba(255,122,138,0.4)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text id="com-label" x="537" y="438" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">centre of mass</text>
+</svg>

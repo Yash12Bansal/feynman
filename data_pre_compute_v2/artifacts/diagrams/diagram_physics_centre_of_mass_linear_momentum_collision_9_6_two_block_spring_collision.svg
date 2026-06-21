@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="ground" x1="100" y1="420" x2="820" y2="420" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<path id="ground-hatch" d="M 110 420 L 100 435 M 150 420 L 140 435 M 190 420 L 180 435 M 230 420 L 220 435 M 270 420 L 260 435 M 310 420 L 300 435 M 350 420 L 340 435 M 390 420 L 380 435 M 430 420 L 420 435 M 470 420 L 460 435 M 510 420 L 500 435 M 550 420 L 540 435 M 590 420 L 580 435 M 630 420 L 620 435 M 670 420 L 660 435 M 710 420 L 700 435 M 750 420 L 740 435 M 790 420 L 780 435" stroke="rgba(232,232,238,0.55)" stroke-width="1.2" fill="none" stroke-dasharray=""/>
+<rect id="rear-block" x="250" y="330" width="90" height="90" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="rear-label" x="295" y="382" font-size="15" fill="#e8e8ee" text-anchor="middle" font-weight="600">m₁</text>
+<rect id="front-block" x="520" y="330" width="90" height="90" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<text id="front-label" x="565" y="382" font-size="15" fill="#e8e8ee" text-anchor="middle" font-weight="600">m₂</text>
+<path id="spring" d="M 340 375 L 358 375 L 366 355 L 382 395 L 398 355 L 414 395 L 430 355 L 446 395 L 462 355 L 478 395 L 494 355 L 502 375 L 520 375" stroke="#7fd4ff" stroke-width="2" fill="none" stroke-dasharray=""/>
+<defs><marker id="arrowhead_rear-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="rear-velocity" x1="295" y1="300" x2="415" y2="300" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_rear-velocity)"/>
+<text id="rear-velocity-label" x="420" y="298" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">v₁</text>
+<defs><marker id="arrowhead_front-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="front-velocity" x1="565" y1="300" x2="615" y2="300" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_front-velocity)"/>
+<text id="front-velocity-label" x="620" y="298" font-size="13" fill="#ff7a8a" text-anchor="start" font-weight="600">v₂</text>
+<defs><marker id="arrowhead_force-on-front" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="force-on-front" x1="525" y1="460" x2="605" y2="460" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_force-on-front)"/>
+<text id="force-on-front-label" x="610" y="463" font-size="13" fill="#9effc9" text-anchor="start" font-weight="600">+F</text>
+<defs><marker id="arrowhead_force-on-rear" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="force-on-rear" x1="335" y1="460" x2="255" y2="460" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_force-on-rear)"/>
+<text id="force-on-rear-label" x="250" y="463" font-size="13" fill="#9effc9" text-anchor="end" font-weight="600">−F</text>
+</svg>

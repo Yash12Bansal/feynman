@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="track" x1="80" y1="360" x2="820" y2="360" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray="6 6"/>
+<rect id="mass-a" x="120 + 250 * t" y="300" width="70" height="60" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<defs><marker id="arrowhead_velocity-a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#9effc9"/></marker></defs><line id="velocity-a" x1="190 + 250 * t" y1="330" x2="260 + 250 * t - 70 * t" y2="330" stroke="#9effc9" stroke-width="2.5" marker-end="url(#arrowhead_velocity-a)"/>
+<text id="mass-a-label" x="155 + 250 * t" y="335" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">m₁</text>
+<text id="velocity-a-label" x="230 + 250 * t - 35 * t" y="318" font-size="13" fill="#9effc9" text-anchor="middle" font-weight="600">v₁</text>
+<rect id="mass-b" x="710 - 250 * t" y="300" width="70" height="60" rx="4" fill="none" stroke="#e8e8ee" stroke-width="2.5"/>
+<defs><marker id="arrowhead_velocity-b" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ff7a8a"/></marker></defs><line id="velocity-b" x1="710 - 250 * t" y1="330" x2="640 - 250 * t + 70 * t" y2="330" stroke="#ff7a8a" stroke-width="2.5" marker-end="url(#arrowhead_velocity-b)"/>
+<text id="mass-b-label" x="745 - 250 * t" y="335" font-size="13" fill="#e8e8ee" text-anchor="middle" font-weight="600">m₂</text>
+<text id="velocity-b-label" x="670 - 250 * t + 35 * t" y="318" font-size="13" fill="#ff7a8a" text-anchor="middle" font-weight="600">v₂</text>
+<rect id="combined-lump" x="390 + 80 * t" y="296" width="120" height="68" rx="5" fill="none" stroke="#7fd4ff" stroke-width="1 + 2.5 * t"/>
+<defs><marker id="arrowhead_combined-velocity" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7fd4ff"/></marker></defs><line id="combined-velocity" x1="510 + 80 * t" y1="330" x2="510 + 80 * t + 90 * t" y2="330" stroke="#7fd4ff" stroke-width="2.5" marker-end="url(#arrowhead_combined-velocity)"/>
+<text id="combined-lump-label" x="450 + 80 * t" y="335" font-size="12" fill="#7fd4ff" text-anchor="middle" font-weight="600">m₁ + m₂</text>
+<text id="combined-velocity-label" x="555 + 80 * t + 45 * t" y="318" font-size="14" fill="#7fd4ff" text-anchor="middle" font-weight="600">V</text>
+</svg>

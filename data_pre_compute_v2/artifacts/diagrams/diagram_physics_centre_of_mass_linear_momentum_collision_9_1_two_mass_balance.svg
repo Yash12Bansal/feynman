@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650">
+<rect x="0" y="0" width="900" height="650" fill="transparent"/>
+<line id="connecting-rod" x1="200" y1="280" x2="720" y2="280" stroke="#e8e8ee" stroke-width="3" stroke-dasharray=""/>
+<circle id="mass-heavy" cx="200" cy="280" r="55" fill="none" stroke="#7fd4ff" stroke-width="2.5" stroke-dasharray=""/>
+<circle id="mass-light" cx="720" cy="280" r="28" fill="none" stroke="#9effc9" stroke-width="2.5" stroke-dasharray=""/>
+<text id="mass-heavy-label" x="188" y="288" font-size="22" fill="#7fd4ff" font-style="italic" text-anchor="middle">3m</text>
+<text id="mass-light-label" x="712" y="288" font-size="18" fill="#9effc9" font-style="italic" text-anchor="middle">m</text>
+<path id="com-marker" d="M 320 268 L 344 292 M 344 268 L 320 292" stroke="#ff7a8a" stroke-width="3" fill="none" stroke-dasharray=""/>
+<line id="com-drop" x1="332" y1="292" x2="332" y2="420" stroke="rgba(255,122,138,0.55)" stroke-width="1.5" stroke-dasharray="5 5"/>
+<text id="com-label" x="332" y="250" font-size="12" fill="#ff7a8a" text-anchor="middle" font-weight="600">centre of mass</text>
+<line id="position-axis" x1="140" y1="420" x2="800" y2="420" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tick-x1" x1="200" y1="414" x2="200" y2="426" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<line id="tick-x2" x1="720" y1="414" x2="720" y2="426" stroke="rgba(232,232,238,0.55)" stroke-width="1.5" stroke-dasharray=""/>
+<text id="x1-label" x="190" y="452" font-size="16" fill="#7fd4ff" font-style="italic" text-anchor="middle">x_1</text>
+<text id="x2-label" x="710" y="452" font-size="16" fill="#9effc9" font-style="italic" text-anchor="middle">x_2</text>
+<text id="xcom-label" x="318" y="452" font-size="16" fill="#ff7a8a" font-style="italic" text-anchor="middle">x_{cm}</text>
+</svg>
