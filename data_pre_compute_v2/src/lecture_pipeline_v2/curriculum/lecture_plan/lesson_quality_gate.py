@@ -36,8 +36,10 @@ from lecture_pipeline_v2.curriculum.lecture_plan.lesson_narrator import (
     TopicNarration,
 )
 from lecture_pipeline_v2.curriculum.lecture_plan.lesson_plan_models import (
+    ChoreographyAction,
     DiagramRequirement,
     LessonPlan,
+    MotionParamRequirement,
 )
 from lecture_pipeline_v2.curriculum.models import Diagram
 
@@ -183,6 +185,11 @@ class LessonQualityGate:
             )
         if plan_judgement is not None and not plan_judgement.passed:
             needs_review = True
+
+        # ─── Bridge: forward the choreography's committed param drives into the
+        # DiagramRequirements so the drawer declares them by the EXACT name (no
+        # more guess-and-silently-drop). Mutates plan.diagrams in place. ──────
+        _attach_motion_params(plan)
 
         # ─── Stage 2: Diagrams + QA + (maybe regen offending diagrams) ────
         diagrams, diagram_judgements, diagram_regens = await self._gate_diagrams(
@@ -374,6 +381,80 @@ class LessonQualityGate:
 # ─────────────────────────────────────────────────────────────────────────────
 # Module-level helpers
 # ─────────────────────────────────────────────────────────────────────────────
+
+
+def _attach_motion_params(plan: LessonPlan) -> None:
+    """Derive each diagram's `motion_params` from the topic's choreography and
+    write them onto the matching `DiagramRequirement` (in place).
+
+    For every step carrying set_param / animate_param we resolve which diagram
+    it targets (explicit `target_diagram_id`, else the topic's sole diagram if
+    unambiguous) and record the param name plus every value it touches
+    (`param_value`, `param_from`, `param_to`). The declared range is the
+    observed [min, max] so the diagram's slider always covers the sweep; the
+    default is the first start value seen (param_from / param_value), else min.
+
+    No-op for topics with no param choreography (the common, static case).
+    """
+    if not plan.diagrams:
+        return
+    sole_diagram_id = plan.diagrams[0].diagram_id if len(plan.diagrams) == 1 else None
+
+    # diagram_id → param_name → list of observed values
+    observed: dict[str, dict[str, list[float]]] = {}
+    # diagram_id → param_name → first start value (for default)
+    starts: dict[str, dict[str, float]] = {}
+
+    for step in plan.choreography:
+        has_set = ChoreographyAction.set_param in step.actions
+        has_animate = ChoreographyAction.animate_param in step.actions
+        if not (has_set or has_animate) or not step.param_name:
+            continue
+        diagram_id = step.target_diagram_id or sole_diagram_id
+        if diagram_id is None:
+            continue  # ambiguous multi-diagram target — skip rather than guess
+
+        values: list[float] = []
+        start: float | None = None
+        if has_set and step.param_value is not None:
+            values.append(step.param_value)
+            start = step.param_value
+        if has_animate:
+            if step.param_from is not None:
+                values.append(step.param_from)
+                start = step.param_from
+            if step.param_to is not None:
+                values.append(step.param_to)
+                if start is None:
+                    start = step.param_to
+        if not values:
+            continue
+
+        observed.setdefault(diagram_id, {}).setdefault(step.param_name, []).extend(
+            values
+        )
+        if start is not None:
+            starts.setdefault(diagram_id, {}).setdefault(step.param_name, start)
+
+    if not observed:
+        return
+
+    for requirement in plan.diagrams:
+        by_param = observed.get(requirement.diagram_id)
+        if not by_param:
+            continue
+        params: list[MotionParamRequirement] = []
+        for name, vals in by_param.items():
+            lo, hi = min(vals), max(vals)
+            if lo == hi:
+                # A pure set_param with one value — give the slider a little
+                # headroom so it's a real (non-degenerate) parameter.
+                lo, hi = (lo - 1.0, hi + 1.0) if lo == 0 else (min(lo, 0.0), hi)
+            default = starts.get(requirement.diagram_id, {}).get(name, lo)
+            params.append(
+                MotionParamRequirement(name=name, min=lo, max=hi, default=default)
+            )
+        requirement.motion_params = params
 
 
 def _diagram_id_short_to_long(plan: LessonPlan, topic_id: str) -> dict[str, str]:

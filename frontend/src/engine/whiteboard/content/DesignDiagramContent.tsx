@@ -17,7 +17,7 @@ import type {
   DesignDiagramSpec,
   DesignDiagramGraph,
 } from "../../../types/visuals";
-import { compile, resolveCoord } from "../../expr/evaluate";
+import { compile, resolveCoord, resolveTransform } from "../../expr/evaluate";
 import { mapColor } from "../colorRemap";
 import { useTheme } from "../../../theme/themeContext";
 import type { Theme } from "../../../theme/themeContext";
@@ -475,7 +475,7 @@ function renderSvgElement(
         return (
           <g
             key={idx}
-            transform={el.transform || undefined}
+            transform={resolveTransform(el.transform, params)}
             {...groupFocusAttr}
             {...dataAttr}
           >

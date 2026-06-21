@@ -174,7 +174,14 @@ the angle increases"). Set `param_name` + `param_to`; optionally `param_from` \
 (the start value) and `param_duration_ms`. The sweep runs DURING this step's \
 narration, so the words and the motion land together. A step carries set_param \
 OR animate_param, never both; the diagram must already be on screen and must \
-expose `param_name` (a template parameter, or one the figure declares).
+expose `param_name` (a template parameter, or one the figure declares). \
+MOTION IS UNDERUSED — if the active diagram exposes a progress/motion parameter \
+(e.g. `t` from 0→1 driving a ball along a trajectory, an orbiting body, a \
+swinging pendulum, a dot sweeping a graph) and your narration describes that \
+thing actually moving, you MUST animate_param it on that step so the student \
+SEES the motion as you say it. Match `param_duration_ms` to how long the spoken \
+motion takes (~1500-2500ms is natural). A moving figure on a motion topic beats \
+a static one every time — never leave a declared motion parameter un-swept.
 
 ## Notebook usage
 

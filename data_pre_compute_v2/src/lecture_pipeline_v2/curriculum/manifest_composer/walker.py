@@ -923,7 +923,17 @@ class Walker:
         if name not in self._active.param_names:
             # Unknown parameter — the diagram doesn't expose it (typo, or an LLM
             # diagram that didn't declare parameters[]). Drop so the frontend
-            # never gets a no-op override.
+            # never gets a no-op override. Log LOUDLY: a dropped param means a
+            # motion the planner intended that the student will never see, so it
+            # must be visible in the build (not a silent counter bump).
+            logger.warning(
+                "manifest_walker.param_unknown — dropping %s on diagram %r: "
+                "param %r not in declared params %s",
+                type(frag).__name__,
+                self._active.diagram_id,
+                name,
+                sorted(self._active.param_names),
+            )
             self.report.record_drop("param_unknown")
             return None
         frag.diagram_id = self._active.diagram_id

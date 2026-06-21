@@ -3,6 +3,7 @@ import {
   compile,
   evaluateExpr,
   resolveCoord,
+  resolveTransform,
   _clearExprCache,
 } from "../evaluate";
 
@@ -131,5 +132,40 @@ describe("evaluateExpr", () => {
   it("returns the fallback for non-finite results", () => {
     expect(evaluateExpr("1/0", {}, 99)).toBe(99);
     expect(evaluateExpr("sqrt(-1)", {}, 99)).toBe(99); // NaN → fallback
+  });
+});
+
+describe("resolveTransform — param-driven motion", () => {
+  it("returns a plain (no-${}) transform unchanged", () => {
+    expect(resolveTransform("translate(10, 20) rotate(5)", {})).toBe(
+      "translate(10, 20) rotate(5)",
+    );
+  });
+
+  it("returns undefined for empty/nullish input (so the attr is omitted)", () => {
+    expect(resolveTransform(undefined, {})).toBeUndefined();
+    expect(resolveTransform(null, {})).toBeUndefined();
+    expect(resolveTransform("", {})).toBeUndefined();
+  });
+
+  it("interpolates ${expr} segments against the param scope", () => {
+    // A ball arcing: x is linear in t, y is a parabola in t.
+    const out = resolveTransform(
+      "translate(${x0 + range*t}, ${ground - 4*peak*t*(1-t)})",
+      { x0: 70, range: 340, ground: 215, peak: 150, t: 0.5 },
+    );
+    expect(out).toBe("translate(240, 65)");
+  });
+
+  it("spins via rotate() driven by the progress param", () => {
+    expect(resolveTransform("rotate(${t*1440} 15 6)", { t: 0.25 })).toBe(
+      "rotate(360 15 6)",
+    );
+  });
+
+  it("resolves a bad/unbound ${expr} to 0 rather than corrupting the attr", () => {
+    expect(resolveTransform("translate(${nope}, 5)", {})).toBe(
+      "translate(0, 5)",
+    );
   });
 });

@@ -136,6 +136,27 @@ Any coordinate field can be a number or an expression string.
 Available math: `sin, cos, tan, sqrt, abs, PI, E, log, exp, pow, floor, ceil, min, max, atan2, asin, acos, sinh, cosh, tanh`
 Use plain names — `sin(x)` not `Math.sin(x)`.
 
+## Motion — make it MOVE, not just sit there
+
+If the concept is about MOTION or change over time — a moving object, a point tracing a curve, a trajectory, a sweeping angle, an orbiting body, a process unfolding step by step — make the relevant element ACTUALLY MOVE along its real path, not just appear. You do this with a **progress parameter** that the lesson sweeps from 0→1 while the narration describes the motion.
+
+**If the user message lists `REQUIRED parameters`, those are non-negotiable**: declare each one in `parameters[]` with that EXACT `name`, and bind the moving element to it. The lesson already committed to animating those names — a param you don't declare, or declare under a different name, makes the motion silently vanish. If there are no required params but the concept is clearly about motion, declare your own progress param (convention: name it `t`, range 0→1, default 0).
+
+There are TWO ways to bind an element to the progress param:
+
+**1. Coordinate expressions** — for a point/dot/ball that just translates, set its coordinate fields to expression strings of the param:
+- Projectile: the ball's `cx`: `"x0 + range * t"`, `cy`: `"ground - 4 * peak * t * (1 - t)"` → as `t` sweeps 0→1 the ball arcs through the air (constant horizontal speed, gravity pulling it down).
+- Orbit: the body's `cx`: `"cx0 + r * cos(2 * PI * t)"`, `cy`: `"cy0 + r * sin(2 * PI * t)"`.
+- A dot sweeping a graph: `cx`: `"x0 + (x1 - x0) * t"`, `cy` bound to the curve at that x.
+- A pendulum bob about a pivot: `cx`: `"px + L * sin(theta)"`, `cy`: `"py + L * cos(theta)"`, with a `theta` param.
+
+**2. Group `transform` interpolation** — for a COMPOUND object (a car, a rotating wheel, something that should TILT to its direction of travel, SPIN, or SQUASH) wrap it in an `svg_group` and write `${...}` expression segments inside the group's `transform`. Each `${expr}` is evaluated against the parameters every frame. This is how you get motion that reads like a real explainer, not a sliding dot:
+- A car driving and tilting up a slope: group `transform`: `"translate(${x0 + range*t}, ${baseY - hill*sin(PI*t)}) rotate(${-hill*PI*cos(PI*t)*0.4})"`, with the wheels as child groups spinning: `transform`: `"rotate(${t*1440} ${wheelX} ${wheelY})"`.
+- A ball that squashes as it lands: `transform`: `"translate(${cx}, ${cy}) scale(${1 + 0.15*sq}, ${1 - 0.15*sq})"`.
+Inside `transform`, trig is in RADIANS and `${}` segments may use the same math vocabulary as coordinate expressions.
+
+Reach for motion WHENEVER seeing it move makes the idea click — a static arrow can't teach "it arcs" the way a moving ball can. Most diagrams stay static; use motion DELIBERATELY, where movement IS the concept, and ALWAYS draw the trajectory/path itself as a faint guide element so the motion reads against it.
+
 ## Semantic dictionary (REQUIRED)
 
 After the SVG is composed, populate the `dictionary` field. The dictionary maps each meaningful `element id` (from your `elements` array) to a small object describing what that element *means* to a teacher. The downstream teaching agent uses this to talk about and annotate your diagram by *role* (e.g. `"hypotenuse"`) instead of opaque IDs (`"side_AB"`). If you skip the dictionary, the agent has to guess.

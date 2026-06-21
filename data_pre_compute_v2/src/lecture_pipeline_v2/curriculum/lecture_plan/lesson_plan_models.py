@@ -102,6 +102,28 @@ class ElementRequirement(BaseModel):
     description: str = Field(min_length=1)
 
 
+class MotionParamRequirement(BaseModel):
+    """A parameter the lesson's choreography commits to driving (set_param /
+    animate_param) on this diagram.
+
+    The diagram is drawn AFTER the plan, so without this the drawer can only
+    GUESS the param name (convention `t`) — and any mismatch makes the manifest
+    walker silently drop the animation. Threading the exact name (+ the value
+    range the choreography sweeps through) into the drawer turns that guess into
+    a contract: the spec MUST declare a `parameters[]` entry with this `name`,
+    and — for a motion/progress param — bind the moving element's coordinates
+    (or its group `transform`) to expression strings of it.
+
+    `min`/`max`/`default` are derived from the values the choreography uses, so
+    the declared slider range always covers the sweep.
+    """
+
+    name: str = Field(min_length=1)
+    min: float
+    max: float
+    default: float
+
+
 class DiagramRequirement(BaseModel):
     """A diagram the lesson commits to using. Phase D's DiagramSpec generator
     is responsible for emitting a spec whose dictionary contains every
@@ -112,6 +134,10 @@ class DiagramRequirement(BaseModel):
     purpose: str = Field(min_length=1, description="The insight this diagram supports.")
     required_elements: list[ElementRequirement] = Field(min_length=1)
     presentation_mode: Literal["build_up", "overview"] = "build_up"
+    # Params the choreography drives on this diagram (set_param / animate_param).
+    # Populated by LessonQualityGate AFTER planning, BEFORE diagram generation,
+    # from the topic's choreography steps. Default empty = a static diagram.
+    motion_params: list[MotionParamRequirement] = Field(default_factory=list)
     # Canonical-template diagram. When set, the generator SKIPS the LLM and the
     # frontend builds the figure from the template registry. The planner MUST
     # declare `required_elements` using the template's real element ids (see

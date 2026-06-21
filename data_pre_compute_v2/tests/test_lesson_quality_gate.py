@@ -670,3 +670,90 @@ async def test_gate_resolves_diagram_id_short_to_long_in_narration() -> None:
     assert "<<SHOW_DIAGRAM:two-frames>>" not in full_text
     # diagrams_referenced should also be the long form.
     assert result.narration.diagrams_referenced == ["diagram:topic-1:two_frames"]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# _attach_motion_params — forward choreography param drives onto requirements
+# ─────────────────────────────────────────────────────────────────────────────
+
+from lecture_pipeline_v2.curriculum.lecture_plan.lesson_quality_gate import (  # noqa: E402
+    _attach_motion_params,
+)
+
+
+def _motion_plan() -> LessonPlan:
+    """Single-diagram plan whose choreography sets then sweeps a param `t`."""
+    return LessonPlan(
+        topic_id="topic-1",
+        title="Projectile",
+        hook=Hook(type=HookType.question, text="Why does a thrown ball curve?"),
+        crucial_facts=["gravity curves the path"],
+        diagrams=[
+            DiagramRequirement(
+                diagram_id="arc",
+                purpose="Show the ball arcing",
+                required_elements=[
+                    ElementRequirement(
+                        element_id="ball", role="ball", description="the ball"
+                    )
+                ],
+            )
+        ],
+        choreography=[
+            ChoreographyStep(
+                narration="Start it at the hand.",
+                actions=[ChoreographyAction.set_param],
+                target_diagram_id="arc",
+                param_name="t",
+                param_value=0.0,
+                presses_crucial_fact=True,
+            ),
+            ChoreographyStep(
+                narration="Watch it arc — where does it go?",
+                actions=[ChoreographyAction.animate_param],
+                target_diagram_id="arc",
+                param_name="t",
+                param_from=0.0,
+                param_to=1.0,
+                param_duration_ms=2000,
+                is_question=True,
+            ),
+            ChoreographyStep(
+                narration="Gravity pulled it back down.",
+                actions=[],
+                is_payoff=True,
+                presses_crucial_fact=True,
+            ),
+        ],
+    )
+
+
+def test_attach_motion_params_single_diagram() -> None:
+    plan = _motion_plan()
+    _attach_motion_params(plan)
+    mps = plan.diagrams[0].motion_params
+    assert len(mps) == 1
+    mp = mps[0]
+    assert mp.name == "t"
+    assert mp.min == 0.0 and mp.max == 1.0  # spans the observed sweep
+    assert mp.default == 0.0  # first start value (the set_param value)
+
+
+def test_attach_motion_params_noop_for_static_plan() -> None:
+    plan = _make_plan()  # focus-only choreography, no param drives
+    _attach_motion_params(plan)
+    assert plan.diagrams[0].motion_params == []
+
+
+def test_attach_motion_params_routes_by_target_diagram() -> None:
+    plan = _make_plan_with_two_diagrams()
+    # Drive `theta` on d2 only.
+    plan.choreography[2].actions = [ChoreographyAction.animate_param]
+    plan.choreography[2].param_name = "theta"
+    plan.choreography[2].param_from = 0.0
+    plan.choreography[2].param_to = 45.0
+    _attach_motion_params(plan)
+    by_id = {d.diagram_id: d for d in plan.diagrams}
+    assert by_id["d1"].motion_params == []
+    assert [m.name for m in by_id["d2"].motion_params] == ["theta"]
+    assert by_id["d2"].motion_params[0].max == 45.0

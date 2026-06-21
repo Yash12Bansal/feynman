@@ -217,6 +217,29 @@ class LessonDiagramGenerator:
                         topic_id=topic_id,
                         diagram_id=requirement.diagram_id,
                     )
+                # Elements (the hard contract) are satisfied. Motion params are
+                # a SOFT contract: missing ones only mean the choreography's
+                # sweep would no-op, never a dropped diagram. Use a spare retry
+                # to try to land them; on the last attempt, ship the diagram and
+                # log loudly so the gap is visible (not silently swallowed).
+                param_error = _validate_required_params(spec, requirement)
+                if param_error is not None:
+                    if attempt + 1 < _MAX_ATTEMPTS:
+                        logger.info(
+                            "lesson_diagram_generator.param_retry",
+                            topic_id=topic_id,
+                            diagram_id=requirement.diagram_id,
+                            error=param_error,
+                        )
+                        prior_error = param_error
+                        report.retries_used += 1
+                        continue
+                    logger.warning(
+                        "lesson_diagram_generator.motion_param_contract_unmet",
+                        topic_id=topic_id,
+                        diagram_id=requirement.diagram_id,
+                        error=param_error,
+                    )
                 return _build_diagram(spec, requirement, topic_id)
 
             logger.warning(
@@ -343,6 +366,41 @@ def _validate_required_elements(
     return "; ".join(parts)
 
 
+def _validate_required_params(
+    spec: dict[str, Any],
+    requirement: DiagramRequirement,
+) -> str | None:
+    """Return None if the spec declares every required motion param, else a
+    feedback string. SOFT contract — the caller never drops a diagram for this,
+    only spends a retry and otherwise ships with a warning.
+
+    Each `requirement.motion_params[i].name` must appear as the `name` of some
+    entry in `spec["parameters"]`. (Range/default are advisory — we only check
+    presence, since the param's job is to be drivable by name.)
+    """
+    if not requirement.motion_params:
+        return None
+
+    params = spec.get("parameters")
+    declared: set[str] = set()
+    if isinstance(params, list):
+        for p in params:
+            if isinstance(p, dict):
+                name = p.get("name")
+                if isinstance(name, str) and name:
+                    declared.add(name)
+
+    missing = [mp.name for mp in requirement.motion_params if mp.name not in declared]
+    if not missing:
+        return None
+    return (
+        f"parameters[] missing required motion param(s): {sorted(missing)!r}. "
+        f"Declare each in `parameters[]` with that exact `name`, and bind the "
+        f"moving element's coordinates (or its group `transform`) to it so the "
+        f"choreography can animate it."
+    )
+
+
 def _build_template_diagram(
     requirement: DiagramRequirement,
     topic_id: str,
@@ -410,6 +468,26 @@ def _build_user_message(
         parts.append(
             f"- `{el.element_id}` (role: {el.role}) — {el.description.strip()}"
         )
+
+    if requirement.motion_params:
+        parts.append("")
+        parts.append("## REQUIRED parameters (this figure MOVES — declare these)")
+        parts.append(
+            "The lesson's choreography will drive the parameters below on this "
+            "diagram. Each MUST appear in `parameters[]` with EXACTLY this "
+            "`name` and a range covering the values shown. This is a motion "
+            "diagram: bind the MOVING element's coordinates — or, for "
+            "tilt/spin/squash, its group `transform` via `${...}` expressions — "
+            "to these parameter name(s), so the element animates along its REAL "
+            "path as the parameter sweeps (not just appears). Also draw the "
+            "trajectory/path itself as a faint guide element."
+        )
+        for mp in requirement.motion_params:
+            parts.append(
+                f"- `{mp.name}` — range [{mp.min:g}, {mp.max:g}], default "
+                f"{mp.default:g}. The moving element must be bound to `{mp.name}`."
+            )
+
     parts.append("")
     parts.append(
         "Generate the DiagramSpec JSON. Every required `element_id` above "

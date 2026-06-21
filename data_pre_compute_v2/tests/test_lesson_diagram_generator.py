@@ -389,3 +389,97 @@ async def test_concurrency_limited() -> None:
     # With concurrency=1, max_in_flight must be 1.
     assert max_in_flight == 1
     assert barrier.is_set()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Motion-param coupling (the forwarded-name contract)
+# ─────────────────────────────────────────────────────────────────────────────
+
+from lecture_pipeline_v2.curriculum.lecture_plan.lesson_diagram_generator import (  # noqa: E402
+    _validate_required_params,
+)
+from lecture_pipeline_v2.curriculum.lecture_plan.lesson_plan_models import (  # noqa: E402
+    MotionParamRequirement,
+)
+
+
+def _motion_requirement() -> DiagramRequirement:
+    return DiagramRequirement(
+        diagram_id="bounce",
+        purpose="Show the ball bouncing with restitution.",
+        required_elements=[
+            ElementRequirement(
+                element_id="ball", role="ball", description="the bouncing ball"
+            )
+        ],
+        motion_params=[MotionParamRequirement(name="t", min=0.0, max=1.0, default=0.0)],
+    )
+
+
+# Valid elements + the required motion param declared.
+_MOTION_SPEC_OK: dict[str, Any] = {
+    "elements": [{"type": "svg_circle", "id": "ball", "cx": "70 + 300*t", "cy": 200}],
+    "dictionary": {
+        "ball": {"role": "ball", "semantic": "the ball", "position": "center",
+                 "bounds": [60, 190, 20, 20]},
+    },
+    "parameters": [{"name": "t", "min": 0, "max": 1, "default": 0}],
+}
+# Valid elements but NO declared `t` param.
+_MOTION_SPEC_NO_PARAM: dict[str, Any] = {
+    k: v for k, v in _MOTION_SPEC_OK.items() if k != "parameters"
+}
+
+
+def test_param_validator_accepts_declared_param() -> None:
+    assert _validate_required_params(_MOTION_SPEC_OK, _motion_requirement()) is None
+
+
+def test_param_validator_flags_missing_param() -> None:
+    err = _validate_required_params(_MOTION_SPEC_NO_PARAM, _motion_requirement())
+    assert err is not None and "t" in err
+
+
+def test_param_validator_noop_when_no_motion_params() -> None:
+    # A static requirement (no motion_params) never triggers param validation.
+    assert _validate_required_params(_MOTION_SPEC_NO_PARAM, _requirement()) is None
+
+
+@pytest.mark.asyncio
+async def test_required_params_listed_in_user_message() -> None:
+    provider = _FakeTextProvider([_spec_text(_MOTION_SPEC_OK)])
+    gen = LessonDiagramGenerator(_config(), concurrency=1, provider=provider)
+    await gen.generate_for_requirements([("ch1", "t1", _motion_requirement())])
+    assert "REQUIRED parameters" in provider.last_user_message
+    assert "`t`" in provider.last_user_message
+
+
+@pytest.mark.asyncio
+async def test_missing_param_spends_a_retry_then_recovers() -> None:
+    # First spec is element-complete but missing `t`; soft contract → one retry;
+    # second spec declares `t` → diagram emitted after 2 calls.
+    provider = _FakeTextProvider(
+        [_spec_text(_MOTION_SPEC_NO_PARAM), _spec_text(_MOTION_SPEC_OK)]
+    )
+    gen = LessonDiagramGenerator(_config(), concurrency=1, provider=provider)
+    diagrams, report = await gen.generate_for_requirements(
+        [("ch1", "t1", _motion_requirement())]
+    )
+    assert len(diagrams) == 1
+    assert provider.create_call_count == 2
+    assert diagrams[0].render_data.get("parameters")
+
+
+@pytest.mark.asyncio
+async def test_missing_param_ships_diagram_on_last_attempt() -> None:
+    # Both attempts miss `t`. Params are SOFT: the diagram still ships (never
+    # dropped for a param), unlike the hard element contract.
+    provider = _FakeTextProvider(
+        [_spec_text(_MOTION_SPEC_NO_PARAM), _spec_text(_MOTION_SPEC_NO_PARAM)]
+    )
+    gen = LessonDiagramGenerator(_config(), concurrency=1, provider=provider)
+    diagrams, report = await gen.generate_for_requirements(
+        [("ch1", "t1", _motion_requirement())]
+    )
+    assert len(diagrams) == 1  # shipped despite missing param
+    assert provider.create_call_count == 2

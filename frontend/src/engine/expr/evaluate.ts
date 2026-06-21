@@ -100,6 +100,36 @@ export function resolveCoord(
   return evaluateExpr(val, scope, fallback);
 }
 
+/**
+ * Interpolate `${expr}` segments inside an SVG `transform` string against a
+ * parameter scope. Each `${...}` is evaluated as a coordinate expression (same
+ * sandbox + math vocabulary as `resolveCoord`) and replaced with its numeric
+ * value; everything outside the braces is left verbatim.
+ *
+ * This is what lets a moving element TILT / SPIN / SQUASH (not just translate)
+ * driven by an animated parameter — e.g.
+ *   "translate(${x0 + range*t}, ${ground - 4*peak*t*(1-t)}) rotate(${angle})"
+ * As the param `t` tweens, the whole group's transform recomputes per frame.
+ *
+ * Backward compatible: a transform with no `${` is returned unchanged (so every
+ * existing static `transform` string passes straight through). A bad/unbound
+ * expression resolves to 0 rather than corrupting the attribute.
+ */
+const TRANSFORM_TEMPLATE_RE = /\$\{([^}]*)\}/g;
+
+export function resolveTransform(
+  transform: string | undefined | null,
+  scope: Record<string, number>,
+): string | undefined {
+  if (typeof transform !== "string" || transform.length === 0) return undefined;
+  if (transform.indexOf("${") === -1) return transform;
+  return transform.replace(TRANSFORM_TEMPLATE_RE, (_match, expr: string) => {
+    const value = evaluateExpr(expr.trim(), scope, 0);
+    // Round to keep the attribute compact and stable across frames.
+    return String(Math.round(value * 1000) / 1000);
+  });
+}
+
 /** Test/diagnostic helper — clears the compile cache. */
 export function _clearExprCache(): void {
   cache.clear();
