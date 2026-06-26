@@ -18,7 +18,12 @@ from rich.table import Table
 # Anthropic + Kokoro + Neo4j clients without manually sourcing in every shell.
 load_dotenv(find_dotenv(usecwd=True))
 
+import yaml
+from feynman_teaching_kernel.persona import TeacherPersona, merge_domain_overlay
+from feynman_teaching_kernel.persona_registry import PersonaNotFoundError, load_persona
+
 from .config import PipelineConfig  # noqa: E402 — must come after load_dotenv()
+from .persona_paths import default_personas_dir
 
 app = typer.Typer(
     name="lecture-pipeline-v2",
@@ -39,6 +44,79 @@ def _setup_logging(verbose: bool = False) -> None:
 
 def _load_config(config_path: str | None = None) -> PipelineConfig:
     return PipelineConfig.load(config_path)
+
+
+def _resolve_style_context(style_source: str | None) -> str | None:
+    if not style_source:
+        return None
+    sp = Path(style_source)
+    return sp.read_text(encoding="utf-8") if sp.exists() else style_source
+
+
+def _load_domain_overlay(subject: str, personas_dir: Path) -> TeacherPersona | None:
+    path = personas_dir / "domains" / f"{subject}.yaml"
+    if not path.is_file():
+        return None
+    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        return None
+    return TeacherPersona.model_validate(raw)
+
+
+def _resolve_persona(
+    persona_id: str | None,
+    style_source: str | None,
+    *,
+    subject: str | None = None,
+    personas_dir: Path | None = None,
+) -> tuple[TeacherPersona | None, str | None]:
+    """Return (persona, legacy_style_context). --persona wins over --style-source."""
+    pdir = personas_dir or default_personas_dir()
+    resolved: TeacherPersona | None = None
+
+    if persona_id:
+        try:
+            resolved = load_persona(persona_id, pdir)
+        except PersonaNotFoundError:
+            console.print(f"[red]Persona not found: {persona_id} (looked in {pdir})[/red]")
+            raise typer.Exit(1)
+    elif style_source:
+        return None, _resolve_style_context(style_source)
+
+    if subject:
+        domain = _load_domain_overlay(subject, pdir)
+        if domain is not None:
+            if resolved is None:
+                resolved = load_persona("default", pdir)
+            resolved = merge_domain_overlay(resolved, domain)
+
+    return resolved, None
+
+
+def _save_quality_report(
+    extraction_path: Path,
+    *,
+    persona_id: str | None = None,
+    label: str | None = None,
+    elapsed_seconds: float | None = None,
+) -> tuple[Path, float | None]:
+    """Write quality_report.json next to extraction.json."""
+    from .curriculum.models import CurriculumExtractionResult
+    from .quality import RunMetadata, evaluate_extraction
+
+    extraction = CurriculumExtractionResult.load(extraction_path)
+    report = evaluate_extraction(
+        extraction,
+        run=RunMetadata(
+            label=label or extraction_path.parent.name,
+            persona_id=persona_id,
+            source_path=str(extraction_path),
+            total_elapsed_seconds=elapsed_seconds,
+        ),
+    )
+    out = extraction_path.parent / "quality_report.json"
+    report.save(str(out))
+    return out, report.indices.lecture_excellence_score
 
 
 @app.command("ingest-book")
@@ -65,11 +143,14 @@ def ingest_book(
         None,
         "--style-source",
         help=(
-            "Path to a file (or inline text) with a master-teacher style guide "
-            "+ figure/source notes. Woven into EVERY lesson plan for this run so "
-            "the AI teaches in that voice and reproduces those figures. Scoped to "
-            "this run only."
+            "Deprecated: use --persona. Path to a file (or inline text) with a "
+            "master-teacher style guide woven into lesson plans."
         ),
+    ),
+    persona: Optional[str] = typer.Option(
+        None,
+        "--persona",
+        help="Teacher persona id (loads data_pre_compute_v2/personas/{id}.yaml).",
     ),
     output: Optional[str] = typer.Option(
         None, "--output", "-o", help="Directory for extraction JSON"
@@ -108,14 +189,9 @@ def ingest_book(
             console.print("[red]Chapters must be comma-separated integers.[/red]")
             raise typer.Exit(1)
 
-    # --style-source accepts either a path to a file or inline text. Read the
-    # file when it exists; otherwise treat the value as the style text itself.
-    style_context: str | None = None
-    if style_source:
-        sp = Path(style_source)
-        style_context = (
-            sp.read_text(encoding="utf-8") if sp.exists() else style_source
-        )
+    resolved_persona, style_context = _resolve_persona(
+        persona, style_source, subject=subject
+    )
 
     console.print("\n[bold]Curriculum Pipeline v2[/bold]")
     console.print(f"  PDF: {pdf_path}")
@@ -128,9 +204,12 @@ def ingest_book(
         console.print(f"  Chapter (by name): {chapter_name}")
     if single_chapter:
         console.print(f"  Single chapter (TOC bypassed): {single_chapter}")
-    if style_source:
+    if persona:
+        console.print(f"  Persona: {persona} (v{resolved_persona.persona_version if resolved_persona else '?'})")
+    elif style_source:
         console.print(
-            f"  Style source: {style_source} ({len(style_context or '')} chars)"
+            f"  Style source: {style_source} ({len(style_context or '')} chars) "
+            "[yellow](deprecated — use --persona)[/yellow]"
         )
     if force:
         console.print("  [yellow]--force: idempotency disabled[/yellow]")
@@ -159,6 +238,7 @@ def ingest_book(
             skip_prereqs=skip_prereqs,
             skip_beat_narration=skip_beat_narration,
             skip_diagram_qa=skip_diagram_qa,
+            persona=resolved_persona,
             style_context=style_context,
             on_stage=on_stage,
         )
@@ -175,6 +255,13 @@ def ingest_book(
         path = out_dir / "extraction.json"
         report.extraction.save(path)
         console.print(f"\n  Extraction saved: {path}")
+        quality_path, les_score = _save_quality_report(
+            path,
+            persona_id=persona,
+            elapsed_seconds=report.total_elapsed_seconds,
+        )
+        les_msg = f" (LES={les_score:.1f})" if les_score is not None else ""
+        console.print(f"  Quality report saved: {quality_path}{les_msg}")
 
 
 @app.command("list-chapters")
@@ -724,6 +811,352 @@ def regen_audio(
 
     asyncio.run(_run())
     console.print("\n[bold green]Done.[/bold green]")
+
+
+@app.command("ingest-spine")
+def ingest_spine(
+    pdf_path: str = typer.Argument(..., help="Path to PDF textbook"),
+    subject: str = typer.Option(..., "--subject", "-s"),
+    config: Optional[str] = typer.Option(None, "--config", "-c"),
+    chapters: Optional[str] = typer.Option(None, "--chapters"),
+    chapter_name: Optional[str] = typer.Option(None, "--chapter"),
+    single_chapter: Optional[str] = typer.Option(None, "--single-chapter"),
+    output: Optional[str] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Checkpoint JSON path (default: artifacts/spine/extraction_{subject}.json)",
+    ),
+    force: bool = typer.Option(False, "--force"),
+    skip_questions: bool = typer.Option(False, "--skip-questions"),
+    skip_prereqs: bool = typer.Option(False, "--skip-prereqs"),
+    skip_visuals: bool = typer.Option(False, "--skip-visuals"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Run spine phases 1–7 only; write SpineCheckpoint JSON."""
+    _setup_logging(verbose)
+    if not Path(pdf_path).exists():
+        console.print(f"[red]PDF not found: {pdf_path}[/red]")
+        raise typer.Exit(1)
+
+    cfg = _load_config(config)
+    chapter_filter = None
+    if chapters:
+        chapter_filter = [int(c.strip()) for c in chapters.split(",")]
+
+    out_path = Path(output) if output else (
+        Path(cfg.artifacts.base_dir) / "spine" / f"extraction_{subject}.json"
+    )
+
+    from .pipeline import CurriculumPipelineV2
+
+    pipeline = CurriculumPipelineV2(cfg)
+
+    def on_stage(stage: str, detail: str) -> None:
+        console.print(f"  [dim][{stage}] {detail}[/dim]")
+
+    checkpoint = asyncio.run(
+        pipeline.run_spine(
+            pdf_path,
+            subject,
+            chapters=chapter_filter,
+            chapter_name=chapter_name,
+            single_chapter_title=single_chapter,
+            force=force,
+            skip_questions=skip_questions,
+            skip_prereqs=skip_prereqs,
+            skip_visuals=skip_visuals,
+            checkpoint_path=out_path,
+            on_stage=on_stage,
+        )
+    )
+    console.print(f"\n[bold green]Spine checkpoint written[/bold green]")
+    console.print(f"  version: {checkpoint.spine_version}")
+    console.print(f"  path: {out_path}")
+
+
+@app.command("generate-variant")
+def generate_variant(
+    checkpoint: str = typer.Option(..., "--checkpoint", help="Spine checkpoint JSON"),
+    persona: Optional[str] = typer.Option(
+        None, "--persona", help="Persona id (default.yaml if omitted)"
+    ),
+    style_source: Optional[str] = typer.Option(None, "--style-source"),
+    chapters: Optional[str] = typer.Option(
+        None,
+        "--chapters",
+        help="Comma-separated chapter_ids (all chapters if omitted)",
+    ),
+    config: Optional[str] = typer.Option(None, "--config", "-c"),
+    output: Optional[str] = typer.Option(None, "--output", "-o"),
+    skip_neo4j: bool = typer.Option(False, "--skip-neo4j"),
+    skip_embeddings: bool = typer.Option(False, "--skip-embeddings"),
+    skip_tts: bool = typer.Option(False, "--skip-tts"),
+    skip_visuals: bool = typer.Option(False, "--skip-visuals"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Run variant phases 7a–12 from a spine checkpoint (no PDF)."""
+    _setup_logging(verbose)
+    if not Path(checkpoint).exists():
+        console.print(f"[red]Checkpoint not found: {checkpoint}[/red]")
+        raise typer.Exit(1)
+
+    cfg = _load_config(config)
+    from .curriculum.ingestion.spine_checkpoint import load_checkpoint
+
+    ckpt_subject = load_checkpoint(checkpoint).subject
+    resolved_persona, style_context = _resolve_persona(
+        persona, style_source, subject=ckpt_subject
+    )
+    chapter_ids = (
+        [c.strip() for c in chapters.split(",") if c.strip()] if chapters else None
+    )
+
+    from .pipeline import CurriculumPipelineV2
+
+    pipeline = CurriculumPipelineV2(cfg)
+
+    def on_stage(stage: str, detail: str) -> None:
+        console.print(f"  [dim][{stage}] {detail}[/dim]")
+
+    report = asyncio.run(
+        pipeline.run_variant(
+            checkpoint,
+            persona=resolved_persona,
+            style_context=style_context,
+            chapter_ids=chapter_ids,
+            skip_neo4j=skip_neo4j,
+            skip_embeddings=skip_embeddings,
+            skip_tts=skip_tts,
+            skip_visuals=skip_visuals,
+            on_stage=on_stage,
+        )
+    )
+
+    console.print("\n[bold green]Variant generation complete[/bold green]\n")
+    console.print(report.summary())
+    for w in report.warnings:
+        console.print(f"  [yellow]warning:[/yellow] {w}")
+
+    if output and report.extraction:
+        out = Path(output)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        report.extraction.save(out)
+        console.print(f"\n  Extraction saved: {out}")
+        quality_path, les_score = _save_quality_report(
+            out,
+            persona_id=persona,
+            elapsed_seconds=report.total_elapsed_seconds,
+        )
+        les_msg = f" (LES={les_score:.1f})" if les_score is not None else ""
+        console.print(f"  Quality report saved: {quality_path}{les_msg}")
+
+
+@app.command("generate-variants")
+def generate_variants(
+    checkpoint: str = typer.Option(..., "--checkpoint", help="Spine checkpoint JSON"),
+    personas: str = typer.Option(
+        ...,
+        "--personas",
+        help="Comma-separated persona ids (e.g. default,feynman,finance_teacher)",
+    ),
+    style_source: Optional[str] = typer.Option(None, "--style-source"),
+    chapters: Optional[str] = typer.Option(
+        None,
+        "--chapters",
+        help="Comma-separated chapter_ids (all chapters if omitted)",
+    ),
+    config: Optional[str] = typer.Option(None, "--config", "-c"),
+    output_dir: Optional[str] = typer.Option(
+        None,
+        "--output-dir",
+        "-o",
+        help="Base directory; each persona writes {dir}/{persona}/extraction.json",
+    ),
+    skip_neo4j: bool = typer.Option(False, "--skip-neo4j"),
+    skip_embeddings: bool = typer.Option(False, "--skip-embeddings"),
+    skip_tts: bool = typer.Option(False, "--skip-tts"),
+    skip_visuals: bool = typer.Option(False, "--skip-visuals"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Generate multiple persona variants from one spine checkpoint."""
+    persona_ids = [p.strip() for p in personas.split(",") if p.strip()]
+    if not persona_ids:
+        console.print("[red]No personas provided (use --personas a,b,c)[/red]")
+        raise typer.Exit(1)
+
+    for persona_id in persona_ids:
+        console.print(f"\n[bold cyan]── Persona: {persona_id} ──[/bold cyan]")
+        out_path = None
+        if output_dir:
+            out_path = str(Path(output_dir) / persona_id / "extraction.json")
+        generate_variant(
+            checkpoint=checkpoint,
+            persona=persona_id,
+            style_source=style_source,
+            chapters=chapters,
+            config=config,
+            output=out_path,
+            skip_neo4j=skip_neo4j,
+            skip_embeddings=skip_embeddings,
+            skip_tts=skip_tts,
+            skip_visuals=skip_visuals,
+            verbose=verbose,
+        )
+
+
+@app.command("evaluate-quality")
+def evaluate_quality(
+    extraction_path: str = typer.Argument(..., help="Path to extraction.json"),
+    output: Optional[str] = typer.Option(
+        None, "--output", "-o", help="Write quality report JSON"
+    ),
+    label: Optional[str] = typer.Option(
+        None, "--label", help="Run label for A/B comparison"
+    ),
+    persona: Optional[str] = typer.Option(
+        None, "--persona", help="Persona id (stored in report metadata)"
+    ),
+    elapsed: Optional[float] = typer.Option(
+        None, "--elapsed", help="Pipeline elapsed seconds (P-14)"
+    ),
+    with_judges: bool = typer.Option(
+        False,
+        "--with-judges",
+        help="Run NarrationJudge LLM rubric (EDU-domain-fit, etc.)",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Compute ULQF quality metrics from a saved extraction.json."""
+    import asyncio
+
+    _setup_logging(verbose)
+    path = Path(extraction_path)
+    if not path.exists():
+        console.print(f"[red]File not found: {extraction_path}[/red]")
+        raise typer.Exit(1)
+
+    from .curriculum.models import CurriculumExtractionResult
+    from .quality import RunMetadata, evaluate_extraction, evaluate_extraction_async
+
+    extraction = CurriculumExtractionResult.load(path)
+    run = RunMetadata(
+        label=label or path.parent.name,
+        persona_id=persona,
+        source_path=str(path),
+        total_elapsed_seconds=elapsed,
+    )
+    if with_judges:
+        report = asyncio.run(
+            evaluate_extraction_async(extraction, run=run, with_judges=True)
+        )
+    else:
+        report = evaluate_extraction(extraction, run=run)
+
+    table = Table(title="ULQF Quality Indices")
+    table.add_column("Index", style="cyan")
+    table.add_column("Score", justify="right")
+    for key, attr in (
+        ("LES", "lecture_excellence_score"),
+        ("TQI", "technical_quality_index"),
+        ("EQI", "educational_quality_index"),
+        ("LEI", "learning_effectiveness_index"),
+    ):
+        val = getattr(report.indices, attr)
+        table.add_row(key, f"{val:.1f}" if val is not None else "—")
+    console.print(table)
+
+    run_metrics = [m for m in report.metrics if m.level == "run"]
+    detail = Table(title="Key Metrics")
+    detail.add_column("ID", style="dim")
+    detail.add_column("Metric")
+    detail.add_column("Value", justify="right")
+    for mid in (
+        "CE-01",
+        "LP-01",
+        "LP-08",
+        "LP-16",
+        "LP-31",
+        "CE-12",
+        "NR-48",
+        "EDU-62",
+        "EDU-domain-fit",
+        "BE-01",
+    ):
+        m = next((x for x in run_metrics if x.metric_id == mid), None)
+        if m:
+            detail.add_row(mid, m.name, str(m.value))
+    console.print(detail)
+
+    out_path = output or str(path.parent / "quality_report.json")
+    report.save(out_path)
+    console.print(f"\n[green]Quality report saved:[/green] {out_path}")
+
+
+@app.command("compare-quality")
+def compare_quality(
+    baseline: str = typer.Argument(..., help="Baseline quality_report.json"),
+    candidate: str = typer.Argument(..., help="Candidate quality_report.json"),
+    output: Optional[str] = typer.Option(
+        None, "--output", "-o", help="Write comparison JSON"
+    ),
+    baseline_label: Optional[str] = typer.Option(None, "--baseline-label"),
+    candidate_label: Optional[str] = typer.Option(None, "--candidate-label"),
+) -> None:
+    """Compare two ULQF quality reports (e.g. persona A vs B)."""
+    for p in (baseline, candidate):
+        if not Path(p).exists():
+            console.print(f"[red]File not found: {p}[/red]")
+            raise typer.Exit(1)
+
+    from .quality import QualityReport, compare_reports
+
+    base_report = QualityReport.load(baseline)
+    cand_report = QualityReport.load(candidate)
+    comparison = compare_reports(
+        base_report,
+        cand_report,
+        baseline_label=baseline_label,
+        candidate_label=candidate_label,
+    )
+
+    table = Table(
+        title=f"Quality Comparison: {comparison.baseline_label} → {comparison.candidate_label}"
+    )
+    table.add_column("Index", style="cyan")
+    table.add_column("Δ", justify="right")
+    for key, delta in comparison.index_deltas.items():
+        style = "green" if delta > 0 else "red" if delta < 0 else ""
+        table.add_row(key, f"{delta:+.1f}", style=style)
+    console.print(table)
+
+    movers = Table(title="Notable Metric Changes")
+    movers.add_column("ID", style="dim")
+    movers.add_column("Metric")
+    movers.add_column("Baseline", justify="right")
+    movers.add_column("Candidate", justify="right")
+    movers.add_column("Δ", justify="right")
+    scored = [
+        d
+        for d in comparison.metric_deltas
+        if d.delta is not None and d.delta != 0 and d.metric_id not in ("TQI", "EQI", "LEI", "LES")
+    ]
+    scored.sort(key=lambda d: abs(d.delta or 0), reverse=True)
+    for d in scored[:12]:
+        style = "green" if d.improved else "red" if d.improved is False else ""
+        movers.add_row(
+            d.metric_id,
+            d.name,
+            str(d.baseline),
+            str(d.candidate),
+            f"{d.delta:+.4g}",
+            style=style,
+        )
+    console.print(movers)
+
+    out_path = output or "quality_comparison.json"
+    comparison.save(out_path)
+    console.print(f"\n[green]Comparison saved:[/green] {out_path}")
 
 
 if __name__ == "__main__":

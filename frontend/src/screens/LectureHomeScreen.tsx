@@ -25,6 +25,7 @@ interface ChapterListEntry {
   title: string | null;
   idx: number | null;
   has_manifest: boolean;
+  personas?: string[];
 }
 
 type FetchState =
@@ -309,15 +310,26 @@ interface ChapterCardProps {
 function ChapterCard({ chapter }: ChapterCardProps) {
   const [hover, setHover] = useState(false);
   const cardRef = useRef<HTMLButtonElement>(null);
-  const disabled = !chapter.has_manifest;
+  const personas =
+    chapter.personas && chapter.personas.length > 0
+      ? chapter.personas
+      : chapter.has_manifest
+        ? ["default"]
+        : [];
+  const disabled = personas.length === 0;
+
+  const navigateWithPersona = (persona: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lecture", chapter.id);
+    url.searchParams.set("persona", persona);
+    window.location.href = url.toString();
+  };
 
   const onActivate = () => {
     if (disabled) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set("lecture", chapter.id);
-    // Hard navigation — clean React mount lets MainApp's auto-start effect
-    // fire fresh and the lecture session creates cleanly.
-    window.location.href = url.toString();
+    if (personas.length === 1) {
+      navigateWithPersona(personas[0]!);
+    }
   };
 
   // Cursor-follow spotlight: pin the card's top radial to the pointer by writing
@@ -339,7 +351,7 @@ function ChapterCard({ chapter }: ChapterCardProps) {
       ref={cardRef}
       type="button"
       disabled={disabled}
-      onClick={onActivate}
+      onClick={personas.length === 1 ? onActivate : undefined}
       onMouseEnter={() => setHover(true)}
       onMouseMove={onMove}
       onMouseLeave={(e) => {
@@ -367,6 +379,25 @@ function ChapterCard({ chapter }: ChapterCardProps) {
         {chapter.idx != null ? `Ch. ${chapter.idx}` : ""}
       </div>
       <div style={cardTitleStyle}>{chapter.title ?? chapter.id}</div>
+      {!disabled && personas.length > 1 && (
+        <div
+          style={personaRowStyle}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          {personas.map((persona) => (
+            <button
+              key={persona}
+              type="button"
+              style={personaChipStyle}
+              data-testid={`persona-chip-${persona}`}
+              onClick={() => navigateWithPersona(persona)}
+            >
+              {personaLabel(persona)}
+            </button>
+          ))}
+        </div>
+      )}
       <div style={cardFooterStyle}>
         <span style={disabled ? cardBadgeMutedStyle : cardBadgeReadyStyle}>
           {!disabled && <span style={badgeDotStyle} aria-hidden />}
@@ -646,6 +677,30 @@ const cardTitleStyle: React.CSSProperties = {
   letterSpacing: "-0.01em",
   color: "#f4f6fb",
   flex: 1,
+};
+
+function personaLabel(personaId: string): string {
+  return personaId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+const personaRowStyle: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 8,
+  marginTop: 10,
+  marginBottom: 4,
+};
+
+const personaChipStyle: React.CSSProperties = {
+  fontSize: "0.72rem",
+  padding: "5px 12px",
+  borderRadius: 999,
+  border: "1px solid rgba(127, 212, 255, 0.35)",
+  background: "rgba(18, 32, 48, 0.55)",
+  color: "#c8ecff",
+  cursor: "pointer",
+  fontFamily: MONO_FONT,
+  letterSpacing: "0.03em",
 };
 
 const cardFooterStyle: React.CSSProperties = {

@@ -1,7 +1,7 @@
 """Neo4j schema initialization for the v2 curriculum graph.
 
-Labels: Chapter, Topic, Diagram, Question.
-Edges:  CONTAINS, NEXT, PREREQ, HAS_DIAGRAM, HAS_QUESTION.
+Labels: Chapter, Topic, Diagram, Question, LectureVariant.
+Edges:  CONTAINS, NEXT, PREREQ, HAS_DIAGRAM, HAS_QUESTION, HAS_VARIANT.
 
 All DDL is idempotent (IF NOT EXISTS). Existence constraints require
 Neo4j Enterprise — they fail silently on Community and verify_ingestion()
@@ -29,6 +29,7 @@ CONSTRAINT_QUERIES = [
     "CREATE CONSTRAINT topic_uid IF NOT EXISTS FOR (n:Topic) REQUIRE n.topic_id IS UNIQUE",
     "CREATE CONSTRAINT diagram_uid IF NOT EXISTS FOR (n:Diagram) REQUIRE n.diagram_id IS UNIQUE",
     "CREATE CONSTRAINT question_uid IF NOT EXISTS FOR (n:Question) REQUIRE n.question_id IS UNIQUE",
+    "CREATE CONSTRAINT lecture_variant_uid IF NOT EXISTS FOR (n:LectureVariant) REQUIRE n.variant_id IS UNIQUE",
 ]
 
 
@@ -56,6 +57,11 @@ INDEX_QUERIES = [
     # Chapter lookups
     "CREATE INDEX chapter_index_idx IF NOT EXISTS FOR (n:Chapter) ON (n.chapter_index)",
     "CREATE INDEX chapter_language IF NOT EXISTS FOR (n:Chapter) ON (n.language)",
+
+    # LectureVariant — persona-specific playback manifests
+    "CREATE INDEX lecture_variant_chapter IF NOT EXISTS FOR (n:LectureVariant) ON (n.chapter_id)",
+    "CREATE INDEX lecture_variant_persona IF NOT EXISTS FOR (n:LectureVariant) ON (n.persona_id)",
+    "CREATE INDEX lecture_variant_chapter_persona IF NOT EXISTS FOR (n:LectureVariant) ON (n.chapter_id, n.persona_id)",
 
     # Topic — the bread-and-butter teaching queries
     "CREATE INDEX topic_section IF NOT EXISTS FOR (n:Topic) ON (n.section_number)",
@@ -234,6 +240,7 @@ _REQUIRED_PROPERTIES: dict[str, list[str]] = {
     "Topic":    ["topic_id", "topic_name", "section_number", "chapter_id"],
     "Diagram":  ["diagram_id", "renderer"],
     "Question": ["question_id", "q_text", "type"],
+    "LectureVariant": ["variant_id", "chapter_id", "persona_id"],
 }
 
 _UID_KEY: dict[str, str] = {
@@ -241,6 +248,7 @@ _UID_KEY: dict[str, str] = {
     "Topic":    "topic_id",
     "Diagram":  "diagram_id",
     "Question": "question_id",
+    "LectureVariant": "variant_id",
 }
 
 

@@ -23,6 +23,7 @@ export interface CreateSessionRequest {
   subject?: string;
   grade_level?: string;
   lecture_chapter_id?: string;
+  persona_id?: string;
 }
 
 export async function createSession(

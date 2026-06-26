@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
+from feynman_teaching_kernel.persona import TeacherPersona
 from neo4j import AsyncGraphDatabase
 
 from .config import PipelineConfig
@@ -40,6 +41,13 @@ from .curriculum.ingestion.embedding_generator import (
 )
 from .curriculum.ingestion.idempotency import IdempotencySnapshot, take_snapshot
 from .curriculum.ingestion.neo4j_writer import Neo4jWriter
+from .curriculum.ingestion.spine_checkpoint import (
+    SpineCheckpoint,
+    compute_spine_version,
+    load_checkpoint,
+    strip_variant_fields,
+    write_checkpoint,
+)
 from .curriculum.lecture_plan.chapter_planner import ChapterLecturePlanner
 from .curriculum.lecture_plan.curriculum_adapter import CurriculumAdapter
 from .curriculum.lecture_plan.book_example_weaver import BookExampleWeaver
@@ -53,6 +61,7 @@ from .curriculum.lecture_plan.lesson_quality_gate import _diagram_id_short_to_lo
 from .curriculum.validation.book_coverage import validate_book_coverage
 from .curriculum.lecture_plan.lesson_quality_gate import (
     GateReport as LessonGateReport,
+    GateResult,
     LessonQualityGate,
 )
 from .curriculum.lecture_script.models import ChapterScript
@@ -71,6 +80,11 @@ from .curriculum.validation.gate import GateReport, ValidationGate
 from .llm.factory import create_llm_provider
 from .pdf.parser import PDFParser
 from .pdf.toc import Chapter as PdfChapter, TOCExtractor
+from .quality.snapshot import QualitySnapshot
+from .quality.snapshot_builder import (
+    chapter_quality_snapshot,
+    validation_gate_snapshot,
+)
 from .tts.factory import create_tts_provider
 
 logger = logging.getLogger(__name__)
@@ -88,6 +102,7 @@ class PipelineReport:
     total_elapsed_seconds: float = 0.0
     warnings: list[str] = field(default_factory=list)
     skipped_phases: list[str] = field(default_factory=list)
+    persona_id: str | None = None
 
     def summary(self) -> str:
         lines = [f"Pipeline complete — {self.pdf_path}", f"  Subject: {self.subject}"]
@@ -163,11 +178,13 @@ class CurriculumPipelineV2:
         skip_lecture_plan: bool = False,
         skip_diagram_qa: bool = False,
         skip_beat_narration: bool = False,
+        persona: TeacherPersona | None = None,
         style_context: str | None = None,
         on_stage: StageCallback | None = None,
     ) -> PipelineReport:
         start = time.monotonic()
         report = PipelineReport(pdf_path=str(pdf_path), subject=subject)
+        report.persona_id = persona.persona_id if persona else None
         notify = on_stage or (lambda _s, _d: None)
 
         # --- Phase 1: parse PDF + TOC ---
@@ -319,6 +336,11 @@ class CurriculumPipelineV2:
         notify("validate", "Running validation gate...")
         gate = ValidationGate(self.llm)
         report.validation = gate.run(extraction, anchors_by_chapter)
+        if extraction.quality_snapshot is None:
+            extraction.quality_snapshot = QualitySnapshot()
+        extraction.quality_snapshot.validation = validation_gate_snapshot(
+            report.validation
+        )
 
         # --- Phase 7a + 7b: lecture planning (NEW Phase 4b) ---
         # Chapter-level arc (sync) + per-concept teaching plans via the shared
@@ -362,14 +384,22 @@ class CurriculumPipelineV2:
                         if ch_lecture_plan is None:
                             continue
                         ch_topics = topics_by_chapter_for_plan.get(ch.chapter_id, [])
-                        new_diagrams = await self._run_lesson_pipeline_for_chapter(
+                        new_diagrams, chapter_snapshot = (
+                            await self._run_lesson_pipeline_for_chapter(
                             chapter=ch,
                             topics_for_chapter=ch_topics,
                             lecture_plan=ch_lecture_plan,
                             diagrams_by_topic=diagrams_by_topic_for_plan,
                             existing_diagram_ids=existing_diagram_ids_global,
+                            persona=persona,
                             style_context=style_context,
                             notify=notify,
+                            )
+                        )
+                        self._merge_chapter_snapshot(
+                            extraction,
+                            chapter_snapshot,
+                            persona_id=report.persona_id,
                         )
                         for d in new_diagrams:
                             diagrams.append(d)
@@ -454,6 +484,7 @@ class CurriculumPipelineV2:
                     self.config.tts,
                     self.config.artifacts,
                     layout=self.config.layout,
+                    persona_id=report.persona_id,
                 )
                 await audio_pipeline.build_for_book(
                     chapter_nodes,
@@ -499,7 +530,11 @@ class CurriculumPipelineV2:
         if not skip_neo4j:
             notify("ingest", "Ingesting to Neo4j...")
             try:
-                await self._ingest(extraction, report)
+                await self._ingest(
+                    extraction,
+                    report,
+                    persona_id=report.persona_id,
+                )
             except Exception as e:
                 logger.exception("Neo4j ingest failed (non-fatal): %s", e)
                 report.warnings.append(f"neo4j ingest failed: {e}")
@@ -509,6 +544,284 @@ class CurriculumPipelineV2:
         report.extraction = extraction
         report.total_elapsed_seconds = time.monotonic() - start
         return report
+
+    async def run_spine(
+        self,
+        pdf_path: str | Path,
+        subject: str,
+        *,
+        chapters: list[int] | None = None,
+        chapter_name: str | None = None,
+        single_chapter_title: str | None = None,
+        force: bool = False,
+        skip_questions: bool = False,
+        skip_prereqs: bool = False,
+        skip_visuals: bool = False,
+        checkpoint_path: str | Path | None = None,
+        on_stage: StageCallback | None = None,
+    ) -> SpineCheckpoint:
+        """Phases 1–7 only. Writes optional checkpoint JSON (no variant fields)."""
+        report = await self.run(
+            pdf_path,
+            subject,
+            chapters=chapters,
+            chapter_name=chapter_name,
+            single_chapter_title=single_chapter_title,
+            force=force,
+            skip_neo4j=True,
+            skip_embeddings=True,
+            skip_tts=True,
+            skip_visuals=skip_visuals,
+            skip_questions=skip_questions,
+            skip_prereqs=skip_prereqs,
+            skip_lecture_plan=True,
+            on_stage=on_stage,
+        )
+        if report.extraction is None:
+            msg = "Spine ingest produced no extraction"
+            raise RuntimeError(msg)
+
+        spine_extraction = strip_variant_fields(report.extraction)
+        checkpoint = SpineCheckpoint(
+            spine_version=compute_spine_version(spine_extraction),
+            subject=subject,
+            extraction=spine_extraction,
+        )
+        if checkpoint_path is not None:
+            write_checkpoint(checkpoint, checkpoint_path)
+        return checkpoint
+
+    async def run_variant(
+        self,
+        checkpoint: SpineCheckpoint | str | Path,
+        *,
+        persona: TeacherPersona | None = None,
+        style_context: str | None = None,
+        chapter_ids: list[str] | None = None,
+        skip_neo4j: bool = False,
+        skip_embeddings: bool = False,
+        skip_tts: bool = False,
+        skip_visuals: bool = False,
+        skip_diagram_qa: bool = False,
+        on_stage: StageCallback | None = None,
+    ) -> PipelineReport:
+        """Phases 7a–12 from a spine checkpoint (no PDF parse)."""
+        if not isinstance(checkpoint, SpineCheckpoint):
+            checkpoint = load_checkpoint(checkpoint)
+
+        start = time.monotonic()
+        notify = on_stage or (lambda _s, _d: None)
+        report = PipelineReport(subject=checkpoint.subject)
+        report.persona_id = persona.persona_id if persona else None
+
+        extraction = checkpoint.extraction.model_copy(deep=True)
+        if extraction.quality_snapshot is None:
+            extraction.quality_snapshot = QualitySnapshot(
+                persona_id=persona.persona_id if persona else None,
+            )
+        elif persona and persona.persona_id:
+            extraction.quality_snapshot.persona_id = persona.persona_id
+        chapter_nodes = list(extraction.chapters)
+        if chapter_ids:
+            allowed = set(chapter_ids)
+            chapter_nodes = [c for c in chapter_nodes if c.chapter_id in allowed]
+            if not chapter_nodes:
+                report.warnings.append("No chapters matched chapter_ids filter")
+                report.total_elapsed_seconds = time.monotonic() - start
+                return report
+
+        all_topics = extraction.topics
+        diagrams = list(extraction.diagrams)
+        questions = list(extraction.questions)
+
+        if skip_neo4j:
+            snapshot = IdempotencySnapshot.empty()
+        else:
+            notify("snapshot", "Reading existing graph state from Neo4j...")
+            snapshot = await self._take_snapshot_safely()
+        report.snapshot = snapshot
+
+        await self._run_variant_phases(
+            extraction=extraction,
+            chapter_nodes=chapter_nodes,
+            all_topics=all_topics,
+            diagrams=diagrams,
+            questions=questions,
+            snapshot=snapshot,
+            report=report,
+            persona=persona,
+            style_context=style_context,
+            skip_tts=skip_tts,
+            skip_visuals=skip_visuals,
+            skip_embeddings=skip_embeddings,
+            skip_neo4j=skip_neo4j,
+            skip_diagram_qa=skip_diagram_qa,
+            notify=notify,
+        )
+
+        report.extraction = extraction
+        report.total_elapsed_seconds = time.monotonic() - start
+        return report
+
+    async def _run_variant_phases(
+        self,
+        *,
+        extraction: CurriculumExtractionResult,
+        chapter_nodes: list[ChapterNode],
+        all_topics: list,
+        diagrams: list,
+        questions: list,
+        snapshot: IdempotencySnapshot,
+        report: PipelineReport,
+        persona: TeacherPersona | None,
+        style_context: str | None,
+        skip_tts: bool,
+        skip_visuals: bool,
+        skip_embeddings: bool,
+        skip_neo4j: bool,
+        skip_diagram_qa: bool,
+        notify: StageCallback,
+    ) -> None:
+        """Lecture plan through Neo4j — shared by run() and run_variant()."""
+        lecture_plans: dict[str, Any] = {}
+        notify("chapter_plan", "Planning chapter arcs...")
+        topics_by_chapter_for_plan = self._group_topics(all_topics)
+        diagrams_by_topic_for_plan = self._group_diagrams(diagrams)
+        chapter_planner = ChapterLecturePlanner(self.llm)
+        lecture_plans = chapter_planner.plan_for_all(
+            chapter_nodes,
+            topics_by_chapter_for_plan,
+        )
+        for ch in chapter_nodes:
+            if ch.chapter_id in lecture_plans:
+                ch.lecture_plan = lecture_plans[ch.chapter_id]
+
+        if lecture_plans and self.config.enrichment.use_lesson_pipeline:
+            notify("lesson_pipeline", "Running doc-19 lesson pipeline (Phase H)...")
+            topics_by_id_global = {t.topic_id: t for t in all_topics}
+            existing_diagram_ids_global = {d.diagram_id for d in diagrams}
+            for ch in chapter_nodes:
+                ch_lecture_plan = lecture_plans.get(ch.chapter_id)
+                if ch_lecture_plan is None:
+                    continue
+                ch_topics = topics_by_chapter_for_plan.get(ch.chapter_id, [])
+                new_diagrams, chapter_snapshot = (
+                    await self._run_lesson_pipeline_for_chapter(
+                    chapter=ch,
+                    topics_for_chapter=ch_topics,
+                    lecture_plan=ch_lecture_plan,
+                    diagrams_by_topic=diagrams_by_topic_for_plan,
+                    existing_diagram_ids=existing_diagram_ids_global,
+                    persona=persona,
+                    style_context=style_context,
+                    notify=notify,
+                    )
+                )
+                self._merge_chapter_snapshot(
+                    extraction,
+                    chapter_snapshot,
+                    persona_id=report.persona_id,
+                )
+                for d in new_diagrams:
+                    diagrams.append(d)
+                    extraction.diagrams = diagrams
+                    existing_diagram_ids_global.add(d.diagram_id)
+                    for tid in d.linked_topic_ids:
+                        t = topics_by_id_global.get(tid)
+                        if t is not None and d.diagram_id not in t.has_diagram_ids:
+                            t.has_diagram_ids.append(d.diagram_id)
+
+        chapter_scripts: dict[str, ChapterScript] = {}
+        if not skip_tts:
+            notify("script", "Assembling lecture scripts from beat narrations...")
+            for ch in chapter_nodes:
+                if ch.assembled_chapter_script is None:
+                    continue
+                chapter_scripts[ch.chapter_id] = ChapterScript(
+                    **ch.assembled_chapter_script
+                )
+
+            if chapter_scripts and diagrams:
+                diagrams_by_id = {d.diagram_id: (d.render_data or {}) for d in diagrams}
+                if any(rd.get("dictionary") for rd in diagrams_by_id.values()):
+                    from .curriculum.lecture_plan.highlight_aligner import (
+                        AlignerReport,
+                        SemanticHighlightAligner,
+                    )
+
+                    notify("align", "Aligning diagram highlights to narration...")
+                    aligner = SemanticHighlightAligner(
+                        self.config.llm, provider=self.llm
+                    )
+                    align_report = AlignerReport()
+                    for cs in chapter_scripts.values():
+                        for seg in cs.segments:
+                            text = seg.get("narration_chapter") or ""
+                            if not text:
+                                continue
+                            seg["narration_chapter"] = (
+                                await aligner.realign_chapter_narration(
+                                    text, diagrams_by_id, align_report
+                                )
+                            )
+
+            if chapter_scripts:
+                notify("tts", "Rendering TTS audio...")
+                audio_pipeline = AudioPipeline(
+                    self.tts,
+                    self.config.tts,
+                    self.config.artifacts,
+                    layout=self.config.layout,
+                    persona_id=report.persona_id,
+                )
+                await audio_pipeline.build_for_book(
+                    chapter_nodes,
+                    all_topics,
+                    chapter_scripts,
+                    diagrams=diagrams,
+                )
+        else:
+            report.skipped_phases.extend(["lecture_script", "tts"])
+
+        if not skip_visuals and diagrams:
+            notify("diagram_render", "Rendering diagram fallback images...")
+            DiagramFallbackRenderer(self.artifact_store).render_all(diagrams)
+        else:
+            report.skipped_phases.append("diagram_render")
+
+        if not skip_embeddings:
+            notify(
+                "embed", f"Generating embeddings ({self.config.embedding.provider})..."
+            )
+            try:
+                provider = create_embedding_provider(self.config.embedding)
+                embedder = EmbeddingGenerator(
+                    provider, batch_size=self.config.embedding.batch_size
+                )
+                await embedder.embed_extraction(
+                    extraction,
+                    existing_chapter_ids_with_embedding=snapshot.chapter_ids_with_embedding,
+                    existing_topic_ids_with_embedding=snapshot.topic_ids_with_embedding,
+                )
+            except Exception as e:
+                logger.exception("Embeddings failed (non-fatal): %s", e)
+                report.warnings.append(f"embeddings failed: {e}")
+        else:
+            report.skipped_phases.append("embeddings")
+
+        if not skip_neo4j:
+            notify("ingest", "Ingesting to Neo4j...")
+            try:
+                await self._ingest(
+                    extraction,
+                    report,
+                    persona_id=report.persona_id,
+                )
+            except Exception as e:
+                logger.exception("Neo4j ingest failed (non-fatal): %s", e)
+                report.warnings.append(f"neo4j ingest failed: {e}")
+        else:
+            report.skipped_phases.append("ingest")
 
     # ------------------------------------------------------------------
     # Helpers
@@ -536,9 +849,10 @@ class CurriculumPipelineV2:
         lecture_plan,
         diagrams_by_topic: dict[str, list],
         existing_diagram_ids: set[str],
+        persona: TeacherPersona | None = None,
         style_context: str | None = None,
         notify: StageCallback,
-    ) -> list:
+    ) -> tuple[list, Any]:
         """Doc-19 Phase H — runs LessonQualityGate per topic, applies prosody,
         and populates chapter.lesson_plans + chapter.lesson_narrations +
         chapter.assembled_chapter_script. Returns the new Diagrams produced
@@ -568,7 +882,10 @@ class CurriculumPipelineV2:
         )
 
         planner = LessonPlanner(
-            self.config, provider=main_provider, style_context=style_context
+            self.config,
+            provider=main_provider,
+            persona=persona,
+            style_context=style_context,
         )
         diagram_generator = LessonDiagramGenerator(self.config, provider=main_provider)
         narrator = LessonNarrator(self.config)
@@ -597,6 +914,7 @@ class CurriculumPipelineV2:
         gate_report = LessonGateReport()
         new_diagrams: list = []
         new_diagram_ids: set[str] = set(existing_diagram_ids)
+        topic_gate_results: list[GateResult] = []
 
         for concept_index, topic_id in enumerate(lecture_plan.concept_sequence):
             notify(
@@ -623,6 +941,7 @@ class CurriculumPipelineV2:
                 )
                 continue
 
+            topic_gate_results.append(gate_result)
             if gate_result.plan is not None:
                 chapter.lesson_plans.append(gate_result.plan)
             if gate_result.narration is not None:
@@ -672,7 +991,9 @@ class CurriculumPipelineV2:
             "extended_example_weaver",
             "Weaving real-world examples + fun facts into per-topic choreographies...",
         )
-        ext_weaver = ExtendedExampleWeaver(self.config, provider=main_provider)
+        ext_weaver = ExtendedExampleWeaver(
+            self.config, provider=main_provider, persona=persona
+        )
         await ext_weaver.weave_for_chapter(
             chapter_lesson_plans=plans_by_tid,
             topics_by_id=topics_by_tid,
@@ -741,7 +1062,34 @@ class CurriculumPipelineV2:
             narrations=chapter.lesson_narrations,
         )
         logger.info(gate_report.summary())
-        return new_diagrams
+        chapter_snapshot = chapter_quality_snapshot(
+            chapter.chapter_id,
+            topic_results=topic_gate_results,
+            coverage=coverage_report,
+            gate_report=gate_report,
+        )
+        return new_diagrams, chapter_snapshot
+
+    @staticmethod
+    def _merge_chapter_snapshot(
+        extraction: CurriculumExtractionResult,
+        chapter_snapshot: Any,
+        *,
+        persona_id: str | None = None,
+    ) -> None:
+        if extraction.quality_snapshot is None:
+            extraction.quality_snapshot = QualitySnapshot(persona_id=persona_id)
+        elif persona_id and not extraction.quality_snapshot.persona_id:
+            extraction.quality_snapshot.persona_id = persona_id
+
+        chapters = list(extraction.quality_snapshot.chapters)
+        for index, existing in enumerate(chapters):
+            if existing.chapter_id == chapter_snapshot.chapter_id:
+                chapters[index] = chapter_snapshot
+                extraction.quality_snapshot.chapters = chapters
+                return
+        chapters.append(chapter_snapshot)
+        extraction.quality_snapshot.chapters = chapters
 
     async def _take_snapshot_safely(self) -> IdempotencySnapshot:
         driver = AsyncGraphDatabase.driver(
@@ -772,10 +1120,14 @@ class CurriculumPipelineV2:
         return out
 
     async def _ingest(
-        self, extraction: CurriculumExtractionResult, report: PipelineReport
+        self,
+        extraction: CurriculumExtractionResult,
+        report: PipelineReport,
+        *,
+        persona_id: str | None = None,
     ) -> None:
         cypher_gen = CypherGenerator()
-        statements = cypher_gen.generate(extraction)
+        statements = cypher_gen.generate(extraction, persona_id=persona_id)
 
         async with Neo4jWriter(self.config.neo4j) as writer:
             await writer.ingest(
@@ -789,6 +1141,14 @@ class CurriculumPipelineV2:
                     | {d.diagram_id for d in extraction.diagrams}
                     | {q.question_id for q in extraction.questions}
                 )
+                if persona_id:
+                    from .curriculum.variant_ids import variant_id as make_variant_id
+
+                    for chapter in extraction.chapters:
+                        if chapter.chapter_manifest and chapter.chapter_manifest.events:
+                            expected_ids.add(
+                                make_variant_id(chapter.chapter_id, persona_id)
+                            )
                 expected_rels = sum(
                     1
                     + (1 if t.next_topic_id else 0)

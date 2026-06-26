@@ -57,7 +57,9 @@ _ACKNOWLEDGEMENTS = (
 )
 
 
-async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
+async def _run_lecture_mode(
+    ctx: JobContext, *, chapter_id: str, persona_id: str | None = None
+) -> None:
     """Lecture-mode worker loop.
 
     The precomputed lecture plays from the frontend; the worker stays in the
@@ -80,10 +82,30 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
     # this fails, the room stays alive so the precompute playback continues,
     # but doubts can't be resolved (and we publish a clear failure on each).
     doubt_session: LectureDoubtSession | None = None
+    persona_style_block: str | None = None
+    if persona_id:
+        try:
+            from pathlib import Path
+
+            from feynman_teaching_kernel.persona_registry import load_persona
+
+            repo_root = Path(__file__).resolve().parents[4]
+            personas_dir = repo_root / "data_pre_compute_v2" / "personas"
+            persona = load_persona(persona_id, personas_dir)
+            persona_style_block = persona.style_block
+            logger.info("worker.persona_loaded", persona_id=persona_id)
+        except Exception as exc:
+            logger.warning(
+                "worker.persona_load_failed", persona_id=persona_id, error=str(exc)
+            )
+
     try:
         chapter_context = await load_chapter_by_id(chapter_id)
         if chapter_context is not None:
-            doubt_session = LectureDoubtSession(chapter_context=chapter_context)
+            doubt_session = LectureDoubtSession(
+                chapter_context=chapter_context,
+                persona_style_block=persona_style_block,
+            )
             logger.info(
                 "worker.lecture_session_ready",
                 chapter_id=chapter_id,
@@ -277,6 +299,7 @@ async def _run_lecture_mode(ctx: JobContext, *, chapter_id: str) -> None:
         logger.info(
             "doubt.intent_received",
             chapter_id=chapter_id,
+            persona_id=intent.get("persona_id") or persona_id,
             cursor=intent.get("cursor"),
             topic_id=intent.get("topic_id"),
             snapshot_page=(snap_dict or {}).get("page_index"),
@@ -413,13 +436,17 @@ async def entrypoint(ctx: JobContext) -> None:
     # message. Phase 3 wires capture-only STT; Phase 4 adds classifier +
     # planner; Phase 5 adds the live voice + visual resolution delivery.
     lecture_chapter_id = meta.get("lecture_chapter_id")
+    persona_id = meta.get("persona_id")
     if lecture_chapter_id:
         logger.info(
             "worker.lecture_playback_mode",
             room_name=ctx.room.name,
             chapter_id=lecture_chapter_id,
+            persona_id=persona_id,
         )
-        await _run_lecture_mode(ctx, chapter_id=lecture_chapter_id)
+        await _run_lecture_mode(
+            ctx, chapter_id=lecture_chapter_id, persona_id=persona_id
+        )
         return
 
 

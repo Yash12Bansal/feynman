@@ -306,7 +306,7 @@ async def test_run_lesson_pipeline_for_chapter_populates_chapter_fields(
     )
 
     pipeline = CurriculumPipelineV2(_config())
-    new_diagrams = await pipeline._run_lesson_pipeline_for_chapter(
+    new_diagrams, _chapter_snapshot = await pipeline._run_lesson_pipeline_for_chapter(
         chapter=chapter,
         topics_for_chapter=topics,
         lecture_plan=_lecture_plan(["t1", "t2"]),
@@ -414,7 +414,7 @@ async def test_run_lesson_pipeline_dedupes_diagrams_by_id(
     )
 
     pipeline = CurriculumPipelineV2(_config())
-    new_diagrams = await pipeline._run_lesson_pipeline_for_chapter(
+    new_diagrams, _chapter_snapshot = await pipeline._run_lesson_pipeline_for_chapter(
         chapter=chapter,
         topics_for_chapter=topics,
         lecture_plan=_lecture_plan(["t1", "t2"]),
@@ -452,7 +452,7 @@ async def test_run_lesson_pipeline_respects_existing_diagram_ids(
     )
 
     pipeline = CurriculumPipelineV2(_config())
-    new_diagrams = await pipeline._run_lesson_pipeline_for_chapter(
+    new_diagrams, _chapter_snapshot = await pipeline._run_lesson_pipeline_for_chapter(
         chapter=chapter,
         topics_for_chapter=topics,
         lecture_plan=_lecture_plan(["t1"]),

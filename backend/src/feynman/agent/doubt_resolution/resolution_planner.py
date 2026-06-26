@@ -49,6 +49,7 @@ async def plan_resolution(
     different_angle: bool = False,
     prior_resolution_summary: str = "",
     board_snapshot: dict | None = None,
+    persona_style_block: str | None = None,
 ) -> ResolutionPlan | None:
     """Plan a doubt resolution as 3-5 beats.
 
@@ -69,6 +70,7 @@ async def plan_resolution(
                 prior_resolution_summary=prior_resolution_summary,
                 prior_validation_error=last_error,
                 board_snapshot=board_snapshot,
+                persona_style_block=persona_style_block,
             )
         except ValidationError as exc:
             last_error = str(exc)
@@ -106,6 +108,7 @@ async def _call_once(
     prior_resolution_summary: str,
     prior_validation_error: str | None,
     board_snapshot: dict | None,
+    persona_style_block: str | None = None,
 ) -> ResolutionPlan | None:
     user_message = _build_user_message(
         doubt_text=doubt_text,
@@ -120,10 +123,17 @@ async def _call_once(
     )
 
     client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key or "")
+    system = PLANNER_SYSTEM
+    if persona_style_block and persona_style_block.strip():
+        system = (
+            f"{PLANNER_SYSTEM}\n\n"
+            "## Persona voice (match this when answering doubts)\n"
+            f"{persona_style_block.strip()}"
+        )
     response = await client.messages.create(
         model=_MODEL,
         max_tokens=_MAX_TOKENS,
-        system=PLANNER_SYSTEM,
+        system=system,
         messages=[{"role": "user", "content": user_message}],
         tools=[
             {

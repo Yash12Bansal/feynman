@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "./hooks/useSession";
+import { useLectureParams } from "./hooks/useLectureParams";
 import { RoomProvider } from "./livekit/RoomProvider";
 import { ClassroomScreen } from "./screens/ClassroomScreen";
 import { LectureHomeScreen } from "./screens/LectureHomeScreen";
@@ -11,21 +12,7 @@ import { FeedbackFab } from "./feedback/FeedbackFab";
 import { ExitIntentFeedback } from "./feedback/ExitIntentFeedback";
 
 function useLectureChapterParam(): string | null {
-  // ?lecture=<chapter_id> on the main app path binds the session to a
-  // precomputed lecture and lands the student in the immersive viewer.
-  const [value, setValue] = useState<string | null>(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("lecture");
-  });
-  useEffect(() => {
-    const onPop = () => {
-      const params = new URLSearchParams(window.location.search);
-      setValue(params.get("lecture"));
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
-  return value;
+  return useLectureParams().chapterId;
 }
 
 export function App() {
@@ -69,7 +56,7 @@ function MainEntry() {
 }
 
 function MainApp() {
-  const lectureChapterParam = useLectureChapterParam();
+  const { chapterId: lectureChapterParam, personaId } = useLectureParams();
   const { token, livekitUrl, status, startSession } = useSession();
 
   // LAZY CONNECT: do NOT auto-start a session on lecture open. Watching a
@@ -81,8 +68,11 @@ function MainApp() {
   const requestDoubtSession = useCallback(() => {
     if (!lectureChapterParam) return;
     if (status === "connecting" || status === "connected") return;
-    void startSession({ lecture_chapter_id: lectureChapterParam });
-  }, [lectureChapterParam, status, startSession]);
+    void startSession({
+      lecture_chapter_id: lectureChapterParam,
+      persona_id: personaId,
+    });
+  }, [lectureChapterParam, personaId, status, startSession]);
 
   // Param removed mid-session (popstate) — fall back to the free-form flow.
   if (!lectureChapterParam) {
@@ -106,6 +96,7 @@ function MainApp() {
     >
       <ClassroomScreen
         lectureChapterId={lectureChapterParam}
+        personaId={personaId}
         onRequestDoubtSession={requestDoubtSession}
       />
     </RoomProvider>

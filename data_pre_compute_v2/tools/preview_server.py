@@ -21,12 +21,13 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from neo4j import AsyncGraphDatabase
 
 from lecture_pipeline_v2.config import PipelineConfig
+from lecture_pipeline_v2.persona_paths import default_personas_dir
 from lecture_pipeline_v2.tts.chunker import TextFragment, split_script
 
 cfg = PipelineConfig.load()
@@ -125,6 +126,18 @@ async def root() -> FileResponse:
     return FileResponse(static_dir / "index.html")
 
 
+@app.get("/lecture-api/personas")
+async def list_personas() -> JSONResponse:
+    """Catalog persona ids from ``data_pre_compute_v2/personas/*.yaml``."""
+    personas_dir = default_personas_dir()
+    entries: list[dict[str, str]] = []
+    for path in sorted(personas_dir.glob("*.yaml")):
+        persona_id = path.stem
+        label = persona_id.replace("_", " ").title()
+        entries.append({"id": persona_id, "label": label})
+    return JSONResponse(entries)
+
+
 @app.get("/lecture-api/chapters")
 async def list_chapters() -> JSONResponse:
     driver = AsyncGraphDatabase.driver(
@@ -135,18 +148,41 @@ async def list_chapters() -> JSONResponse:
         async with driver.session(database=cfg.neo4j.database) as session:
             result = await session.run(
                 "MATCH (c:Chapter) "
+                "OPTIONAL MATCH (c)-[:HAS_VARIANT]->(v:LectureVariant) "
+                "WITH c, collect(DISTINCT v.persona_id) AS variant_personas "
                 "RETURN c.chapter_id AS id, c.title AS title, c.chapter_index AS idx, "
-                "       c.chapter_manifest IS NOT NULL AS has_manifest "
+                "       c.chapter_manifest IS NOT NULL AS legacy_manifest, "
+                "       variant_personas "
                 "ORDER BY c.chapter_index"
             )
-            chapters = [dict(r) async for r in result]
+            chapters = []
+            async for row in result:
+                variant_personas = [
+                    p for p in (row["variant_personas"] or []) if p
+                ]
+                legacy = bool(row["legacy_manifest"])
+                personas = list(dict.fromkeys(variant_personas))
+                if legacy and "default" not in personas:
+                    personas.insert(0, "default")
+                chapters.append(
+                    {
+                        "id": row["id"],
+                        "title": row["title"],
+                        "idx": row["idx"],
+                        "has_manifest": legacy or bool(variant_personas),
+                        "personas": personas,
+                    }
+                )
     finally:
         await driver.close()
     return JSONResponse(chapters)
 
 
 @app.get("/lecture-api/chapter/{chapter_id:path}")
-async def chapter_data(chapter_id: str) -> JSONResponse:
+async def chapter_data(
+    chapter_id: str,
+    persona: str = Query(default="default", description="Teacher persona id"),
+) -> JSONResponse:
     driver = AsyncGraphDatabase.driver(
         cfg.neo4j.uri,
         auth=(cfg.neo4j.username, cfg.neo4j.password),
@@ -155,11 +191,13 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
         async with driver.session(database=cfg.neo4j.database) as session:
             result = await session.run(
                 "MATCH (c:Chapter {chapter_id: $id}) "
+                "OPTIONAL MATCH (c)-[:HAS_VARIANT]->(v:LectureVariant {persona_id: $persona}) "
                 "RETURN c.title AS title, c.chapter_index AS idx, "
-                "       c.chapter_manifest AS manifest, "
-                "       c.board_snapshots AS board_snapshots, "
-                "       c.narration_text AS narration_text",
-                {"id": chapter_id},
+                "       coalesce(v.chapter_manifest, c.chapter_manifest) AS manifest, "
+                "       coalesce(v.board_snapshots, c.board_snapshots) AS board_snapshots, "
+                "       coalesce(v.narration_text, c.narration_text) AS narration_text, "
+                "       coalesce(v.persona_id, $persona) AS persona_id",
+                {"id": chapter_id, "persona": persona},
             )
             record = await result.single()
             if not record:
@@ -259,6 +297,7 @@ async def chapter_data(chapter_id: str) -> JSONResponse:
     return JSONResponse(
         {
             "chapter_id": chapter_id,
+            "persona_id": record.get("persona_id") or persona,
             "title": record["title"],
             "chapter_index": record["idx"],
             "events": rewritten_events,

@@ -36,6 +36,7 @@ logger = structlog.get_logger()
 @dataclass
 class LectureDoubtSession:
     chapter_context: ChapterContext
+    persona_style_block: str | None = None
     prior_doubts_in_session: list[DoubtRecord] = field(default_factory=list)
     shown_diagram_ids: set[str] = field(default_factory=set)
     # Per-session cache of generated doubt-diagram specs, keyed by the
@@ -87,6 +88,7 @@ class LectureDoubtSession:
             different_angle=different_angle,
             prior_resolution_summary=prior_resolution_summary,
             board_snapshot=board_snapshot,
+            persona_style_block=self.persona_style_block,
         )
         if plan is None:
             logger.error("lecture_session.planner_failed", cursor=cursor)
