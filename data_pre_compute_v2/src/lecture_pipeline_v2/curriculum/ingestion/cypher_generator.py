@@ -25,6 +25,7 @@ from ..models import (
     Question,
     Topic,
 )
+from ..variant_ids import variant_id as make_variant_id
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +41,20 @@ class CypherStatement:
 class CypherGenerator:
     """Pure: same input → same output, deterministic ordering."""
 
-    def generate(self, extraction: CurriculumExtractionResult) -> list[CypherStatement]:
+    def generate(
+        self,
+        extraction: CurriculumExtractionResult,
+        *,
+        persona_id: str | None = None,
+    ) -> list[CypherStatement]:
         statements: list[CypherStatement] = []
 
+        write_variant_on_chapter = persona_id is None
+
         for chapter in sorted(extraction.chapters, key=lambda c: c.chapter_index):
-            statements.append(self._chapter_node(chapter))
+            statements.append(
+                self._chapter_node(chapter, write_variant_on_chapter=write_variant_on_chapter)
+            )
 
         topics_sorted = sorted(extraction.topics, key=lambda t: t.topic_id)
         for topic in topics_sorted:
@@ -70,22 +80,28 @@ class CypherGenerator:
             for qid in sorted(topic.has_question_ids):
                 statements.append(self._has_question_edge(topic.topic_id, qid))
 
+        for chapter in sorted(extraction.chapters, key=lambda c: c.chapter_index):
+            effective_persona = persona_id
+            if effective_persona is None and self._chapter_has_manifest(chapter):
+                effective_persona = "default"
+            if effective_persona and self._chapter_has_manifest(chapter):
+                statements.append(
+                    self._lecture_variant_node(chapter, effective_persona)
+                )
+                statements.append(
+                    self._has_variant_edge(chapter.chapter_id, effective_persona)
+                )
+
         return statements
 
     @staticmethod
-    def _chapter_node(c: Chapter) -> CypherStatement:
-        # Phase 3: pages is a JSON-serialized list of PageSummary (diagnostic
-        # only, never user-facing). Empty list serializes to "[]" — no schema
-        # change needed for chapters generated pre-Phase-3.
-        import json
+    def _chapter_has_manifest(chapter: Chapter) -> bool:
+        return bool(chapter.chapter_manifest and chapter.chapter_manifest.events)
 
-        pages_json = json.dumps([p.model_dump() for p in c.pages])
-        board_snapshots_json = json.dumps([s.model_dump() for s in c.board_snapshots])
-        # Idea 2: flat list of VisualTermEntry — JSON string for now (matches
-        # the pages/board_snapshots pattern; promote to nodes/edges only when
-        # a consumer needs graph traversal over visual terms).
+    @staticmethod
+    def _chapter_node(c: Chapter, *, write_variant_on_chapter: bool) -> CypherStatement:
         concept_visual_index_json = json.dumps(c.concept_visual_index.model_dump())
-        params = {
+        params: dict[str, Any] = {
             "chapter_id": c.chapter_id,
             "chapter_index": c.chapter_index,
             "title": c.title,
@@ -93,37 +109,105 @@ class CypherGenerator:
             "page_start": c.page_start,
             "page_end": c.page_end,
             "topic_ids": list(c.topic_ids),
-            # by_alias=True so AnimateParameterEvent's `from_` field serializes
-            # as the JSON key `from` the frontend reads (D3); no-op for every
-            # other event (no other field has an alias).
-            "chapter_manifest": c.chapter_manifest.model_dump_json(by_alias=True),
-            "narration_text": c.narration_text,
-            "pages": pages_json,
-            "board_snapshots": board_snapshots_json,
-            "concept_visual_index": concept_visual_index_json,
             "embedding": list(c.embedding) if c.embedding else None,
             "language": c.language,
             "version": c.version,
         }
+        set_lines = [
+            "MERGE (n:Chapter {chapter_id: $chapter_id})",
+            "SET n.chapter_index = $chapter_index,",
+            "    n.title = $title,",
+            "    n.summary = $summary,",
+            "    n.page_start = $page_start,",
+            "    n.page_end = $page_end,",
+            "    n.topic_ids = $topic_ids,",
+            "    n.embedding = $embedding,",
+            "    n.language = $language,",
+            "    n.version = $version,",
+        ]
+        if write_variant_on_chapter:
+            pages_json = json.dumps([p.model_dump() for p in c.pages])
+            board_snapshots_json = json.dumps(
+                [s.model_dump() for s in c.board_snapshots]
+            )
+            params.update(
+                {
+                    "chapter_manifest": c.chapter_manifest.model_dump_json(
+                        by_alias=True
+                    ),
+                    "narration_text": c.narration_text,
+                    "pages": pages_json,
+                    "board_snapshots": board_snapshots_json,
+                    "concept_visual_index": concept_visual_index_json,
+                }
+            )
+            set_lines.extend(
+                [
+                    "    n.chapter_manifest = $chapter_manifest,",
+                    "    n.narration_text = $narration_text,",
+                    "    n.pages = $pages,",
+                    "    n.board_snapshots = $board_snapshots,",
+                    "    n.concept_visual_index = $concept_visual_index,",
+                ]
+            )
+        set_lines.append("    n.updated_at = datetime()")
+        query = "\n".join(set_lines)
+        return CypherStatement(query, params, "node", c.chapter_id)
+
+    @staticmethod
+    def _lecture_variant_node(chapter: Chapter, persona_id: str) -> CypherStatement:
+        pages_json = json.dumps([p.model_dump() for p in chapter.pages])
+        board_snapshots_json = json.dumps(
+            [s.model_dump() for s in chapter.board_snapshots]
+        )
+        concept_visual_index_json = json.dumps(chapter.concept_visual_index.model_dump())
+        vid = make_variant_id(chapter.chapter_id, persona_id)
+        params = {
+            "variant_id": vid,
+            "chapter_id": chapter.chapter_id,
+            "persona_id": persona_id,
+            "chapter_manifest": chapter.chapter_manifest.model_dump_json(by_alias=True),
+            "narration_text": chapter.narration_text,
+            "pages": pages_json,
+            "board_snapshots": board_snapshots_json,
+            "concept_visual_index": concept_visual_index_json,
+            "language": chapter.language,
+            "version": chapter.version,
+        }
         query = (
-            "MERGE (n:Chapter {chapter_id: $chapter_id})\n"
-            "SET n.chapter_index = $chapter_index,\n"
-            "    n.title = $title,\n"
-            "    n.summary = $summary,\n"
-            "    n.page_start = $page_start,\n"
-            "    n.page_end = $page_end,\n"
-            "    n.topic_ids = $topic_ids,\n"
+            "MERGE (n:LectureVariant {variant_id: $variant_id})\n"
+            "SET n.chapter_id = $chapter_id,\n"
+            "    n.persona_id = $persona_id,\n"
             "    n.chapter_manifest = $chapter_manifest,\n"
             "    n.narration_text = $narration_text,\n"
             "    n.pages = $pages,\n"
             "    n.board_snapshots = $board_snapshots,\n"
             "    n.concept_visual_index = $concept_visual_index,\n"
-            "    n.embedding = $embedding,\n"
             "    n.language = $language,\n"
             "    n.version = $version,\n"
             "    n.updated_at = datetime()"
         )
-        return CypherStatement(query, params, "node", c.chapter_id)
+        return CypherStatement(query, params, "node", vid)
+
+    @staticmethod
+    def _has_variant_edge(chapter_id: str, persona_id: str) -> CypherStatement:
+        vid = make_variant_id(chapter_id, persona_id)
+        return CypherStatement(
+            query=(
+                "MATCH (c:Chapter {chapter_id: $chapter_id})\n"
+                "MATCH (v:LectureVariant {variant_id: $variant_id})\n"
+                "MERGE (c)-[r:HAS_VARIANT]->(v)\n"
+                "SET r.persona_id = $persona_id,\n"
+                "    r.updated_at = datetime()"
+            ),
+            params={
+                "chapter_id": chapter_id,
+                "variant_id": vid,
+                "persona_id": persona_id,
+            },
+            category="edge",
+            uid=f"has_variant:{chapter_id}->{persona_id}",
+        )
 
     @staticmethod
     def _topic_node(t: Topic) -> CypherStatement:

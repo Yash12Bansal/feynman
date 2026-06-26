@@ -1,0 +1,673 @@
+{
+  "spine_version": "fa588cb855ed2ab3",
+  "subject": "finance",
+  "extraction": {
+    "version": "2.0",
+    "subject": "finance",
+    "textbook_title": "Simple Interest ? A Short Introduction",
+    "source": {
+      "textbook_title": "Simple Interest ? A Short Introduction",
+      "extractor_model": "claude-opus-4-8",
+      "extraction_timestamp": "2026-06-18T14:52:05.540462"
+    },
+    "book_skeleton": {
+      "textbook_title": "Simple Interest ? A Short Introduction",
+      "subject": "mathematics",
+      "total_chapters": 1,
+      "total_pages": 1,
+      "chapters": [
+        {
+          "chapter_index": 1,
+          "title": "Simple Interest",
+          "page_start": 1,
+          "page_end": 1,
+          "summary": "Introduces simple interest as a fixed percentage earned on an unchanging principal over time. Presents the formulas I = P × r × t and A = P(1 + rt), with a worked example and a brief contrast to compound interest.",
+          "key_concepts": [
+            "Principal",
+            "Interest rate as a decimal",
+            "Time in years",
+            "Simple interest formula I = P × r × t",
+            "Future value A = P(1 + rt)",
+            "Simple vs compound interest"
+          ],
+          "prerequisites_from": [],
+          "leads_to": []
+        }
+      ],
+      "subject_overview": "This short text introduces the concept of simple interest as a way to model the money earned on a deposited principal. It covers the meaning of simple interest, the core formula for calculating interest and future value, and contrasts simple interest with compound interest."
+    },
+    "chapters": [
+      {
+        "chapter_id": "chapter:finance:simple_interest",
+        "chapter_index": 1,
+        "title": "Simple Interest",
+        "summary": "Introduces simple interest as a fixed percentage earned on an unchanging principal over time. Presents the formulas I = P × r × t and A = P(1 + rt), with a worked example and a brief contrast to compound interest.",
+        "page_start": 1,
+        "page_end": 1,
+        "topic_ids": [
+          "topic:finance:simple_interest:1_1",
+          "topic:finance:simple_interest:1_2",
+          "topic:finance:simple_interest:1_3",
+          "topic:finance:simple_interest:1_4"
+        ],
+        "chapter_manifest": {
+          "events": []
+        },
+        "narration_text": "",
+        "pages": [],
+        "board_snapshots": [],
+        "concept_visual_index": {
+          "entries": []
+        },
+        "lecture_plan": null,
+        "assembled_chapter_script": null,
+        "lesson_plans": [],
+        "lesson_narrations": [],
+        "embedding": [],
+        "language": "en",
+        "version": 1
+      }
+    ],
+    "topics": [
+      {
+        "topic_id": "topic:finance:simple_interest:1_1",
+        "chapter_id": "chapter:finance:simple_interest",
+        "section_number": "1.1",
+        "within_chapter_order": 1,
+        "topic_name": "What simple interest means",
+        "orig_book_content": "1.1 What simple interest means\nWhen you put money in a savings account, the bank pays you for keeping it there. Simple interest is\nthe easiest way to model that payment: you earn a fixed percentage of the original amount (the\nprincipal) for each year you leave the money untouched. The principal never changes for the purpose\nof the calculation ? only time and the rate matter.\nExample from everyday life: you deposit ?10,000 in an account that promises 5% per year simple\ninterest. After one year the bank owes you interest on ?10,000 only, not on any interest already\nadded.",
+        "our_understanding": "Let's start with a simple idea you've probably noticed in real life. When you put money in a savings account, the bank actually pays you for letting them hold onto it. That payment is called interest. Now, there are different ways to figure out how much interest you earn, and simple interest is the easiest one of all. Here's how it works: you earn a fixed percentage of the original amount of money you put in, and you earn that same amount for every year you leave the money sitting there untouched. That original amount you deposited has a special name. We call it the principal. So the principal is just the starting money, the amount you handed over to the bank in the first place. The key thing to understand about simple interest, and the reason it's called simple, is that the principal never changes for the purpose of the calculation. You always calculate the interest based on that original amount, year after year, no matter how much interest has already piled up. Only two things actually matter: how much time has passed and what the rate is. Let me show you what this looks like with a real example. Imagine you deposit ten thousand rupees into an account that promises five percent per year in simple interest. After one full year, the bank owes you interest calculated on that ten thousand rupees only. Notice what it does not do. It does not calculate interest on any interest that's already been added. That's the heart of simple interest. The starting amount stays as the base for every single calculation. This matters because later you'll meet another kind called compound interest, where the interest does get added back in and starts earning its own interest. But for now, keep this picture in your head: with simple interest, you always go back to the original principal, you apply the rate, and you multiply by the number of years. Time and rate change the answer, but the principal stays put as your steady foundation.",
+        "examples": [],
+        "book_examples": [
+          {
+            "verbatim_text": "Example from everyday life: you deposit ?10,000 in an account that promises 5% per year simple interest. After one year the bank owes you interest on ?10,000 only, not on any interest already added.",
+            "page_number": null,
+            "kind": "inline",
+            "lesson_focus": "With simple interest, the interest is always calculated on the original principal, never on interest that has already been added.",
+            "setup_facts": [
+              "principal deposited is ten thousand rupees",
+              "interest rate is five percent per year",
+              "time considered is one year",
+              "interest is calculated on the original ten thousand rupees only, not on any added interest"
+            ],
+            "has_derivation": false
+          }
+        ],
+        "extended_examples": [],
+        "next_topic_id": "topic:finance:simple_interest:1_2",
+        "prereq_topic_ids": [],
+        "has_diagram_ids": [],
+        "has_question_ids": [
+          "question:finance:simple_interest:1_1:define_principal",
+          "question:finance:simple_interest:1_1:why_simple",
+          "question:finance:simple_interest:1_1:factors_that_matter",
+          "question:finance:simple_interest:1_1:simple_vs_compound",
+          "question:finance:simple_interest:1_1:two_year_base"
+        ],
+        "standalone_manifest": {
+          "events": []
+        },
+        "standalone_narration_text": "",
+        "embedding": [],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "topic_id": "topic:finance:simple_interest:1_2",
+        "chapter_id": "chapter:finance:simple_interest",
+        "section_number": "1.2",
+        "within_chapter_order": 2,
+        "topic_name": "The formula",
+        "orig_book_content": "1.2 The formula\nSimple interest in one period:\n    I = P × r × t\nWhere:\n- I = interest earned (rupees or dollars)\n- P = principal (starting amount)\n- r = annual interest rate as a decimal (5% ? 0.05)\n- t = time in years (6 months ? 0.5)\nThe amount you have at the end (future value with simple interest):\n    A = P + I = P(1 + rt)",
+        "our_understanding": "Let's talk about how we actually calculate simple interest using a formula. The big idea is that interest depends on three things working together. First, how much money you started with — we call that the principal. Second, the rate of interest, which tells you what fraction of your money you earn each year. And third, the time, measured in years, that your money sits and grows. When you multiply all three of these together, you get the interest earned. So in words, the interest equals the principal times the rate times the time.\n\nNow, here's a small but important detail. The rate is given as a percentage, like five percent, but in the formula you must turn it into a decimal first. To do that, you divide by one hundred. So five percent becomes zero point zero five. Don't skip this step — it's the most common place students slip up.\n\nThe time also needs care. It has to be in years. If someone tells you six months, that's only half a year, so you'd write zero point five. If they say three months, that's one quarter of a year, or zero point two five. Always convert to years before you plug into the formula.\n\nOnce you know the interest, you might want to know the total amount of money you'll have at the end. That's simply your starting money plus the interest you earned. So the amount equals the principal plus the interest. There's also a tidy way to write this in one shot: the amount equals the principal times the quantity one plus the rate times the time. Both ways give you the same answer — the second is just a shortcut that folds the two steps into one.\n\nWhy does this matter? Because once you understand this formula, you can predict exactly how much your savings will grow, or how much extra you'll owe on a loan. Notice that interest grows steadily and predictably with simple interest — double the time, and you double the interest. That's what makes it simple. Keep your eye on those three ingredients, remember to convert the rate to a decimal and the time to years, and you'll handle these problems with confidence.",
+        "examples": [],
+        "book_examples": [
+          {
+            "verbatim_text": "r = annual interest rate as a decimal (5% ? 0.05)",
+            "page_number": null,
+            "kind": "inline",
+            "lesson_focus": "A percentage rate must be converted to a decimal before use by dividing by one hundred.",
+            "setup_facts": [
+              "rate given as 5%",
+              "5% converts to 0.05 as a decimal"
+            ],
+            "has_derivation": false
+          },
+          {
+            "verbatim_text": "t = time in years (6 months ? 0.5)",
+            "page_number": null,
+            "kind": "inline",
+            "lesson_focus": "Time must be expressed in years, so six months becomes one half of a year.",
+            "setup_facts": [
+              "time given as 6 months",
+              "6 months converts to 0.5 years"
+            ],
+            "has_derivation": false
+          }
+        ],
+        "extended_examples": [],
+        "next_topic_id": "topic:finance:simple_interest:1_3",
+        "prereq_topic_ids": [
+          "topic:finance:simple_interest:1_1"
+        ],
+        "has_diagram_ids": [],
+        "has_question_ids": [
+          "question:finance:simple_interest:1_2:convert_rate",
+          "question:finance:simple_interest:1_2:time_conversion",
+          "question:finance:simple_interest:1_2:double_the_time",
+          "question:finance:simple_interest:1_2:compute_interest",
+          "question:finance:simple_interest:1_2:half_year_loan"
+        ],
+        "standalone_manifest": {
+          "events": []
+        },
+        "standalone_narration_text": "",
+        "embedding": [],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "topic_id": "topic:finance:simple_interest:1_3",
+        "chapter_id": "chapter:finance:simple_interest",
+        "section_number": "1.3",
+        "within_chapter_order": 3,
+        "topic_name": "Worked example",
+        "orig_book_content": "1.3 Worked example\nPriya deposits ?8,000 for 3 years at 4% per year simple interest.\nStep 1: Convert the rate: r = 4% = 0.04\nStep 2: I = P × r × t = 8,000 × 0.04 × 3 = ?960\nStep 3: A = 8,000 + 960 = ?8,960\nAfter 3 years she has ?8,960. The interest ?960 is always computed from the original ?8,000 ? that is\nwhat makes the interest \"simple.\"",
+        "our_understanding": "Let's put simple interest to work with a real problem, because seeing the steps in action is where it all clicks. Imagine Priya walks into a bank and deposits eight thousand rupees. She leaves it there for three years, and the bank pays her four percent per year in simple interest. Our job is to figure out how much money she ends up with.\n\nThe first thing we do is convert that percentage into a decimal, because percentages are awkward to multiply with directly. Four percent means four per hundred, so we divide four by one hundred and get zero point zero four. That's our rate in decimal form.\n\nNow we use the simple interest idea: the interest equals the principal times the rate times the time. So we take eight thousand, multiply by zero point zero four, and multiply by three years. Eight thousand times zero point zero four is three hundred and twenty, and three hundred and twenty times three is nine hundred and sixty. So Priya earns nine hundred and sixty rupees in interest over those three years.\n\nTo find the total amount she has, we just add the interest back to the original deposit. Eight thousand plus nine hundred and sixty gives us eight thousand nine hundred and sixty rupees. That's what she walks away with after three years.\n\nNow here's the most important insight, and it's the whole reason this is called simple interest. Notice that every single year, the interest is always calculated from the original eight thousand rupees. It never grows on the interest she already earned. The nine hundred and sixty is just three equal chunks of three hundred and twenty, one for each year, all based on that same starting amount. The money she earns doesn't start earning its own interest. That flat, unchanging base is exactly what makes the interest simple rather than compound. Keep that picture in your head, because it's the heart of everything in this chapter.",
+        "examples": [],
+        "book_examples": [],
+        "extended_examples": [],
+        "next_topic_id": "topic:finance:simple_interest:1_4",
+        "prereq_topic_ids": [
+          "topic:finance:simple_interest:1_2"
+        ],
+        "has_diagram_ids": [],
+        "has_question_ids": [
+          "question:finance:simple_interest:1_3:percent_to_decimal",
+          "question:finance:simple_interest:1_3:interest_each_year",
+          "question:finance:simple_interest:1_3:heart_of_simple",
+          "question:finance:simple_interest:1_3:new_deposit_calc",
+          "question:finance:simple_interest:1_3:why_flat_base_matters"
+        ],
+        "standalone_manifest": {
+          "events": []
+        },
+        "standalone_narration_text": "",
+        "embedding": [],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "topic_id": "topic:finance:simple_interest:1_4",
+        "chapter_id": "chapter:finance:simple_interest",
+        "section_number": "1.4",
+        "within_chapter_order": 4,
+        "topic_name": "Simple vs compound (one sentence)",
+        "orig_book_content": "1.4 Simple vs compound (one sentence)\nCompound interest pays interest on interest; simple interest does not. Banks often use compound\ninterest for long-term savings, but simple interest appears in short loans, bonds, and exam problems\nbecause the math stays linear in time.",
+        "our_understanding": "Let's clear up a question you might be wondering about: what's the difference between simple interest and compound interest? Here's the whole idea in one breath. Simple interest does not pay you interest on the interest you've already earned. Compound interest does. That's really the heart of it.\n\nLet me make that concrete. Imagine you put some money in an account and it earns interest. With simple interest, the interest is always calculated only on your original amount, the money you started with. So every year you earn the same fixed amount, over and over. Nice and steady. With compound interest, something different happens. The interest you earn gets added to your balance, and then the next round of interest is calculated on that bigger balance. So you start earning interest on your interest. Over time, that snowballs and grows faster.\n\nNow, why does this matter, and where do you actually see each one? Banks often use compound interest for long-term savings accounts, because over many years that snowball effect makes your money grow more. But simple interest shows up in plenty of real places too. You'll find it in short loans, in bonds, and very often in exam problems. And there's a good reason simple interest is so popular for these situations.\n\nHere's the key insight. With simple interest, the math stays linear in time. What does linear mean? It means that if you double the time, you double the interest. The growth happens in a straight, even line. Each unit of time adds exactly the same amount. That makes simple interest easy to calculate and easy to predict, which is exactly why it's a favorite for short loans and for the problems you'll practice. Compound interest, by contrast, curves upward as time goes on, because it keeps building on itself.\n\nSo as you go through this chapter, hold onto that one sentence: compound interest pays interest on interest; simple interest does not. Everything we do with simple interest will lean on that straight-line, steady-growth idea. Keep it in mind, and the formulas will feel natural.",
+        "examples": [],
+        "book_examples": [],
+        "extended_examples": [],
+        "next_topic_id": null,
+        "prereq_topic_ids": [
+          "topic:finance:simple_interest:1_1",
+          "topic:finance:simple_interest:1_2"
+        ],
+        "has_diagram_ids": [],
+        "has_question_ids": [
+          "question:finance:simple_interest:1_4:core_difference",
+          "question:finance:simple_interest:1_4:linear_meaning",
+          "question:finance:simple_interest:1_4:where_used",
+          "question:finance:simple_interest:1_4:steady_growth",
+          "question:finance:simple_interest:1_4:why_exams_favor"
+        ],
+        "standalone_manifest": {
+          "events": []
+        },
+        "standalone_narration_text": "",
+        "embedding": [],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      }
+    ],
+    "diagrams": [],
+    "questions": [
+      {
+        "question_id": "question:finance:simple_interest:1_1:define_principal",
+        "q_text": "In the context of simple interest, what does the term principal refer to?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "B",
+        "answer_audio_url": null,
+        "options": [
+          "A. The total amount of interest earned over all the years",
+          "B. The original amount of money you deposited at the start",
+          "C. The percentage rate the bank pays you each year",
+          "D. The combined value of your deposit plus interest after one year"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_1"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_1:why_simple",
+        "q_text": "Why is simple interest called simple, according to the explanation?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "C",
+        "answer_audio_url": null,
+        "options": [
+          "A. Because the interest rate is always a small number",
+          "B. Because it only ever lasts for one year",
+          "C. Because the principal stays the same and interest is always calculated on that original amount",
+          "D. Because you don't need to know how much time has passed"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_1"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_1:factors_that_matter",
+        "q_text": "In a simple interest calculation, which two things actually change the amount of interest you earn?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "B",
+        "answer_audio_url": null,
+        "options": [
+          "A. The principal and the bank's name",
+          "B. The time that passes and the rate",
+          "C. The interest already earned and the rate",
+          "D. The principal growing and the time"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_1"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_1:simple_vs_compound",
+        "q_text": "What is the key difference between simple interest and compound interest as described in the explanation?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "A",
+        "answer_audio_url": null,
+        "options": [
+          "A. With compound interest, the interest already earned gets added in and starts earning its own interest, while with simple interest it does not",
+          "B. With simple interest the rate changes every year, but with compound interest the rate stays fixed",
+          "C. Compound interest can only be earned for one year, but simple interest lasts many years",
+          "D. Simple interest is paid by banks, while compound interest is paid only by individuals"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_1"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_1:two_year_base",
+        "q_text": "You deposit ten thousand rupees into an account that pays five percent per year in simple interest. Explain what amount the bank uses as the base to calculate your interest in the second year, and why.",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "The bank uses the original ten thousand rupees as the base for the second year's interest, just as it did for the first year. Here is the reasoning: with simple interest, the principal never changes for the purpose of calculation. The principal is the starting money, which is ten thousand rupees. After the first year, you earn interest based on that ten thousand rupees only. Crucially, the interest that was added during the first year does NOT get folded back into the base. So when the second year comes around, the bank again goes back to the original ten thousand rupees and applies the five percent rate to that same amount. Time and rate are the only things that change the answer; the principal stays put as the steady foundation. This is exactly what distinguishes simple interest from compound interest, where the interest would be added back in and start earning its own interest.",
+        "answer_audio_url": null,
+        "options": [],
+        "type": "solved_example",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_1"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_2:convert_rate",
+        "q_text": "If the interest rate is given as eight percent, what decimal value should you use in the simple interest formula?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "C",
+        "answer_audio_url": null,
+        "options": [
+          "A. 8.0",
+          "B. 0.8",
+          "C. 0.08",
+          "D. 0.008"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_2"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_2:time_conversion",
+        "q_text": "A problem tells you that money is invested for three months. What value for time should you plug into the formula?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "C",
+        "answer_audio_url": null,
+        "options": [
+          "A. 3",
+          "B. 0.5",
+          "C. 0.25",
+          "D. 0.3"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_2"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_2:double_the_time",
+        "q_text": "With simple interest, if you leave your money invested for twice as long while keeping the principal and rate the same, what happens to the interest earned?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "B",
+        "answer_audio_url": null,
+        "options": [
+          "A. It stays the same",
+          "B. It doubles",
+          "C. It is squared",
+          "D. It increases by half"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_2"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_2:compute_interest",
+        "q_text": "You deposit 2000 dollars at a simple interest rate of 5 percent per year for 3 years. How much interest will you earn, and what total amount will you have at the end?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "First, identify the three ingredients. Principal is 2000 dollars. The rate is 5 percent, which must be converted to a decimal by dividing by 100, giving 0.05. The time is 3 years, which is already in years, so we use 3. Now apply the formula: interest equals principal times rate times time, which is 2000 times 0.05 times 3. First, 2000 times 0.05 equals 100. Then 100 times 3 equals 300. So the interest earned is 300 dollars. To find the total amount, add the interest to the principal: 2000 plus 300 equals 2300 dollars. The final amount is 2300 dollars.",
+        "answer_audio_url": null,
+        "options": [],
+        "type": "solved_example",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_2"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_2:half_year_loan",
+        "q_text": "You borrow 800 dollars at a simple interest rate of 10 percent per year for six months. Using the shortcut formula where the amount equals the principal times the quantity one plus the rate times the time, find the total amount you must repay.",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "Identify the ingredients. Principal is 800 dollars. The rate is 10 percent, converted to a decimal it is 0.10. The time is six months, which is half a year, so we use 0.5. Now use the shortcut: amount equals principal times the quantity one plus rate times time. First compute rate times time: 0.10 times 0.5 equals 0.05. Add one: 1 plus 0.05 equals 1.05. Multiply by the principal: 800 times 1.05 equals 840. So the total amount you must repay is 840 dollars. As a check, the interest portion is 840 minus 800, which is 40 dollars.",
+        "answer_audio_url": null,
+        "options": [],
+        "type": "solved_example",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_2"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_3:percent_to_decimal",
+        "q_text": "When we start a simple interest problem, why do we convert a rate like four percent into the decimal zero point zero four before doing any multiplication?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "A",
+        "answer_audio_url": null,
+        "options": [
+          "A. Because percentages are awkward to multiply with directly, and four percent means four per hundred",
+          "B. Because the bank only accepts deposits in decimal form",
+          "C. Because dividing by one hundred increases the interest earned",
+          "D. Because simple interest cannot be calculated using whole numbers"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_3"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_3:interest_each_year",
+        "q_text": "In Priya's deposit, how much interest does she earn in each individual year?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "A",
+        "answer_audio_url": null,
+        "options": [
+          "A. Three hundred and twenty rupees",
+          "B. Nine hundred and sixty rupees",
+          "C. Eight thousand rupees",
+          "D. A different amount each year, since it grows over time"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_3"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_3:heart_of_simple",
+        "q_text": "What single feature makes Priya's interest 'simple' rather than 'compound'?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "A",
+        "answer_audio_url": null,
+        "options": [
+          "A. The interest is always calculated from the original eight thousand, never from interest already earned",
+          "B. The interest is calculated only once at the very end",
+          "C. The rate stays at four percent the whole time",
+          "D. The deposit was left for exactly three years"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_3"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_3:new_deposit_calc",
+        "q_text": "Suppose instead Priya deposits five thousand rupees for two years at six percent simple interest per year. How much money does she end up with in total?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "First, convert the rate to a decimal: six percent means six per hundred, so six divided by one hundred is zero point zero six. Next, find the interest using principal times rate times time: five thousand times zero point zero six is three hundred, and three hundred times two years is six hundred. So she earns six hundred rupees in interest. Finally, add the interest back to the original deposit: five thousand plus six hundred gives five thousand six hundred rupees. Priya walks away with five thousand six hundred rupees.",
+        "answer_audio_url": null,
+        "options": [],
+        "type": "solved_example",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_3"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_3:why_flat_base_matters",
+        "q_text": "If Priya's interest had instead grown on top of the interest she already earned each year, would she end up with more, less, or the same as the eight thousand nine hundred and sixty rupees? Explain why.",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "She would end up with more than eight thousand nine hundred and sixty rupees. Under simple interest, each year's interest is always three hundred and twenty, calculated only from the original eight thousand. But if the interest grew on top of the interest already earned, then after the first year the base would be eight thousand three hundred and twenty, so the second year's interest would be calculated on a larger amount and be greater than three hundred and twenty. Each following year the base keeps rising, so the interest amounts get bigger and the total exceeds eight thousand nine hundred and sixty. That growing-on-interest situation is exactly what compound interest is, while simple interest keeps the base flat and unchanging.",
+        "answer_audio_url": null,
+        "options": [],
+        "type": "solved_example",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_3"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_4:core_difference",
+        "q_text": "What is the single key difference between simple interest and compound interest?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "B",
+        "answer_audio_url": null,
+        "options": [
+          "A. Simple interest is paid by banks while compound interest is paid by governments",
+          "B. Compound interest pays interest on the interest you've already earned, while simple interest does not",
+          "C. Simple interest grows faster than compound interest over time",
+          "D. Compound interest is always calculated only on the original amount"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_4"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_4:linear_meaning",
+        "q_text": "When we say simple interest is 'linear in time,' what does that mean?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "B",
+        "answer_audio_url": null,
+        "options": [
+          "A. The interest curves upward as the years go by",
+          "B. If you double the time, you double the interest earned",
+          "C. The interest is recalculated on a bigger balance each year",
+          "D. The interest rate changes every year"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_4"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_4:where_used",
+        "q_text": "Which situation is most likely to use compound interest, according to the section?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "C",
+        "answer_audio_url": null,
+        "options": [
+          "A. A short loan",
+          "B. A bond",
+          "C. A long-term savings account at a bank",
+          "D. A typical exam problem"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_4"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_4:steady_growth",
+        "q_text": "Suppose you deposit some money in a simple interest account and earn exactly $50 in interest during the first year. Based on what this section teaches, how much total interest will you have earned after three years, and why?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "After three years you will have earned $150 in total interest. Here's the reasoning: with simple interest, the interest is always calculated only on your original amount, so you earn the same fixed amount every year — $50 each year. This is the 'linear in time' idea: each unit of time adds exactly the same amount. So year one gives $50, year two gives another $50, and year three gives another $50, for a total of $50 times 3, which equals $150. Notice the interest never gets added to the balance to earn more interest — that's what makes simple interest a steady, straight-line growth rather than a snowball.",
+        "answer_audio_url": null,
+        "options": [],
+        "type": "solved_example",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_4"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      },
+      {
+        "question_id": "question:finance:simple_interest:1_4:why_exams_favor",
+        "q_text": "Why is simple interest a popular choice for short loans and exam problems?",
+        "q_audio_url": null,
+        "q_diagram_id": null,
+        "answer": "B",
+        "answer_audio_url": null,
+        "options": [
+          "A. Because it always earns more money than compound interest",
+          "B. Because its straight-line, steady growth makes it easy to calculate and predict",
+          "C. Because banks are required to use it for all loans",
+          "D. Because it builds on itself and curves upward over time"
+        ],
+        "type": "mcq",
+        "source": "generated",
+        "solution_confidence": 0.0,
+        "linked_topic_ids": [
+          "topic:finance:simple_interest:1_4"
+        ],
+        "needs_review": false,
+        "language": "en",
+        "version": 1
+      }
+    ],
+    "warnings": []
+  },
+  "created_at": "2026-06-18T14:52:07.232595"
+}

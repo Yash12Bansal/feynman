@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import Any
 
 import structlog
+from feynman_teaching_kernel.persona import TeacherPersona, format_style_for_planner
 from pydantic import ValidationError
 
 from lecture_pipeline_v2.config import PipelineConfig
@@ -64,17 +65,17 @@ class LessonPlanner:
         config: PipelineConfig,
         *,
         provider: LLMProvider | None = None,
+        persona: TeacherPersona | None = None,
         style_context: str | None = None,
     ) -> None:
         self.config = config
-        # Routes through the configured provider (claude / openai / gemini /
-        # ollama). `provider` injection point is used by the pipeline (to share
-        # one client) and by tests (to inject a fake).
         self._provider = provider or create_llm_provider(config.llm)
-        # Run-scoped style/source directive (CLI --style-source). Woven into
-        # every topic's user message so the whole chapter is taught in one
-        # master-teacher's voice with their figures. None for ordinary runs.
-        self._style_context = style_context
+        self._persona = persona
+        # Persona YAML (--persona) or legacy CLI --style-source markdown.
+        if persona is not None:
+            self._style_context = format_style_for_planner(persona)
+        else:
+            self._style_context = style_context
 
     async def plan_for_all(
         self,

@@ -130,12 +130,14 @@ class AudioPipeline:
         layout: LayoutConfig | None = None,
         *,
         concurrency: int = 4,
+        persona_id: str | None = None,
     ):
         self.tts = tts
         self.tts_config = tts_config
         self.artifacts = artifacts
         self.layout = layout
         self.concurrency = concurrency
+        self._persona_id = persona_id
 
     async def build_for_book(
         self,
@@ -579,6 +581,8 @@ class AudioPipeline:
 
     def _chapter_audio_dir(self, chapter_id: str) -> Path:
         safe = chapter_id.replace(":", "_")
+        if self._persona_id:
+            safe = f"variant_{safe}__persona_{self._persona_id}"
         return Path(self.artifacts.base_dir) / self.artifacts.audio_dir / safe
 
     def _artifact_url(self, path: Path) -> str:

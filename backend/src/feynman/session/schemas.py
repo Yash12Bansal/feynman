@@ -29,6 +29,7 @@ class SessionCreate(BaseModel):
     # connected to the room but silent; doubts are handled by the doubt-
     # resolution pipeline (Phase 3+).
     lecture_chapter_id: str | None = None
+    persona_id: str | None = None
 
 
 class SessionInfo(BaseModel):
@@ -55,3 +56,4 @@ class CreateSessionResponse(BaseModel):
     # Echoed back so the frontend can render the immersive LectureViewer when
     # the caller supplied a chapter id.
     lecture_chapter_id: str | None = None
+    persona_id: str | None = None

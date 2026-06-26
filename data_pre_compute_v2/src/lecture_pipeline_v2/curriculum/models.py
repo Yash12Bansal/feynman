@@ -933,6 +933,7 @@ class CurriculumExtractionResult(BaseModel):
     diagrams: list[Diagram] = Field(default_factory=list)
     questions: list[Question] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    quality_snapshot: "QualitySnapshot | None" = None
 
     @property
     def topic_ids(self) -> set[str]:
@@ -975,6 +976,7 @@ from lecture_pipeline_v2.curriculum.lecture_plan.lesson_plan_models import (  # 
     LessonPlan,
 )
 from lecture_pipeline_v2.curriculum.lecture_plan.models import ChapterLecturePlan  # noqa: E402
+from lecture_pipeline_v2.quality.snapshot import QualitySnapshot  # noqa: E402
 
 Chapter.model_rebuild()
 CurriculumExtractionResult.model_rebuild()

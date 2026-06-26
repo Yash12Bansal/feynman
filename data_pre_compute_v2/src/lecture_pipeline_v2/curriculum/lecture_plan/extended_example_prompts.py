@@ -13,6 +13,7 @@ empty, target ids null). The orchestrator tags + sanitizes after parsing.
 
 from __future__ import annotations
 
+from feynman_teaching_kernel.persona import TeacherPersona
 from feynman_teaching_kernel.style_guide import PRONUNCIATION_RULES
 
 
@@ -124,6 +125,7 @@ def build_extended_example_user_prompt(
     our_understanding: str,
     n_examples: int,
     prior_attempt_feedback: str = "",
+    persona: TeacherPersona | None = None,
 ) -> str:
     """Compose the per-topic user prompt the extended-example weaver consumes.
 
@@ -153,6 +155,17 @@ def build_extended_example_user_prompt(
         "deepen THIS, not re-teach it:\n"
         f"---\n{our_understanding.strip()}\n---"
     )
+
+    if persona and persona.example_policy.domains:
+        domains = ", ".join(persona.example_policy.domains)
+        parts.append(
+            "## Persona example domains\n"
+            f"Prefer vivid anchors from these domains when they fit the concept: {domains}."
+        )
+        if persona.example_policy.fun_fact_rate == "low":
+            parts.append(
+                "Keep fun facts rare — favour grounded real-world anchors over trivia."
+            )
 
     if n_examples >= 2:
         mix = (

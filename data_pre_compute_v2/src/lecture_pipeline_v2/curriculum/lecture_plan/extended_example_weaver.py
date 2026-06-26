@@ -26,6 +26,7 @@ from __future__ import annotations
 import logging
 
 import structlog
+from feynman_teaching_kernel.persona import TeacherPersona
 from pydantic import BaseModel, Field, ValidationError
 
 from ...config import PipelineConfig
@@ -89,10 +90,15 @@ class ExtendedExampleWeaver:
     """Per-topic generate + weave + structural retry loop."""
 
     def __init__(
-        self, config: PipelineConfig, *, provider: LLMProvider | None = None
+        self,
+        config: PipelineConfig,
+        *,
+        provider: LLMProvider | None = None,
+        persona: TeacherPersona | None = None,
     ) -> None:
         self.config = config
         self._provider = provider or create_llm_provider(config.llm)
+        self._persona = persona
 
     async def weave_for_chapter(
         self,
@@ -223,6 +229,7 @@ class ExtendedExampleWeaver:
                 our_understanding=topic.our_understanding,
                 n_examples=n_examples,
                 prior_attempt_feedback=last_error if attempt > 0 else "",
+                persona=self._persona,
             )
             try:
                 examples = await self._call_llm(user_msg)

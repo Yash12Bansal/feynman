@@ -73,6 +73,7 @@ if (typeof document !== "undefined") {
 
 interface LectureViewerProps {
   readonly chapterId: string;
+  readonly personaId?: string;
   /** Lazy-connect: spin up the LiveKit session/room/agent on the first doubt. */
   readonly onRequestDoubtSession?: () => void;
 }
@@ -86,6 +87,7 @@ const MIC_STUCK_MSG =
 interface DoubtIntentPayload {
   readonly type: "doubt_intent";
   readonly chapter_id: string;
+  readonly persona_id: string;
   readonly cursor: number;
   readonly topic_id: string | null;
   // feat/unify_boardstate consumer: authoritative "what is on the board"
@@ -173,6 +175,7 @@ type DoubtServerPayload =
 
 export function LectureViewer({
   chapterId,
+  personaId = "default",
   onRequestDoubtSession,
 }: LectureViewerProps) {
   const [chapter, setChapter] = useState<ChapterPayload | null>(null);
@@ -182,14 +185,17 @@ export function LectureViewer({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-prop-change pattern.
     setChapter(null);
     setFetchError(null);
-    fetch(`/lecture-api/chapter/${encodeURIComponent(chapterId)}`)
+    const params = new URLSearchParams({ persona: personaId });
+    fetch(
+      `/lecture-api/chapter/${encodeURIComponent(chapterId)}?${params.toString()}`,
+    )
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then((data: ChapterPayload) => setChapter(data))
       .catch((e: Error) => setFetchError(e.message));
-  }, [chapterId]);
+  }, [chapterId, personaId]);
 
   const {
     status,
@@ -541,6 +547,7 @@ export function LectureViewer({
     const intent: DoubtIntentPayload = {
       type: "doubt_intent",
       chapter_id: chapterId,
+      persona_id: personaId,
       cursor,
       topic_id: currentTopicId,
       board_snapshot: currentSnapshot,
@@ -556,6 +563,7 @@ export function LectureViewer({
   }, [
     room,
     chapterId,
+    personaId,
     cursor,
     currentTopicId,
     currentSnapshot,
