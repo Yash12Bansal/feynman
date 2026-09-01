@@ -15,9 +15,17 @@ Design rules encoded here (each exists to kill a specific confound):
 MODEL_ID = "Qwen/Qwen3-8B"          # <-- UPDATE to current Qwen dense ~9B instruct
 MODEL_ID_BIG = "Qwen/Qwen3-32B"     # <-- escalation target (27B/32B class)
 
-# Generator & judge run via OpenRouter; keep them a DIFFERENT family from Qwen.
-GENERATOR_MODEL = "anthropic/claude-sonnet-4.5"   # <-- any current strong model
-JUDGE_MODEL = "google/gemini-2.5-pro"             # <-- a third family for judging
+# Generator & judge run via OpenRouter; three DIFFERENT model families on purpose:
+#   subject = Qwen (what we study) | generator = Claude | judge = Gemini
+# so no model is grading text written in its own style, and no generator quirk can
+# leak label information into the thing we probe.
+# Verified live on OpenRouter (Sep 2026). Prices per million tokens:
+GENERATOR_MODEL = "anthropic/claude-sonnet-5"     # $2 in / $10 out
+JUDGE_MODEL = "google/gemini-2.5-pro"             # $1.25 in / $10 out
+# Rough budget: ~1000 dialogue generations x ~800 output tokens = ~$8 for the full
+# dataset; judging adds well under $1. Load $15-20 of OpenRouter credit.
+# To halve the cost at some quality risk: GENERATOR_MODEL="google/gemini-2.5-flash"
+# and JUDGE_MODEL="anthropic/claude-haiku-4.5" (keeps families distinct).
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
