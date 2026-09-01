@@ -89,3 +89,26 @@ FIG_DIR = "figures"
 
 # ---- figures (palette validated w/ dataviz checks; always direct-label lines)
 COLORS = {"blue": "#0072B2", "orange": "#D55E00", "green": "#009E73", "pink": "#CC79A7"}
+
+
+# ---- chat template helper ---------------------------------------------------
+def chat_text(tok, messages, add_generation_prompt=True):
+    """Serialize messages with the model's chat template, with THINKING DISABLED.
+
+    Why: Qwen3 is a hybrid reasoning model — by default it emits a long <think>
+    block before its actual reply. For our experiments that is pure noise:
+      * E1/E2 read activations at the END OF THE USER TURN (before any reply),
+        so thinking tokens only add irrelevant state and slow generation.
+      * E3 needs the assistant's ACTUAL answer to the user's claim; a 500-token
+        deliberation makes the judge's job ambiguous and costs GPU time.
+    Studying the thinking trace is a great FOLLOW-UP question, but mixing it into
+    v1 would confound "what the model believes about the user" with "what the
+    model says while reasoning". One variable at a time.
+    """
+    try:
+        return tok.apply_chat_template(messages, tokenize=False,
+                                       add_generation_prompt=add_generation_prompt,
+                                       enable_thinking=False)
+    except TypeError:      # tokenizer without a thinking switch
+        return tok.apply_chat_template(messages, tokenize=False,
+                                       add_generation_prompt=add_generation_prompt)

@@ -25,7 +25,7 @@ import numpy as np, torch, joblib, requests
 import matplotlib.pyplot as plt
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from config import (ACT_DIR, FIG_DIR, MODEL_ID, DTYPE, OPENROUTER_URL,
-                    JUDGE_MODEL, COLORS)
+                    JUDGE_MODEL, COLORS, chat_text)
 
 HEADERS = {"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"}
 L = joblib.load("probe_e1.joblib")["layer"]
@@ -41,7 +41,7 @@ print(f"layer {L} expert-novice direction, |d| = {norm:.1f}")
 
 tok = AutoTokenizer.from_pretrained(MODEL_ID)
 model = AutoModelForCausalLM.from_pretrained(MODEL_ID,
-                                             torch_dtype=getattr(torch, DTYPE),
+                                             dtype=getattr(torch, DTYPE),
                                              device_map="cuda").eval()
 # hidden_states[L] is the output of decoder layer L-1 (index 0 = embeddings),
 # so we hook decoder layer L-1 to modify exactly what the probe read.
@@ -70,9 +70,7 @@ def generate(prompt, vec=None, system=None):
     _steer["vec"] = vec
     msgs = ([{"role": "system", "content": system}] if system else []) + \
         [{"role": "user", "content": prompt}]
-    ids = tok(tok.apply_chat_template(msgs, tokenize=False,
-                                      add_generation_prompt=True),
-              return_tensors="pt").to("cuda")
+    ids = tok(chat_text(tok, msgs), return_tensors="pt").to("cuda")
     out = model.generate(**ids, max_new_tokens=250, do_sample=False)
     _steer["vec"] = None
     return tok.decode(out[0, ids["input_ids"].shape[1]:], skip_special_tokens=True)

@@ -31,7 +31,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from config import (ACT_DIR, FIG_DIR, SAVE_DIR, MODEL_ID, DTYPE,
-                    OPENROUTER_URL, JUDGE_MODEL, HELDOUT_TOPICS, COLORS)
+                    OPENROUTER_URL, JUDGE_MODEL, HELDOUT_TOPICS, COLORS,
+                    chat_text)
 
 HEADERS = {"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"}
 
@@ -53,15 +54,13 @@ if best_a < 0.65:
 # ---- 2+3. model replies + neutral-knowledge filter --------------------------
 tok = AutoTokenizer.from_pretrained(MODEL_ID)
 model = AutoModelForCausalLM.from_pretrained(MODEL_ID,
-                                             torch_dtype=getattr(torch, DTYPE),
+                                             dtype=getattr(torch, DTYPE),
                                              device_map="cuda").eval()
 
 
 @torch.no_grad()
 def reply(messages, max_new=200):
-    ids = tok(tok.apply_chat_template(messages, tokenize=False,
-                                      add_generation_prompt=True),
-              return_tensors="pt").to("cuda")
+    ids = tok(chat_text(tok, messages), return_tensors="pt").to("cuda")
     out = model.generate(**ids, max_new_tokens=max_new, do_sample=False)
     return tok.decode(out[0, ids["input_ids"].shape[1]:], skip_special_tokens=True)
 

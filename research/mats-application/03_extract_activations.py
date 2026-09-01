@@ -23,7 +23,7 @@ import json, os, sys
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from tqdm import tqdm
-from config import MODEL_ID, SAVE_DIR, ACT_DIR, DTYPE
+from config import MODEL_ID, SAVE_DIR, ACT_DIR, DTYPE, chat_text
 
 dataset = sys.argv[1] if len(sys.argv) > 1 else "main"
 rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{dataset}.jsonl")]
@@ -31,16 +31,14 @@ rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{dataset}.jsonl")]
 print(f"loading {MODEL_ID} …")
 tok = AutoTokenizer.from_pretrained(MODEL_ID)
 model = AutoModelForCausalLM.from_pretrained(
-    MODEL_ID, torch_dtype=getattr(torch, DTYPE), device_map="cuda")
+    MODEL_ID, dtype=getattr(torch, DTYPE), device_map="cuda")
 model.eval()
 
 
 @torch.no_grad()
 def last_pos_all_layers(messages):
     """Residual stream at final position, every layer. [n_layers+1, d_model]"""
-    text = tok.apply_chat_template(messages, tokenize=False,
-                                   add_generation_prompt=True)
-    ids = tok(text, return_tensors="pt").to("cuda")
+    ids = tok(chat_text(tok, messages), return_tensors="pt").to("cuda")
     out = model(**ids, output_hidden_states=True, use_cache=False)
     return torch.stack([h[0, -1].float() for h in out.hidden_states]).half().cpu()
 
