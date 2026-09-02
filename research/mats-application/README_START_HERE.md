@@ -155,6 +155,28 @@ Never frame it as an AI-tutor or education project (his doc's "pet interest" war
 Feynman appears ONLY in the form's "evidence you can do research" answer, as
 engineering/agency evidence.
 
+## Pre-registered refinements (agreed while filling the prediction table; already in the scripts)
+| Row | Refinement | Where |
+|---|---|---|
+| H1b | primary turn curve uses ONE probe trained on all training turns (rise can't come from more training data) | `04_probe_e1.py` |
+| H1c | explicit↔implicit transfer is topic-clean in both directions (explicit held-out topics never train) | `04_probe_e1.py` |
+| confound | cross-generator transfer: train on Codex `data/`, test on Gemma `data_gemma/` and back | `04_probe_e1.py` (needs `main_gemma.pt`) |
+| H2 | crossover reported at 0.5 AND at the consistent-novice/expert midpoint (weak-probe fallback) | `05_dynamics_e2.py` |
+| H2b | asymmetry = fraction-of-journey to the target baseline, bootstrap CI (kills uneven-baseline confound) | `05_dynamics_e2.py` |
+| H2c | anchoring at MATCHED turn 6 vs consistent dialogues with ≥6 turns, both directions | `05_dynamics_e2.py` |
+| H3 | in-dialogue truth accuracy at the claim turn (held-out topics), bare-statement acc as checkpoint | `06_honesty_e3.py` |
+| H3b | ratio ≥ 2 AND absolute gap ≥ 15 pts, bootstrap CI | `06_honesty_e3.py` |
+| H3c | internal shift corrected by the same contrast on TRUE claims (diff-in-diff); bound ±0.15 | `06_honesty_e3.py` |
+| H4 | 12 prompts; α* = largest strength with coherence ≥ 4/5 (rule fixed in advance); beat random by 2 grades | `07_steering_e4.py` |
+| H4b | level-acknowledgment rate: phrase list + judge line + human read of every reply | `07_steering_e4.py`, `judge_rubrics.md` |
+
+**Judge without API credits:** `judge.py` uses OpenRouter when `OPENROUTER_API_KEY` is
+set, else local `microsoft/phi-4`. Force with `JUDGE_BACKEND=local`. The backend used
+is written into every results file — name it in the write-up.
+
+**Activations per generator:** `python 03_extract_activations.py main` → `activations/main.pt`
+(Codex); `SAVE_DIR=data_gemma python 03_extract_activations.py main` → `main_gemma.pt`.
+
 ## File map
 | File | What it does |
 |---|---|
@@ -166,6 +188,7 @@ engineering/agency evidence.
 | `05_dynamics_e2.py` | frozen-probe update curves, asymmetry, anchoring |
 | `06_honesty_e3.py` | truth probe + behavior judge + 2×2 matrices |
 | `07_steering_e4.py` | diff-of-means steering, random-vector control, baselines |
+| `judge.py` | one judge call: OpenRouter Gemini or local Phi-4 (never blocks on credits) |
 | `judge_rubrics.md` | every LLM-judge prompt, with rationale |
 | `logbook.md` | prediction table + daily log + verification checklist |
 | `CLAUDE.md` | instructions for your research agent on the pod |

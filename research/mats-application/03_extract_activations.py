@@ -14,8 +14,10 @@ indexing: chat-template token indexing is the #1 source of silent bugs for
 newcomers; O(turns) short forward passes cost only minutes on an A100 and cannot
 be wrong. (Optimization is allowed AFTER the science works, never before.)
 
-Run: python 03_extract_activations.py main   (then: reversal, honesty, truth)
-Output: activations/<dataset>.pt with
+Run: python 03_extract_activations.py main   (then: explicit, reversal, honesty, truth)
+     SAVE_DIR=data_gemma python 03_extract_activations.py main   -> main_gemma.pt
+     (the second generator's activations feed the cross-generator transfer test)
+Output: activations/<dataset>[_<generator>].pt with
   acts   float16 [n_examples, n_layers+1, d_model]
   meta   list of dicts (dialogue id, topic, level/labels, turn index)
 """
@@ -23,7 +25,7 @@ import json, os, sys
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from tqdm import tqdm
-from config import MODEL_ID, SAVE_DIR, ACT_DIR, DTYPE, chat_text
+from config import MODEL_ID, SAVE_DIR, ACT_DIR, DTYPE, chat_text, act_path
 
 dataset = sys.argv[1] if len(sys.argv) > 1 else "main"
 rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{dataset}.jsonl")]
@@ -64,7 +66,8 @@ for d in tqdm(rows):
         meta.append(m)
 
 os.makedirs(ACT_DIR, exist_ok=True)
-torch.save({"acts": torch.stack(acts), "meta": meta, "model": MODEL_ID},
-           f"{ACT_DIR}/{dataset}.pt")
+out_path = act_path(dataset)          # e.g. activations/main.pt or main_gemma.pt
+torch.save({"acts": torch.stack(acts), "meta": meta, "model": MODEL_ID,
+            "source": f"{SAVE_DIR}/{dataset}.jsonl"}, out_path)
 print(f"saved {len(meta)} examples x {acts[0].shape[0]} layers "
-      f"x {acts[0].shape[1]} dims -> {ACT_DIR}/{dataset}.pt")
+      f"x {acts[0].shape[1]} dims -> {out_path}")

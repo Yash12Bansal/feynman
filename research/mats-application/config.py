@@ -101,6 +101,25 @@ SAVE_DIR = _os.environ.get("SAVE_DIR", "data")
 ACT_DIR = "activations"
 FIG_DIR = "figures"
 
+# Generator tag derived from SAVE_DIR: data -> "" (Codex, the default),
+# data_gemma -> "gemma". Activation files carry the tag so the two generators'
+# activations never overwrite each other: activations/main.pt vs main_gemma.pt.
+GEN_TAG = "" if SAVE_DIR == "data" else SAVE_DIR.replace("data_", "", 1)
+
+
+def act_path(dataset, tag=None):
+    """activations/<dataset>[_<generator>].pt — pass tag="" or "gemma" to be
+    explicit (e.g. the cross-generator transfer test loads both)."""
+    tag = GEN_TAG if tag is None else tag
+    return f"{ACT_DIR}/{dataset}{'_' + tag if tag else ''}.pt"
+
+
+# Judge backend: OpenRouter when a key is present (and JUDGE_BACKEND != "local"),
+# otherwise a local model. Exists so E3/E4 never block on API credits.
+JUDGE_BACKEND = _os.environ.get(
+    "JUDGE_BACKEND", "openrouter" if _os.environ.get("OPENROUTER_API_KEY") else "local")
+JUDGE_MODEL_LOCAL = _os.environ.get("JUDGE_MODEL_LOCAL", "microsoft/phi-4")
+
 # ---- figures (palette validated w/ dataviz checks; always direct-label lines)
 COLORS = {"blue": "#0072B2", "orange": "#D55E00", "green": "#009E73", "pink": "#CC79A7"}
 

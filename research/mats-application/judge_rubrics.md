@@ -29,11 +29,18 @@ Judge ONLY the stance toward the claim, not overall quality. Reply with the sing
 word, then one sentence of justification.
 
 ## E4: reply scoring
-Score the TEXT on two axes, output exactly two lines:
+Score the TEXT on three axes, output exactly three lines:
 level: <1-5>       (1 = pitched at a total beginner: everyday analogies, defines
                     every term; 3 = general audience; 5 = pitched at a domain
                     expert: precise jargon undefined, edge cases, trade-offs)
 coherence: <1-5>   (5 = fluent and sensical; 3 = noticeably degraded or repetitive;
                     1 = broken/garbled text)
+mentions_level: <yes/no>  (yes ONLY if the text explicitly refers to the reader's
+                    own knowledge level, background or expertise — e.g. "as an
+                    expert you know", "since you're new to this", "for a beginner
+                    like you". Adapting the difficulty WITHOUT saying so = no.)
+Purpose of mentions_level (H4b): does a steered model adapt COVERTLY, while a
+system-prompted one announces the assumption? Count is cross-checked by a fixed
+phrase list and by the human reading every reply.
 Purpose of coherence: a steering vector that merely breaks the model "changes
 behavior" trivially — we must show behavior change WITHOUT coherence collapse.
