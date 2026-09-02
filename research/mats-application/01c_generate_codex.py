@@ -87,12 +87,17 @@ def reversal_prompt(topic, a, b, hint, n=4):
 def run_codex(prompt, path):
     if os.path.exists(path):
         return path, "cached"
+    import time
+    t0 = time.time()
+    print(f"  ▶ started {os.path.basename(path)}  (each cell takes ~3-6 min; "
+          f"watch data/codex/ for the file to appear)", flush=True)
     cmd = f'{CODEX_CMD} {json.dumps(prompt)}'
     r = subprocess.run(cmd, shell=True, capture_output=True, text=True,
                        timeout=1800)
     ok = os.path.exists(path)
-    return path, ("ok" if ok else f"MISSING (rc={r.returncode}) "
-                                  f"{(r.stderr or r.stdout)[-300:]}")
+    mins = (time.time() - t0) / 60
+    return path, (f"ok ({mins:.1f} min)" if ok else
+                  f"MISSING (rc={r.returncode}) {(r.stderr or r.stdout)[-300:]}")
 
 
 def validate(msgs, min_turns=3):
