@@ -24,14 +24,14 @@ Numbers produced (pre-registered in logbook.md, Section 0):
 Run: python 05_dynamics_e2.py   (needs activations/reversal.pt, probe_e1.joblib,
                                  activations/main.pt for the baselines)
 """
-import json
+import json, os
 import numpy as np, torch, joblib
 import matplotlib.pyplot as plt
 from config import FIG_DIR, COLORS, act_path
 
 K = 3                          # first switched user turn (0-indexed)
 FINAL = 5                      # last turn of a 6-turn reversal dialogue
-P = joblib.load("probe_e1.joblib"); probe, L = P["probe"], P["layer"]
+P = joblib.load(os.environ.get("PROBE_FILE", "probe_e1.joblib")); probe, L = P["probe"], P["layer"]
 rng = np.random.default_rng(0)
 
 

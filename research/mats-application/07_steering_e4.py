@@ -32,14 +32,14 @@ PRE-REGISTERED (logbook Section 0):
 Judge: OpenRouter Gemini if OPENROUTER_API_KEY is set, else local Phi-4 (judge.py).
 Run: python 07_steering_e4.py
 """
-import json, re
+import json, os, re
 import numpy as np, torch, joblib
 import matplotlib.pyplot as plt
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from config import FIG_DIR, MODEL_ID, DTYPE, COLORS, chat_text, act_path
 from judge import judge_text, judge_name
 
-L = joblib.load("probe_e1.joblib")["layer"]
+L = joblib.load(os.environ.get("PROBE_FILE", "probe_e1.joblib"))["layer"]
 
 # ---- direction --------------------------------------------------------------
 d = torch.load(act_path("main"))

@@ -186,24 +186,79 @@ except FileNotFoundError:
     print("no explicit.pt — skipping transfer diagnostic")
 
 # --- 5. cross-generator transfer (Codex <-> Gemma) ----------------------------
+# The first run showed within-generator ~97-98% but cross-generator 61-68%: much
+# of the accuracy rides on generator house style. These four checks characterize
+# what transfers: (a) best layer FOR transfer, (b) error structure, (c) a probe
+# trained on both generators, (d) same direction with refit thresholds.
 xgen = {}
 try:
     Xg, mg = load("main", "gemma")
     yg = np.array([LEVEL_ID[m["level"]] for m in mg])
     tg = np.isin([m["topic"] for m in mg], HELDOUT_TOPICS)
-    a_cg, _ = fit_eval(X[~test, best_L], y[~test], Xg[tg, best_L], yg[tg])
-    a_gc, _ = fit_eval(Xg[~tg, best_L], yg[~tg], X[test, best_L], y[test])
-    a_gg, _ = fit_eval(Xg[~tg, best_L], yg[~tg], Xg[tg, best_L], yg[tg])
-    xgen = {"codex->gemma": a_cg, "gemma->codex": a_gc,
-            "gemma->gemma": a_gg, "codex->codex": acc_by_layer[best_L]}
-    print("cross-generator (train topics -> held-out topics):",
-          {k: round(v, 3) for k, v in xgen.items()})
+    # (a) layer sweep for transfer (both directions)
+    sweep = []
+    for L in range(n_layers):
+        a_cg, _ = fit_eval(X[~test, L], y[~test], Xg[tg, L], yg[tg])
+        a_gc, _ = fit_eval(Xg[~tg, L], yg[~tg], X[test, L], y[test])
+        sweep.append([a_cg, a_gc])
+    sweep = np.array(sweep)
+    best_xL = int(np.argmax(sweep.mean(1)))
+    print("cross-generator by layer (codex->gemma, gemma->codex):")
+    for L in range(0, n_layers, 3):
+        print(f"  layer {L:2d}: {sweep[L,0]:.3f} {sweep[L,1]:.3f}")
+    print(f"  best transfer layer {best_xL}: codex->gemma {sweep[best_xL,0]:.3f} "
+          f"gemma->codex {sweep[best_xL,1]:.3f}   (probe layer {best_L}: "
+          f"{sweep[best_L,0]:.3f} {sweep[best_L,1]:.3f})")
+    # (b) error structure at the probe layer
+    _, clf_c = fit_eval(X[~test, best_L], y[~test], Xg[tg, best_L], yg[tg])
+    pg = clf_c.predict(Xg[tg, best_L])
+    conf_cg = np.zeros((3, 3), int)
+    for t_, p_ in zip(yg[tg], pg):
+        conf_cg[t_, p_] += 1
+    print("  codex->gemma confusion (rows true, cols predicted):", conf_cg.tolist(),
+          f"extreme swaps {int(conf_cg[0,2] + conf_cg[2,0])}/{int(conf_cg.sum())}")
+    # (c) pooled training: both generators' training topics -> each held-out set
+    Xp = np.concatenate([X[~test, best_L], Xg[~tg, best_L]])
+    yp = np.concatenate([y[~test], yg[~tg]])
+    a_pc, clf_p = fit_eval(Xp, yp, X[test, best_L], y[test])
+    a_pg = clf_p.score(Xg[tg, best_L], yg[tg])
+    print(f"  pooled probe (train on both): codex held-out {a_pc:.3f}, gemma held-out {a_pg:.3f}")
+    joblib_pooled = {"probe": clf_p, "layer": best_L}
+    # (d) recalibration: codex probe's 3 scores as features, thresholds refit on gemma
+    S = clf_c.decision_function(Xg[:, best_L])
+    recal = LogisticRegression(max_iter=2000).fit(S[~tg], yg[~tg]).score(S[tg], yg[tg])
+    print(f"  codex direction + gemma-refit thresholds: {recal:.3f}  "
+          f"(high = same direction, different offsets; low = different direction)")
+    xgen = {"codex->gemma": float(sweep[best_L, 0]), "gemma->codex": float(sweep[best_L, 1]),
+            "gemma->gemma": float(fit_eval(Xg[~tg, best_L], yg[~tg], Xg[tg, best_L], yg[tg])[0]),
+            "codex->codex": acc_by_layer[best_L],
+            "sweep_by_layer": sweep.tolist(), "best_transfer_layer": best_xL,
+            "codex->gemma_confusion": conf_cg.tolist(),
+            "pooled_codex_heldout": a_pc, "pooled_gemma_heldout": a_pg,
+            "codex_direction_gemma_recalibrated": recal}
 except FileNotFoundError:
+    joblib_pooled = None
     print("no main_gemma.pt — skipping cross-generator test "
           "(run: SAVE_DIR=data_gemma python 03_extract_activations.py main)")
 
+# --- drift check: mean P(true class) by turn, per level (held-out) ------------
+# QC judges saw late-turn novices as intermediate (they learn). Does the model's
+# internal estimate drift with them, or stay anchored?
+ptrue = {lv: [] for lv in LEVEL_ID}
+for t in range(len(acc_turn_fixed)):
+    m_ = test & (turns == t)
+    P = probe.predict_proba(X[m_, best_L])
+    for lv, k in LEVEL_ID.items():
+        mk = y[m_] == k
+        ptrue[lv].append(float(P[mk, k].mean()) if mk.any() else float("nan"))
+for lv, v in ptrue.items():
+    print(f"  mean P(true class) by turn, {lv:12s}: {[round(a, 3) for a in v]}")
+
 # --- save probe for E2/E3 ----------------------------------------------------
 import joblib; joblib.dump({"probe": probe, "layer": best_L}, "probe_e1.joblib")
+if joblib_pooled is not None:
+    joblib.dump(joblib_pooled, "probe_e1_pooled.joblib")
+    print("pooled probe -> probe_e1_pooled.joblib (downstream: PROBE_FILE=probe_e1_pooled.joblib)")
 
 # --- figures (direct-labeled, one job per chart) -----------------------------
 fig, ax = plt.subplots(figsize=(7, 4))
@@ -248,5 +303,5 @@ json.dump({"acc_by_layer": acc_by_layer, "acc_shuffled": acc_shuf,
            "transfer": transfer, "cross_generator": xgen,
            "length_only_baseline": acc_len,
            "heldout_confusion": conf.tolist(), "extreme_swaps": extreme,
-           "novice_vs_expert_binary_acc": acc_bin},
+           "novice_vs_expert_binary_acc": acc_bin, "p_true_by_turn": ptrue},
           open("results_e1.json", "w"), indent=2)
