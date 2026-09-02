@@ -32,7 +32,7 @@ from fewshot import FEWSHOT
 OUT = os.path.join(SAVE_DIR, "codex")               # per-cell raw files
 os.makedirs(OUT, exist_ok=True)
 PARALLEL = int(os.environ.get("PARALLEL", "2"))
-CODEX_CMD = os.environ.get("CODEX_CMD", "codex exec --full-auto")
+CODEX_CMD = os.environ.get("CODEX_CMD", "codex exec --sandbox workspace-write")
 BANNED = re.compile(r"\b(beginner|novice|expert|intermediate|new to this|years of|"
                     r"my background|as a professional|i teach|phd|student)\b", re.I)
 
