@@ -90,8 +90,14 @@ N_USER_TURNS = (4, 8)         # min, max user turns
 USER_TURN_WORDS = (25, 60)    # length band, SAME for all levels (kills length confound)
 
 # ---- extraction -------------------------------------------------------------
+import os as _os
 DTYPE = "bfloat16"
-SAVE_DIR = "data"
+# Override with an env var to keep datasets from different generators apart, e.g.
+#   SAVE_DIR=data_gemma python 01b_generate_local.py all
+#   SAVE_DIR=data_gemma python 02_qc_dialogues.py audit
+# Codex output lands in data/ via git pull; Gemma output goes to data_gemma/.
+# This enables the cross-generator transfer test (train on one, test on the other).
+SAVE_DIR = _os.environ.get("SAVE_DIR", "data")
 ACT_DIR = "activations"
 FIG_DIR = "figures"
 
