@@ -30,6 +30,25 @@ project do NOT count. Track time with Toggl and screenshot it.
 - [ ] MATS application form — open it NOW, read the questions, note the
       "1–3 pieces of evidence you can do research" question (this is where Feynman goes).
 
+### A1b. If OpenRouter credits haven't landed (PLAN B — no API needed)
+Indian card top-ups go through an RBI e-mandate and can take ~24h to settle, so
+the balance may read $0 for a day. **Do not lose a day waiting.** Everything can be
+generated on your own GPU instead:
+
+```bash
+# generator: Mistral-Small-24B (apache-2.0, ungated) — a different family from Qwen
+python 01b_generate_local.py all          # ~30-60 min on an A100, costs $0 extra
+python 02_qc_dialogues.py audit           # confound audit (no API)
+python 02_qc_dialogues.py judge_local     # blind judge with microsoft/phi-4
+python 02_qc_dialogues.py read            # YOU read 30 dialogues
+```
+Smaller/faster option: `GEN_MODEL=microsoft/phi-4 python 01b_generate_local.py all`.
+Disk check: Qwen 16GB + Mistral 48GB + Phi 28GB ≈ 92GB of your 150GB volume.
+
+The science is unaffected — all that matters is that the generator is NOT the model
+we study (Qwen), so its stylistic fingerprints can't leak the label into the
+activations we probe. Note in the write-up which generator you used.
+
 ### A2. GPU pod (~45 min, lean on your LLM for tech support)
 - [ ] Rent 1x A100 80GB (or H100). 80GB covers 27B-class inference in bf16
       (9B ≈ 18GB weights, 27B ≈ 54GB). Cost ≈ $1.5–2.5/hr; expect $40–80 total.

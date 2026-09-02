@@ -42,6 +42,38 @@ def human_read():
                 print(f"{m['role'].upper()}: {m['content']}\n")
 
 
+def judge_local(model_id=None):
+    """Blind level-classification with a LOCAL model (no API needed).
+    Uses a third family (Phi by default) so the judge is neither the subject
+    model (Qwen) nor the generator (Mistral)."""
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    model_id = model_id or os.environ.get("JUDGE_MODEL_LOCAL", "microsoft/phi-4")
+    tok = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id, dtype=torch.bfloat16, device_map="cuda").eval()
+    sample = random.sample(rows, min(120, len(rows)))
+    correct = 0
+    for d in sample:
+        convo = "\n".join(f"USER: {t}" for t in user_text(d))
+        p = ("Below are only the USER turns of a dialogue with an AI assistant.\n"
+             "Classify the user's competence on the topic as exactly one of: "
+             "novice, intermediate, expert.\nBase this only on terminology "
+             "precision, misconceptions, question sophistication, and calibration."
+             f"\nReply with the single word.\n\n{convo}")
+        ids = tok(tok.apply_chat_template([{"role": "user", "content": p}],
+                                          tokenize=False, add_generation_prompt=True),
+                  return_tensors="pt").to("cuda")
+        with torch.no_grad():
+            out = model.generate(**ids, max_new_tokens=8, do_sample=False)
+        guess = tok.decode(out[0, ids["input_ids"].shape[1]:],
+                           skip_special_tokens=True).strip().lower()
+        correct += int(d["level"] in guess)
+    print(f"\nBLIND JUDGE AGREEMENT (local {model_id}): "
+          f"{correct}/{len(sample)} = {correct/len(sample):.1%}  "
+          "(target 85-95%; report this number)")
+
+
 def judge():
     correct, n = 0, 0
     sample = random.sample(rows, min(120, len(rows)))
@@ -83,5 +115,6 @@ def audit():
 if __name__ == "__main__":
     which = sys.argv[1] if len(sys.argv) > 1 else "all"
     if which in ("audit", "all"): audit()
-    if which in ("judge", "all"): judge()
+    if which == "judge_local": judge_local()
+    elif which in ("judge", "all"): judge()
     if which in ("read", "all"): human_read()

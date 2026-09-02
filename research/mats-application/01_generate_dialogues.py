@@ -26,7 +26,7 @@ from config import (OPENROUTER_URL, GENERATOR_MODEL, TOPICS, LEVELS,
                     N_DIALOGUES_PER_CELL, N_USER_TURNS, USER_TURN_WORDS, SAVE_DIR)
 
 random.seed(0)
-HEADERS = {"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"}
+HEADERS = {"Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY', '')}"}
 
 
 def call_llm(prompt, temperature=1.0, retries=4):
