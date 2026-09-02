@@ -8,9 +8,9 @@ prediction table is the single most legible taste signal you can produce.
 
 | #   | Hypothesis                                                                         | My prediction (prob, threshold, floor)                                | Why I believe this                                                                                                                                                                                                                                                                                                                                                                                                         | Outcome | What I learned |
 | --- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------- |
-| H1  | Linear probe decodes user competence at mid layers, generalizes to held-out topics | p: 70%, t:55%, f:33%                                                  | I think model forms overall understanding beliefs of person's knowledge but I slightly doubt it will transfer that across other topics...                                                                                                                                                                                                                                                                                  | YES. 98.5% on held-out topics (layer 22), chance 33%, shuffled 33%, length-only 46%. BUT cross-generator only 61–68%. | The level is linearly readable, and easily. Most of the accuracy is generator style; the shared part is smaller. Report both numbers together. |
+| H1  | Linear probe decodes user competence at mid layers, generalizes to held-out topics | p: 70%, t:55%, f:33%                                                  | I think model forms overall understanding beliefs of person's knowledge but I slightly doubt it will transfer that across other topics...                                                                                                                                                                                                                                                                                  | YES. 98.5% held-out (layer 22); chance 33, shuffled 33, length-only 46. Raw cross-generator 61–68%, but 94% with thresholds refit and 97.6% pooled. | Competence is a shared linear direction in Qwen regardless of generator; only the calibration of 'intermediate' differs between generators. |
 | H1b | Accuracy rises with turn index (evidence accumulation)                             | p:60%, t:+8points, f:0                                                | 0.7 × chance that turn 3 beats turn 0 by the threshold (considering that to be 85%), given the probe works.                                                                                                                                                                                                                                                                                                                | NO. Turn 0 already 96.6%; turn 3 − turn 0 = +3.4 (line was +8). | Ceiling effect I pre-registered in 4e: the first message gives the level away, so the curve cannot rise. |
-| H1c | Explicit↔implicit probe transfer is high (shared representation, not keyword)      | p:50%, t:at least 0.8 of same-set, or above 50%, f:33% absolute       | I am really 50-50 on whether the model will covert both into same internal belief....                                                                                                                                                                                                                                                                                                                                      |         |                |
+| H1c | Explicit↔implicit probe transfer is high (shared representation, not keyword)      | p:50%, t:at least 0.8 of same-set, or above 50%, f:33% absolute       | I am really 50-50 on whether the model will covert both into same internal belief....                                                                                                                                                                                                                                                                                                                                      | YES. explicit→implicit 91.4%, implicit→explicit 96.7%; worse ÷ own-set = 0.92 (line 0.8). | Told and shown competence converge on one representation. I had this at 50-50; the model merges the two kinds of evidence. |
 | H2  | Estimate crosses 0.5 within ≤3 turns of evidence flip                              | p:55%, t:within 2-3 turns, f:never crosses                            | I think model observes when behaviour suddenly changes and it highlights it by praising or correcting us but given this hypo depends highly on H1 prob is kept at 55...                                                                                                                                                                                                                                                    |         |                |
 | H2b | Asymmetry: expert→novice updates FASTER than novice→expert                         | p: 29%, t:at least 1 turn earlier, f:0 turns                          | a confident mistake from someone who sounded expert is hard to explain away, so the estimate should drop quickly but a novice suddenly using precise terms is an equally loud signal, so the two speeds are close. 0.55 × 0.53 ≈ 29. Tie-breaker: fraction-of-journey metric.                                                                                                                                              |         |                |
 | H2c | Anchoring gap > 0.1 (first impression persists)                                    | p: 32%, t:0.1, f:0                                                    | Early novice turns stay in context and a sudden novice-to-expert jump is an unlikely story, so some first impression should survive; but recent turns may dominate and wash it out. 15 (curve never crosses) + 55 × 0.3 ≈ 32. Confound: turn-count mismatch, compare at turn 6 only; also run expert→novice.                                                                                                               |         |                |
@@ -104,6 +104,41 @@ Running total: ** / 20 (+ ** / 2 exec summary)
 - Result (numbers, figure path):
 - Surprised? What's the DUMBEST alternative explanation? Checked how?
 - Decision (continue / pivot / escalate model / add control):
+
+### 2026-09-02 ~21:15 UTC — E1 run v2: what exactly transfers across generators? + H1c
+- Prediction: written in the v1 entry above — the cross-generator drop (61–68%) could be
+  either a different direction per generator (bad: style leak) or the same direction with
+  different thresholds (good: calibration). Pre-registered rule for the downstream probe:
+  use the pooled probe if it is within a few points of within-generator accuracy.
+- What I ran: `python 04_probe_e1.py` at commit d4872c2, now with explicit.pt present.
+- Result (numbers):
+  H1c transfer: explicit→implicit 91.4%, implicit→explicit 96.7%, own-set 98.9% / 98.5%.
+  Worse transfer ÷ own-set = 0.92 (my line was 0.8).
+  Cross-generator at layer 22, codex→gemma confusion (rows true, cols predicted):
+  novice [291, 0, 0]; intermediate [266, 50, 0]; expert [3, 30, 282]. Extreme swaps 3/922.
+  So the whole drop is ONE cell: Gemma intermediates get called novice.
+  Codex direction + thresholds refit on Gemma: 94.1%.
+  One probe trained on both generators: 97.6% on Codex held-out, 97.6% on Gemma held-out.
+  Best raw-transfer layer is 14 (65.6 / 66.9) — no layer transfers well WITHOUT refitting
+  thresholds, so this is not a layer choice problem.
+  Drift: mean P(true class) by turn stays 0.94–1.0 for every level at every turn.
+- Outcome vs prediction: H1c = YES (0.92 > 0.8). Told and shown competence land on the
+  same internal representation; the explicit probe is not a keyword detector.
+  H1 gets a sharper reading: the competence DIRECTION in Qwen is the same whoever wrote
+  the dialogue (94% with only thresholds refit, 97.6% pooled); only the CALIBRATION
+  differs — Gemma writes its "intermediate" closer to Codex's "novice". The raw 61–68%
+  transfer was a threshold shift, not style leakage.
+- Surprised? The clean separation into "direction shared / thresholds differ" was the
+  best of the outcomes I listed; I expected something messier. Also: the model's internal
+  estimate does NOT follow a novice's learning inside a dialogue (P(novice) ≈ 0.99 at the
+  last turn even though blind judges call those turns "intermediate"). Either the belief
+  is set early and sticks, or the probe reads the dialogue as a whole. E2 separates these.
+- Dumbest alternative explanation for the pooled 97.6%: the pooled probe just learned two
+  generator-specific rules side by side. Argument against: a single linear boundary cannot
+  hold two different rules for the same three classes, and the refit-thresholds test shows
+  the Codex direction alone already gets 94% on Gemma. Not fully closed; noted as a limit.
+- Decision: downstream probe = probe_e1_pooled.joblib (within 1 point of within-generator,
+  as pre-registered). Codex probe kept as a robustness check for E2. Proceed to E2.
 
 ## 3. Agent verification checklist (do EVERY session — Nanda: "the most important
 
