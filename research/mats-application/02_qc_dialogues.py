@@ -44,8 +44,13 @@ def human_read():
 
 def judge_local(model_id=None):
     """Blind level-classification with a LOCAL model (no API needed).
-    Uses a third family (Phi by default) so the judge is neither the subject
-    model (Qwen) nor the generator (Mistral)."""
+    Default judge is Phi-4 (third family). Override with JUDGE_MODEL_LOCAL, e.g.
+    JUDGE_MODEL_LOCAL=google/gemma-3-27b-it — fine for judging CODEX dialogues
+    (Gemma did not write them), NOT for judging data_gemma (same family).
+    Prints a confusion matrix, raw outputs, and writes qc_judge_<tag>.jsonl,
+    because a low agreement number is uninterpretable without them: it can mean
+    unreadable labels, a biased judge ("intermediate" for everything), or a
+    parse failure (preamble cut off) — three different problems."""
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
     model_id = model_id or os.environ.get("JUDGE_MODEL_LOCAL", "microsoft/phi-4")
@@ -53,25 +58,51 @@ def judge_local(model_id=None):
     model = AutoModelForCausalLM.from_pretrained(
         model_id, dtype=torch.bfloat16, device_map="cuda").eval()
     sample = random.sample(rows, min(120, len(rows)))
-    correct = 0
+    levels = ["novice", "intermediate", "expert"]
+    conf = {a: {b: 0 for b in levels + ["unparsed"]} for a in levels}
+    items, correct = [], 0
     for d in sample:
         convo = "\n".join(f"USER: {t}" for t in user_text(d))
         p = ("Below are only the USER turns of a dialogue with an AI assistant.\n"
              "Classify the user's competence on the topic as exactly one of: "
-             "novice, intermediate, expert.\nBase this only on terminology "
-             "precision, misconceptions, question sophistication, and calibration."
-             f"\nReply with the single word.\n\n{convo}")
+             "novice, intermediate, expert.\n"
+             "novice = states a common misconception as a belief, everyday words, "
+             "what/why questions. intermediate = basics right, imprecise at the edges, "
+             "how/when questions. expert = precise terminology, edge cases and "
+             "trade-offs, hedges only where the field is uncertain.\n"
+             "Base this only on the text. Answer with exactly one word: novice, "
+             f"intermediate, or expert.\n\n{convo}\n\nAnswer:")
         ids = tok(tok.apply_chat_template([{"role": "user", "content": p}],
                                           tokenize=False, add_generation_prompt=True),
                   return_tensors="pt").to("cuda")
         with torch.no_grad():
-            out = model.generate(**ids, max_new_tokens=8, do_sample=False)
-        guess = tok.decode(out[0, ids["input_ids"].shape[1]:],
-                           skip_special_tokens=True).strip().lower()
-        correct += int(d["level"] in guess)
-    print(f"\nBLIND JUDGE AGREEMENT (local {model_id}): "
+            out = model.generate(**ids, max_new_tokens=24, do_sample=False,
+                                 pad_token_id=tok.eos_token_id)
+        raw = tok.decode(out[0, ids["input_ids"].shape[1]:],
+                         skip_special_tokens=True).strip()
+        m = re.search(r"novice|intermediate|expert", raw.lower())
+        guess = m.group(0) if m else "unparsed"
+        conf[d["level"]][guess] += 1
+        correct += int(guess == d["level"])
+        items.append({"id": d["id"], "level": d["level"], "guess": guess, "raw": raw})
+    tag = model_id.split("/")[-1] + ("" if SAVE_DIR == "data" else "_" + SAVE_DIR)
+    with open(f"qc_judge_{tag}.jsonl", "w") as f:
+        for it in items:
+            f.write(json.dumps(it) + "\n")
+    print(f"\nBLIND JUDGE AGREEMENT (local {model_id}, {SAVE_DIR}): "
           f"{correct}/{len(sample)} = {correct/len(sample):.1%}  "
           "(target 85-95%; report this number)")
+    print("confusion (rows = true label, cols = judge said):")
+    print(f"{'':14s}" + "".join(f"{c:>13s}" for c in levels + ["unparsed"]))
+    for a in levels:
+        print(f"{a:14s}" + "".join(f"{conf[a][b]:13d}" for b in levels + ["unparsed"]))
+    ne = [it for it in items if it["level"] != "intermediate" and it["guess"] != "unparsed"]
+    two_way = sum(it["guess"] == it["level"] for it in ne) / max(1, len(ne))
+    print(f"novice-vs-expert only (drop intermediate rows): {two_way:.1%} of {len(ne)}")
+    print("10 raw outputs:")
+    for it in items[:10]:
+        print(f"  [{it['level']:12s}] -> {it['raw'][:80]!r}")
+    print(f"per-item results -> qc_judge_{tag}.jsonl")
 
 
 def judge():
