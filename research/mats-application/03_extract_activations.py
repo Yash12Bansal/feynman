@@ -14,7 +14,8 @@ indexing: chat-template token indexing is the #1 source of silent bugs for
 newcomers; O(turns) short forward passes cost only minutes on an A100 and cannot
 be wrong. (Optimization is allowed AFTER the science works, never before.)
 
-Run: python 03_extract_activations.py main   (then: explicit, reversal, honesty, truth)
+Run: python 03_extract_activations.py main   (then: explicit, reversal, honesty, truth,
+     reversal_postonly — the H2c history-vs-writing control)
      SAVE_DIR=data_gemma python 03_extract_activations.py main   -> main_gemma.pt
      (the second generator's activations feed the cross-generator transfer test)
 Output: activations/<dataset>[_<generator>].pt with
@@ -28,7 +29,13 @@ from tqdm import tqdm
 from config import MODEL_ID, SAVE_DIR, ACT_DIR, DTYPE, chat_text, act_path
 
 dataset = sys.argv[1] if len(sys.argv) > 1 else "main"
-rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{dataset}.jsonl")]
+# "reversal_postonly": the reversal dialogues with everything BEFORE the switch cut
+# off, so the model sees only the post-switch turns. Control for H2c: if isolated
+# post-switch expert turns score like a lifelong expert, the anchoring gap in the
+# full dialogue is caused by the history (real anchoring); if they score low even
+# in isolation, the generator simply wrote weaker post-switch experts.
+src = "reversal" if dataset == "reversal_postonly" else dataset
+rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{src}.jsonl")]
 
 print(f"loading {MODEL_ID} …")
 tok = AutoTokenizer.from_pretrained(MODEL_ID)
@@ -55,10 +62,15 @@ for d in tqdm(rows):
         continue
     msgs = d["messages"]
     user_idx = [i for i, m in enumerate(msgs) if m["role"] == "user"]
+    t0 = 0
+    if dataset == "reversal_postonly":
+        k = d["switch_turn"]
+        msgs = msgs[user_idx[k]:]              # starts at the first switched user turn
+        t0, user_idx = k, [i for i, m in enumerate(msgs) if m["role"] == "user"]
     for t, i in enumerate(user_idx):
         acts.append(last_pos_all_layers(msgs[: i + 1]))
-        m = {"id": d["id"], "topic": d["topic"], "turn": t,
-             "n_turns": len(user_idx)}
+        m = {"id": d["id"], "topic": d["topic"], "turn": t0 + t,
+             "n_turns": t0 + len(user_idx)}
         for k in ("level", "direction", "switch_turn", "claim_true", "voice",
                   "claim_turn", "claim"):
             if k in d:

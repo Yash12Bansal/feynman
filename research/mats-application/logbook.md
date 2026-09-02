@@ -11,9 +11,9 @@ prediction table is the single most legible taste signal you can produce.
 | H1  | Linear probe decodes user competence at mid layers, generalizes to held-out topics | p: 70%, t:55%, f:33%                                                  | I think model forms overall understanding beliefs of person's knowledge but I slightly doubt it will transfer that across other topics...                                                                                                                                                                                                                                                                                  | YES. 98.5% held-out (layer 22); chance 33, shuffled 33, length-only 46. Raw cross-generator 61–68%, but 94% with thresholds refit and 97.6% pooled. | Competence is a shared linear direction in Qwen regardless of generator; only the calibration of 'intermediate' differs between generators. |
 | H1b | Accuracy rises with turn index (evidence accumulation)                             | p:60%, t:+8points, f:0                                                | 0.7 × chance that turn 3 beats turn 0 by the threshold (considering that to be 85%), given the probe works.                                                                                                                                                                                                                                                                                                                | NO. Turn 0 already 96.6%; turn 3 − turn 0 = +3.4 (line was +8). | Ceiling effect I pre-registered in 4e: the first message gives the level away, so the curve cannot rise. |
 | H1c | Explicit↔implicit probe transfer is high (shared representation, not keyword)      | p:50%, t:at least 0.8 of same-set, or above 50%, f:33% absolute       | I am really 50-50 on whether the model will covert both into same internal belief....                                                                                                                                                                                                                                                                                                                                      | YES. explicit→implicit 91.4%, implicit→explicit 96.7%; worse ÷ own-set = 0.92 (line 0.8). | Told and shown competence converge on one representation. I had this at 50-50; the model merges the two kinds of evidence. |
-| H2  | Estimate crosses 0.5 within ≤3 turns of evidence flip                              | p:55%, t:within 2-3 turns, f:never crosses                            | I think model observes when behaviour suddenly changes and it highlights it by praising or correcting us but given this hypo depends highly on H1 prob is kept at 55...                                                                                                                                                                                                                                                    |         |                |
-| H2b | Asymmetry: expert→novice updates FASTER than novice→expert                         | p: 29%, t:at least 1 turn earlier, f:0 turns                          | a confident mistake from someone who sounded expert is hard to explain away, so the estimate should drop quickly but a novice suddenly using precise terms is an equally loud signal, so the two speeds are close. 0.55 × 0.53 ≈ 29. Tie-breaker: fraction-of-journey metric.                                                                                                                                              |         |                |
-| H2c | Anchoring gap > 0.1 (first impression persists)                                    | p: 32%, t:0.1, f:0                                                    | Early novice turns stay in context and a sudden novice-to-expert jump is an unlikely story, so some first impression should survive; but recent turns may dominate and wash it out. 15 (curve never crosses) + 55 × 0.3 ≈ 32. Confound: turn-count mismatch, compare at turn 6 only; also run expert→novice.                                                                                                               |         |                |
+| H2  | Estimate crosses 0.5 within ≤3 turns of evidence flip                              | p:55%, t:within 2-3 turns, f:never crosses                            | I think model observes when behaviour suddenly changes and it highlights it by praising or correcting us but given this hypo depends highly on H1 prob is kept at 55...                                                                                                                                                                                                                                                    | YES. Crosses 0.5 within 1 turn of the switch in both directions (pooled and Codex probes). | The estimate does move on in-conversation evidence; it is not a static first-turn read. |
+| H2b | Asymmetry: expert→novice updates FASTER than novice→expert                         | p: 29%, t:at least 1 turn earlier, f:0 turns                          | a confident mistake from someone who sounded expert is hard to explain away, so the estimate should drop quickly but a novice suddenly using precise terms is an equally loud signal, so the two speeds are close. 0.55 × 0.53 ≈ 29. Tie-breaker: fraction-of-journey metric.                                                                                                                                              | YES. e→n minus n→e journey fraction +0.31 [+0.16,+0.46] first switched turn, +0.26 [+0.16,+0.36] last turn. I had 29%. | One mistake downgrades the user almost fully in one turn; three turns of expert behaviour only get a novice 70% of the way up. |
+| H2c | Anchoring gap > 0.1 (first impression persists)                                    | p: 32%, t:0.1, f:0                                                    | Early novice turns stay in context and a sudden novice-to-expert jump is an unlikely story, so some first impression should survive; but recent turns may dominate and wash it out. 15 (curve never crosses) + 55 × 0.3 ≈ 32. Confound: turn-count mismatch, compare at turn 6 only; also run expert→novice.                                                                                                               | YES for novice→expert (gap 0.28 [0.18,0.39]); NO for expert→novice (gap 0.03). PROVISIONAL until the post-only control runs. | First impressions persist asymmetrically — but must rule out that the writer made post-switch experts weaker before claiming anchoring. |
 | H3  | Truth probe (trained on bare statements) works in-dialogue, held-out topics ≥ 65%  | p: 40%, t:65%, f:50%                                                  | 128 training statements is very few and the false claims are subtle. Inside a dialogue the claim is followed by more text and a question, so the false signal may not reach the end-of-turn snapshot (≈60 given bare works). ≈70 that it works on bare statements -> 0.7 × 0.6 ≈ 40.                                                                                                                                       |         |                |
 | H3b | P(validate false claim): confident voice ≥ 2x hedged voice                         | p: 40%, t: 2 or 15point gap                                           | a false claim ("since X, I figure...") is the classic sycophancy trigger, but a modern post-trained 8B model may correct it regardless of tone. S1 =55 (does model validate at all) and S2 = 70 (given it folds sometimes, how likely the hedged voice is validated less than half as often, gap ≥ 15 points)                                                                                                              |         |                |
 | H3c | Internal truth score is NOT corrupted by confident voice (stays low for false)     | p: 25%, t: within 0.15 of hedged, f:no difference                     | Truth is about the world and tone should change what the model says, not what it represents, but a presupposed claim from a confident user is real persuasion pressure, so ≈60 that the internal score stays put given a working probe. 0.40 × 0.60 ≈ 24. Control: subtract the voice effect on true claims to remove style; equivalence bound 0.15 with ~40 per cell.                                                     |         |                |
@@ -139,6 +139,51 @@ Running total: ** / 20 (+ ** / 2 exec summary)
   the Codex direction alone already gets 94% on Gemma. Not fully closed; noted as a limit.
 - Decision: downstream probe = probe_e1_pooled.joblib (within 1 point of within-generator,
   as pre-registered). Codex probe kept as a robustness check for E2. Proceed to E2.
+
+### 2026-09-02 ~21:40 UTC — E2: does the internal estimate UPDATE when the user's behaviour flips?
+- Prediction (from table): H2 55% (crosses 0.5 within 3 turns of the flip, both directions);
+  H2b 29% (expert→novice faster by ≥ 0.15 journey fraction, CI clear of 0);
+  H2c 32% (anchoring gap > 0.1).
+- What I ran: `PROBE_FILE=probe_e1_pooled.joblib python 05_dynamics_e2.py` (primary, pooled
+  probe, layer 22) and `python 05_dynamics_e2.py` (Codex probe, robustness), commit 2789687.
+  Frozen probe applied to every turn of the 96 reversal dialogues (48 per direction,
+  6 user turns, behaviour flips at user turn 4). Baselines from consistent dialogues at the
+  same turn index (turn 6): novice 0.001, expert 0.983 (n=60, 61).
+- Result (pooled probe; Codex probe in brackets):
+  novice→expert: crosses 0.5 one turn after the switch [0]; journey fraction 0.39 [0.53]
+  on the first switched turn, 0.71 [0.76] by the last turn.
+  expert→novice: crosses on the first switched turn [0]; journey fraction 0.70 [0.76]
+  on the first switched turn, 0.97 [0.97] by the last turn.
+  H2b asymmetry (e→n minus n→e): +0.31 [+0.16, +0.46] at the first switched turn,
+  +0.26 [+0.16, +0.36] at the last. Codex probe: +0.23, +0.22, both CIs clear of 0.
+  H2c anchoring at turn 6: novice→expert still 0.28 [0.18, 0.39] below a lifelong expert
+  (Codex probe 0.24); expert→novice only 0.03 [0.01, 0.05] above a lifelong novice.
+  Figure: figures/e2_update_curves.png. Results: results_e2.json.
+- Outcome vs prediction: H2 = YES (both directions cross within one turn).
+  H2b = YES, and I had it at 29% — surprise. One slip and the model downgrades the user
+  almost completely in a single turn; three turns of expert behaviour only get a novice
+  70% of the way up.
+  H2c = YES in one direction (novice start persists, gap 0.28 > 0.1), NO in the other
+  (expert start does not protect: gap 0.03). Provisional until the control below runs.
+- Fits with E1: novices who learned naturally never moved the estimate at all (P(novice)
+  ≈ 0.99 at their last turn). Same shape: upgrading needs strong sustained evidence,
+  downgrading needs one mistake.
+- DUMBEST alternative explanation for the anchoring gap: the writer, not the model.
+  Codex may write post-switch expert turns less convincingly than lifelong experts, so
+  the 0.28 gap would be a property of the text. Journey-fraction normalisation does NOT
+  rule this out. Control added: feed the model ONLY the post-switch turns (history cut
+  off) and read the probe there (`python 03_extract_activations.py reversal_postonly`,
+  then rerun 05). If isolated post-switch expert turns score like a lifelong expert, the
+  gap comes from the history = real anchoring. If they score ~0.7 in isolation, it is the
+  writing. NOT YET RUN — H2c stays provisional.
+  Second caution: the probe is saturated (0.001 / 0.983), so a mean of 0.39 likely means
+  "39% of dialogues have flipped", not "each dialogue is at 0.39". Per-dialogue flip
+  fractions added to 05; report which reading is right.
+  Third: the assistant's post-switch replies (also written by the generator, pitched to
+  the new level) are in the context and count as evidence. Applies equally to both
+  directions, so it cannot create the asymmetry by itself.
+- Decision: keep going. Run the post-only control first thing tomorrow before writing
+  anything about anchoring. Then E3.
 
 ## 3. Agent verification checklist (do EVERY session — Nanda: "the most important
 

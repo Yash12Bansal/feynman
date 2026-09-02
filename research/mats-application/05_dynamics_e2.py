@@ -122,6 +122,18 @@ for name, c, rising, target in [("novice->expert", "blue", True, exp_final),
           f"journey fraction turn3 {fr['turn3'][0]:.2f} [{fr['turn3'][1]:.2f},{fr['turn3'][2]:.2f}]"
           f"  turn5 {fr['turn5'][0]:.2f} [{fr['turn5'][1]:.2f},{fr['turn5'][2]:.2f}]")
 
+# per-dialogue flip fraction: the probe is near-saturated (consistent dialogues sit at
+# ~0.00 / ~0.98), so a mean of 0.4 may mean "40% of dialogues have flipped", not
+# "every dialogue is at 0.4". Report which.
+for name, rising in [("novice->expert", True), ("expert->novice", False)]:
+    mat = curves[name]
+    flipped = [(float(((mat[:, t] > 0.5) == rising).mean())) for t in range(FINAL + 1)]
+    mid = [float(((mat[:, t] > 0.2) & (mat[:, t] < 0.8)).mean()) for t in range(FINAL + 1)]
+    stats[name]["fraction_of_dialogues_flipped_by_turn"] = flipped
+    stats[name]["fraction_in_middle_0.2_0.8_by_turn"] = mid
+    print(f"{name}: fraction of dialogues flipped by turn {[round(f, 2) for f in flipped]}; "
+          f"fraction with P(expert) in (0.2, 0.8) {[round(f, 2) for f in mid]}")
+
 # H2b asymmetry: expert->novice fraction minus novice->expert fraction (>0 = e->n faster)
 asym = {}
 for t in (K, FINAL):
@@ -144,6 +156,37 @@ stats["h2c_anchoring_gap"] = {"novice->expert (consistent expert - reversal)": a
                               "expert->novice (reversal - consistent novice)": anch_en}
 print(f"H2c anchoring gap at turn {FINAL}: n->e {anch_ne[0]:+.3f} [{anch_ne[1]:+.3f},{anch_ne[2]:+.3f}]"
       f"   e->n {anch_en[0]:+.3f} [{anch_en[1]:+.3f},{anch_en[2]:+.3f}]   (threshold 0.1)")
+
+# H2c control: post-switch turns WITHOUT the pre-switch history (activations/reversal_postonly.pt)
+try:
+    dpo = torch.load(act_path("reversal_postonly"))
+    Xpo, mpo = dpo["acts"].numpy()[:, L], dpo["meta"]
+    po = {}
+    for x, m in zip(Xpo, mpo):
+        po.setdefault(m["direction"], {}).setdefault(m["turn"], []).append(x)
+    po = {d_: {t: p_expert(np.stack(v)) for t, v in ts.items()} for d_, ts in po.items()}
+    ctrl = {}
+    for name, target, sign in [("novice->expert", exp_final, 1), ("expert->novice", nov_final, -1)]:
+        full = curves[name][:, FINAL]
+        iso = po[name][FINAL]
+        # history effect: what the pre-switch turns cost, relative to the same turns in isolation
+        hist = boot(lambda a, b: sign * (a.mean() - b.mean()), iso, full)
+        # writing effect: how far even the isolated post-switch turns sit from a lifelong baseline
+        writ = boot(lambda a, b: sign * (a.mean() - b.mean()), target, iso)
+        ctrl[name] = {"full_context_final": float(full.mean()), "post_only_final": float(iso.mean()),
+                      "consistent_target": float(target.mean()),
+                      "history_effect_ci": hist, "writing_effect_ci": writ,
+                      "post_only_curve": {t: float(v.mean()) for t, v in sorted(po[name].items())}}
+        print(f"H2c control {name}: full-context final {full.mean():.3f} | post-switch turns only "
+              f"{iso.mean():.3f} | lifelong {target.mean():.3f}  ->  history effect "
+              f"{hist[0]:+.3f} [{hist[1]:+.3f},{hist[2]:+.3f}], writing effect "
+              f"{writ[0]:+.3f} [{writ[1]:+.3f},{writ[2]:+.3f}]")
+    stats["h2c_control_history_vs_writing"] = ctrl
+    print("  (history effect > 0.1 with CI clear of 0 = anchoring is real; a large writing "
+          "effect = the generator wrote weaker post-switch turns)")
+except FileNotFoundError:
+    print("no reversal_postonly.pt — H2c history-vs-writing control not run "
+          "(python 03_extract_activations.py reversal_postonly)")
 
 for yv, lab in [(exp_final.mean(), "consistent expert"), (nov_final.mean(), "consistent novice")]:
     ax.axhline(yv, color="gray", lw=1, ls="--")

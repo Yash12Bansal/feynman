@@ -14,6 +14,10 @@ researcher; you execute and they verify. Read README_START_HERE.md first.
 - Long generation jobs: background script with a log file, not a notebook cell.
 
 ## Science discipline (non-negotiable)
+- Standing instruction from the researcher (2026-09-02): analyze every result
+  critically instead of seeing what we want; name the dumbest alternative explanation
+  and test it before believing a result. But do not become over-critical either — a
+  result that survives its controls is real and should be stated plainly. Hold both.
 - Before any experiment, restate: the hypothesis being tested, the prediction on
   file in logbook.md, and what result would falsify it.
 - Report results as claims + the exact numbers + the file they came from. NEVER
