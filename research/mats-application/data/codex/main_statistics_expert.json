@@ -1,0 +1,744 @@
+[
+  [
+    {
+      "role": "user",
+      "content": "If a test returns p = 0.03, the clean statement is that, under the null and the test's sampling assumptions, outcomes at least as discordant are seen with probability 0.03. Is even that wording too loose because the tail ordering is statistic-dependent?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, the ordering deserves mention. A p-value is the null probability that the chosen test statistic is at least as extreme as its observed value, with extremeness defined by the prespecified test. It is not generally the probability of outcomes being vaguely ‘as discordant.’ For two-sided tests especially, different orderings of the sample space can produce different valid p-values from the same data."
+    },
+    {
+      "role": "user",
+      "content": "Then the common phrase ‘probability of the data, or more extreme data, under the null’ also suppresses conditioning on ancillary features and the distinction between a simple and composite null. How much qualification is useful without making the definition unreadable?"
+    },
+    {
+      "role": "assistant",
+      "content": "A compact defensible version is: ‘the probability, computed under the null model, that the prespecified test statistic would be at least as extreme as observed.’ Then state separately how nuisance parameters, conditioning, and sidedness were handled. Trying to encode every design choice in one sentence obscures the main point; the test specification should carry those details."
+    },
+    {
+      "role": "user",
+      "content": "I said ‘probability of the data,’ but for continuous outcomes the probability of the exact observed sample is zero. So the object is really a tail area in the statistic's reference distribution, not a probability assigned to the realized dataset itself, correct?"
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. For a continuous statistic, the exact observed value has probability zero, while a tail event has nonzero probability. The p-value is a function of the observed statistic and its null reference distribution. In discrete settings it is a sum over outcomes in the rejection region, which also makes the attainable p-values discrete and often conservative."
+    },
+    {
+      "role": "user",
+      "content": "And none of this licenses reading 0.03 as a three-percent chance that the null is true. That inversion would require prior odds and likelihoods for alternatives, while the p-value is calibrated over hypothetical repetitions under the null."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. The p-value conditions on the null and asks about a statistic across repetitions; a posterior probability conditions on the observed data and compares hypotheses using priors and marginal likelihoods. Those conditionals cannot be reversed. A small p-value can be compatible with a nontrivial posterior probability for the null, particularly when plausible alternatives are diffuse or prior odds favor the null."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "With a very large sample, a negligible departure can generate an arbitrarily small p-value. Is the most accurate diagnosis that the test measures incompatibility with an exact null, while practical relevance resides in the estimate and its uncertainty?"
+    },
+    {
+      "role": "assistant",
+      "content": "That is a good diagnosis. As standard errors shrink, even tiny departures from an exact point null become detectable. The p-value reflects standardized discrepancy, combining effect magnitude with precision; it does not encode a minimum important effect. Report the estimate, a confidence interval, and a domain-relevant threshold so statistical detectability is not mistaken for substantive importance."
+    },
+    {
+      "role": "user",
+      "content": "Suppose the estimated mean difference is 0.02 units, p < 10^-6, and the smallest effect of interest is 0.5. Would testing the point null still add anything beyond showing that the model can resolve a scientifically irrelevant discrepancy?"
+    },
+    {
+      "role": "assistant",
+      "content": "It may document evidence against exact equality, but that is often not the scientific question. A compatibility interval lying well inside ±0.5 would address practical equivalence more directly. You could prespecify an equivalence test or report probabilities under an explicit decision model. The tiny p-value and practical equivalence are not contradictory because they concern different null regions."
+    },
+    {
+      "role": "user",
+      "content": "There is a subtlety: an ordinary confidence interval inside the equivalence bounds corresponds to two one-sided tests only at the appropriate confidence level, not automatically the conventional ninety-five percent interval. For alpha 0.05, the usual TOST interval is ninety percent, yes?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. For TOST at overall alpha 0.05, both one-sided nulls are rejected when the 90% two-sided confidence interval lies entirely within the equivalence margins. A 95% interval is a stricter sufficient criterion but is not the exact inversion of those tests. The margins must be justified independently of the observed standard error."
+    },
+    {
+      "role": "user",
+      "content": "Would standardized effect size solve the relevance problem, or merely move it? A standardized difference can look large when outcome variability is unusually small, and its meaning changes if heterogeneity itself is scientifically meaningful."
+    },
+    {
+      "role": "assistant",
+      "content": "It mostly moves the problem. Standardization aids comparison when the denominator has a stable interpretation, but it can conceal the original scale and inherit sampling variation or group differences in variability. Raw effects with context-specific thresholds are usually primary; standardized effects can supplement them. Neither format allows a p-value to determine importance without an explicit loss or utility criterion."
+    },
+    {
+      "role": "user",
+      "content": "So a thresholded decision can legitimately use both evidence and consequences, but the p-value alone contains no loss function. Even a perfectly calibrated test cannot decide whether acting on a tiny, precisely estimated effect is worthwhile."
+    },
+    {
+      "role": "assistant",
+      "content": "Right. Calibration controls a long-run error rate for a specified procedure; it does not value false positives, false negatives, costs, benefits, or effect sizes. Those enter through decision analysis, clinical or practical thresholds, and study design. Statistical evidence informs the decision, but the action rule requires ingredients that the p-value was never designed to supply."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "For a regular two-sided test, p < 0.05 exactly when the corresponding 95% confidence interval excludes the null value. Does that equivalence justify treating the p-value as a compressed confidence interval, or does compression discard qualitatively important information?"
+    },
+    {
+      "role": "assistant",
+      "content": "The equivalence holds when the interval and test invert the same model, statistic, and approximation. The p-value is then one point on a broader compatibility curve, but it is a severe compression: it omits effect direction, scale, interval width, and which non-null values remain compatible. Calling it compressed is useful only if those losses are made explicit."
+    },
+    {
+      "role": "user",
+      "content": "The phrase ‘values remain compatible’ avoids saying the interval contains parameters with ninety-five percent probability. Yet compatibility is also model-relative: poor fit elsewhere can make every value in the interval misleading. Should interval interpretation always be conditional on adequacy diagnostics?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. Confidence coverage and p-value calibration are properties under the assumed data-generating family and sampling plan. An interval can be narrow and internally correct while the model is externally inadequate. Diagnostics, sensitivity analyses, and design knowledge are therefore prerequisites to substantive interpretation, though passing diagnostics never proves the assumptions true."
+    },
+    {
+      "role": "user",
+      "content": "If I report the entire confidence curve, readers can recover two-sided p-values for point hypotheses. But that still will not recover one-sided tests, equivalence tests, or decisions based on asymmetric losses without additional conventions, correct?"
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. A confidence curve generated by nested two-sided intervals supplies a compatibility function for point values under that construction. One-sided procedures require directional tail allocation; equivalence concerns an interval null; asymmetric decisions need utilities or losses. Those can sometimes be derived from richer likelihood information, but they are not uniquely encoded in a conventional confidence curve."
+    },
+    {
+      "role": "user",
+      "content": "There are also cases where Wald intervals and Wald p-values agree algebraically but both behave badly near boundaries. A likelihood-ratio interval may then disagree with a score-test p-value simply because they invert different procedures, not because one calculation is erroneous."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Test–interval duality is procedure-specific, not a universal identity among methods sharing a nominal level. Near boundaries or with weak identification, Wald symmetry can be especially misleading. Likelihood-ratio, score, bootstrap, and exact procedures may yield different regions because their finite-sample calibrations and orderings differ. The report should keep each interval paired with the test it actually inverts."
+    },
+    {
+      "role": "user",
+      "content": "Would it be fair to say that a p-value answers where one null value sits on this compatibility landscape, whereas an interval shows a set cut at a chosen level? I want to avoid implying that compatibility itself is a probability measure."
+    },
+    {
+      "role": "assistant",
+      "content": "That wording is fair with the procedure specified. The p-value ranks one hypothesized value by its test-based compatibility with the observations; the interval collects values not rejected at the selected level. Neither assigns probabilities across parameter values, and compatibility scores need not integrate to one. They describe repeated-sampling behavior, not a posterior distribution."
+    },
+    {
+      "role": "user",
+      "content": "Then reporting both a point estimate and several nested intervals may convey more than a lone p-value without pretending that one confidence level is privileged. Is there any inferential cost beyond visual complexity and multiplicity of possible reader-selected thresholds?"
+    },
+    {
+      "role": "assistant",
+      "content": "There is no automatic multiplicity penalty for transparently displaying nested intervals from one prespecified analysis, because you are not making multiple selective claims. The main risks are clutter, overreading the curve as a posterior, and post hoc emphasis on whichever level looks favorable. A continuous curve can actually reduce threshold fixation if effect scales and assumptions remain visible."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "Under continuous monitoring, repeatedly computing a conventional fixed-sample p-value inflates the chance of eventually crossing 0.05. Is the defect in the realized p-value itself, or in using a reference distribution that ignores the stopping rule?"
+    },
+    {
+      "role": "assistant",
+      "content": "The latter is the more precise diagnosis. The numerical calculation may be correct for a fixed sample size, but it is not calibrated for the procedure that generated the stopping time. Repeated looks alter the distribution of the minimum p-value. Valid sequential inference uses boundaries, alpha spending, always-valid p-values, or martingale-based evidence designed for optional stopping."
+    },
+    {
+      "role": "user",
+      "content": "If the stopping rule depends only on external logistics rather than interim outcomes, conditioning on the attained sample size usually preserves the nominal calculation. But if recruitment slows because investigators infer the trend informally, the distinction becomes operationally ambiguous. How should that be represented?"
+    },
+    {
+      "role": "assistant",
+      "content": "The relevant issue is whether stopping is independent of information correlated with the test statistic, conditional on modeled variables. Purely external stopping is often ignorable; outcome-responsive informal behavior may not be. Document the actual monitoring process, perform sensitivity analyses over plausible stopping mechanisms, and avoid claiming exact calibration when the rule cannot be reconstructed."
+    },
+    {
+      "role": "user",
+      "content": "I initially said ‘depends on interim outcomes,’ which is slightly too narrow: stopping on a surrogate correlated with the primary endpoint can also matter. Would joint modeling of the surrogate and endpoint restore validity if the rule were recorded?"
+    },
+    {
+      "role": "assistant",
+      "content": "Potentially. If the stopping rule and joint distribution are adequately specified, inference can condition on or integrate over the selection event. Group-sequential methods routinely accommodate correlated interim statistics. The challenge is that a post hoc joint model may be weakly identified or tailored to the result, so prospective specification and logged decision criteria remain much more credible."
+    },
+    {
+      "role": "user",
+      "content": "How do always-valid p-values differ conceptually from ordinary p-values? Both appear to satisfy a super-uniform property under the null, but one must satisfy it at arbitrary stopping times rather than only at each fixed analysis time."
+    },
+    {
+      "role": "assistant",
+      "content": "That is the key distinction. Marginal validity at every fixed time does not imply validity after data-dependent stopping. An always-valid process satisfies the required bound for any permitted stopping time, usually through a nonnegative supermartingale or confidence sequence construction. This stronger guarantee may cost power relative to a fixed-horizon test when the horizon is genuinely fixed."
+    },
+    {
+      "role": "user",
+      "content": "Does alpha spending merely allocate type-I error across scheduled looks, whereas an e-value accumulates evidence with an expectation bound and can be inverted into an always-valid p-value? I am separating mechanisms rather than claiming they are unrelated."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. Alpha-spending designs specify rejection boundaries whose cumulative crossing probability stays within alpha. E-values are nonnegative evidence measures with null expectation at most one; products can accumulate under suitable conditions, and running maxima yield always-valid p-values through inversion. They share sequential goals but encode evidence and calibration differently, with different optimization trade-offs."
+    },
+    {
+      "role": "user",
+      "content": "In a preregistered maximum sample with unplanned interim peeks but no early stopping, do the peeks affect the final fixed-horizon p-value? Psychologically they may alter conduct, yet mathematically mere observation should not change its null distribution."
+    },
+    {
+      "role": "assistant",
+      "content": "Mere observation does not invalidate the final fixed-horizon test if it truly changes nothing about sampling, exclusions, measurements, analyses, or reporting. In practice, peeks can influence those choices, creating selection not captured by the nominal model. The inferential question is therefore behavioral as well as mathematical: which decisions remained invariant after the interim information was seen?"
+    },
+    {
+      "role": "user",
+      "content": "So optional stopping is not a mystical contamination of data. It changes the ensemble against which tail probability is calibrated, unless the procedure was constructed to remain valid across stopping times or the stopping variable is legitimately ignorable."
+    },
+    {
+      "role": "assistant",
+      "content": "Precisely. The observed dataset has no memory of intent, but the procedure's repeated-sampling distribution depends on how datasets could have been generated and selected. Fixed-sample p-values can fail under outcome-dependent stopping; sequentially valid methods change the reference process to cover it. Whether stopping is ignorable is an assumption to justify, not a property visible from the final table."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "When thousands of hypotheses are screened, an individual p-value remains marginally valid under its null, yet selecting the smallest one destroys its naive interpretation. What exactly survives selection, and what must be recalibrated for the reported discovery?"
+    },
+    {
+      "role": "assistant",
+      "content": "Before selection, each valid p-value controls its own type-I error under repeated use. After reporting the minimum because it was minimum, the relevant event includes the search. You need family-wise adjustment, false-discovery-rate control, selective inference, or independent confirmation, depending on the claim. The raw value still records its statistic's marginal tail area, but not the error rate of the selection procedure."
+    },
+    {
+      "role": "user",
+      "content": "Benjamini–Hochberg controls the expected false discovery proportion under independence and some positive dependence conditions. It does not make each adjusted p-value the posterior probability that its discovery is false. Is ‘q-value’ terminology partly responsible for that confusion?"
+    },
+    {
+      "role": "assistant",
+      "content": "Possibly, because q-values can sound like per-hypothesis probabilities. A BH-adjusted value is the smallest FDR level at which a hypothesis would enter the rejected set under that procedure. Storey's q-value has a related minimum-FDR interpretation. Neither is automatically a local false-discovery rate, which is a posterior-style probability requiring a mixture model and additional assumptions."
+    },
+    {
+      "role": "user",
+      "content": "If tests are strongly dependent through overlapping outcomes, Bonferroni remains valid but wasteful. Permutation-based max-statistic adjustment can exploit dependence, provided the joint null is exchangeable. Does subset pivotality become necessary for strong family-wise control under partial null configurations?"
+    },
+    {
+      "role": "assistant",
+      "content": "For standard Westfall–Young step-down procedures, subset pivotality is a common sufficient condition for strong control: the joint distribution of true-null statistics must not depend on which other nulls are false. Some randomization procedures obtain strong control through different closure arguments. Exchangeability alone supports resampling but does not automatically establish validity for every partial-null configuration."
+    },
+    {
+      "role": "user",
+      "content": "Now suppose hypotheses were generated after inspecting the same data, rather than merely selected from a fixed family. Multiplicity correction over the reported list seems insufficient because the search space is undefined. Is sample splitting the cleanest repair?"
+    },
+    {
+      "role": "assistant",
+      "content": "Sample splitting is one clean repair: use one portion to generate hypotheses and an untouched portion for confirmatory tests. It sacrifices power but makes the tested family and reference distribution clear. Alternatives include selective-inference methods that model the search, reusable holdouts, or external replication. A correction over only the final list generally ignores the adaptivity that produced it."
+    },
+    {
+      "role": "user",
+      "content": "Could hierarchical testing reduce the penalty when hypotheses follow a prespecified ontology? For example, testing a global pathway before its components changes which families are opened, but the gatekeeping logic must be fixed independently of observed component p-values."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. Hierarchical and gatekeeping procedures can concentrate alpha on scientifically coherent branches and test descendants only after parent criteria are met. Validity depends on the allocation and transition rules being prespecified or otherwise accounted for. The hierarchy can improve power, but it also changes the claims: a component may remain untested because its gate failed, not because its own data were uninformative."
+    },
+    {
+      "role": "user",
+      "content": "For exploratory work, would displaying all raw p-values with effect estimates be more honest than adjusted values, provided no confirmatory error guarantee is claimed? Or do adjusted summaries still help readers understand how readily extremes arise across the search?"
+    },
+    {
+      "role": "assistant",
+      "content": "Both can be useful if labeled. Raw p-values show marginal analyses; adjusted values or simultaneous intervals show the scale of the search and support a defined error criterion. In exploration, transparency about the full family, analysis path, and effect estimates matters more than ritual adjustment. Avoid presenting unadjusted selected findings with confirmatory language merely because every tested result is listed somewhere."
+    },
+    {
+      "role": "user",
+      "content": "There is also a distinction between multiplicity of tests and multiplicity of analytical specifications. Ten outcomes are countable; hundreds of plausible preprocessing and model choices may be latent. A multiverse analysis exposes that dependence but does not itself yield one canonical p-value."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. A multiverse maps how conclusions vary across defensible specifications, revealing fragility and researcher degrees of freedom. Because specifications are correlated and their admissibility may be contestable, simply counting them for Bonferroni is rarely compelling. One can prespecify a summary statistic and calibrate it, but otherwise the multiverse is primarily a robustness analysis rather than a single-test machine."
+    },
+    {
+      "role": "user",
+      "content": "Then a selected p-value answers a narrower counterfactual than readers often assume: what this statistic would do under its null before considering why this hypothesis and specification reached the page. Selection-aware inference expands the counterfactual to include that path."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Marginal calibration treats the analysis as fixed; selective calibration conditions on, or otherwise incorporates, the mechanism that made the analysis visible. The appropriate expansion depends on the target claim and selection event. If the path cannot be formalized, complete disclosure and independent confirmation are often more defensible than a cosmetically adjusted number."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "For a composite null such as theta less than or equal to zero, a p-value is usually computed at the boundary because it is least favorable. Does it formally represent a supremum over null parameter values, or only when monotonicity establishes that boundary result?"
+    },
+    {
+      "role": "assistant",
+      "content": "The robust definition uses the supremum of the tail probability over parameter values in the composite null. In monotone one-parameter problems, the supremum often occurs at the boundary, so calculation there is justified. Without monotonicity or a least-favorable distribution argument, plugging in the boundary may fail to control size across the entire null."
+    },
+    {
+      "role": "user",
+      "content": "Nuisance parameters complicate that further. Profiling them in a likelihood-ratio statistic and then invoking an asymptotic chi-square law is not the same as maximizing the finite-sample p-value over nuisance values. The former may be accurate only asymptotically."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. Profiling constructs a statistic; asymptotic theory then approximates its null distribution, often uniformly only under regularity conditions. A supremum p-value explicitly guards over nuisance values and can be conservative. Conditional tests, pivots, parametric bootstrap, or integrated approaches may improve precision, but each relies on structure beyond merely substituting a nuisance estimate."
+    },
+    {
+      "role": "user",
+      "content": "Is a parametric bootstrap p-value with nuisance parameters fitted under the null best viewed as a plug-in approximation? It simulates the fitted null rather than the worst-case null, so nominal validity can fail if estimation error matters materially."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, ordinarily it is a plug-in approximation. It can achieve good higher-order accuracy when the model is regular and nuisance estimation is stable, but it is not automatically finite-sample exact. Double bootstrap, prepivoting, or maximization over nuisance values can improve calibration at substantial computational cost. Simulation studies should probe the difficult regions of the null parameter space."
+    },
+    {
+      "role": "user",
+      "content": "So the statement ‘the p-value is computed assuming the null is true’ can hide which member of a composite null supplied the reference distribution. Reporting that choice seems essential whenever different nuisance configurations noticeably change tail behavior."
+    },
+    {
+      "role": "assistant",
+      "content": "It is essential. The report should identify whether the calculation used a boundary value, constrained estimate, conditional distribution, least-favorable configuration, or asymptotic reference free of nuisance parameters. Otherwise readers cannot assess size control. For composite hypotheses, ‘under the null’ names a set of distributions, not one fully specified data-generating law."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "In a discrete exact test, attainable p-values may be coarse, making the test conservative at a nominal alpha. Does randomization at the rejection boundary restore exact size, and is that ever preferable to reporting a nonrandomized or mid-p value?"
+    },
+    {
+      "role": "assistant",
+      "content": "Boundary randomization can achieve exact size by rejecting with a specified probability when the statistic lands on a boundary point. It is mathematically clean but often operationally unattractive because identical data can yield different decisions. Nonrandomized exact p-values guarantee type-I control conservatively; mid-p values reduce conservatism but generally lose that unconditional guarantee."
+    },
+    {
+      "role": "user",
+      "content": "For Fisher's exact test, ‘more extreme’ is not unique in a two-sided table. Doubling the smaller one-sided tail, summing probabilities no greater than the observed table's probability, and ordering by an odds-ratio statistic can disagree. Are all potentially valid?"
+    },
+    {
+      "role": "assistant",
+      "content": "They can all define valid procedures if their rejection regions are calibrated under the null, but they answer subtly different orderings of departure. Doubling a tail may exceed one or behave asymmetrically and is usually truncated. Probability ordering is common, while likelihood-ratio or score orderings may align better with the alternative. The chosen definition should be reported, not merely ‘Fisher p-value.’"
+    },
+    {
+      "role": "user",
+      "content": "Mid-p subtracts half the observed point mass from the exact tail. Its type-I error can exceed alpha for some fixed null values, although it may be closer to nominal on average. Is that average taken over repeated samples, nuisance values, or something else?"
+    },
+    {
+      "role": "assistant",
+      "content": "The phrase is ambiguous. Advocates may mean that actual rejection probabilities oscillate around nominal across parameter values, or that an unconditional mixture over a nuisance distribution is well calibrated. Neither supplies uniform frequentist control. The relevant averaging measure must be stated; without it, ‘closer to nominal on average’ is descriptive rather than a defined guarantee."
+    },
+    {
+      "role": "user",
+      "content": "I was imprecise in saying ‘subtracts half.’ Depending on convention, mid-p is the strict-tail probability plus half the probability of the observed statistic. That equals the inclusive tail minus half the observed mass only for the same ordering."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. The equivalence depends on a clearly defined ordering and observed tie set. With multiple outcomes tied at the observed extremeness, one must specify whether half of the entire tie probability is used. This highlights that discreteness is not a cosmetic detail: both tail construction and tie handling determine the reported number and its calibration."
+    },
+    {
+      "role": "user",
+      "content": "Would reporting the exact test's size function alongside the p-value be the most transparent approach when sample sizes are small? A single nominal threshold conceals how conservative the procedure is at the relevant parameter configuration."
+    },
+    {
+      "role": "assistant",
+      "content": "That is highly informative when feasible. A size or power function shows the attainable rejection probabilities across null and alternative values, making discreteness visible. Also report the interval from a matching exact procedure. For complex nuisance structures, the full function may be unwieldy, so bounds or targeted simulations near scientifically plausible configurations can serve the same purpose."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "A p-value can be exactly calibrated under a model that is substantively wrong. Which assumption failures most directly corrupt its uniform-null property: dependence, variance misspecification, distributional tails, or selection into the analyzed sample?"
+    },
+    {
+      "role": "assistant",
+      "content": "Any can corrupt calibration, but their impact depends on the statistic and asymptotic regime. Unmodeled dependence often understates standard errors; heteroskedasticity breaks classical variance formulas; tail misspecification harms small-sample or extreme-tail approximations; selection can change the estimand and distribution simultaneously. Robust standard errors address only certain variance failures, not selection, dependence of arbitrary form, or a wrong mean structure."
+    },
+    {
+      "role": "user",
+      "content": "If a sandwich variance estimator is consistent, the resulting Wald p-value is asymptotically valid despite variance misspecification. But with few clusters, asymptotic normality and variance estimation can both be poor. Is degrees-of-freedom correction enough?"
+    },
+    {
+      "role": "assistant",
+      "content": "Not universally. Small-sample corrections such as CR2 and Satterthwaite degrees of freedom can help substantially, but performance depends on leverage, cluster imbalance, and the number of effectively independent clusters. Wild cluster bootstrap methods may improve calibration in some settings. No correction rescues identification when treatment varies in too few independent units."
+    },
+    {
+      "role": "user",
+      "content": "Permutation tests are often called assumption-free, although exchangeability is a strong assumption. Under heterogeneous treatment effects, a permutation test for the sharp null remains exact, but it need not test the weak null of zero average effect without studentization."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. Randomization inference is exact for a sharp null under the actual assignment mechanism because every missing potential outcome is specified. A weak average-effect null does not make outcomes invariant to reassignment. Studentized permutation statistics can be asymptotically valid under heterogeneous effects, but the target hypothesis and assignment design must be stated carefully."
+    },
+    {
+      "role": "user",
+      "content": "Model diagnostics use the same data, so choosing a robust procedure after seeing a residual plot is another adaptive step. Does that materially compromise the final p-value, or is the effect usually second-order under consistent alternatives?"
+    },
+    {
+      "role": "assistant",
+      "content": "There is no universal answer. If the choice between procedures is strongly related to the test statistic, nominal calibration can shift appreciably; in regular large samples, two consistent procedures may become asymptotically equivalent. Preplanned robustness analyses, specification-robust tests, or bootstrap calibration of the entire selection rule avoid relying on an unverified claim that adaptation is second-order."
+    },
+    {
+      "role": "user",
+      "content": "A posterior predictive check also produces tail-area-like quantities, but they are not generally uniform under the fitted model because the data are used twice. Calling them p-values without qualification invites the same calibration interpretation, which is usually inappropriate."
+    },
+    {
+      "role": "assistant",
+      "content": "Agreed. Posterior predictive p-values compare replicated and observed discrepancies while averaging over the posterior; their null distribution is typically concentrated toward one-half rather than uniform. They are diagnostic measures, not ordinary frequentist test p-values. Conditional or partial posterior predictive approaches can alter calibration, but their interpretation remains tied to model checking rather than a simple type-I error rule."
+    },
+    {
+      "role": "user",
+      "content": "Then robustness has two dimensions: calibration across a broader distribution class and stability of the scientific conclusion across plausible specifications. A method can satisfy one and fail the other, so a lone robust p-value does not settle model uncertainty."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Distributionally robust inference aims for error control over a specified class; specification sensitivity asks whether estimates and claims change across defensible models. A conservative test may be calibrated yet scientifically unstable, while stable estimates may rely on unjustified standard errors. Reporting both uncertainty within models and variation across models gives a more honest account."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "Can any general bound translate a p-value into evidence about the posterior probability of the null without fully specifying an alternative? I am thinking of calibrations like the minimum Bayes factor, but those still impose a class of priors."
+    },
+    {
+      "role": "assistant",
+      "content": "Only with assumptions. Bounds such as the Sellke–Bayarri–Berger calibration relate certain p-values to a minimum Bayes factor over a restricted class of alternatives and priors. They show that a p-value may overstate evidence against the null relative to Bayesian odds, but they are not universal translations. Prior model mass and the alternative's predictive distribution remain indispensable."
+    },
+    {
+      "role": "user",
+      "content": "The Jeffreys–Lindley phenomenon makes the divergence sharp: with increasing sample size, a fixed p-value can coexist with growing posterior support for a point null under a fixed continuous alternative prior. Is the diffuse prior doing most of the work?"
+    },
+    {
+      "role": "assistant",
+      "content": "It is central, but the point-null mass and asymptotic scaling also matter. A fixed-width alternative spreads predictive probability over values increasingly incompatible with an estimate that shrinks toward zero at the standard-error rate. The Bayes factor rewards the concentrated null, while the p-value holds standardized discrepancy fixed. Local or sample-size-dependent alternatives change the comparison, though they require their own justification."
+    },
+    {
+      "role": "user",
+      "content": "If the null is not literally point-valued but represents a narrow region of practical equivalence, the paradox should weaken because both hypotheses occupy parameter volume. Yet posterior conclusions will still depend on prior density near the boundaries."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. Replacing a point null with an interval makes the comparison less singular and often aligns it better with practical questions. Posterior mass in that interval still depends on the prior and likelihood, especially when uncertainty overlaps its boundaries. Frequentist equivalence tests and Bayesian region probabilities may agree numerically in some cases, but their calibration and conditioning remain distinct."
+    },
+    {
+      "role": "user",
+      "content": "A likelihood ratio compares two specified explanations and obeys the likelihood principle, whereas a p-value includes unobserved outcomes more extreme than the one obtained. Does that make likelihood ratios inherently better evidence measures, or merely different tools?"
+    },
+    {
+      "role": "assistant",
+      "content": "Different tools with different virtues. Likelihood ratios directly compare specified models and are insensitive to stopping rules under standard conditions, but they require a defined alternative and do not by themselves control long-run errors. P-values offer test calibration against a null and can expose lack of fit without committing to one alternative, at the cost of dependence on the sampling plan and statistic."
+    },
+    {
+      "role": "user",
+      "content": "I should qualify ‘insensitive to stopping rules’: likelihood ratios remain likelihood ratios, but evidential or decision guarantees can still depend on whether optional continuation changes prior modeling, costs, or the set of reported analyses. The likelihood principle is not blanket immunity."
+    },
+    {
+      "role": "assistant",
+      "content": "That qualification is important. The likelihood contribution from observed data may ignore a noninformative stopping rule, yet selective reporting, data-dependent model choice, and resource costs remain relevant. Bayesian optional-stopping results also require coherent priors and proper handling of the design. No evidential quantity protects against an analysis pipeline that silently changes after observing results."
+    },
+    {
+      "role": "user",
+      "content": "Would reporting a p-value, likelihood ratio for a prespecified alternative, and prior-sensitivity plot be redundant? They interrogate the same data but expose different conditioning choices, so disagreement may itself reveal where assumptions drive the conclusion."
+    },
+    {
+      "role": "assistant",
+      "content": "It can be informative rather than redundant, provided the alternatives and priors were not chosen to manufacture contrast. The p-value assesses null discrepancy, the likelihood ratio compares specified predictive accounts, and the sensitivity plot shows how posterior conclusions vary. Present effect estimates as the common anchor, and explain that the quantities answer different questions rather than voting on one truth."
+    },
+    {
+      "role": "user",
+      "content": "So the safest categorical statement is not merely that a p-value is ‘not Bayesian,’ but that it lacks the ingredients required for posterior odds: prior odds and an alternative's marginal likelihood. Without those, inversion is mathematically underdetermined."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Many combinations of prior odds and alternative predictive distributions can yield the same p-value but very different posterior probabilities. The missing information cannot be recovered from the tail area alone. Calibration formulas add assumptions to narrow the possibilities; they do not uncover a posterior probability that was secretly encoded in the p-value."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "Failure to reject a point null is often described as ‘no effect,’ even when the confidence interval includes large effects in both directions. Is this best treated as a power problem, or as a mismatch between the tested hypothesis and the intended claim?"
+    },
+    {
+      "role": "assistant",
+      "content": "Usually both. Low precision makes nonrejection unsurprising across many true effects, while a point-null test is not designed to establish absence or practical equivalence. Inspect the interval against prespecified meaningful-effect bounds. If it spans important benefits and harms, the result is inconclusive; if it lies within equivalence bounds, an equivalence procedure can support a more specific absence claim."
+    },
+    {
+      "role": "user",
+      "content": "Post hoc power computed by plugging the observed effect into the original power formula is essentially a transformation of the p-value in common settings. It therefore adds no information about whether the null result was adequately informative."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. Observed power typically moves monotonically with the test statistic and restates the same noise. More useful quantities are the design's prospective power for prespecified effects, the confidence interval's relation to meaningful thresholds, or assurance averaged over plausible effects. These address sensitivity and precision without pretending the noisy point estimate was the true planning effect."
+    },
+    {
+      "role": "user",
+      "content": "For equivalence, rejecting both component nulls at alpha establishes that effects outside the margins are incompatible at that level. But failing TOST does not establish nonequivalence; it may simply reflect insufficient precision. The asymmetry mirrors ordinary testing."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Passing TOST supports equivalence within the chosen margins under the model; failing it leaves equivalence unresolved. Conversely, a conventional difference test can reject exact equality while TOST also concludes practical equivalence when a tiny effect is estimated precisely. The two procedures target different null regions, so their outcomes should not be forced into a single significant–nonsignificant dichotomy."
+    },
+    {
+      "role": "user",
+      "content": "Noninferiority adds directional complications. If the margin is chosen after observing the comparator's effect or the current estimate, a small p-value against the noninferiority null no longer has its advertised confirmatory meaning. How should margin uncertainty enter?"
+    },
+    {
+      "role": "assistant",
+      "content": "The margin should be clinically justified and prespecified, often using historical evidence about the active comparator while preserving a meaningful fraction of its effect. Uncertainty in that evidence can be propagated through conservative margins, synthesis models, or sensitivity analyses. A data-dependent favorable margin is selection; the nominal p-value does not account for that extra choice."
+    },
+    {
+      "role": "user",
+      "content": "There is also the constancy assumption: historical comparator efficacy must transport to the current setting. A formally tiny p-value for noninferiority cannot diagnose failure of that assumption, especially if both treatments perform poorly in the new population."
+    },
+    {
+      "role": "assistant",
+      "content": "Right. Noninferiority inference relies on assay sensitivity and constancy, neither of which the within-trial p-value can verify fully. Similar outcomes may reflect genuine similarity or common ineffectiveness. Design features, adherence, endpoint behavior, and external evidence must support those assumptions. This is a clear case where correct calculation does not guarantee a valid substantive conclusion."
+    },
+    {
+      "role": "user",
+      "content": "Can a severity or second-generation p-value better express evidence about an interval null? Those proposals seem designed to distinguish data that are merely non-significant from data that actively rule out meaningful discrepancies."
+    },
+    {
+      "role": "assistant",
+      "content": "They can sharpen that distinction by evaluating how severely relevant discrepancies were tested or how the confidence set overlaps a null interval. Their interpretation and operating characteristics differ, and neither removes the need to justify the interval or model. Conventional equivalence tests plus confidence intervals are more standardized, but alternative summaries can be useful when their definitions are explained."
+    },
+    {
+      "role": "user",
+      "content": "Suppose the interval narrowly crosses an equivalence margin while the point-null p-value is large. Describing the result as ‘trending toward equivalence’ would import a graded evidential claim not calibrated by the binary procedure. Reporting the geometry seems cleaner."
+    },
+    {
+      "role": "assistant",
+      "content": "Agreed. State the estimate, interval, margins, and which boundary remains compatible. ‘Trending’ often disguises threshold chasing and ignores that a repeat sample may move either way. The distance to the margin can inform planning or sensitivity, but it should not be portrayed as a near-success probability unless a model explicitly defines that probability."
+    },
+    {
+      "role": "user",
+      "content": "Then nonrejection tells us chiefly that this test did not cross its rejection boundary. Any stronger claim about absence, similarity, or acceptable risk needs either narrower uncertainty, a different null region, or an explicit decision criterion."
+    },
+    {
+      "role": "assistant",
+      "content": "Precisely. Nonrejection is a procedural outcome, not affirmative probability for the null. Its substantive force depends on what effects the design could reliably distinguish and which remain compatible with the observations. Reframing the hypothesis, increasing precision, or specifying consequences can support stronger conclusions, but those conclusions do not emerge from p greater than 0.05 alone."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "When is a one-sided p-value defensible if departures in the opposite direction would lead to the same action as the null? If the estimate reverses direction, reporting p near one can conceal strong evidence against the model in an unexpected direction."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. A one-sided test targets a directional claim and deliberately assigns no rejection region to the opposite tail. If an opposite effect is scientifically important, the original decision rule may still be followed, but the unexpected discrepancy should be reported separately with its estimate and interval. A near-one one-sided p-value is not evidence that the null model fits globally."
+    },
+    {
+      "role": "user",
+      "content": "Choosing one-sidedness after seeing the sign effectively halves a conventional two-sided p-value under symmetric tests, doubling type-I error if either direction would have been celebrated. Prespecification matters because it defines the rejection region before the statistic is known."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. The nominal one-sided level is valid only when the favored direction and corresponding action were fixed independently of the observed sign. Selecting the favorable tail makes the actual procedure two-sided while retaining a one-sided cutoff. If both directions could motivate a claim, use a two-sided test or explicitly split alpha between directional alternatives."
+    },
+    {
+      "role": "user",
+      "content": "In a noninferiority setting, however, the directional null is structurally tied to the claim, so a one-sided test is natural even if a large effect in the harmful direction would be noteworthy. The safety response and efficacy claim can use separate procedures."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. The noninferiority claim has a directional boundary, making a one-sided test coherent. Harm in the other direction is not ignored operationally; it is usually monitored through adverse-event analyses, stopping rules, or a superiority assessment. Keeping claims separate avoids pretending one p-value simultaneously answers noninferiority, superiority, and broad safety questions."
+    },
+    {
+      "role": "user",
+      "content": "So ‘one-sided tests are inappropriate’ is too categorical. The real objections concern reversible directional choices, failure to disclose opposite effects, and contexts where both tails correspond to scientifically consequential departures from the null."
+    },
+    {
+      "role": "assistant",
+      "content": "That is the better formulation. One-sided tests are principled for genuinely directional hypotheses and decisions, especially with prespecified margins. They are misleading when direction is chosen after inspection or when the unused tail contains outcomes that would support another substantive claim. Validity is about the full procedure; adequacy is about whether that procedure matches the scientific question."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "In a randomized experiment, a Fisher randomization p-value refers to the assignment mechanism and a sharp null specifying every unit's missing potential outcomes. What does it fail to tell us about an average treatment effect under heterogeneous responses?"
+    },
+    {
+      "role": "assistant",
+      "content": "It tests whether every unit's treatment effect equals the value specified by the sharp null. Rejection shows incompatibility with that sharp schedule, but it does not identify the average effect or prove its sign. Under heterogeneity, a zero average can coexist with sharp-null rejection, and nonrejection can occur despite meaningful effects that cancel or are weakly detected."
+    },
+    {
+      "role": "user",
+      "content": "If I invert sharp-null tests over a constant additive effect, the resulting interval assumes treatment effects are identical up to that shift. Calling it a confidence interval for the average effect would therefore require additional justification beyond random assignment."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. The inversion gives a confidence set for the constant effect under the additive model. Under heterogeneous effects, its relation to the finite-population average depends on the statistic and asymptotic arguments. Studentized estimators and Neyman-style variance bounds target the average more directly, though exact finite-sample inference for a weak null is generally harder."
+    },
+    {
+      "role": "user",
+      "content": "Cluster randomization further restricts the permutation group. Permuting individual labels would generate an impressively small but meaningless p-value because those assignments were never possible. The reference distribution must mirror the actual design, including stratification and constrained allocation."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Randomization validity comes from enumerating or sampling assignments allowed by the design. Cluster, block, matched-pair, rerandomized, and unequal-probability designs each imply different reference sets and weights. A permutation scheme that ignores those constraints estimates the wrong null distribution. Design metadata are therefore part of the test definition, not administrative detail."
+    },
+    {
+      "role": "user",
+      "content": "Covariate adjustment can improve precision, but if the regression model is chosen after viewing outcomes, the randomization p-value needs to recompute that entire selection step for every reassignment to preserve its design-based validity, correct?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, if the observed-data selection is part of the statistic-producing algorithm, it generally must be repeated within each reassignment. Freezing a model chosen using the observed assignment can omit adaptivity from the reference distribution. Prespecified adjustment is simpler, while cross-fitting or robust regression estimators can provide alternative guarantees for average effects."
+    },
+    {
+      "role": "user",
+      "content": "Thus an exact randomization p-value can make a strong claim about design-based calibration while remaining narrow about estimand and null. ‘Exact’ describes its finite-sample error property, not completeness of the causal conclusion."
+    },
+    {
+      "role": "assistant",
+      "content": "Precisely. Exactness means that, under the specified sharp null and randomization mechanism, the rejection probability is controlled without asymptotic approximation, subject to discreteness. It does not settle interference, noncompliance, attrition, measurement error, generalization, or heterogeneous-effect summaries. Those require additional causal assumptions and estimands beyond the p-value's randomization calculation."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "Given an original p-value just below 0.05, what can it tell us about the probability that a direct replication will also reject? Treating one minus the p-value as replication probability is plainly unjustified, but is any design-free mapping possible?"
+    },
+    {
+      "role": "assistant",
+      "content": "No design-free mapping exists. Replication probability depends on the true effect, both studies' standard errors, design fidelity, model assumptions, and selection of the original result. The original p-value combines effect and noise but does not identify those components. Predictive calculations require a model for the effect and replication design, ideally adjusted for selection and heterogeneity."
+    },
+    {
+      "role": "user",
+      "content": "If I plug the original point estimate into the replication's power calculation, winner's curse makes the result optimistic after significance selection. Shrinkage toward a prior or hierarchical estimate could help, though its performance depends on the reference population of effects."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Conditioning on significance preferentially selects upward noise, so the observed estimate overstates the underlying effect on average. Selection-adjusted likelihoods, empirical-Bayes shrinkage, or hierarchical models can reduce optimism, provided their effect distribution is relevant. Planning across a sensitivity range is often safer than presenting one deceptively precise replication probability."
+    },
+    {
+      "role": "user",
+      "content": "A replication can estimate the same parameter yet use a different outcome instrument or population. Then heterogeneity is not merely nuisance variation; it changes what ‘same result’ means. Should success be defined by sign, interval overlap, or a minimum-effect criterion?"
+    },
+    {
+      "role": "assistant",
+      "content": "The criterion should follow the replication's purpose. Significance recurrence is simple but sample-size dependent; sign agreement is weak near zero; interval overlap has poor calibration; a minimum-effect or prediction-interval criterion can be more substantive. For changed populations or instruments, specify a transport model or treat the study as a conceptual replication rather than an exact repeat."
+    },
+    {
+      "role": "user",
+      "content": "Combining original and replication data may yield a small meta-analytic p-value even if the replication alone is non-significant. That is not necessarily failure, but it can mask directional disagreement or between-study heterogeneity if only the pooled test is emphasized."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. A pooled test addresses an average under a chosen fixed- or random-effects model, not whether each study reproduced the same effect. Show study-specific estimates, prediction intervals, and heterogeneity diagnostics. A small combined p-value can coexist with a weak replication, and a non-small combined p-value can coexist with practically consistent but imprecise estimates."
+    },
+    {
+      "role": "user",
+      "content": "I used ‘winner's curse’ broadly; publication selection adds another layer beyond selection within a prespecified replication pair. If only striking originals enter the replication pipeline, the predictive model must condition on that publication mechanism too."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. Selection can occur at analysis, manuscript, journal, and replication-target stages. Conditioning only on p below a threshold may still miss preferences for novelty, direction, or effect magnitude. Explicit selection models, registered-report samples, and comprehensive result registries help, but sensitivity analysis is prudent because publication mechanisms are rarely known precisely."
+    },
+    {
+      "role": "user",
+      "content": "Would a prediction interval for the replication estimate answer more directly than a power calculation? It represents plausible future estimates, but only after choosing an effect model and accounting for uncertainty in the original estimate and between-study variation."
+    },
+    {
+      "role": "assistant",
+      "content": "Often yes. A predictive interval displays the magnitude and sign of future estimates rather than reducing success to a rejection event. Its validity still rests on the hierarchical or transport assumptions and selection correction. With few studies, heterogeneity uncertainty can make it wide, which is honest information rather than a defect to be hidden."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "When only statistically significant studies are published, the observed distribution of p-values is truncated and distorted. Can the shape of that distribution identify publication bias, or are effect heterogeneity and specification search too confounded for a unique diagnosis?"
+    },
+    {
+      "role": "assistant",
+      "content": "Usually it cannot identify the mechanism uniquely. A pileup just below 0.05 may suggest selective reporting, but heterogeneity, discrete tests, rounding, stopping rules, and genuine effects also shape p-values. Methods such as p-curves or selection models add assumptions about power and publication. They are sensitivity tools, not definitive detectors of misconduct or bias."
+    },
+    {
+      "role": "user",
+      "content": "Under a correctly specified continuous null, p-values are uniform before selection. Under a mixture containing real effects, their distribution should concentrate near zero according to power. But optional analysis choices can create a similar excess without any true effect."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. The marginal distribution reflects the mixture of nulls, alternatives, designs, and selection processes. An excess of small values is consistent with real signal but not diagnostic of it. To separate explanations, one needs design information, preregistration, negative controls, replication, or a model that explicitly represents effect and selection distributions—and even then identifiability can remain weak."
+    },
+    {
+      "role": "user",
+      "content": "Funnel-plot asymmetry likewise need not imply publication bias because true effects may vary with study size. Egger-type tests have low power with few studies and can overreact when standard errors correlate mechanically with effect estimates."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. Small-study effects can arise from population differences, intervention intensity, measurement quality, or bias. Regression asymmetry tests rely on assumptions that often fail, especially with heterogeneous outcomes or fewer than roughly ten studies. Use them as diagnostics alongside substantive study comparisons, not as binary proof that missing studies caused the pattern."
+    },
+    {
+      "role": "user",
+      "content": "Selection models can estimate a weight function for publication probability across p-value regions, yet the data may not distinguish sharp selection from a flexible random-effects distribution. Are informative priors or external registry data the main route to identification?"
+    },
+    {
+      "role": "assistant",
+      "content": "They are important routes. Registry data reveal conducted but unpublished studies, while informative priors constrain otherwise weakly identified selection and heterogeneity parameters. Multiple outcome records and editorial process data can also help. Because conclusions may be driven by those constraints, report sensitivity across plausible weight functions rather than treating one fitted correction as recovered truth."
+    },
+    {
+      "role": "user",
+      "content": "A preregistered analysis can still be selectively reported, and an unregistered analysis can be transparently exploratory. So registration changes the evidential audit trail, but it does not mechanically validate the resulting p-value or invalidate every deviation."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Preregistration makes temporal ordering and planned choices inspectable; it does not guarantee adherence, model adequacy, or data quality. Deviations can be scientifically justified if disclosed and labeled. The p-value's status depends on the actual procedure, including amendments and selection, while registration supplies evidence about what that procedure was intended to be."
+    },
+    {
+      "role": "user",
+      "content": "For meta-analysis, replacing each study by its p-value discards scale and variance information. Combination tests may answer a global-null question, but they cannot recover a pooled effect or quantify clinically meaningful heterogeneity without richer summaries."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. Fisher's, Stouffer's, and related methods combine evidence against a global null, with assumptions about dependence and direction. They do not estimate a common effect on its original scale. Effect estimates, standard errors, covariance structures, and study characteristics are needed for magnitude, heterogeneity, and prediction. A tiny combined p-value can accompany effects too small or inconsistent to matter."
+    },
+    {
+      "role": "user",
+      "content": "Then publication-bias adjustment should not be presented as turning biased p-values into unbiased truth. It is a model-based counterfactual about unseen studies, and the uncertainty from that model should accompany any corrected estimate or test."
+    },
+    {
+      "role": "assistant",
+      "content": "Precisely. Adjustment asks what the evidence might look like under an assumed selection mechanism. When that mechanism is weakly identified, between-model uncertainty may exceed the reported within-model standard error. Present unadjusted data, corrected analyses under several credible mechanisms, and the assumptions linking publication probability to results. The spread is part of the inferential result."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "For a regression coefficient, the conventional p-value tests a parameter conditional on the included covariates and model form. If adding a mediator changes it sharply, how can one tell whether confounding was reduced or part of the effect was conditioned away?"
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. The coefficient and its null change meaning with the adjustment set. Conditioning on a confounder may improve causal identification; conditioning on a mediator targets a direct-effect-like quantity; conditioning on a collider can induce bias. The p-value only assesses the specified coefficient under that model. A causal graph and estimand definition must justify the covariates."
+    },
+    {
+      "role": "user",
+      "content": "Even without causal language, a partial association can reverse sign through noncollapsibility or aggregation. In logistic regression, adjustment may change an odds ratio absent confounding, so comparing p-values across nested models is especially hard to interpret."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. Odds ratios are noncollapsible, meaning conditional and marginal parameters can differ even with balanced covariates and no confounding. Their standard errors also change, so p-value movement mixes estimand change with precision. Compare clearly defined marginal or conditional effects, preferably on interpretable scales, instead of treating a significance change as evidence that one covariate ‘explains’ the association."
+    },
+    {
+      "role": "user",
+      "content": "Testing whether the coefficient changes significantly after adjustment would require the covariance between the two estimators; contrasting one p-value below 0.05 with another above 0.05 is not a valid interaction or difference test."
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. ‘Significant’ versus ‘not significant’ does not imply a significant difference. Because the estimates use the same observations, their covariance matters. A stacked estimating equation, bootstrap, or a model directly parameterizing the contrast can assess the change, provided the two coefficients target commensurable quantities. If adjustment changes the estimand, even that contrast needs careful interpretation."
+    },
+    {
+      "role": "user",
+      "content": "Suppose model selection uses cross-validation for prediction, then a coefficient p-value is reported from the selected model on the full dataset. Predictive risk selection and inferential selection differ, but the latter still invalidates naive conditional standard errors."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. Cross-validation targets expected predictive loss, not valid post-selection coefficient inference. Refitting and testing as if the selected model were fixed ignores selection variability and may target an unstable parameter. Sample splitting, selective-inference methods, debiased estimators under sparsity assumptions, or reporting predictive performance without coefficient claims are possible responses."
+    },
+    {
+      "role": "user",
+      "content": "I said ‘invalidates’ too absolutely: in some regimes selection consistency could make ordinary inference asymptotically valid, though that requires strong separation conditions. Finite-sample guarantees certainly do not follow merely from using cross-validation."
+    },
+    {
+      "role": "assistant",
+      "content": "That correction is apt. If selection converges to a fixed true model quickly enough, oracle-style inference may emerge, but such conditions are often unrealistic near weak predictors or correlated features. Cross-validation itself does not establish them. Conditional-on-selection methods and stability analyses make the extra assumptions visible rather than relying on an asymptotic ideal."
+    },
+    {
+      "role": "user",
+      "content": "What about a global likelihood-ratio p-value for adding an entire covariate block? It avoids cherry-picking individual coefficients, but rejection still says only that the restricted model loses fit somewhere along the block's joint directions."
+    },
+    {
+      "role": "assistant",
+      "content": "Correct. The global test can control one prespecified comparison and detect distributed signal, but it does not identify which variables matter, establish causality, or measure predictive gain. With large samples it may reject for negligible improvement. Report the change in fit or out-of-sample performance, coefficient structure, and the scientific role assigned to the block."
+    },
+    {
+      "role": "user",
+      "content": "Thus every coefficient p-value inherits an estimand indexed by adjustment set, link, outcome definition, and sampling scheme. It cannot adjudicate among those choices; it only calibrates a test after they have been made and accounted for."
+    },
+    {
+      "role": "assistant",
+      "content": "Precisely. The p-value is downstream of model and design decisions. It can quantify how surprising a chosen statistic is under the resulting null model, but it cannot certify that the coefficient answers the intended scientific question. Clear estimands, design reasoning, robustness checks, and selection-aware procedures must do that upstream work."
+    }
+  ]
+]
