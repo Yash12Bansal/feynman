@@ -19,7 +19,7 @@ import requests
 from config import OPENROUTER_URL, JUDGE_MODEL, SAVE_DIR
 
 random.seed(1)
-HEADERS = {"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"}
+HEADERS = {"Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY', '')}"}  # only the API judge needs it
 BANNED = re.compile(r"\b(beginner|novice|expert|intermediate|new to|years of|"
                     r"my background|as a professional|i teach|phd|student)\b", re.I)
 
