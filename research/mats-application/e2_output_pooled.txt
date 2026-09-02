@@ -1,0 +1,7 @@
+{'novice->expert': 48, 'expert->novice': 48} dialogues per direction
+consistent baselines at turn 5: novice 0.001 (n=60)  expert 0.983 (n=61)  midpoint 0.492
+novice->expert: crossover@0.5 = 1  @midpoint = 1  journey fraction turn3 0.39 [0.28,0.51]  turn5 0.71 [0.61,0.81]
+expert->novice: crossover@0.5 = 0  @midpoint = 0  journey fraction turn3 0.70 [0.60,0.80]  turn5 0.97 [0.95,0.99]
+H2b asymmetry (e->n minus n->e) journey fraction: turn3 +0.31 [+0.16,+0.46]  turn5 +0.26 [+0.16,+0.36]   (threshold: 0.15, CI clear of 0)
+H2c anchoring gap at turn 5: n->e +0.282 [+0.181,+0.389]   e->n +0.027 [+0.007,+0.053]   (threshold 0.1)
+figure -> figures/e2_update_curves.png  |  results_e2.json

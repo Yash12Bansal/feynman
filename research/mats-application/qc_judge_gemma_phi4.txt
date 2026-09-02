@@ -1,0 +1,23 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/243 [00:00<?, ?it/s]Loading weights:   0%|          | 1/243 [00:00<01:27,  2.75it/s]Loading weights:   2%|▏         | 4/243 [00:00<00:26,  9.16it/s]Loading weights:   5%|▍         | 11/243 [00:00<00:11, 20.45it/s]Loading weights:   7%|▋         | 17/243 [00:00<00:09, 24.91it/s]Loading weights:   9%|▉         | 22/243 [00:01<00:08, 25.75it/s]Loading weights:  12%|█▏        | 29/243 [00:01<00:07, 30.00it/s]Loading weights:  14%|█▍        | 35/243 [00:01<00:06, 29.87it/s]Loading weights:  17%|█▋        | 41/243 [00:01<00:06, 31.02it/s]Loading weights:  19%|█▉        | 47/243 [00:01<00:05, 33.07it/s]Loading weights:  22%|██▏       | 53/243 [00:01<00:05, 33.56it/s]Loading weights:  24%|██▍       | 59/243 [00:02<00:05, 34.96it/s]Loading weights:  27%|██▋       | 65/243 [00:02<00:04, 35.80it/s]Loading weights:  29%|██▉       | 71/243 [00:02<00:04, 36.21it/s]Loading weights:  32%|███▏      | 77/243 [00:02<00:04, 35.98it/s]Loading weights:  34%|███▍      | 83/243 [00:02<00:04, 36.82it/s]Loading weights:  37%|███▋      | 89/243 [00:02<00:04, 37.31it/s]Loading weights:  39%|███▉      | 95/243 [00:03<00:03, 37.22it/s]Loading weights:  42%|████▏     | 101/243 [00:03<00:03, 36.67it/s]Loading weights:  44%|████▍     | 107/243 [00:03<00:03, 35.74it/s]Loading weights:  47%|████▋     | 113/243 [00:03<00:03, 35.49it/s]Loading weights:  49%|████▉     | 119/243 [00:03<00:03, 36.84it/s]Loading weights:  51%|█████▏    | 125/243 [00:03<00:03, 36.86it/s]Loading weights:  54%|█████▍    | 131/243 [00:04<00:02, 37.77it/s]Loading weights:  56%|█████▋    | 137/243 [00:04<00:02, 37.74it/s]Loading weights:  59%|█████▉    | 143/243 [00:04<00:02, 37.16it/s]Loading weights:  61%|██████▏   | 149/243 [00:04<00:02, 36.10it/s]Loading weights:  64%|██████▍   | 155/243 [00:04<00:02, 35.75it/s]Loading weights:  66%|██████▋   | 161/243 [00:04<00:02, 35.79it/s]Loading weights:  69%|██████▊   | 167/243 [00:05<00:02, 36.44it/s]Loading weights:  71%|███████   | 173/243 [00:05<00:01, 35.54it/s]Loading weights:  74%|███████▎  | 179/243 [00:05<00:01, 35.43it/s]Loading weights:  76%|███████▌  | 185/243 [00:05<00:01, 34.30it/s]Loading weights:  79%|███████▊  | 191/243 [00:05<00:01, 34.64it/s]Loading weights:  81%|████████  | 197/243 [00:05<00:01, 35.23it/s]Loading weights:  84%|████████▎ | 203/243 [00:06<00:01, 36.19it/s]Loading weights:  86%|████████▌ | 209/243 [00:06<00:00, 36.60it/s]Loading weights:  88%|████████▊ | 215/243 [00:06<00:00, 36.10it/s]Loading weights:  91%|█████████ | 221/243 [00:06<00:00, 34.82it/s]Loading weights:  93%|█████████▎| 227/243 [00:06<00:00, 33.99it/s]Loading weights:  96%|█████████▌| 233/243 [00:06<00:00, 34.80it/s]Loading weights:  98%|█████████▊| 239/243 [00:07<00:00, 34.72it/s]Loading weights: 100%|██████████| 243/243 [00:07<00:00, 33.96it/s]
+
+BLIND JUDGE AGREEMENT (local microsoft/phi-4, data_gemma): 84/120 = 70.0%  (target 85-95%; report this number)
+confusion (rows = true label, cols = judge said):
+                     novice intermediate       expert     unparsed
+novice                    8           29            0            0
+intermediate              0           32            7            0
+expert                    0            0           44            0
+novice-vs-expert only (drop intermediate rows): 64.2% of 81
+ordinal check: extreme swaps (novice<->expert) 0/120; within one step 100.0%; rank correlation 0.86
+10 raw outputs:
+  [intermediate] -> 'Intermediate\n\nThe user demonstrates an understanding of basic probability concep'
+  [expert      ] -> 'Expert\n\nThe user demonstrates a deep understanding of the topic, using precise t'
+  [expert      ] -> 'expert\n\nThe user demonstrates a deep understanding of investment concepts, using'
+  [novice      ] -> 'Intermediate\n\nThe user demonstrates an understanding of the basics of bandwidth '
+  [novice      ] -> 'Intermediate\n\nThe user demonstrates a basic understanding of p-values, correctin'
+  [expert      ] -> 'expert\n\nThe user demonstrates a deep understanding of statistical concepts, usin'
+  [intermediate] -> 'Intermediate\n\nThe user demonstrates a basic understanding of positional play and'
+  [expert      ] -> 'expert\n\nThe user demonstrates a deep understanding of the topic, using precise t'
+  [novice      ] -> 'Intermediate\n\nThe user demonstrates a basic understanding of investing concepts,'
+  [novice      ] -> 'Intermediate\n\nThe user demonstrates a basic understanding of internet speed conc'
+per-item results -> qc_judge_phi-4_data_gemma.jsonl

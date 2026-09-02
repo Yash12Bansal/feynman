@@ -1,0 +1,79 @@
+main: 2748 snapshots, 536 dialogues, 37 layers; test = held-out topics ['immunology', 'chess', 'statistics', 'networking'] (933 snapshots)
+layer  0  competence(heldout-topics) 0.337   shuffled 0.320   topic(random-split) 0.062
+layer  1  competence(heldout-topics) 0.812   shuffled 0.330   topic(random-split) 0.980
+layer  2  competence(heldout-topics) 0.849   shuffled 0.317   topic(random-split) 0.991
+layer  3  competence(heldout-topics) 0.883   shuffled 0.334   topic(random-split) 0.993
+layer  4  competence(heldout-topics) 0.856   shuffled 0.298   topic(random-split) 0.996
+layer  5  competence(heldout-topics) 0.881   shuffled 0.300   topic(random-split) 1.000
+layer  6  competence(heldout-topics) 0.826   shuffled 0.309   topic(random-split) 0.995
+layer  7  competence(heldout-topics) 0.860   shuffled 0.316   topic(random-split) 1.000
+layer  8  competence(heldout-topics) 0.848   shuffled 0.316   topic(random-split) 0.996
+layer  9  competence(heldout-topics) 0.862   shuffled 0.335   topic(random-split) 0.996
+layer 10  competence(heldout-topics) 0.880   shuffled 0.324   topic(random-split) 0.996
+layer 11  competence(heldout-topics) 0.900   shuffled 0.337   topic(random-split) 0.998
+layer 12  competence(heldout-topics) 0.900   shuffled 0.337   topic(random-split) 1.000
+layer 13  competence(heldout-topics) 0.907   shuffled 0.345   topic(random-split) 0.998
+layer 14  competence(heldout-topics) 0.886   shuffled 0.344   topic(random-split) 0.996
+layer 15  competence(heldout-topics) 0.897   shuffled 0.316   topic(random-split) 1.000
+layer 16  competence(heldout-topics) 0.890   shuffled 0.330   topic(random-split) 0.998
+layer 17  competence(heldout-topics) 0.928   shuffled 0.304   topic(random-split) 0.998
+layer 18  competence(heldout-topics) 0.945   shuffled 0.311   topic(random-split) 1.000
+layer 19  competence(heldout-topics) 0.951   shuffled 0.319   topic(random-split) 0.998
+layer 20  competence(heldout-topics) 0.960   shuffled 0.319   topic(random-split) 0.998
+layer 21  competence(heldout-topics) 0.979   shuffled 0.335   topic(random-split) 0.998
+layer 22  competence(heldout-topics) 0.985   shuffled 0.327   topic(random-split) 1.000
+layer 23  competence(heldout-topics) 0.982   shuffled 0.304   topic(random-split) 1.000
+layer 24  competence(heldout-topics) 0.984   shuffled 0.297   topic(random-split) 0.998
+layer 25  competence(heldout-topics) 0.985   shuffled 0.318   topic(random-split) 0.995
+layer 26  competence(heldout-topics) 0.985   shuffled 0.312   topic(random-split) 0.998
+layer 27  competence(heldout-topics) 0.981   shuffled 0.344   topic(random-split) 0.996
+layer 28  competence(heldout-topics) 0.975   shuffled 0.350   topic(random-split) 0.998
+layer 29  competence(heldout-topics) 0.970   shuffled 0.352   topic(random-split) 0.993
+layer 30  competence(heldout-topics) 0.977   shuffled 0.367   topic(random-split) 0.996
+layer 31  competence(heldout-topics) 0.977   shuffled 0.352   topic(random-split) 0.995
+layer 32  competence(heldout-topics) 0.976   shuffled 0.355   topic(random-split) 0.998
+layer 33  competence(heldout-topics) 0.976   shuffled 0.358   topic(random-split) 0.995
+layer 34  competence(heldout-topics) 0.971   shuffled 0.352   topic(random-split) 0.993
+layer 35  competence(heldout-topics) 0.973   shuffled 0.340   topic(random-split) 0.995
+layer 36  competence(heldout-topics) 0.968   shuffled 0.340   topic(random-split) 0.998
+
+BEST LAYER 22: snapshot acc 0.985 (chance 0.333)
+  final-turn dialogue-level acc 0.994  95% CI [0.983, 1.005]  (n=179 held-out dialogues)
+  shuffled-label control 0.327 | topic control 1.000
+held-out confusion (rows = true novice/intermediate/expert, cols = predicted):
+  novice        [312, 2, 0]
+  intermediate  [1, 299, 1]
+  expert        [0, 10, 308]
+  extreme swaps (novice<->expert): 0/933
+  novice-vs-expert binary probe (held-out topics): 0.997 (chance 0.5)
+LENGTH-ONLY BASELINE (held-out topics): 0.461   -> activation probe beats it by +0.524
+turn curve (fixed probe): [0.966, 0.989, 0.972, 1.0, 1.0, 0.985, 1.0]  n=[179, 179, 179, 179, 118, 67, 24]
+  H1b statistic: acc(turn 3) - acc(turn 0) = +0.034
+  recall by turn, novice      : [0.97, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  recall by turn, intermediate: [0.98, 1.0, 0.98, 1.0, 1.0, 1.0, 1.0]
+  recall by turn, expert      : [0.95, 0.97, 0.93, 1.0, 1.0, 0.96, 1.0]
+transfer (train topics -> held-out topics): {'explicit->implicit': 0.914, 'implicit->explicit': 0.967, 'explicit->explicit': 0.989, 'implicit->implicit': 0.985}
+  H1c statistic: min transfer / own-set = 0.92
+cross-generator by layer (codex->gemma, gemma->codex):
+  layer  0: 0.316 0.341
+  layer  3: 0.662 0.542
+  layer  6: 0.698 0.519
+  layer  9: 0.659 0.531
+  layer 12: 0.640 0.666
+  layer 15: 0.612 0.625
+  layer 18: 0.613 0.614
+  layer 21: 0.668 0.579
+  layer 24: 0.665 0.524
+  layer 27: 0.659 0.532
+  layer 30: 0.630 0.498
+  layer 33: 0.632 0.504
+  layer 36: 0.616 0.489
+  best transfer layer 14: codex->gemma 0.656 gemma->codex 0.669   (probe layer 22: 0.676 0.607)
+  codex->gemma confusion (rows true, cols predicted): [[291, 0, 0], [266, 50, 0], [3, 30, 282]] extreme swaps 3/922
+  pooled probe (train on both): codex held-out 0.976, gemma held-out 0.976
+  codex direction + gemma-refit thresholds: 0.941  (high = same direction, different offsets; low = different direction)
+  mean P(true class) by turn, novice      : [0.942, 0.984, 0.996, 0.982, 0.986, 0.993, 1.0]
+  mean P(true class) by turn, intermediate: [0.948, 0.977, 0.976, 0.996, 0.993, 0.995, 0.989]
+  mean P(true class) by turn, expert      : [0.937, 0.959, 0.942, 0.975, 0.984, 0.969, 0.999]
+pooled probe -> probe_e1_pooled.joblib (downstream: PROBE_FILE=probe_e1_pooled.joblib)
+figures -> figures/  |  probe -> probe_e1.joblib
