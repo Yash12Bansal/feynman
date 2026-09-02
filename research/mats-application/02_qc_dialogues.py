@@ -59,10 +59,14 @@ def judge_local(model_id=None):
         model_id, dtype=torch.bfloat16, device_map="cuda").eval()
     sample = random.sample(rows, min(120, len(rows)))
     levels = ["novice", "intermediate", "expert"]
+    # JUDGE_TURNS=2 judges only the first N user turns: tests whether novices
+    # read as "intermediate" because they LEARN across the dialogue.
+    nturns = int(os.environ.get("JUDGE_TURNS", "0"))
     conf = {a: {b: 0 for b in levels + ["unparsed"]} for a in levels}
     items, correct = [], 0
     for d in sample:
-        convo = "\n".join(f"USER: {t}" for t in user_text(d))
+        uts = user_text(d)[:nturns] if nturns else user_text(d)
+        convo = "\n".join(f"USER: {t}" for t in uts)
         p = ("Below are only the USER turns of a dialogue with an AI assistant.\n"
              "Classify the user's competence on the topic as exactly one of: "
              "novice, intermediate, expert.\n"
@@ -85,7 +89,8 @@ def judge_local(model_id=None):
         conf[d["level"]][guess] += 1
         correct += int(guess == d["level"])
         items.append({"id": d["id"], "level": d["level"], "guess": guess, "raw": raw})
-    tag = model_id.split("/")[-1] + ("" if SAVE_DIR == "data" else "_" + SAVE_DIR)
+    tag = (model_id.split("/")[-1] + ("" if SAVE_DIR == "data" else "_" + SAVE_DIR)
+           + (f"_first{nturns}turns" if nturns else ""))
     with open(f"qc_judge_{tag}.jsonl", "w") as f:
         for it in items:
             f.write(json.dumps(it) + "\n")
@@ -99,6 +104,21 @@ def judge_local(model_id=None):
     ne = [it for it in items if it["level"] != "intermediate" and it["guess"] != "unparsed"]
     two_way = sum(it["guess"] == it["level"] for it in ne) / max(1, len(ne))
     print(f"novice-vs-expert only (drop intermediate rows): {two_way:.1%} of {len(ne)}")
+    # ordinal validity: are errors one-step shifts or extreme swaps?
+    ok = [it for it in items if it["guess"] != "unparsed"]
+    rank = {l: i for i, l in enumerate(levels)}
+    extreme = sum(abs(rank[it["guess"]] - rank[it["level"]]) == 2 for it in ok)
+    within1 = sum(abs(rank[it["guess"]] - rank[it["level"]]) <= 1 for it in ok)
+    try:
+        from scipy.stats import spearmanr
+        rho = spearmanr([rank[it["level"]] for it in ok], [rank[it["guess"]] for it in ok])[0]
+    except Exception:
+        import statistics as _st
+        a = [rank[it["level"]] for it in ok]; b = [rank[it["guess"]] for it in ok]
+        rho = _st.correlation(a, b) if len(set(b)) > 1 else float("nan")
+    print(f"ordinal check: extreme swaps (novice<->expert) {extreme}/{len(ok)}; "
+          f"within one step {within1/len(ok):.1%}; rank correlation {rho:.2f}"
+          + (f"   [first {nturns} user turns only]" if nturns else ""))
     print("10 raw outputs:")
     for it in items[:10]:
         print(f"  [{it['level']:12s}] -> {it['raw'][:80]!r}")

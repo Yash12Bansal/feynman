@@ -108,6 +108,22 @@ print(f"\nBEST LAYER {best_L}: snapshot acc {acc_by_layer[best_L]:.3f} (chance {
       f"  (n={n_d} held-out dialogues)"
       f"\n  shuffled-label control {acc_shuf[best_L]:.3f} | topic control {acc_topic[best_L]:.3f}")
 
+# --- where are the probe's errors? (QC judges shifted novice -> intermediate) --
+pred = probe.predict(X[test, best_L])
+conf = np.zeros((3, 3), int)
+for t_, p_ in zip(y[test], pred):
+    conf[t_, p_] += 1
+print("held-out confusion (rows = true novice/intermediate/expert, cols = predicted):")
+for i, lv in enumerate(LEVEL_ID):
+    print(f"  {lv:13s} {conf[i].tolist()}")
+extreme = int(conf[0, 2] + conf[2, 0])
+print(f"  extreme swaps (novice<->expert): {extreme}/{int(conf.sum())}")
+# binary novice-vs-expert probe (the contrast E2/E4 rely on)
+bin_tr = (~test) & (y != 1); bin_te = test & (y != 1)
+acc_bin, _ = fit_eval(X[bin_tr, best_L], (y[bin_tr] == 2).astype(int),
+                      X[bin_te, best_L], (y[bin_te] == 2).astype(int))
+print(f"  novice-vs-expert binary probe (held-out topics): {acc_bin:.3f} (chance 0.5)")
+
 # --- length-only baseline ----------------------------------------------------
 def length_features(meta, path):
     """[words in current turn, mean words/turn so far, turns so far, total words]
@@ -230,5 +246,7 @@ json.dump({"acc_by_layer": acc_by_layer, "acc_shuffled": acc_shuf,
            "n_per_turn": n_turn, "h1b_rise_turn3_minus_turn0": rise,
            "recall_by_turn": recall_turn,
            "transfer": transfer, "cross_generator": xgen,
-           "length_only_baseline": acc_len},
+           "length_only_baseline": acc_len,
+           "heldout_confusion": conf.tolist(), "extreme_swaps": extreme,
+           "novice_vs_expert_binary_acc": acc_bin},
           open("results_e1.json", "w"), indent=2)
