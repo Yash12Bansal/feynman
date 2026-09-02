@@ -2,16 +2,20 @@
 LOCAL model. Exists so no experiment can block on API credits.
 
 Backend choice (config.JUDGE_BACKEND):
+  gemini     : JUDGE_MODEL_GEMINI via a Google AI Studio key (GEMINI_API_KEY) —
+               no OpenRouter needed; free tier covers a few hundred short calls
   openrouter : JUDGE_MODEL (Gemini) via OPENROUTER_API_KEY
   local      : JUDGE_MODEL_LOCAL (microsoft/phi-4 by default), loaded ONCE,
                greedy decoding. Phi is a third family: not Qwen (subject), not
                GPT/Gemma (generators). Fits next to Qwen3-8B on an 80GB card.
 Override: JUDGE_BACKEND=local python 06_honesty_e3.py
+Smoke test any backend:  python judge.py "Reply with the single word: hello"
 Whatever backend ran is recorded in results files, so the write-up can say so.
 """
 import os, time
 import requests
-from config import (OPENROUTER_URL, JUDGE_MODEL, JUDGE_BACKEND, JUDGE_MODEL_LOCAL)
+from config import (OPENROUTER_URL, JUDGE_MODEL, JUDGE_BACKEND, JUDGE_MODEL_LOCAL,
+                    JUDGE_MODEL_GEMINI, GEMINI_URL)
 
 _local = {"tok": None, "model": None}
 
@@ -48,12 +52,47 @@ def _openrouter(prompt, max_new, retries=4):
     raise RuntimeError("judge call failed")
 
 
-def judge_text(prompt, max_new=40):
-    """Return the judge's raw text for a prompt. Caller parses it."""
-    if JUDGE_BACKEND == "openrouter":
+def _gemini(prompt, max_new, retries=4):
+    url = GEMINI_URL.format(model=JUDGE_MODEL_GEMINI)
+    body = {"contents": [{"parts": [{"text": prompt}]}],
+            # Gemini 2.5 models "think" by default; thinking tokens would eat a
+            # small max_new and return empty text. Flash allows budget 0; Pro
+            # needs a minimum budget, so give it room and take the final text.
+            "generationConfig": {"temperature": 0.0,
+                                 "maxOutputTokens": max_new + 512}}
+    if "flash" in JUDGE_MODEL_GEMINI:
+        body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
+    for i in range(retries):
+        try:
+            r = requests.post(url, params={"key": os.environ["GEMINI_API_KEY"]},
+                              timeout=120, json=body)
+            r.raise_for_status()
+            parts = r.json()["candidates"][0]["content"]["parts"]
+            return "".join(p.get("text", "") for p in parts)
+        except Exception as e:
+            print(f"  judge retry {i}: {e}"); time.sleep(2 ** i)
+    raise RuntimeError("gemini judge call failed")
+
+
+def judge_text(prompt, max_new=40, backend=None):
+    """Return the judge's raw text for a prompt. Caller parses it.
+    backend=None uses config.JUDGE_BACKEND; pass one explicitly for a
+    second-judge agreement check."""
+    b = backend or JUDGE_BACKEND
+    if b == "gemini":
+        return _gemini(prompt, max_new).strip()
+    if b == "openrouter":
         return _openrouter(prompt, max_new).strip()
     return _local_generate(prompt, max_new).strip()
 
 
-def judge_name():
-    return JUDGE_MODEL if JUDGE_BACKEND == "openrouter" else JUDGE_MODEL_LOCAL
+def judge_name(backend=None):
+    b = backend or JUDGE_BACKEND
+    return {"gemini": JUDGE_MODEL_GEMINI, "openrouter": JUDGE_MODEL}.get(b, JUDGE_MODEL_LOCAL)
+
+
+if __name__ == "__main__":
+    import sys
+    q = sys.argv[1] if len(sys.argv) > 1 else "Reply with the single word: hello"
+    print(f"backend={JUDGE_BACKEND} model={judge_name()}")
+    print(repr(judge_text(q, max_new=16)))

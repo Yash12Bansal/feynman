@@ -116,9 +116,15 @@ def act_path(dataset, tag=None):
 
 # Judge backend: OpenRouter when a key is present (and JUDGE_BACKEND != "local"),
 # otherwise a local model. Exists so E3/E4 never block on API credits.
+# Priority when JUDGE_BACKEND is unset: gemini (GEMINI_API_KEY) > openrouter
+# (OPENROUTER_API_KEY) > local. Set JUDGE_BACKEND explicitly to override.
 JUDGE_BACKEND = _os.environ.get(
-    "JUDGE_BACKEND", "openrouter" if _os.environ.get("OPENROUTER_API_KEY") else "local")
+    "JUDGE_BACKEND",
+    "gemini" if _os.environ.get("GEMINI_API_KEY") else
+    "openrouter" if _os.environ.get("OPENROUTER_API_KEY") else "local")
 JUDGE_MODEL_LOCAL = _os.environ.get("JUDGE_MODEL_LOCAL", "microsoft/phi-4")
+JUDGE_MODEL_GEMINI = _os.environ.get("JUDGE_MODEL_GEMINI", "gemini-2.5-flash")
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
 # ---- figures (palette validated w/ dataviz checks; always direct-label lines)
 COLORS = {"blue": "#0072B2", "orange": "#D55E00", "green": "#009E73", "pink": "#CC79A7"}
