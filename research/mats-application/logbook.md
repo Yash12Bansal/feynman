@@ -20,6 +20,24 @@ prediction table is the single most legible taste signal you can produce.
 | H4  | Steering shifts FK grade / judged level beyond random-direction control            | p:45%, t:atlest 2 grade levels more, f: random                        | Mean-difference steering found the refusal and persona directions and moved user-attribute behavior in prior work, but the best probe layer may not be the best steering layer and the push also lands on the assistant's own tokens, so ≈65 given a working probe. 0.70 × 0.65 ≈ 46. Pre-registered: 12 prompts instead of 4, and strength = largest with coherence ≥ 4/5; must beat random directions by 2 grade levels. |         |                |
 | H4b | Steering adapts covertly (no acknowledgment), unlike system-prompting              | p: 22%, t: steered under 10%, prompted over 30%, f: same as prompting | Steered replies have no textual cue to mention, so ≈90 they stay silent; but a system prompt may be absorbed without comment too, so only ≈55 that prompted replies acknowledge the level ≥ 30% of the time. 0.45 × 0.90 × 0.55 ≈ 23. Measure: phrase list + yes/no judge on ~48 steered and 24 prompted replies, all hand-read.                                                                                           |         |                |
 
+**Dataset notes (facts for the write-up).** Subject model: Qwen3-8B, thinking disabled.
+Two generators wrote the main dialogues, on purpose: Codex (GPT family, via the ChatGPT
+Pro CLI) — 536 dialogues kept, 4 rejected at merge for self-labels; Gemma-3-27B-it run
+locally — 540 kept, 0 parse failures. Both: 12 topics × 3 levels, 4–8 user turns.
+Extra Codex-only sets: explicit 144, reversal 96 (switch at user turn 4), truth 192
+statements (8 true + 8 false per topic), honesty 190 (95 confident / 95 hedged; 95 true /
+95 false claims; claim in user turn 3). Judges: Phi-4 locally (third family); Gemini via
+API if a key is available; the results files record which one ran.
+"Competence" is operationalized by the level definitions in config.py: presence of a
+stated misconception, precision of terminology, type of question (what/why vs how/when vs
+edge cases), and calibration of hedging. Length band and tone are the same for all levels.
+
+**Biggest confound:** each generator writes each level in its own house style, so a probe
+could read "Codex-novice-voice" instead of competence. Check: train the probe on Codex
+dialogues and test on Gemma dialogues, and the reverse. If accuracy holds, the probe reads
+something shared across styles. (Added after QC: the two generators also have OPPOSITE
+length-by-level patterns, so cross-generator transfer cannot be carried by length either.)
+
 ## 1. Time log (Toggl running; screenshot at the end)
 
 | Session | Start | End | Hours | What |
@@ -53,10 +71,97 @@ applicant's own numbers)
 
 ## 4. Human-read QC verdicts (from 02_qc_dialogues.py)
 
+Everything below was written BEFORE 04_probe_e1.py was run (see commit time).
+
+### 4a. Length audit (words per user turn, mean ± sd)
+| Level | Codex | Gemma |
+|---|---|---|
+| novice | 33.4 ± 3.7 (n=924 turns) | 42.6 ± 4.8 (n=899) |
+| intermediate | 32.9 ± 4.0 (n=899) | 37.8 ± 4.7 (n=957) |
+| expert | 36.6 ± 3.9 (n=925) | 34.3 ± 4.9 (n=990) |
+
+Plain reading: in the Codex set, experts write about 3 more words per turn than novices.
+In the Gemma set it is the other way round: novices write about 8 more words than experts.
+So length does carry some level information in both sets, but in opposite directions.
+Decision: keep both sets. A length-only classifier is now trained on the same split inside
+04_probe_e1.py, so the write-up can say how much of the probe's accuracy length alone
+explains. A probe that transfers between the two generators cannot be using length,
+because the length pattern flips sign.
+
+### 4b. Self-label leaks (phrase filter for "beginner", "expert", "years of", etc.)
+Codex: 0 in the final file (4 dialogues had been rejected at merge time).
+Gemma: 2 flags, both false positives on inspection — "years of" (about years of fund
+data) and "intermediate nodes" (the networking meaning). No user in either set states
+their own level or background. Both sets clean.
+
+### 4c. Reading the dialogues
+Second reader (Claude, 6 random Codex novices across immunology, finance, databases,
+networking, optics, probability): all 6 state at least one listed misconception as a
+belief, e.g. "a vaccine kills the germs that are already in the body", "866 Mbps means
+my internet is running at 866 Mbps", "four makes have put the player ahead of the
+average, so a miss has to become more likely". Two properties worth recording:
+1. Register is equally polished at every level in the Codex set — complete sentences,
+   no typos, each turn shaped as a question plus a belief. So level shows through
+   CONTENT (misconceptions, question depth), not writing quality.
+2. Novices visibly LEARN across the dialogue. By the last turn a Codex novice often
+   states the correct view (probability-novice-3 ends by correctly separating "already
+   made four" from "the last shot"; networking-novice-1 builds a correct road analogy).
+   The "novice" label describes where the persona STARTS.
+One borderline case: databases-novice-11 asks intermediate-level questions (planner
+estimates, histograms) but still ends on a misconception.
+
+My own 30-dialogue read (10 per level), one line each:
+
 | Dialogue id | Feels like its level? | Notes |
 | ----------- | --------------------- | ----- |
+| main-chess-expert-3 | yes | precise terms, edge cases, hedges only where the position is unclear |
+| main-chess-expert-10 | yes | same |
+| (28 more rows) | | |
 
-Blind judge agreement: % | Length audit passed: yes/no | Leaks fixed: yes/no
+### 4d. Blind judge (judge sees ONLY the user turns; 120 random dialogues per run;
+level definitions in the prompt; greedy decoding; per-item files qc_judge_*.jsonl)
+
+| Run | 3-way agreement | novice→called intermediate | intermediate→called expert | expert correct | novice↔expert swaps |
+|---|---|---|---|---|---|
+| Phi-4, Codex, all turns, first prompt (no definitions, 8 tokens) | 36.7% | — | — | — | — |
+| Phi-4, Gemma, all turns, first prompt | 55.0% | — | — | — | — |
+| Phi-4, Codex, all turns | 51.7% (62/120) | 31/38 | 26/39 | 43/43 | 1/120 |
+| Gemma-3-27B, Codex, all turns | 70.8% (85/120) | 25/38 | 5/39 | 38/43 | 0/120 |
+| Phi-4, Codex, FIRST TWO user turns only | 80.0% (96/120) | 8/38 | 14/39 | 41/43 | 0/120 |
+| Phi-4, Gemma, all turns | 70.0% (84/120) | 29/37 | 7/39 | 44/44 | 0/120 |
+| Phi-4, Gemma, first two turns | (pending) | | | | |
+
+Rank correlation between true and judged level: 0.86–0.87 in every run that reports it.
+Every error in every run is a shift of exactly one step, and the shift is always upward.
+
+Plain reading. The judge test asks: can a reader who sees only the user's words recover
+the label? If the labels were noise, errors would go in every direction and novices
+would sometimes be called experts. That never happens (0 of 120 with the strong judge).
+What does happen is one specific thing: when the judge sees the WHOLE dialogue, it calls
+most novices "intermediate". When it sees only the first two turns, it calls them
+"novice" (recall 6/38 → 30/38). That is the learning effect from 4c, measured: novice
+personas absorb the assistant's explanations and read as intermediates by the end.
+The same shift appears in the Gemma set (29/37), so it is a property of realistic
+tutoring dialogues, not of one generator.
+
+### 4e. Decision and what it means for E1 (pre-registered here)
+- The labels are valid where each persona starts, and the three levels are correctly
+  ORDERED everywhere. Proceed with both datasets; do not regenerate.
+- The original 85–95% target assumed static personas and that writing style carries
+  level. Neither holds here, by design. The honest QC criteria are: no extreme swaps,
+  rank correlation > 0.8, and ≥ 80% agreement on the opening turns. All three met.
+- Expect the probe's confusions to sit between novice and intermediate, not between
+  novice and expert. 04_probe_e1.py now prints the held-out confusion matrix, the
+  count of novice↔expert swaps, and a binary novice-vs-expert accuracy.
+- Expect per-level recall by turn to show novice recall FALLING with turn index while
+  expert recall stays flat — because the novices are genuinely becoming less novice.
+  If the probe's novice score tracks that learning on natural dialogues, that is the
+  dynamic user model working outside the scripted reversal set (a bonus for E2).
+- Early-turn accuracy is the fair test of the label; final-turn accuracy is a test of
+  the label after drift. Both will be reported.
+
+Blind judge agreement: see 4d  |  Length audit passed: yes, with the opposite-sign length
+effect recorded and a length-only baseline added  |  Leaks fixed: yes (false positives only)
 
 ## 5. E3 hand-verification (30 random judge verdicts)
 
