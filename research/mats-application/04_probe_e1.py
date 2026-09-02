@@ -16,7 +16,12 @@ The results this script produces, and what each is FOR:
   4. EXPLICIT<->IMPLICIT transfer (H1c). PRE-REGISTERED: the topic split applies
      to BOTH sets — train on training topics of one, test on held-out topics of
      the other — so the explicit set can't leak held-out topics into training.
-  5. CROSS-GENERATOR transfer (project-level confound): train on Codex-written
+  5. LENGTH-ONLY BASELINE (trivial-baseline check): the QC audit showed user
+     turns differ in length by level (Codex experts +3 words, Gemma novices
+     +8 words — opposite directions). A classifier that sees ONLY word counts
+     is trained on the same split. The activation probe must beat it clearly;
+     the gap is what the write-up reports.
+  6. CROSS-GENERATOR transfer (project-level confound): train on Codex-written
      dialogues, test on Gemma-written ones (and back). If accuracy holds, the
      probe reads competence, not one generator's house style for "novice".
      Runs only if activations/main_gemma.pt exists.
@@ -30,7 +35,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
-from config import ACT_DIR, FIG_DIR, HELDOUT_TOPICS, COLORS, act_path
+from config import ACT_DIR, FIG_DIR, HELDOUT_TOPICS, COLORS, SAVE_DIR, act_path
 
 os.makedirs(FIG_DIR, exist_ok=True)
 LEVEL_ID = {"novice": 0, "intermediate": 1, "expert": 2}
@@ -103,6 +108,28 @@ print(f"\nBEST LAYER {best_L}: snapshot acc {acc_by_layer[best_L]:.3f} (chance {
       f"  (n={n_d} held-out dialogues)"
       f"\n  shuffled-label control {acc_shuf[best_L]:.3f} | topic control {acc_topic[best_L]:.3f}")
 
+# --- length-only baseline ----------------------------------------------------
+def length_features(meta, path):
+    """[words in current turn, mean words/turn so far, turns so far, total words]
+    computed from the SAME dialogues the activations came from."""
+    rows = {r["id"]: r for r in map(json.loads, open(path))}
+    F = []
+    for m in meta:
+        ut = [x["content"] for x in rows[m["id"]]["messages"] if x["role"] == "user"]
+        wc = [len(t.split()) for t in ut[: m["turn"] + 1]]
+        F.append([wc[-1], float(np.mean(wc)), len(wc), sum(wc)])
+    return np.array(F, float)
+
+
+acc_len = None
+try:
+    F = length_features(meta, f"{SAVE_DIR}/main.jsonl")
+    acc_len, _ = fit_eval(F[~test], y[~test], F[test], y[test])
+    print(f"LENGTH-ONLY BASELINE (held-out topics): {acc_len:.3f}   "
+          f"-> activation probe beats it by {acc_by_layer[best_L] - acc_len:+.3f}")
+except (FileNotFoundError, KeyError) as e:
+    print(f"length baseline skipped ({e!r}) — needs {SAVE_DIR}/main.jsonl with matching ids")
+
 # --- 3. turn curves at best layer -------------------------------------------
 acc_turn_fixed, acc_turn_grow, n_turn = [], [], []
 for t in range(int(turns.max()) + 1):
@@ -161,6 +188,10 @@ ax.plot(acc_by_layer, color=COLORS["blue"], lw=2)
 ax.plot(acc_topic, color=COLORS["green"], lw=2)
 ax.plot(acc_shuf, color=COLORS["orange"], lw=2)
 ax.axhline(CHANCE, color="gray", lw=1, ls=":")
+if acc_len is not None:
+    ax.axhline(acc_len, color="gray", lw=1, ls="--")
+    ax.annotate("length-only baseline", (0, acc_len), fontsize=8, color="gray",
+                xytext=(0, 3), textcoords="offset points")
 for yv, lab, c in [(acc_by_layer[best_L], "user competence (held-out topics)", "blue"),
                    (acc_topic[best_L], "topic (positive control)", "green"),
                    (acc_shuf[best_L], "shuffled labels (negative control)", "orange")]:
@@ -190,5 +221,6 @@ json.dump({"acc_by_layer": acc_by_layer, "acc_shuffled": acc_shuf,
            "dialogue_level_acc_ci": [p_d, lo_d, hi_d], "n_heldout_dialogues": n_d,
            "acc_turn_fixed_probe": acc_turn_fixed, "acc_turn_growing": acc_turn_grow,
            "n_per_turn": n_turn, "h1b_rise_turn3_minus_turn0": rise,
-           "transfer": transfer, "cross_generator": xgen},
+           "transfer": transfer, "cross_generator": xgen,
+           "length_only_baseline": acc_len},
           open("results_e1.json", "w"), indent=2)

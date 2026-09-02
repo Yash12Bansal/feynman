@@ -103,9 +103,10 @@ def audit():
         wc = [len(t.split()) for t in user_text(d)]
         by_level.setdefault(d["level"], []).extend(wc)
         for t in user_text(d):
-            if BANNED.search(t):
+            mm = BANNED.search(t)
+            if mm:
                 leaks += 1
-                print(f"LEAK in {d['id']}: {t[:90]}")
+                print(f"LEAK in {d['id']}: match={mm.group(0)!r} :: {t[:90]}")
     print("\nWORD COUNTS per user turn (mean±sd) — must be similar across levels:")
     for lvl, wcs in by_level.items():
         print(f"  {lvl:13s} {st.mean(wcs):5.1f} ± {st.stdev(wcs):4.1f}  (n={len(wcs)})")
