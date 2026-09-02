@@ -33,6 +33,7 @@ random.seed(0)
 
 GEN_MODEL = os.environ.get("GEN_MODEL", "mistralai/Mistral-Small-24B-Instruct-2501")
 BATCH = int(os.environ.get("GEN_BATCH", "8"))
+LIMIT = int(os.environ.get("LIMIT", "0"))   # >0 = smoke test on N prompts per dataset
 
 
 # ---------------------------------------------------------------- prompt build
@@ -117,6 +118,9 @@ def run(which):
         if wanted not in which:
             continue
         name, tasks, mx = builder()
+        if LIMIT:
+            tasks = tasks[:LIMIT]
+            print(f"SMOKE TEST: only {len(tasks)} prompts for {name}")
         texts = llm.batch([t["prompt"] for t in tasks], max_new_tokens=mx)
         rows, fails = [], 0
         for t, txt in zip(tasks, texts):
@@ -126,6 +130,12 @@ def run(which):
             else:
                 fails += 1
         print(f"{name}: kept {len(rows)}, parse-failed {fails}")
+        if texts:
+            print("--- RAW SAMPLE (read this! is it a real dialogue?) ---")
+            print(texts[0][:900], "\n--- end sample ---")
+        if not rows:
+            print(f"!! {name}: EVERY generation failed to parse. Look at the raw "
+                  f"sample above before burning more GPU time.")
         G.save(rows, name)
 
     if "truth" in which or "honesty" in which:
