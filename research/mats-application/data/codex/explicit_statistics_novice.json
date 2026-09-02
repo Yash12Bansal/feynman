@@ -1,0 +1,186 @@
+[
+  [
+    {
+      "role": "user",
+      "content": "I'm a complete novice at this. What is a p-value actually measuring? I thought that if a study gets p below 0.05, its hypothesis is 95% likely to be true, so the result is basically confirmed."
+    },
+    {
+      "role": "assistant",
+      "content": "A p-value does not give the probability that the study's hypothesis is true. It asks a narrower, backward-looking question: if the null hypothesis were true, how unusual would results at least this extreme be? A p-value of 0.05 means such results would occur about 5% of the time under that null model. It does not supply the missing 95% probability for the alternative hypothesis."
+    },
+    {
+      "role": "user",
+      "content": "Why does everyone use the 0.05 line, then? If crossing it does not tell us the idea is probably right, I do not see what changes when a result moves from 0.051 to 0.049."
+    },
+    {
+      "role": "assistant",
+      "content": "Nothing important suddenly changes at that boundary. The 0.05 cutoff is a convention for making decisions while limiting false alarms under specified assumptions. Results of 0.051 and 0.049 provide nearly the same evidence. Treating one as failure and the other as proof throws away information. It is better to report the exact p-value alongside the estimated effect, its uncertainty, and the study design."
+    },
+    {
+      "role": "user",
+      "content": "Suppose the p-value is 0.02. Can I at least say there is only a 2% chance the result happened by accident, or is the word accident hiding the same mistake in a different form?"
+    },
+    {
+      "role": "assistant",
+      "content": "That wording hides the same reversal. The calculation assumes a particular null hypothesis and includes random sampling variation; it does not calculate the chance that “accident” caused the observed result. With p = 0.02, data this extreme or more extreme would have probability 2% under the null model. Bias, measurement error, selective analysis, and alternative explanations are outside that number unless explicitly modeled."
+    },
+    {
+      "role": "user",
+      "content": "Then what should I say in ordinary language when p is 0.02? I want a sentence that is accurate without repeating the whole definition or making the result sound stronger than it is."
+    },
+    {
+      "role": "assistant",
+      "content": "You could say: “The data are fairly inconsistent with the specified null hypothesis, assuming the analysis and sampling model are appropriate.” Then state the estimated effect and uncertainty. For example: “The groups differed by 4 units, with a 95% confidence interval from 1 to 7; p = 0.02.” That communicates the result without turning the p-value into a probability that a hypothesis is true."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "I'm new to statistics. Why does a statistically significant result count as important? I have assumed significance means the effect is large enough to matter, while a non-significant result means the difference is too small to care about."
+    },
+    {
+      "role": "assistant",
+      "content": "Statistical significance and practical importance are different. A p-value combines the observed effect with its uncertainty, which depends heavily on sample size and variability. A tiny effect can become statistically significant in a very large study. A substantial effect can miss the cutoff in a small, noisy study. To judge importance, inspect the effect's size in meaningful units and its confidence interval, not just whether p crosses 0.05."
+    },
+    {
+      "role": "user",
+      "content": "What does sample size do to the number? If two studies find the same average difference, why would the one with more people get a smaller p-value when the actual difference has not grown?"
+    },
+    {
+      "role": "assistant",
+      "content": "More observations usually make the estimated difference more precise. The p-value reflects the difference relative to its standard error, not the difference alone. If the same effect is measured with less uncertainty, it looks less compatible with a zero-effect null hypothesis, so the p-value tends to shrink. The estimated effect can remain unchanged while the evidence about whether it differs from zero becomes stronger."
+    },
+    {
+      "role": "user",
+      "content": "So a huge survey could label a one-point difference significant even if nobody would notice it. What number tells me whether the gap is meaningful, rather than merely detectable with enough observations?"
+    },
+    {
+      "role": "assistant",
+      "content": "Start with the estimated effect in the outcome's natural units: one point, three minutes, or a 2% risk reduction. Compare it with a threshold chosen for real-world importance before seeing the results. Standardized effect sizes can help compare different scales, but they do not define importance automatically. The confidence interval then shows which effect sizes remain reasonably compatible with the data."
+    },
+    {
+      "role": "user",
+      "content": "What if the effect is large but the p-value is 0.08? Is it fair to call that a promising result, or would that just be dressing up a result that did not pass the usual line?"
+    },
+    {
+      "role": "assistant",
+      "content": "“Promising” can be vague enough to mislead. Report what was estimated and how uncertain it is. A large estimate with p = 0.08 may have a wide interval spanning both meaningful benefit and little or no effect. That supports uncertainty, not a clean positive or negative verdict. Whether further study is worthwhile depends on plausible effect sizes, costs, risks, prior evidence, and the quality of the design."
+    },
+    {
+      "role": "user",
+      "content": "If I see only a headline saying a finding was significant, what details should I look for before deciding whether the result matters outside the calculation?"
+    },
+    {
+      "role": "assistant",
+      "content": "Look for the effect estimate, its units, and a confidence interval. Check the sample size, outcome being measured, study design, and whether the comparison was planned in advance. Ask what size would matter in practice and whether the interval includes effects below that threshold. Also distinguish relative changes from absolute changes: a 50% relative reduction may represent a change from two cases per thousand to one."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "I'm a beginner with statistics. What does it mean when a study finds no significant difference? I take that to mean the no-effect explanation is correct, while a significant result must show a large effect rather than ordinary noise."
+    },
+    {
+      "role": "assistant",
+      "content": "A non-significant result does not establish that there is no effect. It says the data did not provide sufficiently strong evidence against the specified null hypothesis under the chosen test. That can happen because the true effect is near zero, but also because the sample is small, measurements are noisy, or the estimate is imprecise. The confidence interval helps distinguish a tightly estimated near-zero effect from broad uncertainty."
+    },
+    {
+      "role": "user",
+      "content": "Why does a wide interval matter if the p-value already missed 0.05? I thought the test had answered the yes-or-no question, even if it did not say exactly how big the difference was."
+    },
+    {
+      "role": "assistant",
+      "content": "The test answers a decision question only under a chosen rule; it does not settle whether an effect exists. A wide interval might include zero, a meaningful benefit, and meaningful harm, showing that many conclusions remain compatible with the data. A narrow interval centered near zero can rule out effects large enough to matter. Both results may be non-significant, yet they support very different interpretations."
+    },
+    {
+      "role": "user",
+      "content": "Could you give a simple comparison using the same average result? I am trying to see how one zero-looking result can be informative while another is mostly inconclusive."
+    },
+    {
+      "role": "assistant",
+      "content": "Imagine both studies estimate a treatment benefit of 1 point. Study A has a 95% confidence interval from -20 to 22, so large benefit and large harm are both plausible. Study B has an interval from -1 to 3, so large effects are largely excluded. Neither may be significant, but Study B provides much stronger evidence that any effect is small."
+    },
+    {
+      "role": "user",
+      "content": "Is that what people mean by a study having enough power? The word sounds like it means reliability in general, but I suspect it refers to a narrower ability of the test."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, it is narrower. Statistical power is the probability that a testing procedure will reject the null when a particular alternative effect is true. It depends on the assumed effect size, sample size, variability, significance threshold, and design. High power for detecting a large effect does not guarantee sensitivity to a small one, and power does not protect against bias or poor measurement."
+    },
+    {
+      "role": "user",
+      "content": "If researchers want to show two treatments are practically the same, why not use an ordinary test and hope for a large p-value? What different question would they need to ask?"
+    },
+    {
+      "role": "assistant",
+      "content": "A large p-value is not affirmative evidence of similarity. Researchers can use an equivalence test: first define the largest difference small enough to be practically unimportant, then test whether the data rule out effects beyond those bounds. A sufficiently precise confidence interval lying entirely inside the equivalence range supports practical similarity. The conclusion depends on scientifically justified bounds, not merely failing to reject zero difference."
+    },
+    {
+      "role": "user",
+      "content": "Then how should a report phrase a non-significant result when the interval is wide? Saying there was no difference now seems too definite, but saying nothing was learned also seems inaccurate."
+    },
+    {
+      "role": "assistant",
+      "content": "A clear phrasing is: “The estimated difference was X, but the confidence interval was wide and included both no effect and effects large enough to matter; the evidence was inconclusive.” Include the interval and p-value. This states what the data showed without claiming equivalence. You can also identify the main source of imprecision, while avoiding the implication that a larger sample would automatically remove other design limitations."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "I'm a total novice in statistics. Why does testing many possible patterns make a p-value less convincing? I assumed each result below 0.05 still means its explanation has a 95% chance of being right, regardless of how many checks were tried."
+    },
+    {
+      "role": "assistant",
+      "content": "Each p-value still has its conditional definition, but your 95% interpretation is incorrect. If many null hypotheses are true and you test each at the 0.05 level, some small p-values will arise by chance. With 20 independent tests, the expected number below 0.05 is one. Searching broadly and reporting only the smallest result therefore makes that result look more surprising than the full process warrants."
+    },
+    {
+      "role": "user",
+      "content": "What is the difference between twenty separate tests and one study with twenty measurements? Does merely collecting many kinds of information cause the problem, or only choosing among them after seeing which looks best?"
+    },
+    {
+      "role": "assistant",
+      "content": "Collecting many measurements is not automatically a problem. The issue arises when many opportunities to make a claim are searched without accounting for that search. Preselecting one primary outcome keeps its test interpretable under the planned procedure. Exploring twenty outcomes can be useful, but the analysis should disclose them and use an adjustment, a hierarchical model, or independent confirmation rather than presenting the winner as the only test performed."
+    },
+    {
+      "role": "user",
+      "content": "Why does picking the test afterward change anything mathematical? The data are already fixed, so it seems as though the smallest p-value should mean the same thing whether that comparison was planned or noticed later."
+    },
+    {
+      "role": "assistant",
+      "content": "The number is computed from the selected comparison, but its usual calibration assumes that comparison was not chosen because it looked extreme. After searching, the relevant event is closer to “at least one of all examined comparisons looked this extreme,” which is more likely under the null. Selection changes the procedure whose false-positive behavior matters, even though it does not alter the recorded observations."
+    },
+    {
+      "role": "user",
+      "content": "Is multiplying each p-value by the number of tests the usual fix? That sounds simple, but I wonder whether it becomes too harsh when the measurements are related to one another."
+    },
+    {
+      "role": "assistant",
+      "content": "That is the Bonferroni adjustment, and it controls the chance of making at least one false rejection across a family of tests. It is simple and valid even when tests are dependent, but it can be conservative, especially with many correlated outcomes. Other methods control different error rates, such as the expected proportion of false discoveries, and may be more suitable depending on the goal."
+    },
+    {
+      "role": "user",
+      "content": "What does false discovery rate mean in everyday terms? Is it the chance that this particular significant finding is false, or is it another average over a larger collection of decisions?"
+    },
+    {
+      "role": "assistant",
+      "content": "It is a property of a collection and procedure, not usually the probability that one particular finding is false. Roughly, among the results the procedure labels discoveries, it controls the expected fraction that are false positives under repeated use. That differs from controlling the chance of any false positive. Interpreting an individual claim still requires its effect estimate, uncertainty, prior plausibility, design quality, and ideally replication."
+    },
+    {
+      "role": "user",
+      "content": "If a surprising result appears only during exploration, should it be ignored entirely? I can see why calling it confirmed is wrong, but it might still point toward something worth checking."
+    },
+    {
+      "role": "assistant",
+      "content": "It need not be ignored. Label it as exploratory, report the full search context, and treat the estimated effect cautiously because selected extremes are often exaggerated. The finding can generate a hypothesis for a new, preregistered study or a separate dataset. Confirmation is strongest when the follow-up test is genuinely independent and measures the outcome specified before examining the new results."
+    },
+    {
+      "role": "user",
+      "content": "How would I summarize a paper that reports p equals 0.01 after examining one hundred outcomes but gives no adjustment? I want to avoid both dismissing it automatically and repeating its claim at face value."
+    },
+    {
+      "role": "assistant",
+      "content": "You could say: “The paper found one association with an unadjusted p-value of 0.01 after examining 100 outcomes. Because the analysis created many chances for a small p-value, the evidence is weaker than 0.01 alone suggests and should be considered exploratory unless the result survives an appropriate multiplicity analysis or independent replication.” Then report the effect size and interval if available."
+    }
+  ]
+]

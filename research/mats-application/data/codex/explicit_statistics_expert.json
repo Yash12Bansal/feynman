@@ -1,0 +1,186 @@
+[
+  [
+    {
+      "role": "user",
+      "content": "I'm a complete expert at this. Under a composite null, what exactly is licensed by reporting a p-value computed at a fitted nuisance parameter? I am interested in the distinction among a pointwise tail probability, a supremum p-value, and a plug-in approximation when the nuisance estimate is unstable."
+    },
+    {
+      "role": "assistant",
+      "content": "A pointwise p-value controls type-I error only at the specified nuisance value. Plugging in an estimate generally does not preserve that guarantee, especially when the estimator is noisy or its uncertainty is entangled with the test statistic. Taking the supremum over nuisance values yields a valid, often conservative p-value for the composite null. Alternatives include conditioning away the nuisance parameter, using a pivotal statistic, or calibrating a profile statistic by bootstrap under conditions that justify uniform approximation."
+    },
+    {
+      "role": "user",
+      "content": "Suppose the bootstrap is pointwise consistent but not uniformly consistent near a boundary where the nuisance parameter is unidentified under the null. Would it then be fair to say the nominal p-value has no uniform frequentist interpretation, even if its simulation behavior looks acceptable away from that boundary?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. Pointwise validity can coexist with arbitrarily poor size control along parameter sequences approaching the boundary. Simulations conducted at fixed, well-separated parameter values may therefore miss the failure. The p-value can still describe calibration for those simulated configurations, but it does not support a uniform claim over the composite null. Boundary-specific asymptotics, least-favorable calibration, or a test constructed from the nonstandard limiting experiment would be needed for a broader guarantee."
+    },
+    {
+      "role": "user",
+      "content": "I used 'no uniform interpretation' too broadly. It may retain a conservative interpretation after least-favorable calibration, just not from the ordinary plug-in bootstrap. Does the supremum construction necessarily sacrifice substantial power, or can localization of the nuisance set recover most of it without invalidating size?"
+    },
+    {
+      "role": "assistant",
+      "content": "The sacrifice is not necessary in every problem, but localization must itself be calibrated. One approach forms a confidence set for the nuisance parameter and maximizes the p-value over that set, with an adjustment for the probability that the set misses the truth. Berger–Boos procedures formalize this idea. They can improve power when the nuisance space is broad yet the data localize it sharply, while retaining finite-sample size control if both the confidence-set coverage and added adjustment are correct."
+    },
+    {
+      "role": "user",
+      "content": "Then the operative claim remains procedural: under every null-compatible parameter value, the entire algorithm produces a p-value whose lower tail is bounded by the uniform distribution. It does not assign a probability to the composite null, nor identify which nuisance value generated the data. Is that the cleanest formulation?"
+    },
+    {
+      "role": "assistant",
+      "content": "That is clean. More precisely, validity means that for every parameter value in the null, the probability that the reported p-value is at most alpha is no greater than alpha, with probability taken over repetitions of the complete procedure. This neither gives a posterior probability for the null nor estimates the data-generating nuisance value. It also says nothing by itself about power, informativeness, or robustness outside the assumptions used to establish calibration."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "I'm a complete expert at this. If a trial uses continuous monitoring with a prespecified alpha-spending boundary, should the final reported quantity be called a p-value only if it is stagewise ordered? I want to separate evidence at the stopping time from error control of the sequential decision rule."
+    },
+    {
+      "role": "assistant",
+      "content": "A conventional fixed-sample p-value at the stopping time is generally invalid because the stopping rule changes its null distribution. A stagewise-ordering p-value is one legitimate sequential p-value: it measures how extreme the observed path is under a prespecified ordering and respects the design. But alpha-spending alone defines rejection boundaries, not a unique p-value. Different orderings can yield different valid p-values while inducing the same reject-or-continue decisions at planned analyses."
+    },
+    {
+      "role": "user",
+      "content": "So two procedures may share strong familywise type-I control and identical boundaries yet attach different adjusted p-values to the same stopped path. Does that imply the numerical p-value contains design-dependent ordering information beyond the binary operating characteristic, rather than being an intrinsic measure of evidence?"
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly. Error control constrains rejection probabilities, but it does not uniquely rank all possible sample paths. An adjusted p-value encodes the chosen ordering, monitoring schedule, and stopping rule. Calling it intrinsic evidence obscures those choices. Its defensible interpretation is operational: the smallest significance level at which that path would trigger rejection under the specified sequential procedure. Even that statement requires care when boundaries or spending functions are data-adaptive."
+    },
+    {
+      "role": "user",
+      "content": "Consider an unplanned look prompted by an external event, where the event is plausibly independent of outcomes but changes recruitment and thus the information trajectory. Is conditioning on the realized information time enough, or must the monitoring mechanism enter the null calibration even without direct outcome dependence?"
+    },
+    {
+      "role": "assistant",
+      "content": "Conditioning may be enough only if the information time is ancillary, or if an appropriate independent-increments argument makes the conditional null law valid. Outcome independence of the external trigger helps, but altered recruitment can affect covariate mix, variance, censoring, or model adequacy. The safest calibration represents the actual monitoring and information process. If those changes are ignorable under a clearly stated filtration, a conditional sequential p-value can remain valid; otherwise simulation or redesign is warranted."
+    },
+    {
+      "role": "user",
+      "content": "My phrase 'independent of outcomes' was insufficient; predictability with respect to the analysis filtration is closer to what matters. If the trigger is predictable but the test statistic lacks independent increments, can an always-valid p-process still be constructed through a test martingale without committing to stagewise ordering?"
+    },
+    {
+      "role": "assistant",
+      "content": "Often, yes. A nonnegative test supermartingale with null expectation bounded by one yields an e-value process; Ville's inequality then gives anytime-valid testing. An anytime-valid p-value can be derived from the running maximum, for example by truncating its reciprocal at one. This avoids stagewise ordering, but shifts the burden to constructing a valid supermartingale under the full composite null. Dependence, nuisance estimation, and optional continuation must all be handled in that construction."
+    },
+    {
+      "role": "user",
+      "content": "And such an anytime-valid p-value should not be read as the posterior probability of no effect, or even as a likelihood-based evidence measure. Its merit is that optional stopping is absorbed into calibration over the path. Is there any general ordering between its magnitude and a design-specific sequential p-value?"
+    },
+    {
+      "role": "assistant",
+      "content": "There is no general ordering. The two quantities arise from different sample-path orderings and may exploit different alternatives. A martingale-based p-value can be more conservative when its betting strategy poorly matches the realized effect, while a design-specific p-value can be less efficient under deviations from its planned schedule. Both are calibrated frequentist procedures, not posterior null probabilities. Comparing them meaningfully requires fixing the null, alternative class, stopping behavior, and criterion such as expected sample size or power."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "I'm a complete expert at this. In a large observational study, a tiny p-value can accompany a negligible standardized effect. Beyond the familiar distinction between statistical and practical significance, what precisely prevents the p-value from quantifying either effect magnitude or the probability that the estimated sign is correct?"
+    },
+    {
+      "role": "assistant",
+      "content": "The p-value is computed from the distribution of a test statistic under a null model; it combines effect size, standard error, sample size, and modeling assumptions. Consequently, the same p-value can arise from a small precise estimate or a large noisy one. It conditions on the null rather than on the observed data, so it cannot provide the probability that the null is true or that the estimated sign is correct without a prior and a fully specified inferential model."
+    },
+    {
+      "role": "user",
+      "content": "Even under an exactly normal estimator with known standard error, a two-sided p-value discards the sign and does not invert uniquely to an absolute effect unless the standard error is supplied. With the standard error supplied, is the remaining objection merely philosophical, or is there still information loss?"
+    },
+    {
+      "role": "assistant",
+      "content": "With that model, the two-sided p-value and standard error recover the magnitude of the estimate, but not its sign; supplying the sign recovers the estimate itself. That algebra does not turn the p-value into an effect-size measure. The inferential object remains a tail area under the null, and it does not convey uncertainty as transparently as an estimate with a confidence interval. Under composite models, discreteness, nuisance estimation, or asymmetric tests, even the simple inversion can fail or become nonunique."
+    },
+    {
+      "role": "user",
+      "content": "Now add model misspecification: residual dependence makes the nominal standard error too small, while the point estimate remains approximately centered. Would you describe the resulting p-value as overstating evidence, or reserve that phrase because evidence is not uniquely defined and instead say its null calibration is anti-conservative?"
+    },
+    {
+      "role": "assistant",
+      "content": "The second formulation is more precise. If the reference distribution understates variability, small p-values occur too often under the null, so the procedure is anti-conservative. Saying it overstates evidence is understandable but imports an evidence scale the p-value does not uniquely possess. The distinction matters because a misspecified variance can damage type-I error while leaving the estimate's target intact, whereas confounding or selection can shift the estimand or bias the estimate itself."
+    },
+    {
+      "role": "user",
+      "content": "I should distinguish a centered estimator for the associational target from an unbiased estimator of a causal effect; residual dependence alone does not resolve confounding. If I report an effect estimate, robust interval, and p-value, what nonredundant role does the p-value still play?"
+    },
+    {
+      "role": "assistant",
+      "content": "It compactly reports compatibility with the tested null under the chosen model and procedure, and it supports threshold-based decision rules whose long-run error properties are prespecified. If the interval is obtained by inverting the identical test, the p-value adds little inferential information beyond finer resolution around whether particular null values are excluded. It may still aid multiplicity adjustments or standardized reporting, but it cannot repair ambiguity about the estimand, causal identification, model robustness, or practical relevance."
+    },
+    {
+      "role": "user",
+      "content": "For sign uncertainty, a confidence distribution or directional p-value sometimes gets interpreted probabilistically. Unless additional assumptions justify a posterior or confidence-distribution framework, is the safest statement still repeated-sampling calibration of the directional error, rather than a data-conditional probability that the sign is wrong?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. A directional p-value can calibrate a one-sided test, and procedures built from it can control type-S error under specified conditions, but the observed value is not automatically the conditional probability of a sign mistake. A confidence distribution assigns distribution-like quantities to parameters through repeated-sampling constructions; treating those quantities as posterior probabilities requires extra interpretation and often extra assumptions. Reporting the estimate's sign, interval, and the procedure's directional error guarantee keeps those concepts separate."
+    },
+    {
+      "role": "user",
+      "content": "Would selective reporting of only estimates with the preferred sign break that directional guarantee even if each marginal p-value was valid before selection? I suspect the answer depends on whether the claim concerns an individual prespecified test or the error rate among the signs ultimately reported."
+    },
+    {
+      "role": "assistant",
+      "content": "That distinction is decisive. A prespecified test retains its marginal calibration as a hypothetical procedure, but conditioning on selection changes the distribution of reported estimates and p-values. Among selected signs, the probability of a wrong direction can be much larger than the nominal one-sided level, especially for weak signals. Valid post-selection claims require modeling or conditioning on the selection rule, or controlling a suitable aggregate criterion such as the false sign rate across reported findings."
+    }
+  ],
+  [
+    {
+      "role": "user",
+      "content": "I'm a complete expert at this. For an exact test with a discrete null distribution, the attainable p-values are conservative. How should one explain the trade-off between the ordinary tail p-value, a randomized p-value, and the mid-p value without implying that all three have the same frequentist guarantee?"
+    },
+    {
+      "role": "assistant",
+      "content": "The ordinary exact p-value includes the full probability mass at the observed statistic and is super-uniform under the null, often conservatively. A randomized p-value uses an independent uniform draw to include only a random fraction of that mass, achieving exact uniformity under suitable simple-null conditions but making conclusions depend on auxiliary randomness. The mid-p substitutes one half of the observed mass, reducing conservatism but generally losing finite-sample type-I error control at every nominal threshold."
+    },
+    {
+      "role": "user",
+      "content": "For a composite null in a small contingency table, the phrase 'exact p-value' can conceal whether nuisance margins are conditioned upon or maximized over. Is conditional exactness fundamentally a different guarantee from unconditional size control, especially when the conditioning statistic is not obviously ancillary?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. A conditional test guarantees calibration within strata defined by the conditioning statistic, typically because conditioning removes a nuisance parameter. An unconditional test averages over that statistic and can exploit its distribution, sometimes gaining power while still controlling size across nuisance values. If the conditioning statistic is not ancillary, conditioning changes which repetitions define the guarantee and may discard information about alternatives. Neither approach is universally superior; the sampling design and inferential target determine which reference set is appropriate."
+    },
+    {
+      "role": "user",
+      "content": "If the mid-p test exceeds alpha only on a narrow subset of nuisance values but has better average power, reporting its value alongside a worst-case exact p-value seems informative. What wording avoids laundering average-case performance into a claim of finite-sample validity?"
+    },
+    {
+      "role": "assistant",
+      "content": "Label the quantities and their guarantees separately. For example: the worst-case exact p-value controls type-I error uniformly over the stated null, whereas the mid-p value is a less conservative descriptive calibration whose rejection probability may exceed the nominal level for some null parameters. Then report the maximum size inflation, if known, and the power criterion used for comparison. Avoid calling the mid-p value exact merely because it is computed from an exact finite-sample distribution."
+    },
+    {
+      "role": "user",
+      "content": "I was imprecise in saying 'descriptive calibration': a mid-p value still has a defined repeated-sampling distribution, just not general super-uniformity. Are there settings where its unconditional distribution is provably conservative even though conditional super-uniformity fails within some strata?"
+    },
+    {
+      "role": "assistant",
+      "content": "There are. Averaging across strata or nuisance-induced mixtures can make the unconditional rejection probability no larger than alpha even when some conditional strata are anti-conservative. Such a result is specific to the sampling model, parameter space, and weighting distribution; it cannot be inferred from the mid-p construction alone. One should state whether control is conditional, unconditional at each nuisance value, or averaged under an additional distribution on nuisance configurations, because those are materially different assertions."
+    },
+    {
+      "role": "user",
+      "content": "Randomization restores uniformity by adding information unrelated to the parameter. Does that make the randomized p-value less evidentially interpretable, or only less reproducible as a decision aid? I am unsure whether 'evidentially' has a stable technical meaning here."
+    },
+    {
+      "role": "assistant",
+      "content": "Your hesitation is warranted because evidential interpretation depends on a chosen framework. Randomization improves frequentist calibration but means two analysts with the same data can obtain different decisions unless the auxiliary draw is fixed and recorded. Many regard that as undesirable for reporting evidence, even though it is coherent for randomized decision rules. A useful compromise is to report the nonrandomized exact p-value and, separately, describe the randomized rule when exact nominal size is operationally important."
+    },
+    {
+      "role": "user",
+      "content": "Suppose the randomizer is generated deterministically from a preregistered hash of immutable data identifiers. The procedure is reproducible, but the auxiliary value may no longer be independent if identifiers relate to allocation or outcome collection. Is independence, rather than unpredictability, the essential calibration condition?"
+    },
+    {
+      "role": "assistant",
+      "content": "Independence from the test statistic under every null configuration is the key property; mere unpredictability is insufficient. A deterministic hash can act like an independent uniform draw only if its input is demonstrably unrelated to all variables governing the statistic's null distribution. Identifiers tied to sites, blocks, chronology, or allocation may violate that condition. A preregistered external random seed, preserved in the audit record, provides a cleaner basis for reproducible implementation and valid randomization."
+    },
+    {
+      "role": "user",
+      "content": "Then none of these variants reports the probability that the null is true. Their differences concern which sample-space ordering and auxiliary mechanism achieve exactness, conservatism, or power. Would you also distinguish discreteness-induced conservatism from conservatism caused by maximizing over nuisance parameters?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. Discreteness creates gaps in attainable tail probabilities even under a fully specified null; nuisance maximization adds conservatism by calibrating against a least-favorable parameter value that may fit the observed data poorly. They can compound, but remedies differ: randomization or mid-p adjustments address boundary mass, while conditioning, profiling, or calibrated localization addresses nuisance uncertainty. None changes the basic interpretation: the p-value describes extremeness under a specified testing procedure, not the probability that the null hypothesis is true."
+    }
+  ]
+]
