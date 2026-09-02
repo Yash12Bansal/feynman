@@ -132,10 +132,15 @@ except (FileNotFoundError, KeyError) as e:
 
 # --- 3. turn curves at best layer -------------------------------------------
 acc_turn_fixed, acc_turn_grow, n_turn = [], [], []
-for t in range(int(turns.max()) + 1):
-    m_ = test & (turns == t)
+recall_turn = {lv: [] for lv in LEVEL_ID}      # per-level recall by turn (QC note:
+for t in range(int(turns.max()) + 1):          # Codex novices visibly LEARN within a
+    m_ = test & (turns == t)                   # dialogue, so 'novice' may fade by turn 5)
     if m_.sum() < 20: break
     acc_turn_fixed.append(probe.score(X[m_, best_L], y[m_]))       # PRIMARY (H1b)
+    pred_t = probe.predict(X[m_, best_L])
+    for lv, k in LEVEL_ID.items():
+        mk = y[m_] == k
+        recall_turn[lv].append(float((pred_t[mk] == k).mean()) if mk.any() else float("nan"))
     a, _ = fit_eval(X[~test & (turns <= t), best_L], y[~test & (turns <= t)],
                     X[m_, best_L], y[m_])
     acc_turn_grow.append(a)                                         # secondary
@@ -143,6 +148,8 @@ for t in range(int(turns.max()) + 1):
 rise = acc_turn_fixed[min(3, len(acc_turn_fixed) - 1)] - acc_turn_fixed[0]
 print(f"turn curve (fixed probe): {[round(a, 3) for a in acc_turn_fixed]}  n={n_turn}"
       f"\n  H1b statistic: acc(turn 3) - acc(turn 0) = {rise:+.3f}")
+for lv, rc in recall_turn.items():
+    print(f"  recall by turn, {lv:12s}: {[round(a, 2) for a in rc]}")
 
 # --- 4. explicit <-> implicit transfer (topic-clean both ways) ---------------
 transfer = {}
@@ -221,6 +228,7 @@ json.dump({"acc_by_layer": acc_by_layer, "acc_shuffled": acc_shuf,
            "dialogue_level_acc_ci": [p_d, lo_d, hi_d], "n_heldout_dialogues": n_d,
            "acc_turn_fixed_probe": acc_turn_fixed, "acc_turn_growing": acc_turn_grow,
            "n_per_turn": n_turn, "h1b_rise_turn3_minus_turn0": rise,
+           "recall_by_turn": recall_turn,
            "transfer": transfer, "cross_generator": xgen,
            "length_only_baseline": acc_len},
           open("results_e1.json", "w"), indent=2)
