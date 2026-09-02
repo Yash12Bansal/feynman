@@ -53,7 +53,10 @@ def parse_dialogue(text):
     return msgs if ok else None
 
 
-DIALOGUE_PROMPT = """Write a dialogue between a USER and an AI ASSISTANT about {topic},
+from fewshot import FEWSHOT
+
+DIALOGUE_PROMPT = FEWSHOT + """
+Now write a NEW dialogue between a USER and an AI ASSISTANT about {topic},
 specifically around: {question}. {n_turns} user turns, alternating USER/ASSISTANT,
 starting with USER. Format exactly as lines starting with "USER:" or "ASSISTANT:".
 
