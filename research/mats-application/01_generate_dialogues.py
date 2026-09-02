@@ -43,11 +43,15 @@ def call_llm(prompt, temperature=1.0, retries=4):
 
 
 def parse_dialogue(text):
-    """Expect USER:/ASSISTANT: alternation; return list of {role, content}."""
-    turns = re.findall(r"(USER|ASSISTANT):\s*(.*?)(?=\n(?:USER|ASSISTANT):|\Z)",
-                       text, re.S)
-    msgs = [{"role": r.lower().replace("assistant", "assistant").replace("user", "user"),
-             "content": c.strip()} for r, c in turns]
+    """Expect USER:/ASSISTANT: alternation; return list of {role, content}.
+    Tolerant of markdown decoration (**USER:**, ### ASSISTANT:, "User:") and
+    code fences, which chat models add unprompted."""
+    text = text.replace("```", "")
+    pat = (r"^[\s\*#>_-]*(USER|ASSISTANT)[\s\*_]*:[\s\*_]*(.*?)"
+           r"(?=^[\s\*#>_-]*(?:USER|ASSISTANT)[\s\*_]*:|\Z)")
+    turns = re.findall(pat, text, re.S | re.M | re.I)
+    msgs = [{"role": r.lower(), "content": c.strip().strip("*_ ").strip()}
+            for r, c in turns]
     ok = (len(msgs) >= 6 and msgs[0]["role"] == "user"
           and all(m["content"] for m in msgs))
     return msgs if ok else None
