@@ -198,6 +198,20 @@ try:
                   f"[{eff[1]:+.3f},{eff[2]:+.3f}]  (compare full-history effect above)")
     except FileNotFoundError:
         pass
+    try:
+        dna = torch.load(act_path("reversal_neutralassistant"))
+        na = {}
+        for x, m in zip(dna["acts"].numpy()[:, L], dna["meta"]):
+            na.setdefault(m["direction"], {}).setdefault(m["turn"], []).append(x)
+        for name, target, sign in [("novice->expert", exp_final, 1), ("expert->novice", nov_final, -1)]:
+            v = p_expert(np.stack(na[name][FINAL])); iso = po[name][FINAL]
+            eff = boot(lambda a, b: sign * (a.mean() - b.mean()), iso, v)
+            ctrl[name]["neutral_assistant_final"] = float(v.mean())
+            ctrl[name]["history_effect_neutral_assistant_ci"] = eff
+            print(f"H2c source {name}: all turns kept, assistant's pre-switch replies replaced by a neutral "
+                  f"placeholder -> final {v.mean():.3f}; history effect {eff[0]:+.3f} [{eff[1]:+.3f},{eff[2]:+.3f}]")
+    except FileNotFoundError:
+        pass
     print("  (history effect > 0.1 with CI clear of 0 = anchoring is real; a large writing "
           "effect = the generator wrote weaker post-switch turns)")
 except FileNotFoundError:

@@ -45,8 +45,13 @@ dataset = sys.argv[1] if len(sys.argv) > 1 else "main"
 # assistant's pre-switch replies (the novice turns are merged into the first
 # post-switch user message). Splits the anchoring source: the user's own words vs
 # the model's earlier novice-pitched explanations sitting in the context.
+# "reversal_neutralassistant": every turn kept in place, but the assistant's
+# pre-switch replies are replaced by a fixed neutral placeholder with no pitch.
+# Separates "content of the model's own earlier replies" from "multi-turn structure".
 SRC = {"reversal_postonly": "reversal", "honesty_claimpos": "honesty",
-       "truth_lastword": "truth", "reversal_userhistory": "reversal"}
+       "truth_lastword": "truth", "reversal_userhistory": "reversal",
+       "reversal_neutralassistant": "reversal"}
+NEUTRAL = "Thanks, that's a good question. Let's keep going."
 src = SRC.get(dataset, dataset)
 rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{src}.jsonl")]
 import re
@@ -134,6 +139,10 @@ for d in tqdm(rows):
         k = d["switch_turn"]
         msgs = msgs[user_idx[k]:]              # starts at the first switched user turn
         t0, user_idx = k, [i for i, m in enumerate(msgs) if m["role"] == "user"]
+    if dataset == "reversal_neutralassistant":
+        k = d["switch_turn"]
+        msgs = [({"role": "assistant", "content": NEUTRAL} if (m["role"] == "assistant" and i < user_idx[k]) else m)
+                for i, m in enumerate(msgs)]
     if dataset == "reversal_userhistory":
         k = d["switch_turn"]
         pre_user = [msgs[i]["content"] for i in user_idx[:k]]
