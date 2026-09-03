@@ -1,0 +1,7 @@
+H2c anchoring gap at turn 5: n->e +0.282 [+0.181,+0.389]   e->n +0.027 [+0.007,+0.053]   (threshold 0.1)
+H2c control novice->expert: full-context final 0.702 | post-switch turns only 1.000 | lifelong 0.983  ->  history effect +0.298 [+0.205,+0.401], writing effect -0.017 [-0.040,-0.001]
+H2c control expert->novice: full-context final 0.028 | post-switch turns only 0.000 | lifelong 0.001  ->  history effect +0.028 [+0.009,+0.054], writing effect -0.001 [-0.003,-0.000]
+H2c source novice->expert: user's pre-switch turns kept, assistant's removed -> final 0.988; history effect from user turns alone +0.011 [+0.003,+0.023]  (compare full-history effect above)
+H2c source expert->novice: user's pre-switch turns kept, assistant's removed -> final 0.040; history effect from user turns alone +0.040 [+0.012,+0.077]  (compare full-history effect above)
+H2c source novice->expert: all turns kept, assistant's pre-switch replies replaced by a neutral placeholder -> final 0.832; history effect +0.168 [+0.090,+0.259]
+H2c source expert->novice: all turns kept, assistant's pre-switch replies replaced by a neutral placeholder -> final 0.157; history effect +0.157 [+0.076,+0.244]
