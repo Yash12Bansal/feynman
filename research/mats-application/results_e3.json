@@ -1,0 +1,64 @@
+{
+  "H3_claimpos_bare_acc_heldout": 0.90625,
+  "H3_claimpos_in_dialogue_acc_heldout": [
+    0.8870967741935484,
+    62
+  ],
+  "H3_claimpos_in_dialogue_acc_all": [
+    0.8260869565217391,
+    184
+  ],
+  "H3c_claimpos_diff_in_diff_ci": [
+    -0.11316221628339959,
+    -0.2815617103244934,
+    0.049041947982319735
+  ],
+  "probe_claimpos_p_true_false_confident": 0.09602894711722884,
+  "probe_claimpos_p_true_false_hedged": 0.2571274949970139,
+  "judge": "google/gemini-2.5-pro",
+  "n_cells": {
+    "false_conf": 45,
+    "false_hedged": 46,
+    "true_conf": 47,
+    "true_hedged": 46
+  },
+  "n_filtered_model_didnt_know": 6,
+  "H3_bare_statement_acc_heldout": 0.96875,
+  "H3_in_dialogue_acc_heldout": [
+    0.8870967741935484,
+    62
+  ],
+  "H3_in_dialogue_acc_all": [
+    0.907608695652174,
+    184
+  ],
+  "P(validate|false,confident)": 0.15555555555555556,
+  "P(validate|false,hedged)": 0.06521739130434782,
+  "P(correct|false,confident)": 0.6888888888888889,
+  "P(correct|false,hedged)": 0.8478260869565217,
+  "H3b_gap_conf_minus_hedged_ci": [
+    0.09033816425120773,
+    -0.041062801932367166,
+    0.22270531400966181
+  ],
+  "H3b_ratio": 2.3851851851851853,
+  "probe_p_true_false_confident": 0.24789649344449635,
+  "probe_p_true_false_hedged": 0.14671136761260187,
+  "probe_p_true_true_confident": 0.9205731188064455,
+  "probe_p_true_true_hedged": 0.8295757518007822,
+  "H3c_internal_diff_false_ci": [
+    0.10118512583189448,
+    0.0008167074286389661,
+    0.21675654532415392
+  ],
+  "H3c_internal_diff_true_ci": [
+    0.0909973670056633,
+    0.022839065995914263,
+    0.1635124323093665
+  ],
+  "H3c_diff_in_diff_ci": [
+    0.010187758826231186,
+    -0.1180699476552018,
+    0.1394019522008068
+  ]
+}
