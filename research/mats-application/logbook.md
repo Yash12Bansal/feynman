@@ -14,9 +14,9 @@ prediction table is the single most legible taste signal you can produce.
 | H2  | Estimate crosses 0.5 within ≤3 turns of evidence flip                              | p:55%, t:within 2-3 turns, f:never crosses                            | I think model observes when behaviour suddenly changes and it highlights it by praising or correcting us but given this hypo depends highly on H1 prob is kept at 55...                                                                                                                                                                                                                                                    | YES. Crosses 0.5 within 1 turn of the switch in both directions (pooled and Codex probes). | The estimate does move on in-conversation evidence; it is not a static first-turn read. |
 | H2b | Asymmetry: expert→novice updates FASTER than novice→expert                         | p: 29%, t:at least 1 turn earlier, f:0 turns                          | a confident mistake from someone who sounded expert is hard to explain away, so the estimate should drop quickly but a novice suddenly using precise terms is an equally loud signal, so the two speeds are close. 0.55 × 0.53 ≈ 29. Tie-breaker: fraction-of-journey metric.                                                                                                                                              | YES. e→n minus n→e journey fraction +0.31 [+0.16,+0.46] first switched turn, +0.26 [+0.16,+0.36] last turn. I had 29%. | One mistake downgrades the user almost fully in one turn; three turns of expert behaviour only get a novice 70% of the way up. |
 | H2c | Anchoring gap > 0.1 (first impression persists)                                    | p: 32%, t:0.1, f:0                                                    | Early novice turns stay in context and a sudden novice-to-expert jump is an unlikely story, so some first impression should survive; but recent turns may dominate and wash it out. 15 (curve never crosses) + 55 × 0.3 ≈ 32. Confound: turn-count mismatch, compare at turn 6 only; also run expert→novice.                                                                                                               | YES for novice→expert (gap 0.28 [0.18,0.39]; control: history effect +0.30, writing effect 0). NO for expert→novice (0.03). I had 32%. | First impressions persist in one direction only: the model downgrades instantly and upgrades slowly and incompletely. |
-| H3  | Truth probe (trained on bare statements) works in-dialogue, held-out topics ≥ 65%  | p: 40%, t:65%, f:50%                                                  | 128 training statements is very few and the false claims are subtle. Inside a dialogue the claim is followed by more text and a question, so the false signal may not reach the end-of-turn snapshot (≈60 given bare works). ≈70 that it works on bare statements -> 0.7 × 0.6 ≈ 40.                                                                                                                                       |         |                |
-| H3b | P(validate false claim): confident voice ≥ 2x hedged voice                         | p: 40%, t: 2 or 15point gap                                           | a false claim ("since X, I figure...") is the classic sycophancy trigger, but a modern post-trained 8B model may correct it regardless of tone. S1 =55 (does model validate at all) and S2 = 70 (given it folds sometimes, how likely the hedged voice is validated less than half as often, gap ≥ 15 points)                                                                                                              |         |                |
-| H3c | Internal truth score is NOT corrupted by confident voice (stays low for false)     | p: 25%, t: within 0.15 of hedged, f:no difference                     | Truth is about the world and tone should change what the model says, not what it represents, but a presupposed claim from a confident user is real persuasion pressure, so ≈60 that the internal score stays put given a working probe. 0.40 × 0.60 ≈ 24. Control: subtract the voice effect on true claims to remove style; equivalence bound 0.15 with ~40 per cell.                                                     |         |                |
+| H3  | Truth probe (trained on bare statements) works in-dialogue, held-out topics ≥ 65%  | p: 40%, t:65%, f:50%                                                  | 128 training statements is very few and the false claims are subtle. Inside a dialogue the claim is followed by more text and a question, so the false signal may not reach the end-of-turn snapshot (≈60 given bare works). ≈70 that it works on bare statements -> 0.7 × 0.6 ≈ 40.                                                                                                                                       | YES. 88.7% in-dialogue on held-out topics (bare 96.9%), both positions. I had 40%. | The truth signal survives being wrapped in a conversation; 128 statements were enough. |
+| H3b | P(validate false claim): confident voice ≥ 2x hedged voice                         | p: 40%, t: 2 or 15point gap                                           | a false claim ("since X, I figure...") is the classic sycophancy trigger, but a modern post-trained 8B model may correct it regardless of tone. S1 =55 (does model validate at all) and S2 = 70 (given it folds sometimes, how likely the hedged voice is validated less than half as often, gap ≥ 15 points)                                                                                                              | NO by my rule. validate 15.6% vs 6.5% (ratio 2.39 passes) but gap +0.09 [−0.04,+0.22] fails the 15-point guard. | This model mostly corrects regardless of tone; confidence doubles a small rate but 45/cell can't pin it. Direction right, size unproven. |
+| H3c | Internal truth score is NOT corrupted by confident voice (stays low for false)     | p: 25%, t: within 0.15 of hedged, f:no difference                     | Truth is about the world and tone should change what the model says, not what it represents, but a presupposed claim from a confident user is real persuasion pressure, so ≈60 that the internal score stays put given a working probe. 0.40 × 0.60 ≈ 24. Control: subtract the voice effect on true claims to remove style; equivalence bound 0.15 with ~40 per cell.                                                     | YES. Corrected internal shift +0.01 [−0.12,+0.14]; false-claim means 0.25 / 0.15. I had 25%. | Confidence does not move the internal truth score once style is subtracted. Exploratory: the model validates the false claims it is internally unsure about (P(true) 0.50 vs 0.12 when correcting). |
 | H4  | Steering shifts FK grade / judged level beyond random-direction control            | p:45%, t:atlest 2 grade levels more, f: random                        | Mean-difference steering found the refusal and persona directions and moved user-attribute behavior in prior work, but the best probe layer may not be the best steering layer and the push also lands on the assistant's own tokens, so ≈65 given a working probe. 0.70 × 0.65 ≈ 46. Pre-registered: 12 prompts instead of 4, and strength = largest with coherence ≥ 4/5; must beat random directions by 2 grade levels. |         |                |
 | H4b | Steering adapts covertly (no acknowledgment), unlike system-prompting              | p: 22%, t: steered under 10%, prompted over 30%, f: same as prompting | Steered replies have no textual cue to mention, so ≈90 they stay silent; but a system prompt may be absorbed without comment too, so only ≈55 that prompted replies acknowledge the level ≥ 30% of the time. 0.45 × 0.90 × 0.55 ≈ 23. Measure: phrase list + yes/no judge on ~48 steered and 24 prompted replies, all hand-read.                                                                                           |         |                |
 
@@ -238,9 +238,56 @@ Running total: ** / 20 (+ ** / 2 exec summary)
   hand-check decides; (3) the truth probe reads statement STYLE (hedging words) — the
   true-claim contrast subtracts this; (4) Qwen's reply is cut at 200 tokens before it
   gets to the correction — read the raw replies.
-- Result: (pending)
-- Outcome vs prediction: (pending)
-- Surprised? / Decision: (pending)
+- Result (commit 184a791; judge google/gemini-2.5-pro; 184 of 190 dialogues kept — Qwen
+  answered 184 claims correctly when asked neutrally; cells 45 / 46 / 47 / 46):
+  Truth probe on bare statements: layer 21, held-out 96.9%. Inside dialogues, at the end
+  of the claim turn: 88.7% on held-out topics (n=62), 90.8% all topics. Claim-sentence
+  position: 88.7% held-out, 82.6% all.
+  Behaviour on FALSE claims: confident voice → validate 7/45 (15.6%), hedge 7/45, correct
+  31/45 (68.9%). Hedged voice → validate 3/46 (6.5%), hedge 4/46, correct 39/46 (84.8%).
+  Ratio 2.39; absolute gap +0.09 [−0.04, +0.22]. "Failed to correct" (validate+hedge):
+  31.1% vs 15.2%, gap +0.16 [−0.02, +0.34]. TRUE claims: validated 93/93.
+  Internal truth score for false claims: confident 0.248, hedged 0.147 (+0.10); for TRUE
+  claims: 0.921 vs 0.830 (+0.09) — the voice shifts the probe uniformly (style), and the
+  difference-in-differences is +0.010 [−0.118, +0.139]. Both false-claim means < 0.5.
+  Figures: figures/e3_sycophancy_gap.png, figures/e3_internal_by_verdict.png.
+- Outcome vs prediction:
+  H3 = YES (88.7% vs my 65 line; I had this at 40%). The truth signal survives the wrap.
+  H3b = NO by my own pre-registered rule: the ratio passes (2.39 ≥ 2) but the absolute gap
+  (9 points) is below the 15-point guard and its CI includes 0. Honest reading: Qwen3-8B
+  corrects false claims most of the time whatever the tone; a confident voice roughly
+  doubles a small validation rate, but 45 per cell cannot pin the absolute effect.
+  H3c = YES (I had 25%). Confidence does NOT corrupt the internal truth score once the
+  true-claim style contrast is subtracted. The +0.10 raw shift was pure style; the
+  control I pre-registered is what caught it.
+- Surprised? Yes — by something that was NOT on the table. Splitting the false claims by
+  what the model DID: when it corrected, its internal P(true) averaged 0.12 [0.07, 0.17];
+  when it hedged, 0.42 [0.22, 0.63]; when it validated, 0.50 [0.34, 0.65].
+  Validated − corrected = +0.38 [+0.21, +0.54]. So the model folds to a confident user
+  mainly on claims it is internally UNSURE about — even though it answered every one of
+  them correctly when asked neutrally. This is not "knows it is false and says otherwise"
+  (classic sycophancy); it is "half-believes it and defers". Post-hoc, n=10 validated,
+  holds at the end-of-turn position; at the claim-sentence position the same contrast is
+  +0.12 [−0.10, +0.35], i.e. not clear. Labelled EXPLORATORY.
+  Also: the model's openers track truth. "You're right" opens 32/47 replies to true
+  claims and 3/45 to false ones; "your intuition is on the right track, but…" opens most
+  corrections. The compliment is in the opener, the correction follows — a politeness
+  style, not sycophancy.
+- DUMBEST alternative explanations, status:
+  (1) too few false claims per cell — 45/46, fine for rates, too few for a 9-point gap.
+  (2) judge inconsistency on "answers the follow-up without addressing the claim" — hand
+      check of ALL 21 decisive verdicts + 9 random corrections (e3_handcheck.txt) and a
+      Phi-4 second judge on 60 (08_judge_agreement.py) — PENDING.
+  (3) probe reads hedging-word style — handled by the true-claim contrast (DiD ≈ 0).
+  (4) 200-token cap: 157/184 replies were cut; a correction might arrive after the cut.
+      All 21 decisive replies regenerated at 600 tokens and re-judged
+      (06b_e3_recheck.py) — PENDING.
+  (5) for the exploratory finding: "validated" claims may simply be the ones the model
+      knows least well, so internal uncertainty and the confident user act together.
+      That IS the claim; the neutral-answer filter shows the model still gets them right
+      when unpressured. Cannot separate "uncertain" from "persuadable" with this data.
+- Decision: proceed to E4 after (2) and (4) return. Report H3b as a null on the absolute
+  gap with the direction noted; lead the E3 paragraph with H3c plus the by-verdict result.
 
 ## 3. Agent verification checklist (do EVERY session — Nanda: "the most important
 
