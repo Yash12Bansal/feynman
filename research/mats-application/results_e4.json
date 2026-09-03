@@ -1,0 +1,54 @@
+{
+  "judge": "google/gemini-2.5-pro",
+  "layer": 22,
+  "alpha_star": 8,
+  "coherence_by_alpha_steer": {
+    "-8": 5.0,
+    "-4": 5.0,
+    "0": 5.0,
+    "4": 5.0,
+    "8": 5.0
+  },
+  "fk_by_alpha_steer": {
+    "-8": 9.248751119862746,
+    "-4": 9.934393989291928,
+    "0": 9.196069932708573,
+    "4": 11.189565012633215,
+    "8": 12.11960918231704
+  },
+  "fk_by_alpha_rand": {
+    "-8": 10.528143794032475,
+    "-4": 10.18349184796659,
+    "4": 9.99470543296921,
+    "8": 10.264268373996485
+  },
+  "level_by_alpha_steer": {
+    "-8": 1.1666666666666667,
+    "-4": 1.5,
+    "0": 1.6666666666666667,
+    "4": 2.1666666666666665,
+    "8": 2.5833333333333335
+  },
+  "H4_fk_span_steer": 2.8708580624542943,
+  "H4_fk_span_random": -0.2638754200359929,
+  "H4_statistic_steer_minus_random": 3.134733482490287,
+  "H4_se_over_prompts": 0.5958429252207476,
+  "H4_level_span_steer": 1.4166666666666667,
+  "H4_level_span_random": 0.055555555555555504,
+  "prompt_baseline_fk": {
+    "novice": 7.093381598812484,
+    "expert": 11.360080114467605
+  },
+  "prompt_baseline_level": {
+    "novice": 1.0,
+    "expert": 2.25
+  },
+  "H4b_acknowledgment": {
+    "steered_phrase": 0.0,
+    "steered_judge": 0.0,
+    "prompted_phrase": 0.041666666666666664,
+    "prompted_judge": 0.08333333333333333,
+    "n_steered": 48,
+    "n_prompted": 24
+  }
+}
