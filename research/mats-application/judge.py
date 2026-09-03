@@ -39,17 +39,29 @@ def _local_generate(prompt, max_new):
 
 
 def _openrouter(prompt, max_new, retries=4):
+    """Gemini 2.5 Pro (and other reasoning models) spend tokens THINKING before the
+    answer; a tight max_tokens returns empty content. So: generous max_tokens, low
+    reasoning effort, and a retry without the reasoning hint if content is empty."""
     headers = {"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"}
+    bodies = [{"model": JUDGE_MODEL, "temperature": 0.0, "max_tokens": max_new + 2048,
+               "reasoning": {"effort": "low"},
+               "messages": [{"role": "user", "content": prompt}]},
+              {"model": JUDGE_MODEL, "temperature": 0.0, "max_tokens": max_new + 8192,
+               "messages": [{"role": "user", "content": prompt}]}]
     for i in range(retries):
+        body = bodies[min(i, 1)]
         try:
-            r = requests.post(OPENROUTER_URL, headers=headers, timeout=120, json={
-                "model": JUDGE_MODEL, "temperature": 0.0, "max_tokens": max_new,
-                "messages": [{"role": "user", "content": prompt}]})
+            r = requests.post(OPENROUTER_URL, headers=headers, timeout=180, json=body)
             r.raise_for_status()
-            return r.json()["choices"][0]["message"]["content"]
+            msg = r.json()["choices"][0]["message"]
+            text = (msg.get("content") or "").strip()
+            if text:
+                return text
+            print(f"  judge retry {i}: empty content (reasoning ate the budget?)")
         except Exception as e:
-            print(f"  judge retry {i}: {e}"); time.sleep(2 ** i)
-    raise RuntimeError("judge call failed")
+            print(f"  judge retry {i}: {e}")
+        time.sleep(2 ** i)
+    raise RuntimeError("openrouter judge call failed")
 
 
 def _gemini(prompt, max_new, retries=4):

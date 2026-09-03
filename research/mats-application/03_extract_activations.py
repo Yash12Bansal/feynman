@@ -15,7 +15,8 @@ newcomers; O(turns) short forward passes cost only minutes on an A100 and cannot
 be wrong. (Optimization is allowed AFTER the science works, never before.)
 
 Run: python 03_extract_activations.py main   (then: explicit, reversal, honesty, truth,
-     reversal_postonly — the H2c history-vs-writing control)
+     reversal_postonly — the H2c history-vs-writing control,
+     truth_lastword + honesty_claimpos — the H3 claim-position variant)
      SAVE_DIR=data_gemma python 03_extract_activations.py main   -> main_gemma.pt
      (the second generator's activations feed the cross-generator transfer test)
 Output: activations/<dataset>[_<generator>].pt with
@@ -34,8 +35,18 @@ dataset = sys.argv[1] if len(sys.argv) > 1 else "main"
 # post-switch expert turns score like a lifelong expert, the anchoring gap in the
 # full dialogue is caused by the history (real anchoring); if they score low even
 # in isolation, the generator simply wrote weaker post-switch experts.
-src = "reversal" if dataset == "reversal_postonly" else dataset
+# "honesty_claimpos": snapshot at the END OF THE CLAIM SENTENCE inside the claim turn
+# (not at the end of the turn). "truth_lastword": bare statements, snapshot at the
+# statement's last token (not at the template's end). Together they are the
+# pre-registered H3 fallback: the truth signal may not travel to the end of a turn
+# that continues with reasoning and a question. Both are extracted so E3 reports
+# both positions.
+SRC = {"reversal_postonly": "reversal", "honesty_claimpos": "honesty",
+       "truth_lastword": "truth"}
+src = SRC.get(dataset, dataset)
 rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{src}.jsonl")]
+import re
+skipped = 0
 
 print(f"loading {MODEL_ID} …")
 tok = AutoTokenizer.from_pretrained(MODEL_ID)
@@ -52,8 +63,60 @@ def last_pos_all_layers(messages):
     return torch.stack([h[0, -1].float() for h in out.hidden_states]).half().cpu()
 
 
+@torch.no_grad()
+def at_char_end(messages, char_end_in_last_msg):
+    """Residual stream (all layers) at the last token that ends at or before a
+    character offset inside the LAST message's content. Uses the tokenizer's
+    offset mapping on the serialized chat text, so template tokens are handled."""
+    text = chat_text(tok, messages)
+    last = messages[-1]["content"]
+    start = text.rfind(last)
+    assert start >= 0, "message content not found in serialized chat text"
+    char_end = start + char_end_in_last_msg
+    enc = tok(text, return_tensors="pt", return_offsets_mapping=True)
+    offsets = enc.pop("offset_mapping")[0].tolist()
+    cands = [i for i, (a, b) in enumerate(offsets) if b > 0 and b <= char_end]
+    ti = max(cands)
+    out = model(**enc.to("cuda"), output_hidden_states=True, use_cache=False)
+    return torch.stack([h[0, ti].float() for h in out.hidden_states]).half().cpu(), ti
+
+
+def claim_sentence_end(turn_text, claim):
+    """Character offset just after the sentence that contains the claim. Exact
+    match first, then the first 60% of the claim (generators paraphrase tails)."""
+    lo = turn_text.lower()
+    pos = lo.find(claim.lower())
+    if pos < 0:
+        pos = lo.find(claim[: int(len(claim) * 0.6)].lower())
+    if pos < 0:
+        return None
+    m = re.search(r"[.!?]", turn_text[pos + 10:])
+    return pos + 10 + m.end() if m else len(turn_text)
+
+
 acts, meta = [], []
 for d in tqdm(rows):
+    if dataset == "truth_lastword":
+        msgs = [{"role": "user", "content": d["text"]}]
+        x, ti = at_char_end(msgs, len(d["text"].rstrip()))
+        acts.append(x)
+        meta.append({"topic": d["topic"], "truth": d["truth"], "text": d["text"],
+                     "position": "statement_last_token", "token_index": ti})
+        continue
+    if dataset == "honesty_claimpos":
+        msgs = d["messages"]
+        user_idx = [i for i, m in enumerate(msgs) if m["role"] == "user"]
+        ci = user_idx[d["claim_turn"]]
+        end = claim_sentence_end(msgs[ci]["content"], d["claim"])
+        if end is None:
+            skipped += 1; continue
+        x, ti = at_char_end(msgs[: ci + 1], end)
+        acts.append(x)
+        meta.append({"id": d["id"], "topic": d["topic"], "turn": d["claim_turn"],
+                     "claim_turn": d["claim_turn"], "claim_true": d["claim_true"],
+                     "voice": d["voice"], "claim": d["claim"],
+                     "position": "claim_sentence_end", "token_index": ti})
+        continue
     if dataset == "truth":
         # bare statement, framed minimally as a user message the model reads
         msgs = [{"role": "user", "content": d["text"]}]
@@ -82,4 +145,4 @@ out_path = act_path(dataset)          # e.g. activations/main.pt or main_gemma.p
 torch.save({"acts": torch.stack(acts), "meta": meta, "model": MODEL_ID,
             "source": f"{SAVE_DIR}/{dataset}.jsonl"}, out_path)
 print(f"saved {len(meta)} examples x {acts[0].shape[0]} layers "
-      f"x {acts[0].shape[1]} dims -> {out_path}")
+      f"x {acts[0].shape[1]} dims -> {out_path}" + (f"  (skipped {skipped}: claim not found)" if skipped else ""))
