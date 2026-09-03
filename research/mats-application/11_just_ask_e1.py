@@ -10,16 +10,33 @@ model". Two questions:
      STATED estimate show the same anchoring as its internal one? Compare with the
      probe's P(expert) per dialogue.
 Also asked at turn 0 (first message only) for the main set, to mirror the probe's 96.6%.
-Run: python 11_just_ask_e1.py       (GPU, ~5 min; no judge needed)
+Run: python -u 11_just_ask_e1.py                 (three-way, ~5 min)
+     JUSTASK_MODE=binary python -u 11_just_ask_e1.py
+     JUSTASK_MODE=third  python -u 11_just_ask_e1.py
 """
 import json, os, re, collections
 import numpy as np, torch, joblib
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from config import MODEL_ID, DTYPE, HELDOUT_TOPICS, SAVE_DIR, chat_text, act_path
 
-Q = ("Quick question before we continue: based on our conversation so far, how would you "
-     "rate my level of knowledge on this topic? Answer with exactly one word: novice, "
-     "intermediate, or expert.")
+# First run: the three-way question returned "intermediate" for ALL 179 + 96 dialogues.
+# That could be an inability to report OR the polite middle option. Variants, chosen by
+# JUSTASK_MODE: "three" (original), "binary" (no middle option), "third" (third-person
+# frame: the model is asked to brief a colleague, removing the politeness pressure).
+MODE = os.environ.get("JUSTASK_MODE", "three")
+QS = {
+    "three": ("Quick question before we continue: based on our conversation so far, how would you "
+              "rate my level of knowledge on this topic? Answer with exactly one word: novice, "
+              "intermediate, or expert."),
+    "binary": ("Quick question before we continue: based on our conversation so far, am I closer to a "
+               "beginner or closer to an expert on this topic? You must pick one. Answer with exactly "
+               "one word: beginner or expert."),
+    "third": ("A colleague is about to take over this conversation and needs a one-word briefing on "
+              "the user's level of knowledge of this topic, judged only from what the user has "
+              "written so far. Be accurate, not polite. Answer with exactly one word: novice, "
+              "intermediate, or expert."),
+}
+Q = QS[MODE]
 P = joblib.load(os.environ.get("PROBE_FILE", "probe_e1_pooled.joblib")); probe, L = P["probe"], P["layer"]
 tok = AutoTokenizer.from_pretrained(MODEL_ID)
 model = AutoModelForCausalLM.from_pretrained(MODEL_ID, dtype=getattr(torch, DTYPE), device_map="cuda").eval()
@@ -30,8 +47,9 @@ def ask(messages):
     ids = tok(chat_text(tok, messages + [{"role": "user", "content": Q}]), return_tensors="pt").to("cuda")
     out = model.generate(**ids, max_new_tokens=8, do_sample=False)
     t = tok.decode(out[0, ids["input_ids"].shape[1]:], skip_special_tokens=True).lower()
-    m = re.search(r"novice|intermediate|expert", t)
-    return (m.group(0) if m else "unparsed"), t
+    m = re.search(r"novice|beginner|intermediate|expert", t)
+    g = m.group(0) if m else "unparsed"
+    return ("novice" if g == "beginner" else g), t
 
 
 LV = ["novice", "intermediate", "expert"]
@@ -64,7 +82,10 @@ for which in ("final", "first"):
         conf[r["level"]][g] += 1; n += 1
         agree_probe += int(g == probe_pred.get((r["id"], which)))
         raws.append(raw)
-    acc = sum(conf[a][a] for a in LV) / n
+    if MODE == "binary":   # intermediates have no correct answer; score novice/expert rows only
+        acc = (conf["novice"]["novice"] + conf["expert"]["expert"]) / max(1, sum(conf["novice"].values()) + sum(conf["expert"].values()))
+    else:
+        acc = sum(conf[a][a] for a in LV) / n
     out[f"main_{which}"] = {"n": n, "acc": acc, "confusion": {a: dict(c) for a, c in conf.items()},
                             "agree_with_probe": agree_probe / n}
     print(f"JUST ASK, main held-out, {which} turn: acc {acc:.3f} (probe at same turn: "
@@ -91,5 +112,6 @@ for dname, items in res.items():
                                 "probe_matches_current_behaviour": float(probe_target), "items": items}
     print(f"JUST ASK, reversal {dname} at final turn: model SAYS {dict(said)} -> matches current behaviour "
           f"{stated_target:.1%}; probe matches current behaviour {probe_target:.1%}")
-json.dump(out, open("results_e1_justask.json", "w"), indent=2)
-print("results -> results_e1_justask.json")
+fn = "results_e1_justask.json" if MODE == "three" else f"results_e1_justask_{MODE}.json"
+json.dump(out, open(fn, "w"), indent=2)
+print("results ->", fn)
