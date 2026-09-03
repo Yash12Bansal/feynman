@@ -37,8 +37,8 @@ Subject model Qwen3-8B (thinking off). Generators: Codex/GPT (all sets) and Gemm
 - expert->novice: mean P(expert) by turn [1.0, 0.99, 1.0, 0.3, 0.09, 0.03]; crossover after switch 0 turn(s) (midpoint line: 0); journey fraction turn3 +0.70 [+0.60, +0.80], turn5 +0.97 [+0.95, +0.99]; fraction of dialogues flipped [0.0, 0.0, 0.0, 0.73, 0.92, 1.0].
 - H2b asymmetry (e→n minus n→e): turn3 +0.31 [+0.16, +0.46], turn5 +0.26 [+0.16, +0.36] (line +0.15, CI clear of 0).
 - H2c anchoring at turn 6: novice→expert +0.28 [+0.18, +0.39]; expert→novice +0.03 [+0.01, +0.05] (line 0.1).
-- Control novice->expert: full-context final 0.702 | post-switch turns only 1.000 | lifelong 0.983 → history effect +0.30 [+0.21, +0.40], writing effect -0.02 [-0.04, -0.00]
-- Control expert->novice: full-context final 0.028 | post-switch turns only 0.000 | lifelong 0.001 → history effect +0.03 [+0.01, +0.05], writing effect -0.00 [-0.00, -0.00]
+- Control novice->expert: full-context final 0.702 | post-switch turns only 1.000 | lifelong 0.983 → history effect +0.30 [+0.21, +0.40], writing effect -0.02 [-0.04, -0.00]; user-turns-only history effect +0.01 [+0.00, +0.02]
+- Control expert->novice: full-context final 0.028 | post-switch turns only 0.000 | lifelong 0.001 → history effect +0.03 [+0.01, +0.05], writing effect -0.00 [-0.00, -0.00]; user-turns-only history effect +0.04 [+0.01, +0.08]
 - Figure: figures/e2_update_curves.png
 
 ## E3 — what the model says vs what it represents (results_e3.json, results_e3_600_summary.json)
@@ -61,6 +61,16 @@ Subject model Qwen3-8B (thinking off). Generators: Codex/GPT (all sets) and Gemm
 - Prompt baselines: beginner grade 7.1 / level 1.00; expert grade 11.4 / level 2.25.
 - H4b acknowledgment of the user's level: steered 0.0% (phrase) / 0.0% (judge) of 48; prompted 4.2% / 8.3% of 24 (line: steered ≤10%, prompted ≥30%).
 - Figure: figures/e4_dose_response.png
+
+## Post-hoc controls (not pre-registered): 'just ask the model' and causal anchoring
+
+- Just ask, three: final-turn stated accuracy 33.5% (confusion {'novice': {'intermediate': 60}, 'intermediate': {'intermediate': 60}, 'expert': {'intermediate': 59}}); first-turn 33.5% (confusion {'novice': {'intermediate': 60}, 'intermediate': {'intermediate': 60}, 'expert': {'intermediate': 59}}); reversal: stated matches current behaviour n→e 0.0% vs probe 72.9%, e→n 0.0% vs probe 100.0%.
+- Just ask, binary: final-turn stated accuracy 99.2% (confusion {'novice': {'novice': 59, 'expert': 1}, 'intermediate': {'novice': 29, 'expert': 31}, 'expert': {'expert': 59}}); first-turn 51.3% (confusion {'novice': {'novice': 60}, 'intermediate': {'novice': 60}, 'expert': {'novice': 58, 'expert': 1}}); reversal: stated matches current behaviour n→e 60.4% vs probe 72.9%, e→n 66.7% vs probe 100.0%.
+- Just ask, third: final-turn stated accuracy 49.2% (confusion {'novice': {'intermediate': 55, 'novice': 5}, 'intermediate': {'intermediate': 60}, 'expert': {'expert': 23, 'intermediate': 36}}); first-turn 52.0% (confusion {'novice': {'novice': 33, 'intermediate': 27}, 'intermediate': {'intermediate': 60}, 'expert': {'intermediate': 59}}); reversal: stated matches current behaviour n→e 2.1% vs probe 72.9%, e→n 2.1% vs probe 100.0%.
+- Causal anchoring (judge google/gemini-2.5-pro, layer 22, α*=8; cosine probe-vs-diff-of-means 0.46): reversal n→e, unsteered: pitch 4.35±0.09, grade 13.6±0.5, coherence 4.98; reversal n→e, steered +α*: pitch 4.75±0.06, grade 15.4±0.4, coherence 4.98; lifelong expert, unsteered: pitch 4.64±0.06, grade 13.8±0.4, coherence 4.97; lifelong expert, direction ablated: pitch 4.36±0.07, grade 13.1±0.4, coherence 4.90; lifelong novice, unsteered: pitch 2.58±0.10, grade 10.9±0.3, coherence 4.97
+  - [level] A behavioural anchoring (reversal − lifelong expert) -0.29 ± 0.11; B steered reversal − lifelong expert +0.11 ± 0.09; C ablation on lifelong experts -0.28 ± 0.09.
+  - [fk] A behavioural anchoring (reversal − lifelong expert) -0.19 ± 0.62; B steered reversal − lifelong expert +1.60 ± 0.57; C ablation on lifelong experts -0.70 ± 0.56.
+- Figure: figures/e2_causal_anchoring.png
 
 ## QC (logbook section 4)
 - Length by level: Codex 33/33/37 words, Gemma 43/38/34 (opposite directions). Leaks: 0 / 2 false positives.
