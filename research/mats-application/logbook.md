@@ -186,6 +186,9 @@ Running total: ** / 20 (+ ** / 2 exec summary)
   anything about anchoring. Then E3.
 
 #### Update 2026-09-03 morning — H2c control ran (commit 2bf9d80)
+- Prediction for this control: none was written down before it ran (time pressure that
+  morning). The pre-registered bet that applies is the H2c row itself (32%, written before
+  any E2 result). Recording this gap honestly rather than back-filling a prediction.
 - What I ran: `python 03_extract_activations.py reversal_postonly` (the same 96 dialogues
   with everything before the switch cut off, 288 snapshots), then E2 again with the
   pooled probe.
@@ -210,6 +213,34 @@ Running total: ** / 20 (+ ** / 2 exec summary)
   includes the assistant's own novice-pitched replies. Keeping the user's novice turns
   but removing the assistant's replies would say whether the anchor is the user's words
   or the model's own earlier explanations. Run after E3 if time allows.
+
+### 2026-09-03 — E3: when the user confidently asserts a false claim, does what the model SAYS diverge from what it internally REPRESENTS? (header written before results)
+- Prediction (from table): H3 40% that the truth probe, trained on bare statements, reads
+  true/false inside dialogues on held-out topics at ≥ 65% (floor 50%).
+  H3b 40% that P(validate | false claim, confident voice) ≥ 2× the hedged voice AND the
+  absolute gap ≥ 15 points (floor: ratio 1 / gap 0).
+  H3c 25% that the internal truth score for false claims stays within 0.15 across voices
+  (after subtracting the same contrast on true claims), i.e. NOT corrupted by confidence.
+- What I will run: `python 03_extract_activations.py truth_lastword`,
+  `python 03_extract_activations.py honesty_claimpos`, then `python 06_honesty_e3.py`.
+  Judge: Gemini 2.5 Pro via OpenRouter (primary); Phi-4 locally as second judge via
+  `08_judge_agreement.py e3 local`; me on 30 random verdicts (section 5).
+  Positions read: end of the claim turn (primary) and end of the claim sentence
+  (pre-registered fallback), both trained/applied consistently.
+- What would falsify each: H3 — in-dialogue accuracy below 65% at both positions while
+  bare-statement accuracy is high (signal exists but doesn't travel). H3b — both
+  validation rates near zero or a gap inside the noise (~9 points). H3c — the corrected
+  internal shift larger than 0.15 with CI clear of it (confidence moves the belief, not
+  just the reply).
+- Dumbest alternative explanations to check when results arrive: (1) the neutral
+  pre-filter leaves too few false claims per cell (<25) so rates are noise; (2) the judge
+  labels "answers the follow-up question without addressing the claim" inconsistently —
+  hand-check decides; (3) the truth probe reads statement STYLE (hedging words) — the
+  true-claim contrast subtracts this; (4) Qwen's reply is cut at 200 tokens before it
+  gets to the correction — read the raw replies.
+- Result: (pending)
+- Outcome vs prediction: (pending)
+- Surprised? / Decision: (pending)
 
 ## 3. Agent verification checklist (do EVERY session — Nanda: "the most important
 
