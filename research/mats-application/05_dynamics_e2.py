@@ -182,6 +182,22 @@ try:
               f"{hist[0]:+.3f} [{hist[1]:+.3f},{hist[2]:+.3f}], writing effect "
               f"{writ[0]:+.3f} [{writ[1]:+.3f},{writ[2]:+.3f}]")
     stats["h2c_control_history_vs_writing"] = ctrl
+    try:
+        duh = torch.load(act_path("reversal_userhistory"))
+        uh = {}
+        for x, m in zip(duh["acts"].numpy()[:, L], duh["meta"]):
+            uh.setdefault(m["direction"], {}).setdefault(m["turn"], []).append(x)
+        for name, target, sign in [("novice->expert", exp_final, 1), ("expert->novice", nov_final, -1)]:
+            v = p_expert(np.stack(uh[name][FINAL]))
+            iso = po[name][FINAL]
+            eff = boot(lambda a, b: sign * (a.mean() - b.mean()), iso, v)
+            ctrl[name]["user_history_only_final"] = float(v.mean())
+            ctrl[name]["history_effect_user_turns_only_ci"] = eff
+            print(f"H2c source {name}: user's pre-switch turns kept, assistant's removed -> final "
+                  f"{v.mean():.3f}; history effect from user turns alone {eff[0]:+.3f} "
+                  f"[{eff[1]:+.3f},{eff[2]:+.3f}]  (compare full-history effect above)")
+    except FileNotFoundError:
+        pass
     print("  (history effect > 0.1 with CI clear of 0 = anchoring is real; a large writing "
           "effect = the generator wrote weaker post-switch turns)")
 except FileNotFoundError:

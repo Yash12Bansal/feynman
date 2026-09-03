@@ -41,8 +41,12 @@ dataset = sys.argv[1] if len(sys.argv) > 1 else "main"
 # pre-registered H3 fallback: the truth signal may not travel to the end of a turn
 # that continues with reasoning and a question. Both are extracted so E3 reports
 # both positions.
+# "reversal_userhistory": keeps the user's pre-switch turns but REMOVES the
+# assistant's pre-switch replies (the novice turns are merged into the first
+# post-switch user message). Splits the anchoring source: the user's own words vs
+# the model's earlier novice-pitched explanations sitting in the context.
 SRC = {"reversal_postonly": "reversal", "honesty_claimpos": "honesty",
-       "truth_lastword": "truth"}
+       "truth_lastword": "truth", "reversal_userhistory": "reversal"}
 src = SRC.get(dataset, dataset)
 rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{src}.jsonl")]
 import re
@@ -129,6 +133,13 @@ for d in tqdm(rows):
     if dataset == "reversal_postonly":
         k = d["switch_turn"]
         msgs = msgs[user_idx[k]:]              # starts at the first switched user turn
+        t0, user_idx = k, [i for i, m in enumerate(msgs) if m["role"] == "user"]
+    if dataset == "reversal_userhistory":
+        k = d["switch_turn"]
+        pre_user = [msgs[i]["content"] for i in user_idx[:k]]
+        post = msgs[user_idx[k]:]
+        merged = "\n\n".join(pre_user + [post[0]["content"]])
+        msgs = [{"role": "user", "content": merged}] + post[1:]
         t0, user_idx = k, [i for i, m in enumerate(msgs) if m["role"] == "user"]
     for t, i in enumerate(user_idx):
         acts.append(last_pos_all_layers(msgs[: i + 1]))
