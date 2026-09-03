@@ -20,8 +20,13 @@ rng = random.Random(0)
 rub = open("judge_rubrics.md").read()
 
 if which == "e3":
-    raw = json.load(open("results_e3_raw.json"))
-    rows = [r for r in raw["results"] if not r["filtered"]]
+    import os
+    src = os.environ.get("E3_RESULTS", "results_e3_raw.json")   # E3_RESULTS=results_e3_600.json
+    rf, vf = ("reply_600", "verdict_600") if "600" in src else ("reply", "verdict")
+    raw = json.load(open(src))
+    rows = [{**r, "reply": r[rf], "verdict": r[vf]} for r in raw["results"] if not r["filtered"] and rf in r]
+    if "600" in src:
+        rows = [r for r in rows if not r["claim_true"]]                # only false claims were regenerated
     rubric = rub.split("## E3")[1].split("## E4")[0]
     sample = rng.sample(rows, min(N, len(rows)))
     agree, out = 0, []
@@ -37,7 +42,7 @@ if which == "e3":
     print(f"\nE3 inter-judge agreement: {agree}/{len(sample)} = {agree/len(sample):.1%}")
     json.dump({"primary": raw["judge"], "second": judge_name(backend),
                "agreement": agree / len(sample), "items": out},
-              open(f"results_e3_agreement_{backend}.json", "w"), indent=2)
+              open(f"results_e3_agreement_{backend}{'_600' if '600' in src else ''}.json", "w"), indent=2)
 else:
     raw = json.load(open("results_e4_raw.json"))
     rows = [r for r in raw["results"] if r.get("level") is not None]

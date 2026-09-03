@@ -275,13 +275,14 @@ Running total: ** / 20 (+ ** / 2 exec summary)
   style, not sycophancy.
 - DUMBEST alternative explanations, status:
   (1) too few false claims per cell — 45/46, fine for rates, too few for a 9-point gap.
-  (2) judge inconsistency on "answers the follow-up without addressing the claim" — hand
-      check of ALL 21 decisive verdicts + 9 random corrections (e3_handcheck.txt) and a
-      Phi-4 second judge on 60 (08_judge_agreement.py) — PENDING.
+  (2) judge inconsistency — Phi-4 second judge on 60 (200-token replies): 36/60 = 60%
+      three-way agreement; most disagreements are validate-vs-hedge on CUT replies, i.e.
+      the same truncation problem. To be re-run on the 600-token replies. Hand-check
+      moves to the 600-token replies (e3_handcheck_600.txt) — PENDING.
   (3) probe reads hedging-word style — handled by the true-claim contrast (DiD ≈ 0).
-  (4) 200-token cap: 157/184 replies were cut; a correction might arrive after the cut.
-      All 21 decisive replies regenerated at 600 tokens and re-judged
-      (06b_e3_recheck.py) — PENDING.
+  (4) 200-token cap: 157/184 replies were cut. All 21 decisive replies regenerated at
+      600 tokens: 13/21 verdicts changed, 11 became correct. CONFIRMED as a real
+      confound → see Section 6 pivot; all false-claim replies being regenerated at 600.
   (5) for the exploratory finding: "validated" claims may simply be the ones the model
       knows least well, so internal uncertainty and the confident user act together.
       That IS the claim; the neutral-answer filter shows the model still gets them right
@@ -404,5 +405,25 @@ effect recorded and a length-only baseline added  |  Leaks fixed: yes (false pos
 | Agreement: / 30 |            |       |        |
 
 ## 6. Pivots & dead ends (write them down — "I got stuck, so I found a new angle
-
 or identified why it didn't work" is scored ABOVE a clean success)
+
+### 2026-09-03 — E3: the 200-token reply cap was inflating sycophancy
+- What went wrong: E3 generated Qwen's replies with a 200-token cap (my choice, for
+  speed) and the judge only saw those 200 tokens. 157/184 replies were cut mid-sentence.
+  Qwen corrects SLOWLY — "your intuition is on the right track" → long explanation →
+  the correction — so a cut reply reads as validation or hedging.
+- How I found it: I listed "reply cut before the correction" as dumbest alternative
+  explanation #4 in the E3 header, then regenerated all 21 decisive replies at 600
+  tokens and re-judged them (06b_e3_recheck.py): 13/21 verdicts changed, 11 → correct.
+- What it changes (provisional, substituting the 21 re-judged verdicts): validation of
+  false claims drops from 15.6% / 6.5% to 6.7% / 2.2% (confident / hedged); "failed to
+  correct" from 31% / 15% to 16% / 7%; the validate gap becomes +0.05 [−0.04, +0.13].
+  H3b stays a NO, more clearly. The by-verdict finding SURVIVES at the end-of-turn
+  position: not-corrected (n=10) vs corrected (n=81) internal P(true) = +0.44
+  [+0.26, +0.59]; at the claim-sentence position it does not (+0.07 [−0.11, +0.28]).
+- Fix: regenerate ALL 91 false-claim replies at 600 tokens and re-judge
+  (06c_e3_full600.py); recompute H3b, the by-verdict result, inter-judge agreement and
+  the hand-check on the full replies. The 200-token numbers stay in the log as the
+  first pass; the 600-token numbers are the ones reported.
+- Lesson: an LLM judge can only judge what it is shown. Check truncation BEFORE
+  reading a sycophancy rate.
