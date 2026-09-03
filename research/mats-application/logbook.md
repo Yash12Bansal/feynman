@@ -374,6 +374,71 @@ Running total: ** / 20 (+ ** / 2 exec summary)
 - Decision: E4 done. Human read of the 72 steered/prompted replies for coherence and
   acknowledgment — PENDING (mine); judge and phrase list both say 0 and 2.
 
+### 2026-09-03 ~11:30 UTC — Two controls from Nanda's "Common Mistakes" list and the Open Problems review, run after E4
+(These were NOT in the pre-registered table. Added after re-reading the evaluation criteria
+("compare against 'just ask the model'") and after an outside review pointed out that E2 is a
+probe readout, i.e. correlational. Labelled as post-hoc additions.)
+
+#### (a) "Just ask the model" (11_just_ask_e1.py, commit 3372831)
+- What: append one user message to each dialogue — "how would you rate my level of
+  knowledge on this topic? one word: novice, intermediate, or expert" — and compare the
+  model's STATED answer with the label and with the probe at the same turn.
+- Result: Qwen said "intermediate" for ALL 179 held-out dialogues at the final turn, ALL
+  179 at the first turn, and ALL 96 reversal dialogues (both directions). Stated accuracy
+  33.5% = chance. At the same turns the probe reads the label at 99.4% / 96.6%, and an
+  outside judge reading only the user turns got 52–80%.
+- Reading: the model's stated estimate of its user is a constant; its internal estimate is
+  sharp. This is the "introspection gap" from prior work on user models, reproduced here for
+  competence. It also answers the method-minimalism question: asking does NOT substitute for
+  the probe.
+- Caveat still open: "intermediate" is the polite middle option. Two variants queued —
+  forced binary (beginner/expert, no middle) and third-person ("brief a colleague, be
+  accurate not polite"). If either recovers accuracy, the honest statement becomes "can
+  report, defaults to non-committal"; if not, the gap is robust. PENDING.
+
+#### (b) Is the anchoring visible in BEHAVIOUR, and is the direction NECESSARY? (12_causal_anchoring.py, commit 58813e7)
+- What: Qwen's actual reply at the final turn, judged for pitch (Gemini level 1–5) and
+  Flesch–Kincaid grade, in five conditions: lifelong novice; novice→expert reversal
+  unsteered; the same with +α* along the expert−novice direction at layer 22; lifelong
+  expert unsteered; lifelong expert with the direction's projection set to the dataset
+  mean (mean-ablation) at every position. n = 60 / 48 / 48 / 61 / 61. Judge: Gemini 2.5 Pro.
+- Diagnostics: cosine(probe expert−novice weights, diff-of-means direction) = 0.46
+  (random in 4096-d ≈ 0.02). Logit lens: +d boosts "academia", "professional", "bespoke",
+  "qualitative", "contingent"; −d boosts "you're", "Imagine", "understandable",
+  "misunderstanding", "wondering" and Chinese tokens for "for you / let you / mom and dad".
+  The direction reads as explain-to-a-beginner vs professional register.
+- Result (judged pitch 1–5 / FK grade; ± = SE of mean):
+  lifelong novice 2.58 ± 0.10 / 10.9;   novice→expert unsteered 4.35 ± 0.09 / 13.6;
+  novice→expert steered 4.75 ± 0.06 / 15.4;   lifelong expert 4.64 ± 0.06 / 13.8;
+  lifelong expert ablated 4.36 ± 0.07 / 13.1.   Coherence 4.90–4.98 everywhere.
+  A. Behavioural anchoring (reversal − lifelong expert): pitch −0.29 ± 0.11 (≈2.6 SE);
+     grade −0.19 ± 0.62 (nothing).
+  B. Steered reversal − lifelong expert: pitch +0.11 ± 0.09; grade +1.60 ± 0.57.
+  C. Ablation on lifelong experts: pitch −0.28 ± 0.09 (≈3 SE); grade −0.70 ± 0.56.
+  Figure: figures/e2_causal_anchoring.png. Raw replies: results_e2_causal.json.
+- Reading, critically:
+  A: the anchoring shows in behaviour, but SMALLER than in the representation: 0.29 on a
+     5-point scale is ~14% of the novice→expert range, vs a 30% deficit in probe P(expert).
+     The internal estimate is more anchored than the output. With (a): three layers
+     disagree — internal estimate sharp and anchored; behaviour adapted with a mild trace;
+     stated estimate a constant.
+  B: steering pushes the anchored reply ABOVE a lifelong expert — the direction is
+     sufficient to override the context. But the same push raises any reply (E4), and I did
+     not run a steered-lifelong-expert condition, so B does NOT show that steering acts on
+     the history specifically. Sufficiency, not un-anchoring.
+  C: partial necessity. If the direction fully mediated adaptation, setting it to the
+     dataset mean should move experts about halfway to novice (~1.0 point); it moved them
+     0.28. One direction at one layer carries roughly a quarter of the adaptation; the rest
+     arrives by other routes (the context is still read at every other layer). Standard
+     outcome for single-direction ablation; stated as such.
+  Open question the logit lens raises: "belief about the user" vs "plan for the reply's
+  register" may be the same direction at layer 22; this evidence cannot separate them.
+- Dumbest alternative explanations: (1) reversal final turns are easier to answer simply →
+  no: in isolation they read MORE expert than lifelong experts (post-only control 1.00);
+  (2) ablation just damaged the model → coherence 4.90 vs 4.97, and FK barely moved;
+  (3) judge drift across conditions → all five judged in one run with the same rubric,
+  coherence flat. Not closed: no steered-lifelong-expert condition (B).
+
 ## 3. Agent verification checklist (do EVERY session — Nanda: "the most important
 
 advice in this doc"; applications died because write-up claims contradicted the
