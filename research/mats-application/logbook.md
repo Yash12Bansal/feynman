@@ -213,6 +213,32 @@ Running total: ** / 20 (+ ** / 2 exec summary)
   but removing the assistant's replies would say whether the anchor is the user's words
   or the model's own earlier explanations. Run after E3 if time allows.
 
+#### Update 2026-09-03 ~12:30 UTC — WHERE does the anchoring come from? (the chain of controls)
+- Observation that started it (morning): the novice→expert gap of 0.30 is caused by the
+  history, not the writing. But "history" contains two things: the user's three novice
+  turns AND the assistant's three replies to them, which the generator pitched at a novice.
+- Question: does the model anchor on what the USER said, or on what IT said?
+- Control 1 (`reversal_userhistory`): keep the user's novice turns, remove the assistant's
+  replies (the novice turns are merged into the first post-switch user message).
+  Result: final P(expert) 0.988 vs lifelong expert 0.983. History effect from the user's
+  own words: +0.011 [+0.003, +0.023]. With the assistant's replies present: +0.298.
+  expert→novice: user turns alone +0.040 [+0.012, +0.077] (full history +0.028).
+- Reading: the anchor is the model's OWN earlier replies. Having explained things simply
+  three times, it keeps treating the user as a novice; the user's early words barely
+  matter. In the other direction its expert-pitched replies do not hold the estimate up.
+  Self-anchoring, one-directional.
+- Dumbest alternative explanation: control 1 also changed the STRUCTURE (three user turns
+  merged into one long message, no alternation), so "assistant replies removed" and
+  "multi-turn structure removed" are confounded.
+- Control 2 (`reversal_neutralassistant`, added 176a394): every turn stays in place; the
+  three pre-switch assistant replies are replaced by a fixed neutral placeholder with no
+  pitch ("Thanks, that's a good question. Let's keep going."). If the history effect is
+  near zero → the CONTENT of the model's own replies is the anchor. If it returns toward
+  0.30 → the structure carries it and the claim narrows. RESULT: (pending)
+- Why this matters for the write-up: "the model anchors on itself" is a different — and
+  more safety-relevant — mechanism than "first impressions persist": a model that once
+  talks down to a user keeps doing so because of what it said, not what the user said.
+
 ### 2026-09-03 — E3: when the user confidently asserts a false claim, does what the model SAYS diverge from what it internally REPRESENTS? (header written before results)
 - Prediction (from table): H3 40% that the truth probe, trained on bare statements, reads
   true/false inside dialogues on held-out topics at ≥ 65% (floor 50%).
@@ -596,3 +622,62 @@ or identified why it didn't work" is scored ABOVE a clean success)
   first pass; the 600-token numbers are the ones reported.
 - Lesson: an LLM judge can only judge what it is shown. Check truncation BEFORE
   reading a sycophancy rate.
+
+## 7. External review against Nanda's own materials (2026-09-03, after E4)
+
+What was reviewed: the "useful text files" folder from his doc (his research-process and
+paper-writing posts, the Open Problems in Mechanistic Interpretability paper, the ARENA
+curriculum, TransformerLens/nnsight docs) plus the doc's evaluation criteria and past
+applicant assessments. Three parallel LLM readers, each given the study brief and the
+results digest, asked to find real weaknesses without inventing any; I (Claude) integrated
+and Yash decided.
+
+Findings adopted:
+- (Doc, "Common Mistakes": "skipping the cheap control … compare against 'just ask the
+  model'") — we had the random-vector control but had never asked the model. → 11_just_ask
+  (three-way, binary, third-person). Outcome: entry (a) above — stated estimate defaults
+  early and anchors more than the internal one; binary at the end is accurate.
+- (Open Problems §2.2.3, "a probe … does not necessarily imply that those activations
+  causally mediate") — E2's updating/anchoring were probe readouts only. → 12_causal:
+  behavioural anchoring (small, real), steering (sufficient), ablation (partly necessary).
+- (ARENA: necessity via projection/ablation; logit lens; cosine between independently
+  derived directions) → included in 12_causal.
+- (Paper-writing post: "the essence of a paper", "track pre/post-hoc", "how noisy is my
+  experiment") → write-up rules: H3b reported as a null with direction noted; raw
+  cross-generator numbers first, then "direction transfers, thresholds don't"; the
+  200-token bug disclosed as a protocol change; 92% validated-vs-not judge agreement shown
+  next to the 63% three-way figure; three claims; prediction table near the top; one line
+  admitting E1 was expected (cf. the "Empathic Machines" assessment: "I expected it to
+  work … didn't learn too much").
+Findings rejected, with reasons:
+- Random-initialised-network probe control (ARENA/Othello precedent): held-out topics +
+  cross-generator transfer already rule out the trivial explanations; skipped for time.
+- A reader's proposed opening sentence framed the work as "effective teaching requires
+  tracking what a student knows" — rejected: breaks the framing rule (this is a
+  safety/model-biology project; tutoring is not the frame).
+- A steered-lifelong-expert condition for control B of 12_causal was NOT run (time); B is
+  therefore reported as sufficiency, not un-anchoring.
+Reviewer verdict worth quoting to ourselves, not to Nanda: "the control battery is
+unusually thorough for a 20-hour project" (ARENA reader) — and the same reader found the
+one thing we had skipped. Both are true.
+
+## 8. Timeline: observation → question → change → outcome
+
+| When | Observed | Question it raised | What changed / ran | Outcome |
+|---|---|---|---|---|
+| Sep 2 eve | OpenRouter credits stuck at $0 (RBI e-mandate) | Can we generate without the API? | Local Gemma-27B + Codex CLI generators; two generators kept | Became the cross-generator control |
+| Sep 2 eve | Codex novices polished, learn within dialogue (reading 6) | Does the "novice" label hold across turns? | Pre-registered in 4e; per-level recall by turn added to E1 | Probe recall flat; judges drift; see just-ask |
+| Sep 2 night | Blind judge 37–55% (target 85–95) | Labels bad, judge biased, or parse failure? | Confusion matrix + raw outputs added; Gemma-27B and first-two-turns runs | One-step upward shifts only, 0 extreme swaps; first-two-turns 80% → labels valid at start, personas learn |
+| Sep 2 night | Length differs by level, opposite sign per generator | Could the probe read length? | Length-only baseline added to E1 | 46% vs 98.5%; sign flip means transfer can't be length |
+| Sep 2 night | E1 98.5% but cross-generator 61–68% | Style leak or threshold shift? | Layer sweep, confusion, pooled probe, threshold-refit test | Direction shared (94% refit, 97.6% pooled); thresholds differ |
+| Sep 2 night | Blind judges call late novices "intermediate"; probe doesn't | Does the internal estimate drift with learning? | P(true class) by turn added | No drift (0.94–1.0) |
+| Sep 2 night | E2 anchoring gap 0.28 | Writer or model? | reversal_postonly control | History effect +0.30, writing 0 → real |
+| Sep 3 morn | Probe saturated (0.001/0.983) | Is "journey fraction 0.39" graded or per-dialogue flips? | Flip fractions added | Mostly per-dialogue flips (42/58/73%) |
+| Sep 3 morn | E3 replies cut at 200 tokens; Qwen corrects slowly | Are validate/hedge verdicts artifacts? | 21 decisive re-judged at 600 tokens → all 91 regenerated | 13/21 changed; validation 15.6→13.3% / 6.5→4.3%; Section 6 pivot |
+| Sep 3 morn | Same text, different Gemini verdicts across runs | How noisy is the judge? | Noted; Phi-4 second judge; validated-vs-not agreement | 4/21 flipped; 92% on validated-vs-not |
+| Sep 3 morn | Validated false claims have P(true)≈0.5 | Sycophancy or deference under uncertainty? | By-verdict analysis with CIs (post-hoc) | +0.38 [+0.23,+0.53] at end-of-turn; not at claim position |
+| Sep 3 midday | Doc: "compare against just ask the model" — never done | Does asking match the probe? | 11_just_ask three-way | "intermediate" for all 275 dialogues |
+| Sep 3 midday | Always "intermediate" | Politeness or inability? | binary + third-person variants | Middle-option default; binary at end 118/119; first turn chance; stated anchors more than internal |
+| Sep 3 midday | E2 is a probe readout (reviewer) | Does anchoring show in behaviour? Is the direction necessary? | 12_causal | Behaviour anchors mildly (−0.29 pitch); steering sufficient; ablation ≈¼ of adaptation |
+| Sep 3 midday | History = user turns + assistant replies | Which one anchors? | reversal_userhistory | User turns alone: +0.01 → the model anchors on its OWN replies |
+| Sep 3 midday | Control 1 also changed structure | Content or structure? | reversal_neutralassistant | (pending) |
