@@ -1,0 +1,12 @@
+{'novice->expert': 48, 'expert->novice': 48} dialogues per direction
+consistent baselines at turn 5: novice 0.001 (n=60)  expert 0.983 (n=61)  midpoint 0.492
+novice->expert: crossover@0.5 = 1  @midpoint = 1  journey fraction turn3 0.39 [0.28,0.51]  turn5 0.71 [0.61,0.81]
+expert->novice: crossover@0.5 = 0  @midpoint = 0  journey fraction turn3 0.70 [0.60,0.80]  turn5 0.97 [0.95,0.99]
+novice->expert: fraction of dialogues flipped by turn [0.0, 0.0, 0.0, 0.42, 0.58, 0.73]; fraction with P(expert) in (0.2, 0.8) [0.0, 0.0, 0.0, 0.23, 0.23, 0.23]
+expert->novice: fraction of dialogues flipped by turn [0.0, 0.0, 0.0, 0.73, 0.92, 1.0]; fraction with P(expert) in (0.2, 0.8) [0.0, 0.0, 0.0, 0.25, 0.04, 0.08]
+H2b asymmetry (e->n minus n->e) journey fraction: turn3 +0.31 [+0.16,+0.46]  turn5 +0.26 [+0.16,+0.36]   (threshold: 0.15, CI clear of 0)
+H2c anchoring gap at turn 5: n->e +0.282 [+0.181,+0.389]   e->n +0.027 [+0.007,+0.053]   (threshold 0.1)
+H2c control novice->expert: full-context final 0.702 | post-switch turns only 1.000 | lifelong 0.983  ->  history effect +0.298 [+0.205,+0.401], writing effect -0.017 [-0.040,-0.001]
+H2c control expert->novice: full-context final 0.028 | post-switch turns only 0.000 | lifelong 0.001  ->  history effect +0.028 [+0.009,+0.054], writing effect -0.001 [-0.003,-0.000]
+  (history effect > 0.1 with CI clear of 0 = anchoring is real; a large writing effect = the generator wrote weaker post-switch turns)
+figure -> figures/e2_update_curves.png  |  results_e2.json
