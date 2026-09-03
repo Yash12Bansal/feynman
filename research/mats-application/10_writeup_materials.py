@@ -99,6 +99,26 @@ if e4:
     D.append(f"- H4b acknowledgment of the user's level: steered {pc(a['steered_phrase'])} (phrase) / {pc(a['steered_judge'])} (judge) of {a['n_steered']}; prompted {pc(a['prompted_phrase'])} / {pc(a['prompted_judge'])} of {a['n_prompted']} (line: steered ≤10%, prompted ≥30%).")
     D.append("- Figure: figures/e4_dose_response.png")
 
+# ---- post-hoc controls ----
+ja = {m: L(f"results_e1_justask{'' if m == 'three' else '_' + m}.json") for m in ("three", "binary", "third")}
+ec = L("results_e2_causal.json")
+D.append("\n## Post-hoc controls (not pre-registered): 'just ask the model' and causal anchoring\n")
+for m, r in ja.items():
+    if r:
+        f, i = r["main_final"], r["main_first"]
+        D.append(f"- Just ask, {m}: final-turn stated accuracy {pc(f['acc'])} (confusion {f['confusion']}); first-turn {pc(i['acc'])} (confusion {i['confusion']}); "
+                 f"reversal: stated matches current behaviour n→e {pc(r['reversal_novice->expert']['stated_matches_current_behaviour'])} vs probe {pc(r['reversal_novice->expert']['probe_matches_current_behaviour'])}, "
+                 f"e→n {pc(r['reversal_expert->novice']['stated_matches_current_behaviour'])} vs probe {pc(r['reversal_expert->novice']['probe_matches_current_behaviour'])}.")
+if ec:
+    c = ec["conditions"]
+    D.append(f"- Causal anchoring (judge {ec['judge']}, layer {ec['layer']}, α*={ec['alpha_star']}; cosine probe-vs-diff-of-means {ec['cosine_probe_vs_diffmeans']:.2f}): " +
+             "; ".join(f"{k}: pitch {v['level_mean']:.2f}±{v['level_se']:.2f}, grade {v['fk_mean']:.1f}±{v['fk_se']:.1f}, coherence {v['coherence_mean']:.2f}" for k, v in c.items()))
+    for k in ("level", "fk"):
+        D.append(f"  - [{k}] A behavioural anchoring (reversal − lifelong expert) {ec[f'A_behavioural_anchoring_{k}'][0]:+.2f} ± {ec[f'A_behavioural_anchoring_{k}'][1]:.2f}; "
+                 f"B steered reversal − lifelong expert {ec[f'B_steered_gap_{k}'][0]:+.2f} ± {ec[f'B_steered_gap_{k}'][1]:.2f}; "
+                 f"C ablation on lifelong experts {ec[f'C_ablation_effect_{k}'][0]:+.2f} ± {ec[f'C_ablation_effect_{k}'][1]:.2f}.")
+    D.append("- Figure: figures/e2_causal_anchoring.png")
+
 D.append("\n## QC (logbook section 4)\n- Length by level: Codex 33/33/37 words, Gemma 43/38/34 (opposite directions). Leaks: 0 / 2 false positives.\n"
          "- Blind judge, user turns only: Gemma-27B 71% 3-way (Codex); Phi-4 52% all turns → 80% first two turns (Codex); 70% (Gemma). 0 novice↔expert swaps in every run; rank corr 0.86–0.87.\n")
 open("results_digest.md", "w").write("\n".join(D))

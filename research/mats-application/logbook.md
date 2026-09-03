@@ -391,10 +391,30 @@ probe readout, i.e. correlational. Labelled as post-hoc additions.)
   sharp. This is the "introspection gap" from prior work on user models, reproduced here for
   competence. It also answers the method-minimalism question: asking does NOT substitute for
   the probe.
-- Caveat still open: "intermediate" is the polite middle option. Two variants queued —
-  forced binary (beginner/expert, no middle) and third-person ("brief a colleague, be
-  accurate not polite"). If either recovers accuracy, the honest statement becomes "can
-  report, defaults to non-committal"; if not, the gap is robust. PENDING.
+- Variants run (commit ea7780c), and they change the reading:
+  Third-person ("brief a colleague, be accurate, not polite", still 3 options): final turn
+  49% — novices → "intermediate" 55/60, experts → "intermediate" 36/59, intermediates
+  60/60. Reversal: 46–47 of 48 "intermediate". So the collapse is a MIDDLE-OPTION default,
+  not politeness toward the user.
+  Forced binary ("closer to a beginner or closer to an expert", no middle): final turn
+  118/119 on novice+expert dialogues (novice→beginner 59/60, expert→expert 59/59);
+  intermediates split 29/31. FIRST turn: "beginner" for 178/179 → chance (51%), while the
+  probe reads the same single message at 96.6%. Reversal, final turn: novice→expert
+  dialogues called "expert" 29/48 (60%); expert→novice called "beginner" 32/48 (67%). The
+  probe at the same turn: 73% and 100%.
+- Corrected reading: the model CAN report the user's level when forced to a binary at the
+  end of a dialogue, so the probe is not needed for the existence claim there — say so.
+  The probe's added value is (1) the first-turn readout (internal 97% vs stated chance),
+  (2) graded dynamics, (3) the anchoring comparison: the STATED estimate anchors more than
+  the internal one and in BOTH directions (40% / 33% not updated vs 27% / 0% internally),
+  and (4) the internal truth score in E3. Three layers: internal estimate sharp from the
+  first message and updates almost fully; behaviour adapted with a mild trace of anchoring
+  (entry (b) below); stated estimate defaults early, accurate only when forced binary late,
+  lags most after a switch.
+- Dumbest alternative explanation for the binary result: the model reads its OWN earlier
+  replies (pitched to the level) rather than the user → cannot separate here; the
+  first-turn condition has one assistant reply in context, which may be why "beginner"
+  dominates (the model has not yet pitched anything). Noted as a limit.
 
 #### (b) Is the anchoring visible in BEHAVIOUR, and is the direction NECESSARY? (12_causal_anchoring.py, commit 58813e7)
 - What: Qwen's actual reply at the final turn, judged for pitch (Gemini level 1–5) and
