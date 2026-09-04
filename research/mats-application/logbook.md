@@ -19,6 +19,13 @@ prediction table is the single most legible taste signal you can produce.
 | H3c | Internal truth score is NOT corrupted by confident voice (stays low for false)     | p: 25%, t: within 0.15 of hedged, f:no difference                     | Truth is about the world and tone should change what the model says, not what it represents, but a presupposed claim from a confident user is real persuasion pressure, so ≈60 that the internal score stays put given a working probe. 0.40 × 0.60 ≈ 24. Control: subtract the voice effect on true claims to remove style; equivalence bound 0.15 with ~40 per cell.                                                     | YES. Corrected internal shift +0.01 [−0.12,+0.14]; false-claim means 0.25 / 0.15. I had 25%. | Confidence does not move the internal truth score once style is subtracted. Exploratory: the model validates the false claims it is internally unsure about (P(true) 0.50 vs 0.12 when correcting). |
 | H4  | Steering shifts FK grade / judged level beyond random-direction control            | p:45%, t:atlest 2 grade levels more, f: random                        | Mean-difference steering found the refusal and persona directions and moved user-attribute behavior in prior work, but the best probe layer may not be the best steering layer and the push also lands on the assistant's own tokens, so ≈65 given a working probe. 0.70 × 0.65 ≈ 46. Pre-registered: 12 prompts instead of 4, and strength = largest with coherence ≥ 4/5; must beat random directions by 2 grade levels. | YES. +3.1 grade levels vs random (SE 0.6), judged level +1.4 vs +0.06, coherence 5/5 at all strengths. I had 45%. | The competence direction is causal for how the model pitches its answer; one-sided because the default pitch is already near the floor. |
 | H4b | Steering adapts covertly (no acknowledgment), unlike system-prompting              | p: 22%, t: steered under 10%, prompted over 30%, f: same as prompting | Steered replies have no textual cue to mention, so ≈90 they stay silent; but a system prompt may be absorbed without comment too, so only ≈55 that prompted replies acknowledge the level ≥ 30% of the time. 0.45 × 0.90 × 0.55 ≈ 23. Measure: phrase list + yes/no judge on ~48 steered and 24 prompted replies, all hand-read.                                                                                           | NO. Steered 0/60 mention the user's level — but prompted only 2/24 (8%), below my 30% line. | No qualitative difference: prompting is as covert as steering for this model. My doubt in the reason cell was right. |
+| H5  | LINKING (E5): the same confident false claim is validated MORE (or LESS) when the two preceding user turns look expert vs novice. Metric: P(validate) expert-looking − novice-looking, paired by claim, 600-token replies, E3 rubric; secondary: not-corrected rate | p: __%, t: ±0.10 paired gap with CI clear of 0, f: 0 (fill BEFORE running 19_linking_e5.py generate; write which SIGN you expect) | ______ | | |
+| H5b | LINKING: the internal truth estimate of the same false claim (truth probe, end of the claim turn) is higher after expert-looking turns | p: __%, t: +0.10 paired, f: 0 | ______ | | |
+| H5c | (exploratory) A confident FALSE claim from an expert-looking user lowers P(expert) at the claim turn more than a TRUE one does (single-sentence downgrade evidence) | p: __%, t: −0.10 difference of drops, f: 0 | ______ | | |
+| H5d | (only if STEER=1 runs) Steering the competence direction during the reply moves the not-corrected rate the same way the context did | p: __%, t: same sign as H5 with CI clear of 0, f: 0 | ______ | | |
+| H6  | Level-neutral RESPONSIVE replies (T2.2) give a history effect between the fixed placeholder (+0.17) and the full history (+0.30), n→e | p: __%, t: between the two, both paired diffs clear of 0, f: equal to full | ______ | | |
+| H7  | The E3 lead survives without a dialogue: bare-statement out-of-fold P(true) is higher for the false claims the model later failed to correct | p: __%, t: +0.15 with CI clear of 0 (claim level too), f: 0 | ______ | | |
+| H8  | Second model size (T3.1): the E2 asymmetry has the same sign and the n→e anchoring gap is > 0.1 | p: __%, t: both hold, f: asymmetry flips sign | ______ | | |
 **Dataset notes (facts for the write-up).** Subject model: Qwen3-8B, thinking disabled.
 Two generators wrote the main dialogues, on purpose: Codex (GPT family, via the ChatGPT
 Pro CLI) — 536 dialogues kept, 4 rejected at merge for self-labels; Gemma-3-27B-it run
@@ -536,6 +543,14 @@ probe readout, i.e. correlational. Labelled as post-hoc additions.)
   (2) ablation just damaged the model → coherence 4.90 vs 4.97, and FK barely moved;
   (3) judge drift across conditions → all five judged in one run with the same rubric,
   coherence flat. Not closed: no steered-lifelong-expert condition (B).
+
+### Extension window (Sept 5–11) — pre-registration block
+Predictions for H5–H8 are in section 0 (rows added 2026-09-04 evening, before any of these
+ran). Manipulation criterion for E5, fixed now: the E1 probe at the turn BEFORE the claim
+must read ≥ 80% of expert-context dialogues as expert and ≥ 80% of novice-context
+dialogues as novice; otherwise E5 is reported as "manipulation failed" and H5 is not scored.
+Scripts: 17 (T1.1/T2.2), 18 (T1.2), 19a+19 (T2.1), 20 (T2.2 data), 22 (T3.1). Each run gets
+its own entry below in the usual block.
 
 ## 3. Agent verification checklist (do EVERY session — Nanda: "the most important
 

@@ -50,7 +50,9 @@ dataset = sys.argv[1] if len(sys.argv) > 1 else "main"
 # Separates "content of the model's own earlier replies" from "multi-turn structure".
 SRC = {"reversal_postonly": "reversal", "honesty_claimpos": "honesty",
        "truth_lastword": "truth", "reversal_userhistory": "reversal",
-       "reversal_neutralassistant": "reversal"}
+       "reversal_neutralassistant": "reversal", "linking_claimpos": "linking"}
+# "<name>_claimpos" works for any dataset whose rows carry claim / claim_turn
+# (honesty, linking): snapshot at the end of the claim sentence.
 NEUTRAL = "Thanks, that's a good question. Let's keep going."
 src = SRC.get(dataset, dataset)
 rows = [json.loads(l) for l in open(f"{SAVE_DIR}/{src}.jsonl")]
@@ -112,7 +114,7 @@ for d in tqdm(rows):
         meta.append({"topic": d["topic"], "truth": d["truth"], "text": d["text"],
                      "position": "statement_last_token", "token_index": ti})
         continue
-    if dataset == "honesty_claimpos":
+    if dataset.endswith("_claimpos"):
         msgs = d["messages"]
         user_idx = [i for i, m in enumerate(msgs) if m["role"] == "user"]
         ci = user_idx[d["claim_turn"]]

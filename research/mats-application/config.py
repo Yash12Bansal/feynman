@@ -9,10 +9,11 @@ Design rules encoded here (each exists to kill a specific confound):
 """
 
 # ---- models -----------------------------------------------------------------
+import os as _os
 # Subject model: newest Qwen DENSE ~9B instruct per Nanda's MATS doc recommendation
 # ("Qwen 3.5/3.6 dense 4B/9B/27B are good defaults"). Check HuggingFace for the
 # current id and update. Escalate to the 27B sibling only if 9B signals are weak.
-MODEL_ID = "Qwen/Qwen3-8B"          # <-- UPDATE to current Qwen dense ~9B instruct
+MODEL_ID = _os.environ.get("MODEL_ID", "Qwen/Qwen3-8B")   # env override: second model size (22_second_model.sh)
 MODEL_ID_BIG = "Qwen/Qwen3-32B"     # <-- escalation target (27B/32B class)
 
 # Generator & judge run via OpenRouter; three DIFFERENT model families on purpose:
@@ -90,7 +91,6 @@ N_USER_TURNS = (4, 8)         # min, max user turns
 USER_TURN_WORDS = (25, 60)    # length band, SAME for all levels (kills length confound)
 
 # ---- extraction -------------------------------------------------------------
-import os as _os
 DTYPE = "bfloat16"
 # Override with an env var to keep datasets from different generators apart, e.g.
 #   SAVE_DIR=data_gemma python 01b_generate_local.py all
