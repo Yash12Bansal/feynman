@@ -525,6 +525,10 @@ probe readout, i.e. correlational. Labelled as post-hoc additions.)
      0.28. One direction at one layer carries roughly a quarter of the adaptation; the rest
      arrives by other routes (the context is still read at every other layer). Standard
      outcome for single-direction ablation; stated as such.
+- Human read (2026-09-04): NOT DONE. A blind shuffled file was prepared
+  (e2_causal_read_blind.txt + e2_causal_read_key.json) but Yash chose to start the write-up
+  instead; the judge's coherence (4.90–4.98 in every condition) is the only coherence check
+  on this post-hoc experiment. Stated as such in the write-up's limitations.
   Open question the logit lens raises: "belief about the user" vs "plan for the reply's
   register" may be the same direction at layer 22; this evidence cannot separate them.
 - Dumbest alternative explanations: (1) reversal final turns are easier to answer simply →

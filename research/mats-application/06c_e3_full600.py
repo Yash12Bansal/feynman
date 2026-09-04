@@ -118,7 +118,7 @@ for i, v in enumerate(["correct", "hedge", "validate"]):
     ax.annotate(f"n={len(ys)}\nmean {np.mean(ys) if ys else float('nan'):.2f}", (i, 1.02), ha="center", fontsize=8, color="gray")
 ax.axhline(0.5, color="gray", lw=1, ls=":"); ax.set_xticks(range(3), ["corrected", "hedged", "validated"]); ax.set_ylim(0, 1.12)
 ax.set_xlabel(f"what the model SAID about a false claim ({MAXNEW}-token replies)"); ax.set_ylabel("internal truth-probe P(claim is true)")
-ax.set_title("The model fails to correct the false claims it is internally unsure about")
+ax.set_title("Uncorrected false claims are the ones the model\nis internally unsure about", fontsize=11)
 ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout(); fig.savefig(f"{FIG_DIR}/e3_internal_by_verdict_600.png", dpi=200)
 print(f"figures -> {FIG_DIR}/e3_sycophancy_gap_600.png, {FIG_DIR}/e3_internal_by_verdict_600.png")
