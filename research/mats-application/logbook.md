@@ -420,7 +420,33 @@ Running total: ** / 20 (+ ** / 2 exec summary)
   effect. Not closed: the direction was read at end-of-USER-turn positions but added on
   the assistant's own tokens too; a position-restricted version is a follow-up.
 - Decision: E4 done. Human read of the 72 steered/prompted replies for coherence and
-  acknowledgment — PENDING (mine); judge and phrase list both say 0 and 2.
+  acknowledgment — judge and phrase list both say 0 and 2. Yash's read: below.
+
+#### Update 2026-09-04 — Yash's blind read of the E4 replies (e4_read.txt: the ±8 steered
+and the 24 prompted replies, 48 of the 72; the ±4 replies were not read; judge labels hidden)
+- Coherent: 48/48 (judge: 47/48 at 5, one prompted-beginner reply at 4).
+- Mentions the reader's level: steered 0/24 (judge 0/24, phrase list 0/24) — agrees.
+  Prompted: Yash 3/24, judge 2/24, phrase list 1/24. The two the judge found are the
+  beginner-prompt replies to the stocks question ("which might be better for a beginner")
+  and the coin-streak question ("especially for beginners in probability"). The third,
+  Yash's, is the EXPERT-prompt reply to the stocks question: "As a domain expert, I can
+  provide a nuanced analysis". By the rubric this is not a reference to the reader's level
+  (the model calls ITSELF the expert), so the judge's "no" is rubric-correct — but it is
+  the system prompt about the user leaking into the model's self-description, which is a
+  visible trace of the assumption. Reported both ways: prompted 2/24 by rubric, 3/24
+  counting the leaked self-reference; steered 0/24 either way. H4b unchanged (NO).
+- Observation from the read (Yash): beginner-prompted replies open with "let me explain in
+  a simple way" / "here's a simple explanation", and some −8 steered replies do too.
+  Counted on the FULL replies in results_e4_raw.json with a phrase regex ("simple
+  way/explanation/terms", "simply", "plain English", "easy to understand", "break it
+  down"): prompt-beginner 10/12; steer −8 5/12; steer −4 4/12; α=0 2/12; steer +4 0/12;
+  steer +8 0/12; prompt-expert 0/12; random directions 1–3/12 at every strength.
+  Reading: the competence direction carries the model's "I am explaining simply" framing
+  along with the pitch — a graded dose-response in the framing phrases that random
+  directions do not produce. It still never NAMES the reader's level (0/60), so the
+  H4b count stands; but "covert" is too strong a word for the −8 side: the steered
+  model announces the register without attributing it to the reader. Add to the E4
+  paragraph of the write-up as a qualitative observation with these counts.
 
 ### 2026-09-03 ~11:30 UTC — Two controls from Nanda's "Common Mistakes" list and the Open Problems review, run after E4
 (These were NOT in the pre-registered table. Added after re-reading the evaluation criteria
@@ -753,6 +779,7 @@ one thing we had skipped. Both are true.
 | Sep 3 midday | E2 is a probe readout (reviewer) | Does anchoring show in behaviour? Is the direction necessary? | 12_causal | Behaviour anchors mildly (−0.29 pitch); steering sufficient; ablation ≈¼ of adaptation |
 | Sep 3 midday | History = user turns + assistant replies | Which one anchors? | reversal_userhistory | User turns alone: +0.01 → the model anchors on its OWN replies |
 | Sep 3 midday | Control 1 also changed structure | Content or structure? | reversal_neutralassistant | Anchoring 0.30 → 0.17: ~half is the content of the model's own replies, ~half the user's turns; control 1 was a merge artifact. e→n: real expert replies deepen the downgrade (0.03 vs 0.16) |
+| Sep 4 | Yash's E4 read: beginner-prompted AND −8 steered replies announce "simple explanation" | Does steering reproduce the prompt's framing phrases, not just the pitch? | Phrase count per condition on the full replies | 83% prompted-beginner, 42% at −8, 17% at α=0, 0% at +8, random 8–25%: graded, direction-specific; reader's level still never named |
 
 ## 9. Prior-art check and what we claim as new (2026-09-04 morning)
 
