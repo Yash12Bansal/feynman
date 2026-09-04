@@ -702,3 +702,23 @@ one thing we had skipped. Both are true.
 | Sep 3 midday | E2 is a probe readout (reviewer) | Does anchoring show in behaviour? Is the direction necessary? | 12_causal | Behaviour anchors mildly (−0.29 pitch); steering sufficient; ablation ≈¼ of adaptation |
 | Sep 3 midday | History = user turns + assistant replies | Which one anchors? | reversal_userhistory | User turns alone: +0.01 → the model anchors on its OWN replies |
 | Sep 3 midday | Control 1 also changed structure | Content or structure? | reversal_neutralassistant | Anchoring 0.30 → 0.17: ~half is the content of the model's own replies, ~half the user's turns; control 1 was a merge artifact. e→n: real expert replies deepen the downgrade (0.03 vs 0.16) |
+
+## 9. Prior-art check and what we claim as new (2026-09-04 morning)
+
+Method: one LLM reader with web search, 2–3 queries per claim, abstracts and snippets only
+(paper sites were blocked from the sandbox). Titles and years below must be verified by
+hand before they go into the write-up. Nothing here is a full literature review.
+
+| Our claim | Nearest prior work found | Overlap | What we may say |
+|---|---|---|---|
+| Asymmetric updating of the internal user model (downgrade in 1 turn, upgrade slow and partial) | Schubert et al., "In-Context Learning Agents Are Asymmetric Belief Updaters" (ICML 2024) — asymmetric updating of reward beliefs, not user attributes. "AMEL: Accumulated Message Effects on LLM Judgments" (2026) — history biases output judgments, saturates in ~5 turns; outputs, not internal state. LessWrong "Do LLMs Change Their Minds About Their Users… and Know It?" (2025) — user-attribute probes update within a turn; no directional asymmetry reported. | adjacent only | "We did not find prior work reporting this asymmetry for a user model." |
+| About half of the first-impression effect is carried by the model's OWN earlier replies (substitution control) | "Old Habits Die Hard: How Conversational History Geometrically Traps LLMs" (2026) — a model's own prior outputs trap later hidden states, in general. AMEL as above. | mechanism supported in general; the two-channel decomposition on a user representation not found | "Prior work shows a model's own outputs shape its later states; we separate that channel from the user's own words for the user model specifically." |
+| Failures to correct a false claim concentrate where the truth probe already shows uncertainty; "knows and defers" ≈ 4% | "When Truth Is Overridden: Uncovering the Internal Origins of Sycophancy in LLMs" (AAAI 2026); "Dissociating the Internal Representations of Sycophancy in LLMs" (2026); truth-probe line (Azaria & Mitchell and successors). | same line of work; the binning by pre-pushback probe score not found | "Extends the internal-origins-of-sycophancy line with a per-case split; exploratory, n=12." |
+| Stated estimate defaults to the middle option, is accurate only when forced binary at the end, lags the internal one after a switch | LessWrong post above — directly on point for demographics with a 3B model: high probe accuracy, poor self-report. | direct predecessor; different attribute and measurements | Cite and differentiate: competence; first-message contrast (97% vs chance); forced-binary recovery; stated anchors more than internal. Incremental. |
+| Steering the competence direction re-pitches the reply covertly; a system prompt is equally covert | Chen, Wu, … Wattenberg, Viégas, "Designing a Dashboard for Transparency and Control of Conversational AI" (TalkTuner, 2024, arXiv 2406.07882) — probes + steering of age/gender/education/SES. | direct methodological ancestor; the covertness comparison not found (full text not read) | Cite as the ancestor. Claim only "we did not find this comparison measured." |
+| Competence linearly readable at 98.5% held-out; direction shared across generators, calibration not | TalkTuner and the emotion-probe application in Nanda's doc ("I expected it to work"). | expected | Confirmation with controls; the transfer-vs-calibration split is a method point. |
+
+Framing rule for the write-up: two findings with no found predecessor (asymmetric update;
+self-shaped anchor), one sharp exploratory extension (where sycophancy lives), one
+incremental extension with a named predecessor (stated-vs-internal), one confirmation.
+Never "first to show"; always "we did not find prior work that …".
