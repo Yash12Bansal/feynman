@@ -611,7 +611,7 @@ level definitions in the prompt; greedy decoding; per-item files qc_judge_*.json
 | Gemma-3-27B, Codex, all turns | 70.8% (85/120) | 25/38 | 5/39 | 38/43 | 0/120 |
 | Phi-4, Codex, FIRST TWO user turns only | 80.0% (96/120) | 8/38 | 14/39 | 41/43 | 0/120 |
 | Phi-4, Gemma, all turns | 70.0% (84/120) | 29/37 | 7/39 | 44/44 | 0/120 |
-| Phi-4, Gemma, first two turns | (pending) | | | | |
+| Phi-4, Gemma, first two turns | not run | — | — | — | — |
 
 Rank correlation between true and judged level: 0.86–0.87 in every run that reports it.
 Every error in every run is a shift of exactly one step, and the shift is always upward.
