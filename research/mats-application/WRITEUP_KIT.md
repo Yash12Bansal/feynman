@@ -9,9 +9,19 @@ Deadline: Sept 4, 2026 11:59 pm PT = Sept 5, 12:29 pm IST.
 ## 0. Deliverables and the rules that apply to all of them
 
 Deliverables:
-1. Google Doc, sharing set to "anyone with the link". Order inside: executive summary
-   (with 2 graphs) → 5 random examples → setup → one section per claim → negative results
-   → limitations → what I verified → what I would do next → appendix.
+1. Google Doc, sharing set to "anyone with the link". Order inside: title → executive
+   summary (2–3 graphs) → 5 random examples → setup (with a terms box) → claims A–D → E1/E4
+   confirmations → "How these results could be wrong, and what I checked" table → "Three
+   things that went wrong" → "What I verified myself, and how" → "How I used the agent and
+   what stayed mine" → negative results → limitations → what I would do next → appendix.
+   Nanda reads the FORM summary answers first and uses them as a filter, so write the
+   executive summary and the form answers together, before the body.
+   Narrative rule (his doc): "one or two most interesting, concrete insights". The
+   executive summary carries TWO insights and ONE lead: (i) how the estimate updates
+   (one-directional, and partly self-shaped), (ii) the three layers disagree, (iii) the
+   sycophancy-where-unsure lead. E1 and E4 get one line each there.
+   Time rule: the body counts inside the 20 h; the +2 h are for the executive summary only
+   and he asks that the rest of the doc is not edited in them. Check Toggl first.
 2. Application form answers (your voice). Feynman appears only in the "evidence you can do
    research" answer, as engineering/agency evidence. Nowhere else.
 3. Toggl screenshot in the appendix, and logbook §1 filled from it.
@@ -57,9 +67,10 @@ Suggested shape (the numbers in brackets are word budgets, not rules):
      already unsure; "knows it is false and defers" is about 4 of 91.
 - Pre-registration line: 11 predictions written before any run; 8 yes, 3 no; three of my
   four lowest-probability bets (25–32%) came out yes. Table in appendix. [30]
-- Two figures: Fig 1 = figures/e2_update_curves.png (asymmetry and anchoring visible in
-  one picture). Fig 2 = figures/e2_anchoring_source.png (the headline control). Each with a
-  two-line caption you write. Put the E3 by-verdict figure in the E3 section, not here.
+- Figures (he suggests one graph per key experiment; the 600-word cap is the constraint,
+  not the figure count): Fig 1 = figures/e2_update_curves.png; Fig 2 =
+  figures/e2_anchoring_source.png; Fig 3 (small) = figures/e3_internal_by_verdict_600.png.
+  Each with a two-line caption you write.
 - Limitations in one sentence at the end: single 8B model; synthetic dialogues; the
   neutral-placeholder control is off-distribution; E3 cells are small; judge noise ±3. [40]
 
@@ -242,6 +253,73 @@ explanation and the control that killed it → what it does NOT show → figure.
   about the user" vs "plan for the reply's register" may be the same direction at layer 22.
 - Figure: figures/e4_dose_response.png.
 
+## 4b. "How these results could be wrong, and what I checked" (table; his doc: "a really positive sign is when I think of a way the results could be false, then discover you've already checked it")
+
+| Claim | Dumbest alternative explanation | Control | Outcome |
+|---|---|---|---|
+| E1 probe reads competence | topic leakage | 4 topics held out entirely | 98.5% on unseen topics |
+| | pipeline bug / leakage | shuffled labels | 32.7% (chance) |
+| | dead activations | topic probe as positive control | 100% |
+| | length | length-only classifier; opposite-sign length effects across generators | 46.1% |
+| | self-labels | regex filter, 4 rejected; 0 leaks in final files | clean |
+| | one generator's house style | train on Codex, test on Gemma and back | raw 61–68% → direction shared (94% thresholds refit, 97.6% pooled) |
+| | keyword detector | explicit↔implicit transfer, topic-clean | 91.4% / 96.7% |
+| | assistant replies leak the level | turn-0 accuracy (no assistant turn in context) | 96.6% |
+| E2 anchoring | writer wrote weak post-switch experts | history cut off | isolated turns 1.000; writing effect −0.02 |
+| | saturated probe, means are flips | per-dialogue flip fractions | reported as flips |
+| | anchor is structure, not content | neutral-placeholder replies, all turns kept | +0.17 vs +0.30 |
+| | earlier "user turns alone" control | merge artifact identified | superseded |
+| E2 asymmetry | unequal distance to travel | journey-fraction metric to the target baseline | +0.31 [+0.16, +0.46] |
+| | one probe's quirk | Codex probe as robustness check | +0.23 / +0.22 |
+| E3 | model doesn't know the fact | neutral pre-filter | 184/190 answered correctly unpressured |
+| | probe reads hedging style | difference-in-differences on true claims | +0.01 [−0.12, +0.14] |
+| | reply cut before the correction | regenerate at 600 tokens | 13/21 verdicts changed; all 91 redone |
+| | judge unreliable | Phi-4 second judge; 21 hand-read; repeat-run noise | 92% validated-vs-not; 21/21 final; ±3 |
+| E4 steering | any big vector changes text | 3 random directions, same norm | flat, 10.0–10.5 |
+| | we broke the model | coherence judge | 5.0 at every strength |
+| | strength tuned on results | α* rule fixed before the run | α* = 8 |
+| | steering ≡ prompting | system-prompt baselines | prompt beats steering on novice side, not expert side |
+| Stated vs internal | politeness, not inability | third-person "be accurate" variant | still 49%, middle default |
+| | model can't report at all | forced binary at the end | 118/119 |
+
+## 4c. "Three things that went wrong" (his doc: the difference between "I gave up" and "I pivoted or found why" is huge)
+1. Blind judge scored 37% against the labels (target 85–95). Diagnosis: confusion matrix,
+   every error a one-step upward shift, first-two-turns run 80%. Cause: novice personas learn
+   within the dialogue. Decision: keep the data, pre-register the expected confusions.
+2. E3 replies cut at 200 tokens made the model look sycophantic. Found by the "dumbest
+   explanation" list written before results; 13/21 decisive verdicts changed at 600 tokens;
+   everything regenerated. Numbers before and after shown.
+3. The "user's turns only" control gave +0.01 and looked like a clean answer. It was a
+   merge artifact (three turns folded into one message). Replaced by the placeholder
+   control, which gave the real answer: about half.
+
+## 4d. "What I verified myself, and how" (his doc: "the most important piece of advice"; document your checking)
+- 30 QC dialogues read (10 per level) before any GPU time; §4c.
+- All 12 uncorrected E3 replies + 9 corrections read in full: 21/21 final, 18–19/21 first
+  pass (2–3 changed after seeing the judge's label; say so). All 14 distinct false claims
+  checked false by hand.
+- 48 E4 replies read blind: coherent 48/48; level mentions 0/24 steered, 3/24 prompted;
+  the "simple explanation" framing observation came from this read and was then counted.
+- One headline number recomputed by hand: ______ .
+- Predictions written before each experiment; each run logged with its dumbest alternative
+  explanation; 17-row observation→decision timeline.
+- Not done: human read of the causal replies (judge coherence 4.90–4.98 is the only check).
+
+## 4e. "How I used the agent and what stayed mine" (his doc: an application that reads as "an agent did a project and a human forwarded it" is rejected). Write this truthfully.
+- Yours: the predictions, thresholds and floors; approving every pivot and every added
+  control; reading the data and the replies; the hand-checks; the decision to skip the
+  causal read; the writing.
+- The agent's: code, runs, figures, logging drafts, literature snippets, the outside
+  review readers.
+- Rules you gave it (CLAUDE.md): never change parameters silently; name the dumbest
+  alternative explanation after every result; print 5 random examples for every dataset;
+  never write the summary.
+
+## 4f. Terms box for the setup (his doc: "define your terms")
+residual stream · linear probe · P(expert) · held-out topics · journey fraction · matched
+turn · anchoring gap · history effect vs writing effect · difference-in-differences ·
+diff-of-means direction · α* · Flesch–Kincaid grade.
+
 ## 5. Negative results (their own section, same font size)
 - H1b: no rise with turn index (ceiling at 96.6% from the first message).
 - H3b: confident voice does not double validation by the pre-registered absolute-gap rule
@@ -269,7 +347,7 @@ explanation and the control that killed it → what it does NOT show → figure.
   linear boundary; direction-alone 94%), not closed.
 - Prior-art check was abstracts and snippets only; titles verified by hand before citing.
 
-## 7. What I verified myself (his "sanity-check your agent" section; scored)
+## 7. (moved into the body as 4d) — keep only the hand-recomputed number here
 - Read 30 QC dialogues (10 per level) before any experiment; recorded in logbook §4c.
 - Read all 12 uncorrected E3 replies and 9 corrections in full; 21/21 final, 18–19/21 first
   pass; all 14 distinct false claims checked false by hand.
@@ -303,10 +381,18 @@ explanation and the control that killed it → what it does NOT show → figure.
 - Prior-art table, §9, with titles verified by hand.
 - Judge rubrics (judge_rubrics.md).
 - Toggl screenshot and the §1 time table.
-- Code: the folder research/mats-application on the repo (say which commit).
+- Code: encouraged, not required; he feeds it to his agents. Share the folder (public repo
+  or zip) after a secrets check; say which commit.
+- Verbatim: the level definitions (config.py), the generation RULES block
+  (01c_generate_codex.py), both judge rubrics (judge_rubrics.md), probe and steering
+  parameters (layer 22, LR C=0.1, α in units of 0.1‖d‖, 12 prompts, 3 random seeds).
 
-## 10. Form answers — points to cover (no prose here; you write it)
-- Summary questions are read first and used as a filter. Answer them with the three claims
+## 10. Form answers — points to cover (no prose here; you write it). WRITE THESE WITH THE EXECUTIVE SUMMARY, NOT LAST.
+- Summary questions are read first and used as a filter. His words: "Convey concretely
+  what you did, what you found, why it's interesting, biggest limitations. Specifics beat
+  vibes: name the models, the key experiment, the surprising number."
+- Title: one of his accepted examples got "bonus points for a great title". Specific and
+  plain. Ingredients: user competence; updates one way; half made by the model itself. Answer them with the three claims
   and the numbers, in the same order as the executive summary.
 - "Evidence you can do research": Feynman as engineering/agency evidence (built a
   production-grade system end to end, made design decisions, shipped), plus this project's
