@@ -38,7 +38,40 @@ Rules (from his doc; each one is scored):
   "student" should not appear except in the Feynman form answer.
 - Every headline number carries its CI in the same sentence.
 
-## 1. Executive summary — skeleton and word budget (~520 words + 2 figures)
+
+## 0b. From the web check of his live doc and the six example applications he links (2026-09-04)
+
+- DEADLINE: the live doc reads "Due Fri Sept 4th 11:59pm PT (extensions available until
+  Sept 11)" with a separate extension form. VERIFY THIS YOURSELF on the doc
+  (tinyurl.com/neel-mats-app) before relying on it. If real, an extension buys time for the
+  causal read, a calmer write-up and a proper Toggl record. Decide early, not at 11 pm.
+- LENGTH: the six accepted/borderline examples ran 1,300–3,800 words of main text with
+  4–17 figures. The cleanest "Accept" (R1D1) was ~1,340 words and 4 figures and used his
+  three-section executive-summary format verbatim. So the body target is 2,000–2,500
+  words, not 3,500. Cut before you pad.
+- His "Common Mistakes" TL;DR names "showing that a safety-related concept has a linear
+  representation" as a generic project. E1 alone is that project. The twist (updates one
+  way, half self-made, three layers disagree) is what differentiates ours; E1 stays one line.
+- Executive summary additions from his own words: (a) one bullet "what I verified by hand"
+  ("I read 30 transcripts and confirmed…" is his example of strong evidence); (b) state the
+  biggest limitation in the summary itself (80k podcast: "if there's a key limitation, it
+  should be in the abstract"); (c) calibrated verbs on each takeaway: "compelling /
+  suggestive / tentative evidence that…" (his paper-writing post); (d) an optional one-line
+  epistemic status at the top (the MATS 6.0 accept opened with one).
+- Examples worth 20 minutes before you write (structure, not content):
+  R1D1 (Accept): https://docs.google.com/document/d/1OiqmJ36EgBgzy5sR4YEFrn4WFXEQFmZ0oc5t8579ysE
+  Empathic machines (borderline accept, "notably well written"): https://crawling-opossum-1a2.notion.site/Empathic-machines-1a44cd7fb1b780539302c6c50a5ca80c
+  J Rosser's MATS 10.0 application + his own lessons ("I didn't leave enough time for the
+  writeup"; "I'm glad I kept a logbook"): https://www.lesswrong.com/posts/kZtx6ydBytXkZEQeA/my-neel-nanda-mats-10-0-application-studying-feature
+- His paper-writing post, the lines that apply here: "Track pre/post-hoc analysis"; "Assume
+  you've made a mistake - what is that mistake?"; "provide randomly selected examples";
+  "Inform, not persuade"; "If you don't have a good answer to 'what goes wrong if I cut
+  this', you should cut it."
+- The Airtable form itself could not be read from here (region-blocked). Confirmed
+  question: "What are 1-3 pieces of evidence that you'd be able to do good research in the
+  program?" The rest are project-summary questions; his doc says they are read first.
+
+## 1. Executive summary — skeleton and word budget (~520 words + 2–3 figures)
 
 Suggested shape (the numbers in brackets are word budgets, not rules):
 - Title line: what was measured, in which model. [15]
@@ -73,6 +106,10 @@ Suggested shape (the numbers in brackets are word budgets, not rules):
   Each with a two-line caption you write.
 - Limitations in one sentence at the end: single 8B model; synthetic dialogues; the
   neutral-placeholder control is off-distribution; E3 cells are small; judge noise ±3. [40]
+- One bullet on what you verified by hand: all 12 uncorrected E3 replies read (21/21 final,
+  18–19/21 first pass), 48 E4 replies read blind, 30 QC dialogues, one number recomputed. [35]
+- Calibrated verbs on the takeaways: compelling (E1, E4, asymmetry, anchoring), suggestive
+  (self-shaped half), tentative (sycophancy-where-unsure). [0]
 
 ## 2. Five random examples (immediately after the executive summary)
 
