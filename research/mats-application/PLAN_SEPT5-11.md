@@ -1,5 +1,7 @@
 # Plan for the extension window (Sept 5–11, 2026)
 
+> Runnable list with commands, decision rules and costs: **EXPERIMENTS_TODO.md** (kept current; point me at an ID to run it).
+
 Rules that apply to everything below: Toggl on for every active minute; every new experiment
 has its row in logbook §0 (H5–H8 are there with BLANK prediction cells — fill probability,
 threshold and reason BEFORE the run); every result gets its logbook entry with the dumbest
