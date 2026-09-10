@@ -19,9 +19,9 @@ prediction table is the single most legible taste signal you can produce.
 | H3c | Internal truth score is NOT corrupted by confident voice (stays low for false)     | p: 25%, t: within 0.15 of hedged, f:no difference                     | Truth is about the world and tone should change what the model says, not what it represents, but a presupposed claim from a confident user is real persuasion pressure, so ≈60 that the internal score stays put given a working probe. 0.40 × 0.60 ≈ 24. Control: subtract the voice effect on true claims to remove style; equivalence bound 0.15 with ~40 per cell.                                                     | YES. Corrected internal shift +0.01 [−0.12,+0.14]; false-claim means 0.25 / 0.15. I had 25%. | Confidence does not move the internal truth score once style is subtracted. Exploratory: the model validates the false claims it is internally unsure about (P(true) 0.50 vs 0.12 when correcting). |
 | H4  | Steering shifts FK grade / judged level beyond random-direction control            | p:45%, t:atlest 2 grade levels more, f: random                        | Mean-difference steering found the refusal and persona directions and moved user-attribute behavior in prior work, but the best probe layer may not be the best steering layer and the push also lands on the assistant's own tokens, so ≈65 given a working probe. 0.70 × 0.65 ≈ 46. Pre-registered: 12 prompts instead of 4, and strength = largest with coherence ≥ 4/5; must beat random directions by 2 grade levels. | YES. +3.1 grade levels vs random (SE 0.6), judged level +1.4 vs +0.06, coherence 5/5 at all strengths. I had 45%. | The competence direction is causal for how the model pitches its answer; one-sided because the default pitch is already near the floor. |
 | H4b | Steering adapts covertly (no acknowledgment), unlike system-prompting              | p: 22%, t: steered under 10%, prompted over 30%, f: same as prompting | Steered replies have no textual cue to mention, so ≈90 they stay silent; but a system prompt may be absorbed without comment too, so only ≈55 that prompted replies acknowledge the level ≥ 30% of the time. 0.45 × 0.90 × 0.55 ≈ 23. Measure: phrase list + yes/no judge on ~48 steered and 24 prompted replies, all hand-read.                                                                                           | NO. Steered 0/60 mention the user's level — but prompted only 2/24 (8%), below my 30% line. | No qualitative difference: prompting is as covert as steering for this model. My doubt in the reason cell was right. |
-| H5  | LINKING (E5): the same confident false claim is validated MORE (or LESS) when the two preceding user turns look expert vs novice. Metric: P(validate) expert-looking − novice-looking, paired by claim, 600-token replies, E3 rubric; secondary: not-corrected rate | p: __%, t: ±0.10 paired gap with CI clear of 0, f: 0 (fill BEFORE running 19_linking_e5.py generate; write which SIGN you expect) | ______ | | |
-| H5b | LINKING: the internal truth estimate of the same false claim (truth probe, end of the claim turn) is higher after expert-looking turns | p: __%, t: +0.10 paired, f: 0 | ______ | | |
-| H5c | (exploratory) A confident FALSE claim from an expert-looking user lowers P(expert) at the claim turn more than a TRUE one does (single-sentence downgrade evidence) | p: __%, t: −0.10 difference of drops, f: 0 | ______ | | |
+| H5  | LINKING (E5): the same confident false claim is validated MORE (or LESS) when the two preceding user turns look expert vs novice. Metric: P(validate) expert-looking − novice-looking, paired by claim, 600-token replies, E3 rubric; secondary: not-corrected rate | NOT PRE-REGISTERED: this cell was still blank when the run started on 2026-09-10 (suggested line was ±0.10 paired gap, CI clear of 0). Recorded as such; no prediction is back-filled. | ______ | SUGGESTIVE, NOT ESTABLISHED. Validate 0.386 expert-looking vs 0.284 novice-looking, paired diff +0.10 [+0.00,+0.22]; not corrected 0.511 vs 0.398, +0.11 [+0.00,+0.23]; discordant pairs 16 vs 7 / 18 vs 8, exact McNemar two-sided p = 0.09 / 0.08 (n = 88 claims). Manipulation check passed: probe reads 100% of each context as intended. True claims never challenged (0/46, 1/46). | The apparent user tilts what the model does with the same false claim by about ten points, in the direction of deferring to apparent experts, but the interval touches zero. The effect lives only among claims the model is sure are false (0.34 vs 0.47); for claims it doubts as bare statements it defers to everyone (0.71 / 0.71). |
+| H5b | LINKING: the internal truth estimate of the same false claim (truth probe, end of the claim turn) is higher after expert-looking turns | NOT PRE-REGISTERED (blank at run time; suggested line +0.10 paired). | ______ | YES at the end of the claim turn: P(true) 0.455 expert-looking vs 0.362 novice-looking, paired +0.09 [+0.04,+0.15] (LOTO probe; E3's own probe +0.10 [+0.04,+0.16]); true claims +0.01 [−0.06,+0.07]; at the claim sentence itself +0.02 [−0.02,+0.05]. Just-ask (one word) does not move: says false 0.648 vs 0.602, +0.05 [−0.05,+0.14]. | The model's internal truth estimate of the same sentence bends toward an expert-looking user, and only for false claims; the bend appears between the claim and the reply, not in the reading of the sentence; the stated one-word answer does not bend. |
+| H5c | (exploratory) A confident FALSE claim from an expert-looking user lowers P(expert) at the claim turn more than a TRUE one does (single-sentence downgrade evidence) | NOT PRE-REGISTERED (blank at run time). | ______ | NO. Expert context: P(expert) drops 0.054 after a false claim and 0.037 after a true one; difference −0.02 [−0.05,+0.02]. Novice context at floor (0.000 → 0.001). | A confident claim costs an expert-looking user a little competence whether it is true or false; falsehood adds nothing measurable at one turn. |
 | H5d | (only if STEER=1 runs) Steering the competence direction during the reply moves the not-corrected rate the same way the context did | p: __%, t: same sign as H5 with CI clear of 0, f: 0 | ______ | | |
 | H6  | Level-neutral RESPONSIVE replies (T2.2) give a history effect between the fixed placeholder (+0.17) and the full history (+0.30), n→e | p: __%, t: between the two, both paired diffs clear of 0, f: equal to full | ______ | | |
 | H7  | The E3 lead survives without a dialogue: bare-statement out-of-fold P(true) is higher for the false claims the model later failed to correct | p: __%, t: +0.15 with CI clear of 0 (claim level too), f: 0 | ______ | YES. Bare (no dialogue) P(true), out-of-fold: not-corrected 0.42 vs corrected 0.10, diff +0.33 [+0.13,+0.52], AUC 0.77; claim level +0.41 [+0.18,+0.65]; same sign at the statement-last-token position (+0.27 [+0.09,+0.45]). | The uncertainty is a property of the claim itself, not of the reply the model is about to write: the false claims it fails to correct are the ones its truth probe is unsure about even in isolation. (n = 12 rows / 9 claims; wide intervals.) |
@@ -612,6 +612,63 @@ its own entry below in the usual block.
   (3) LOTO probes are trained on 11 topics, E3's on 8, so compare splits, not levels.
 - Yash's read: ______
 
+### 2026-09-10 — E5, the linking experiment: does the apparent user gate what the model does with a false claim? (19a + 19_linking_e5.py)
+- Prediction: H5 / H5b / H5c rows in section 0 were STILL BLANK when generation started (the
+  plan said to fill them first; it did not happen). Recorded honestly as not pre-registered;
+  the pass line I had suggested in EXPERIMENTS_TODO (±0.10 paired gap, CI clear of 0) is the
+  only line on file. The manipulation criterion (≥ 80% read as intended, both contexts) WAS
+  fixed in advance (section 2 extension block, 2026-09-04).
+- Data: `data/linking.jsonl` from 19a (Codex, laptop): 284 dialogues = 142 claims (95 false,
+  47 true) × {novice-looking, expert-looking}; one fixed claim turn per claim reused verbatim
+  in both contexts; two preceding user turns + two assistant replies in the level's register.
+  QC before the run: 0 self-label leaks, 0 hedges, third turn identical across contexts in
+  all 142 pairs, pre-claim user turns grade 10.0 (novice) vs 17.0 (expert) at equal length.
+- What I ran (pod): `03_extract_activations.py linking` + `linking_claimpos`; `19_linking_e5.py
+  generate` (neutral pre-filter as in E3, 600-token greedy replies, Gemini 2.5 Pro judge via
+  OpenRouter with the E3 rubric, one-word just-ask variant), then `analyze` with the pooled E1
+  probe (layer 22) and a leave-one-topic-out truth probe (layer 21). 268/284 kept (16 rows =
+  8 claims the model did not know neutrally); 0 unparsed; 217/268 replies unfinished at 600
+  tokens (E3: 71/91 — same regime). Files: results_e5_raw.json, results_e5.json,
+  e5_output.txt, e5_handcheck.txt, figures/e5_linking.png.
+- Manipulation check: probe at the turn BEFORE the claim reads 134/134 novice-context
+  dialogues as novice (mean P(expert) 0.000) and 134/134 expert-context as expert (0.996).
+  Passed; H5 is scored.
+- H5 (behaviour, false claims, paired by claim, n = 88): validate 0.386 expert-looking vs
+  0.284 novice-looking, diff +0.10 [+0.00,+0.22], discordant 16 vs 7 (exact McNemar two-sided
+  p = 0.093); not corrected 0.511 vs 0.398, +0.11 [+0.00,+0.23], discordant 18 vs 8 (p =
+  0.076). True-claim control (n = 46): challenged 0/46 expert-looking, 1/46 novice-looking.
+- H5b (internal): truth probe at the END of the claim turn on the same false sentence, 0.455
+  expert-looking vs 0.362 novice-looking, paired +0.09 [+0.04,+0.15]; true claims +0.01
+  [−0.06,+0.07]; at the claim SENTENCE (claim-position snapshot) +0.02 [−0.02,+0.05].
+  Just-ask baseline (one word appended to the claim turn): says "false" 0.648 vs 0.602, +0.05
+  [−0.05,+0.14]; on true claims 0.02 vs 0.00. Note the level of the just-ask number: these
+  claims all passed the neutral pre-filter, yet inside the dialogue the model calls the false
+  claim false only ~62% of the time — the presupposition alone does that, in both contexts.
+- H5c (exploratory): expert context P(expert) drop after the claim −0.054 (false) vs −0.037
+  (true), difference −0.02 [−0.05,+0.02]. Null.
+- Exploratory split by bare-statement uncertainty (from 18): claims the model doubts in
+  isolation (bare P(true) > 0.3, n = 14): not corrected 0.71 in BOTH contexts; claims it is
+  sure are false (n = 74): 0.34 novice-looking vs 0.47 expert-looking. The claim's own
+  uncertainty dominates; the user effect appears only where the model knows better.
+- Reading: (1) the user model does bend the model's internal truth estimate and, weakly, its
+  behaviour, in the direction of deference to apparent experts; (2) the bend is silent — the
+  one-word stated answer does not move; (3) the behavioural gap is about ten points and its
+  interval touches zero, so the doc says "suggestive", not "shows"; (4) the largest driver of
+  failing to correct is still the model's own uncertainty about the claim (T1.2), not who is
+  asking.
+- Rates are NOT comparable with E3 (validate 0.28–0.39 here vs 0.13 there): the claim turns
+  here presuppose the claim and ask the model to build on it, and the pool is all 96 false
+  claims rather than E3's 46. Only the within-E5 contrast is interpretable.
+- Dumbest ways this could be wrong: (1) judge noise (E3: 4/21 run-to-run flips) — every
+  decisive verdict is in e5_handcheck.txt, first 20 items to be hand-read; (2) novice-context
+  replies may spend their 600 tokens on the novice's earlier misconceptions and get labelled
+  "hedge" — the hand-check decides; (3) the assistant's two pre-claim replies were
+  generator-written in the level's register (part of the manipulation, as in E2); (4) the
+  end-of-turn probe shift (H5b) could be the reply plan rather than a belief — the
+  claim-position null says the shift arises after the sentence, which is consistent with
+  either reading; (5) no pre-registered prediction for H5 — a process failure, stated as such.
+- Yash's read / hand-check agreement (first 20 items): ______
+
 ## 3. Agent verification checklist (do EVERY session — Nanda: "the most important
 
 advice in this doc"; applications died because write-up claims contradicted the
@@ -858,6 +915,9 @@ one thing we had skipped. Both are true.
 | Sep 3 midday | E2 is a probe readout (reviewer) | Does anchoring show in behaviour? Is the direction necessary? | 12_causal | Behaviour anchors mildly (−0.29 pitch); steering sufficient; ablation ≈¼ of adaptation |
 | Sep 3 midday | History = user turns + assistant replies | Which one anchors? | reversal_userhistory | User turns alone: +0.01 → the model anchors on its OWN replies |
 | Sep 3 midday | Control 1 also changed structure | Content or structure? | reversal_neutralassistant | Anchoring 0.30 → 0.17: ~half is the content of the model's own replies, ~half the user's turns; control 1 was a merge artifact. e→n: real expert replies deepen the downgrade (0.03 vs 0.16) |
+| Sep 10 | "About half of anchoring is the model's own replies" rests on two overlapping CIs | What is the interval on the difference? | 17: paired decomposition | +0.13 [+0.06,+0.20] in n→e, but the placeholder shifts e→n toward the middle by the same amount → content vs artefact not identified; claim softened |
+| Sep 10 | E3 lead read at the end of the claim turn | Belief about the claim, or the reply plan? | 18: bare-statement out-of-fold probe by verdict | Bare split +0.33 [+0.13,+0.52], AUC 0.77 → the uncertainty is about the claim; lead promoted |
+| Sep 10 | E1–E2 and E3 never touch | Does the user model gate honesty? | E5: same false claim after novice- vs expert-looking turns | Probe bends +0.09 (false claims only), behaviour +0.10 (touches 0), stated answer flat; effect only where the model is sure the claim is false |
 | Sep 4 | Yash's E4 read: beginner-prompted AND −8 steered replies announce "simple explanation" | Does steering reproduce the prompt's framing phrases, not just the pitch? | Phrase count per condition on the full replies | 83% prompted-beginner, 42% at −8, 17% at α=0, 0% at +8, random 8–25%: graded, direction-specific; reader's level still never named |
 
 ## 9. Prior-art check and what we claim as new (2026-09-04 morning)
