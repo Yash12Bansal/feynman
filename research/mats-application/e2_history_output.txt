@@ -1,0 +1,32 @@
+/usr/local/lib/python3.12/dist-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.9.0 when using version 1.9.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/usr/local/lib/python3.12/dist-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator LogisticRegression from version 1.9.0 when using version 1.9.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/usr/local/lib/python3.12/dist-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator Pipeline from version 1.9.0 when using version 1.9.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+probe probe_e1_pooled.joblib (layer 22)
+variants found: ['full', 'postonly', 'placeholder', 'userhistory']  missing: ['responsive']
+
+novice->expert  (n=48 paired dialogues; post-only final 1.000)
+  history effect full         +0.298 [+0.201,+0.403]   final 0.702   flipped 0.73
+  history effect placeholder  +0.168 [+0.086,+0.263]   final 0.832   flipped 0.88
+  history effect userhistory  +0.011 [+0.003,+0.023]   final 0.988   flipped 1.00
+  paired diff full-placeholder       +0.130 [+0.060,+0.204]
+  paired diff full-userhistory       +0.287 [+0.194,+0.386]
+  share of full effect carried by reply CONTENT: 0.44 [0.23,0.64]
+
+expert->novice  (n=48 paired dialogues; post-only final 0.000)
+  history effect full         +0.028 [+0.009,+0.053]   final 0.028   flipped 1.00
+  history effect placeholder  +0.157 [+0.078,+0.247]   final 0.157   flipped 0.85
+  history effect userhistory  +0.040 [+0.011,+0.077]   final 0.040   flipped 0.98
+  paired diff full-placeholder       -0.128 [-0.202,-0.065]
+  paired diff full-userhistory       -0.011 [-0.032,+0.008]
+  share of full effect carried by reply CONTENT: -4.54 [-10.92,-2.86]
+
+(no data/reversal_neutralresponsive.jsonl — T2.2 manipulation check skipped)
+
+results -> results_e2_history.json | figure -> figures/e2_history_decomposition.png
+Dumbest ways this could be wrong: (1) the placeholder line is off-distribution, so its 'structure only' reading is a lower bound — that is why T2.2 exists; (2) paired CIs assume dialogues are the unit — topics are shared across dialogues (4 per topic per direction), so a topic-level cluster bootstrap would be wider; report if the CI is close to 0.
