@@ -13,7 +13,7 @@ prediction table is the single most legible taste signal you can produce.
 | H1c | Explicit↔implicit probe transfer is high (shared representation, not keyword)      | p:50%, t:at least 0.8 of same-set, or above 50%, f:33% absolute       | I am really 50-50 on whether the model will covert both into same internal belief....                                                                                                                                                                                                                                                                                                                                      | YES. explicit→implicit 91.4%, implicit→explicit 96.7%; worse ÷ own-set = 0.92 (line 0.8). | Told and shown competence converge on one representation. I had this at 50-50; the model merges the two kinds of evidence. |
 | H2  | Estimate crosses 0.5 within ≤3 turns of evidence flip                              | p:55%, t:within 2-3 turns, f:never crosses                            | I think model observes when behaviour suddenly changes and it highlights it by praising or correcting us but given this hypo depends highly on H1 prob is kept at 55...                                                                                                                                                                                                                                                    | YES. Crosses 0.5 within 1 turn of the switch in both directions (pooled and Codex probes). | The estimate does move on in-conversation evidence; it is not a static first-turn read. |
 | H2b | Asymmetry: expert→novice updates FASTER than novice→expert                         | p: 29%, t:at least 1 turn earlier, f:0 turns                          | a confident mistake from someone who sounded expert is hard to explain away, so the estimate should drop quickly but a novice suddenly using precise terms is an equally loud signal, so the two speeds are close. 0.55 × 0.53 ≈ 29. Tie-breaker: fraction-of-journey metric.                                                                                                                                              | YES. e→n minus n→e journey fraction +0.31 [+0.16,+0.46] first switched turn, +0.26 [+0.16,+0.36] last turn. I had 29%. | One mistake downgrades the user almost fully in one turn; three turns of expert behaviour only get a novice 70% of the way up. |
-| H2c | Anchoring gap > 0.1 (first impression persists)                                    | p: 32%, t:0.1, f:0                                                    | Early novice turns stay in context and a sudden novice-to-expert jump is an unlikely story, so some first impression should survive; but recent turns may dominate and wash it out. 15 (curve never crosses) + 55 × 0.3 ≈ 32. Confound: turn-count mismatch, compare at turn 6 only; also run expert→novice.                                                                                                               | YES for novice→expert (gap 0.28 [0.18,0.39]; control: history effect +0.30, writing effect 0). NO for expert→novice (0.03). I had 32%. | First impressions persist in one direction only; about half of the effect is carried by the content of the model's own earlier replies (neutral-placeholder control 0.30→0.17). |
+| H2c | Anchoring gap > 0.1 (first impression persists)                                    | p: 32%, t:0.1, f:0                                                    | Early novice turns stay in context and a sudden novice-to-expert jump is an unlikely story, so some first impression should survive; but recent turns may dominate and wash it out. 15 (curve never crosses) + 55 × 0.3 ≈ 32. Confound: turn-count mismatch, compare at turn 6 only; also run expert→novice.                                                                                                               | YES for novice→expert (gap 0.28 [0.18,0.39]; control: history effect +0.30, writing effect 0). NO for expert→novice (0.03). I had 32%. | First impressions persist in one direction only. Which part of the history carries them is NOT identified by our controls: the fixed-placeholder control keeps 0.17 of the 0.30 (paired diff +0.13 [+0.06,+0.20]), but the same placeholder shifts the estimate toward the middle by a similar amount in the OTHER direction (e→n: 0.03 → 0.16), so the difference may be a placeholder artefact rather than the content of the model's own replies (2026-09-10 paired re-analysis, 17). |
 | H3  | Truth probe (trained on bare statements) works in-dialogue, held-out topics ≥ 65%  | p: 40%, t:65%, f:50%                                                  | 128 training statements is very few and the false claims are subtle. Inside a dialogue the claim is followed by more text and a question, so the false signal may not reach the end-of-turn snapshot (≈60 given bare works). ≈70 that it works on bare statements -> 0.7 × 0.6 ≈ 40.                                                                                                                                       | YES. 88.7% in-dialogue on held-out topics (bare 96.9%), both positions. I had 40%. | The truth signal survives being wrapped in a conversation; 128 statements were enough. |
 | H3b | P(validate false claim): confident voice ≥ 2x hedged voice                         | p: 40%, t: 2 or 15point gap                                           | a false claim ("since X, I figure...") is the classic sycophancy trigger, but a modern post-trained 8B model may correct it regardless of tone. S1 =55 (does model validate at all) and S2 = 70 (given it folds sometimes, how likely the hedged voice is validated less than half as often, gap ≥ 15 points)                                                                                                              | NO by my rule (600-token replies): validate 13.3% vs 4.3%, ratio 3.1, gap +0.09 [−0.02,+0.20]. The 200-token run had inflated both rates (Section 6). | This model corrects most false claims whatever the tone; sycophancy is rare (~4–13%) and the judge cannot label the boundary reliably. Check truncation before reading a sycophancy rate. |
 | H3c | Internal truth score is NOT corrupted by confident voice (stays low for false)     | p: 25%, t: within 0.15 of hedged, f:no difference                     | Truth is about the world and tone should change what the model says, not what it represents, but a presupposed claim from a confident user is real persuasion pressure, so ≈60 that the internal score stays put given a working probe. 0.40 × 0.60 ≈ 24. Control: subtract the voice effect on true claims to remove style; equivalence bound 0.15 with ~40 per cell.                                                     | YES. Corrected internal shift +0.01 [−0.12,+0.14]; false-claim means 0.25 / 0.15. I had 25%. | Confidence does not move the internal truth score once style is subtracted. Exploratory: the model validates the false claims it is internally unsure about (P(true) 0.50 vs 0.12 when correcting). |
@@ -24,7 +24,7 @@ prediction table is the single most legible taste signal you can produce.
 | H5c | (exploratory) A confident FALSE claim from an expert-looking user lowers P(expert) at the claim turn more than a TRUE one does (single-sentence downgrade evidence) | p: __%, t: −0.10 difference of drops, f: 0 | ______ | | |
 | H5d | (only if STEER=1 runs) Steering the competence direction during the reply moves the not-corrected rate the same way the context did | p: __%, t: same sign as H5 with CI clear of 0, f: 0 | ______ | | |
 | H6  | Level-neutral RESPONSIVE replies (T2.2) give a history effect between the fixed placeholder (+0.17) and the full history (+0.30), n→e | p: __%, t: between the two, both paired diffs clear of 0, f: equal to full | ______ | | |
-| H7  | The E3 lead survives without a dialogue: bare-statement out-of-fold P(true) is higher for the false claims the model later failed to correct | p: __%, t: +0.15 with CI clear of 0 (claim level too), f: 0 | ______ | | |
+| H7  | The E3 lead survives without a dialogue: bare-statement out-of-fold P(true) is higher for the false claims the model later failed to correct | p: __%, t: +0.15 with CI clear of 0 (claim level too), f: 0 | ______ | YES. Bare (no dialogue) P(true), out-of-fold: not-corrected 0.42 vs corrected 0.10, diff +0.33 [+0.13,+0.52], AUC 0.77; claim level +0.41 [+0.18,+0.65]; same sign at the statement-last-token position (+0.27 [+0.09,+0.45]). | The uncertainty is a property of the claim itself, not of the reply the model is about to write: the false claims it fails to correct are the ones its truth probe is unsure about even in isolation. (n = 12 rows / 9 claims; wide intervals.) |
 | H8  | Second model size (T3.1): the E2 asymmetry has the same sign and the n→e anchoring gap is > 0.1 | p: __%, t: both hold, f: asymmetry flips sign | ______ | | |
 **Dataset notes (facts for the write-up).** Subject model: Qwen3-8B, thinking disabled.
 Two generators wrote the main dialogues, on purpose: Codex (GPT family, via the ChatGPT
@@ -551,6 +551,66 @@ must read ≥ 80% of expert-context dialogues as expert and ≥ 80% of novice-co
 dialogues as novice; otherwise E5 is reported as "manipulation failed" and H5 is not scored.
 Scripts: 17 (T1.1/T2.2), 18 (T1.2), 19a+19 (T2.1), 20 (T2.2 data), 22 (T3.1). Each run gets
 its own entry below in the usual block.
+
+### 2026-09-10 — T1.1: paired decomposition of the anchoring source (17_e2_history_decomposition.py)
+- Prediction: none new — this puts an interval on a number already claimed ("about half").
+  Rule written before the run (EXPERIMENTS_TODO A): paired CI on (full − placeholder) clear
+  of 0 → the claim stands with its interval; includes 0 → "consistent with".
+- What I ran: `PROBE_FILE=probe_e1_pooled.joblib python 17_e2_history_decomposition.py` on
+  the pod (existing activations; sklearn 1.9.1 unpickling a 1.9.0 probe — warning only; the
+  full-history numbers reproduce the 05 numbers to the third decimal). Paired bootstrap over
+  the same 48 dialogues per direction. Output: e2_history_output.txt, results_e2_history.json,
+  figures/e2_history_decomposition.png.
+- Result, novice→expert (post-only final 1.000): history effect full +0.298 [+0.201,+0.403];
+  fixed placeholder +0.168 [+0.086,+0.263]; user-turns-only (merged) +0.011 [+0.003,+0.023].
+  Paired diff full − placeholder +0.130 [+0.060,+0.204]; share of the full effect not
+  explained by the placeholder 0.44 [0.23,0.64]. Flipped shares 0.73 / 0.88 / 1.00.
+- Result, expert→novice (post-only final 0.000): full +0.028 [+0.009,+0.053]; placeholder
+  +0.157 [+0.078,+0.247]; user-turns-only +0.040. Paired diff full − placeholder −0.128
+  [−0.202,−0.065]: with the model's real expert-pitched replies the downgrade is MORE complete
+  than with the placeholder.
+- Reading: the interval on the n→e difference is clear of zero, BUT the placeholder shifts the
+  final estimate toward the middle by about the same amount in both directions (n→e 1.000 →
+  0.832 → 0.702; e→n 0.000 → 0.157 → 0.028). Two stories fit: (a) the content of the model's
+  own replies carries ~0.13 of the anchoring (and, in e→n, its expert-pitched replies sharpen
+  the downgrade by contrast); (b) a repeated off-distribution line simply makes the model less
+  certain about the user, which looks like less anchoring in one direction and more in the
+  other. Our controls cannot tell (a) from (b). The responsive-neutral control (T2.2 / H6)
+  would; it is not run (time).
+- Decision for the write-up: keep "the anchoring is real and is not carried by the user's own
+  words alone" (post-only + user-turns-only), downgrade "about half is the content of the
+  model's own replies" to "consistent with, not established", and say why in one sentence.
+  Section 0 H2c lesson cell updated accordingly.
+- Dumbest ways this could be wrong: dialogues share topics (4 per topic per direction), so a
+  topic-cluster bootstrap would widen the intervals; the user-turns-only control merges the
+  pre-switch turns into one message, which changes the structure as well as the content.
+- Yash's read: ______
+
+### 2026-09-10 — T1.2: does the E3 lead survive with no dialogue at all? (18_e3_bare_probe_by_verdict.py, H7)
+- Prediction (section 0, H7): bare-statement difference ≥ +0.15 with CI clear of 0, also at
+  the claim level. Alternative being tested: the end-of-turn probe reads the reply plan.
+- What I ran: `python 18_e3_bare_probe_by_verdict.py` on the pod. Leave-one-topic-out truth
+  probe at the E3 layer (21) on the 192 bare statements (out-of-sample accuracy 0.88; music
+  theory 0.69 is the weakest topic), applied to the 46 false claims behind the 91 E3 rows,
+  split by the 600-token verdict. Second position: statement last token (layer 23, 0.90).
+  Output: e3_bare_output.txt, results_e3_bare.json, figures/e3_bare_vs_dialogue_by_verdict.png.
+- Result (end-of-template position): in-dialogue P(true) 0.53 vs 0.15 (diff +0.38
+  [+0.24,+0.52], as in E3); BARE P(true) 0.42 vs 0.10, diff +0.33 [+0.13,+0.52]; AUC of the
+  bare score for "not corrected" 0.77 (one-sided p = 0.001); claim level (9 ever-not-corrected
+  vs 37 always-corrected) +0.41 [+0.18,+0.65]; Spearman(bare, in-dialogue) 0.40 over all
+  false rows; reference bare means: true claims 0.94, false claims 0.14.
+  Statement-last-token position: bare diff +0.27 [+0.09,+0.45], claim level +0.32
+  [+0.11,+0.54] (the in-dialogue split at that position is +0.05, n.s., as in E3).
+- Outcome vs prediction: H7 = YES at both positions and at the claim level. The "unsure"
+  reading is about the claim, not about the reply being planned: the false claims the model
+  fails to correct are the ones its truth probe already doubts in isolation.
+- What changes in the write-up: the E3 lead is promoted from "exploratory, could be the reply
+  plan" to "failures to correct concentrate on claims the model is internally unsure about,
+  measured with no dialogue present (AUC 0.77)". Still n = 12 rows / 9 claims; say so.
+- Dumbest ways this could be wrong: (1) small n — intervals are wide, the sign is what is
+  robust; (2) the labels are Gemini's 600-token verdicts, hand-verified 21/21 in section 5;
+  (3) LOTO probes are trained on 11 topics, E3's on 8, so compare splits, not levels.
+- Yash's read: ______
 
 ## 3. Agent verification checklist (do EVERY session — Nanda: "the most important
 
