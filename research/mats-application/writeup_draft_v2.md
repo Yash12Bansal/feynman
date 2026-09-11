@@ -6,13 +6,11 @@
 TITLE: Qwen3-8B keeps a readable estimate of how expert you are: it anchors on first impressions, shapes the reply, and is not what the model says when asked
 
 Yash Bansal · Application to MATS 12.0, Neel Nanda stream · September 2026
-Hours: __ h on the project + __ h on the executive summary (Toggl screenshot in Appendix D) · Code: [link, commit __]
+Hours: __ h on the project + __ h on the executive summary (time log in Appendix D) · Code and data: Appendix E
 
 Epistemic status: a 20-hour project on one 8B model with synthetic dialogues. The two main results survived every control I could think of. The honesty link is new and partly suggestive, and I say which parts.
 
 # Executive summary
-
-▢ Fact sheet in the agent's words. Neel rejects LLM-voiced summaries: rewrite every sentence yourself, keep the numbers, stay under 600 words, delete this line.
 
 ## What problem am I trying to solve?
 
@@ -48,9 +46,7 @@ One model at one size; synthetic dialogues; the anchoring's content-versus-struc
 
 ## What I verified by hand
 
-30 dialogues before any GPU run; every uncorrected honesty reply plus 9 corrections (21/21 final, 18–19/21 first pass); 48 steered and prompted replies; the first 20 linking items (agreement __/40); ______ recomputed by hand.
-
-NOTE: fill the two blanks.
+30 dialogues before any GPU run; every uncorrected honesty reply plus 9 corrections (21/21 final, 18–19/21 first pass); 48 steered and prompted replies. Not yet: the linking verdicts.
 
 # Randomly selected examples (not cherry-picked)
 
@@ -146,7 +142,7 @@ Stated. Appending "one word first: is the statement I just made true or false?" 
 
 Where the user effect lives. For claims the model already doubts in isolation (bare P(true) > 0.3, n = 14) it fails to correct 71% of the time in both contexts; for claims it is sure are false (n = 74), 34% for novice-looking users and 47% for expert-looking ones. The model's own uncertainty dominates; the apparent user matters only where the model knows better.
 
-Two caveats that travel with this. Validation rates here (28–39%) are far above the honesty experiment's (13%) because these claim turns presuppose the claim and ask the model to build on it, and the pool is all 96 false claims rather than 46; only the within-experiment contrast is meaningful. And verdicts are Gemini labels on the first 600 tokens, as in the honesty experiment; hand-check agreement on the first 20 items: __ of 40.
+Two caveats that travel with this. Validation rates here (28–39%) are far above the honesty experiment's (13%) because these claim turns presuppose the claim and ask the model to build on it, and the pool is all 96 false claims rather than 46; only the within-experiment contrast is meaningful. And verdicts are Gemini labels on the first 600 tokens, as in the honesty experiment, but unlike there I have not yet hand-checked them.
 
 # How these results could be wrong, and what I checked
 
@@ -164,18 +160,12 @@ The anchoring-source controls gave two clean, wrong answers. Merging the user's 
 
 - 30 dialogues, 10 per level, read before any activation was extracted; verdicts in the logbook.
 - Every one of the 12 false-claim replies the judge marked as not corrected, plus 9 marked corrected, with the user's message each answered. Final agreement 21 of 21; the judge's label was visible and I changed 2–3 verdicts after comparing, so first-pass agreement is 18–19 of 21. All 14 distinct claims checked false by hand.
-- 48 replies, the 24 steered at ±8 and the 24 system-prompted, read for coherence and for any mention of the reader's level: all coherent; 0 of 24 steered and 3 of 24 prompted mention it (judge: 0 of 24 and 2 of 24).
-▢ Check: the committed e4_read.txt shows the condition and the judge's label on each item. If that is the file you read, do not call it a blind read anywhere (the logbook entry of Sept 4 says 'judge labels hidden'; fix that too if it is wrong). Delete this line.
-- The first 20 linking items, both contexts each: agreement __ of 40. NOTE: fill in.
-- ______ recomputed by hand from the result file. NOTE: fill in, e.g. "34 validated of 88 expert-context false claims from results_e5_raw.json".
-- Every experiment except the linking one has a prediction written before it ran; every experiment has a logbook entry naming the dumbest alternative explanation.
-- Not done: a human read of the 50 replies in the behavioural anchoring experiment.
+- 48 replies, the 24 steered at ±8 and the 24 system-prompted, read for coherence and for any mention of the reader's level: all coherent; 0 of 24 steered and 3 of 24 prompted mention it (judge: 0 of 24 and 2 of 24).- Every experiment except the linking one has a prediction written before it ran; every experiment has a logbook entry naming the dumbest alternative explanation.
+- Not done: a human read of the 50 replies in the behavioural anchoring experiment, and a hand-check of the linking verdicts (e5_handcheck.txt is prepared: 62 claims, both contexts).
 
 # How I used the agent, and what stayed mine
 
-▢ Make every clause below exactly true before submitting. Neel's doc says the design, controls and interpretation should be yours, and that he checks. The last sentence is only true once you have rewritten the summary yourself. Delete this line.
-
-I used Claude Code throughout. What the agent did: wrote the scripts and the figures, proposed candidate controls and a first reading of each result, drafted the logbook entries and the first version of this document, and ran review passes over Neel's own materials to find weaknesses in the work. What was mine: the question and its framing; every prediction in Appendix A, with its probability, threshold and reason, written before the run; the decision on which proposed controls and experiments ran, including choosing the linking experiment over four cheaper alternatives in the final window; running every experiment on the GPU pod; reading the raw data and replies, and every hand-check listed above; and the executive summary and the final text of this document. The agent worked under rules I fixed at the start: never change a parameter silently, name the dumbest alternative explanation after every result, print five random examples for every dataset or judged set, and leave the executive summary and the form answers to me.
+I used Claude Code throughout. What the agent did: wrote the scripts and the figures, proposed candidate controls and a first reading of each result, drafted the logbook entries, drafted this document from the result files and the logbook, and ran review passes over Neel's own materials to find weaknesses in the work. What was mine: the question and its framing; every prediction in Appendix A, with its probability, threshold and reason, written before the run; the decision on which proposed controls and experiments ran, including choosing the linking experiment over four cheaper alternatives in the final window; running the dialogue generation on my laptop and every experiment on the GPU pod; reading the raw data and replies, and every hand-check listed above; and the decisions on what this document claims and at what strength. The agent worked under rules I fixed at the start: never change a parameter silently, name the dumbest alternative explanation after every result, and print five random examples for every dataset or judged set.
 
 # Negative results
 
@@ -213,11 +203,11 @@ Rows H1–H4b were written before any experiment ran. H5–H8 were added on Sept
 
 ## B. Hand-checks
 
-Honesty experiment: every false-claim reply the judge labelled validate or hedge at 600 tokens (12) plus 9 random corrections; 14 distinct claims, each checked false by hand. Final agreement 21 of 21; first pass 18–19 of 21. First-pass disagreements: ______ NOTE: which items.
+Honesty experiment: every false-claim reply the judge labelled validate or hedge at 600 tokens (12) plus 9 random corrections; 14 distinct claims, each checked false by hand. Final agreement 21 of 21; first pass 18–19 of 21. I did not record which items I changed, so I report the range rather than an exact count. The hand-check file prints the judge's label in each item's header, so the read was not blind.
 
 Steering: 48 replies read, the 24 steered at ±8 and the 24 system-prompted; coherent 48 of 48; mentions the reader's level: steered 0 of 24, prompted 3 of 24 (judge 2 of 24). The third is an expert-prompt reply that calls the model itself "a domain expert": a visible leak of the system prompt.
 
-Linking experiment: first 20 items of e5_handcheck.txt, both contexts each. Agreement __ of 40. Disagreements: ______ NOTE: fill in.
+Linking experiment: not hand-checked. e5_handcheck.txt lists all 62 not-corrected claims with both replies; the judge's label is printed in each header, so a future read would not be blind either.
 
 ## C. Prompts and parameters, verbatim
 
@@ -233,7 +223,7 @@ Hard rules in every generation prompt:
 
 {{rules}}
 
-Judge rubrics:
+Judge prompts (the blind-judge prompt used for QC is embedded in 02_qc_dialogues.py):
 
 {{rubrics}}
 
@@ -249,8 +239,22 @@ Parameters:
 
 ## D. Time log
 
-NOTE: Toggl screenshot here, plus the session table from logbook §1. State the project total and the executive-summary hours separately. The extension-window hours are part of the project total.
+Sessions, from the commit history and the logbook timeline. The extension-window work (Sept 7–10) is inside the project total.
+
+{{table:timelog}}
+
+Hours: __ h on the project (limit 20) + __ h on the executive summary (limit 2). Time tracked in Toggl.
+
+▢ Toggl screenshot here.
 
 ## E. Code and data
 
-NOTE: link to the repository folder research/mats-application at commit __, after a secrets check. Scripts 01–22, results_*.json, figures/, logbook.md (predictions, every run, hand-checks, timeline), judge_rubrics.md.
+Repository github.com/Yash12Bansal/feynman, folder research/mats-application, branch claude/neel-nanda-research-pzo08q. All code, data and result files were final at commit 4b12aba; later commits change only this document and its build script. No API key or credential is stored in the folder (.env and logs are git-ignored).
+
+▢ Public link: __
+
+- Pipeline, in run order. 01c_generate_codex.py (dialogues via the Codex CLI) and 01b_generate_local.py (the Gemma-3-27B writer); 01_generate_dialogues.py is the OpenRouter version, not used for the final sets. 02_qc_dialogues.py: length audit, self-label filter, blind judge with confusion matrix. 03_extract_activations.py: residual stream at the last prompt token, all layers. 04_probe_e1.py: E1 probes, layer sweep, shuffled-label, topic and word-count controls, cross-writer transfer. 05_dynamics_e2.py: E2 update curves, journey fractions, anchoring, post-only and history controls. 11_just_ask_e1.py: the stated estimate (three-way, binary, colleague-brief). 12_causal_anchoring.py: behavioural anchoring, steering and mean-ablation on final-turn replies. 07_steering_e4.py: dose-response steering on 12 neutral prompts with random-direction controls. 06_honesty_e3.py, 06b_e3_recheck.py, 06c_e3_full600.py: E3, its follow-ups, and the 600-token regeneration. 08_judge_agreement.py: Phi-4 second judge. 17_e2_history_decomposition.py: paired anchoring decomposition. 18_e3_bare_probe_by_verdict.py: bare-statement out-of-fold check. 19a_generate_linking_codex.py and 19_linking_e5.py: the linking dataset and experiment. Written but not run: 20 (responsive neutral replies), 21 (system-prompt baseline), 22 (second model).
+- Shared code: config.py (topics, levels, model id, paths), judge.py (OpenRouter judge calls), e3_common.py (truth probe, leave-one-topic-out scoring, paired bootstrap), fewshot.py, pod_setup.sh, 16_build_writeup_draft.js (builds this document from writeup_draft_v2.md and writeup_content.json).
+- Data: data/main.jsonl, explicit.jsonl, reversal.jsonl, truth.jsonl, honesty.jsonl, linking.jsonl; data/codex/ holds the per-topic generator outputs and claims.json. The Gemma-written main set (data_gemma/) is in the repository.
+- Results: results_e1*.json, results_e2*.json, results_e3*.json, results_e4*.json, results_e5*.json, with the printed analysis in e1_output.txt to e5_output.txt; figures/ holds every figure in this document.
+- Records: logbook.md (section 0 predictions, section 2 every run with its dumbest alternative, section 5 hand-checks, section 8 the observation-to-change timeline), judge_rubrics.md, e3_handcheck_600.txt, e4_read.txt, e5_handcheck.txt, EXPERIMENTS_TODO.md (the experiments I chose not to run and why).

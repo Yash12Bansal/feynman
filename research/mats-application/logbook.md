@@ -825,7 +825,7 @@ those cases the judge's reading was the better one. First-pass (pre-comparison) 
 is therefore 18–19 of 21; the items and their first-pass labels are recorded below when
 supplied. The write-up reports BOTH numbers.
 
-First-pass disagreements (to be filled by Yash): ______
+First-pass disagreements: not recorded at the time; the write-up reports the 18–19 of 21 range.
 
 What this settles: all 12 "not corrected" verdicts stand on a human read, so the
 validate count (6 confident + 2 hedged) and the hedge count (2 + 2) behind H3b are

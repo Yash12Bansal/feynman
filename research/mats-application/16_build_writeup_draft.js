@@ -121,7 +121,7 @@ const DATASETS = [["Dataset", "Size", "Shape", "Used for"],
 const TABLES = { terms: [TERMS, [1, 4], 17], datasets: [DATASETS, [1.3, 1.4, 2.6, 2], 17],
   pred: [C.pred, [0.45, 2.2, 1.3, 3.2, 2.4, 2.2], 13], t4a: [C.t4a, [1, 2, 2], 17], t4d: [C.t4d, [3, 1.2, 1.3, 1.3, 1, 1.1], 15],
   t5: [C.t5, [0.4, 2.6, 1, 1.6, 1, 0.8], 15], t8: [C.t8, [0.8, 2.2, 2.0, 2.0, 2.4], 14], t9: [C.t9, [2.2, 3.4, 1.4, 2.6], 13], tkit: [C.tkit, [1.3, 2.4, 2.4, 2.2], 15],
-  tkit2: [C.tkit2, [1.5, 2.2, 2.8, 1.1], 14], terms2: [C.terms, [1.3, 4], 16] };
+  tkit2: [C.tkit2, [1.5, 2.2, 2.8, 1.1], 14], terms2: [C.terms, [1.3, 4], 16], timelog: [C.timelog, [1, 5], 16] };
 const yellow = (t, extra = {}) => new Paragraph({ children: [new TextRun({ text: t, shading: { type: ShadingType.CLEAR, fill: "FFF2A8", color: "auto" }, ...extra })], spacing: { after: 120 } });
 
 const kids = []; const add = (...x) => kids.push(...x.flat());
