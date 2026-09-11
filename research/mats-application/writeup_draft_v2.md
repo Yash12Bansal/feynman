@@ -3,11 +3,7 @@
      Directives: {{fig:name|caption}}  {{table:key}}  {{examples2}}  {{levels}} {{topics}} {{rules}} {{rubrics}}
      Lines starting with "NOTE:" are for Yash and are NOT included in the document. -->
 
-# TITLE
-
-NOTE: pick one, or write your own. Plain beats clever.
-NOTE: (a) What the model thinks you know: reading Qwen3-8B's running estimate of the user, and what it does with it
-NOTE: (b) Does the model keep score of what you know? A user-competence estimate in Qwen3-8B that updates one way and quietly bends honesty
+TITLE: Qwen3-8B keeps a readable estimate of how expert you are: it anchors on first impressions, shapes the reply, and is not what the model says when asked
 
 Yash Bansal · Application to MATS 12.0, Neel Nanda stream · September 2026
 Hours: __ h on the project + __ h on the executive summary (Toggl screenshot in Appendix D) · Code: [link, commit __]
@@ -16,43 +12,45 @@ Epistemic status: a 20-hour project on one 8B model with synthetic dialogues. Th
 
 # Executive summary
 
+▢ Fact sheet in the agent's words. Neel rejects LLM-voiced summaries: rewrite every sentence yourself, keep the numbers, stay under 600 words, delete this line.
+
 ## What problem am I trying to solve?
 
-Does a chat model form an opinion about how much you know? Does that opinion update as the conversation goes on, change what the model says, and match what it tells you when asked? A model that quietly decides you are an expert may let your false claim pass; one that decides you are a novice may talk down to you. Chen et al. (TalkTuner, 2024) showed models represent fixed facts about the user such as age. I asked about a fact that changes inside one conversation: what the user knows.
+Does a chat model form an opinion about how much you know, update it as the conversation goes on, act on it, and report it when asked? That opinion could decide whether your false claim gets corrected, or whether you get talked down to. Chen et al. (TalkTuner, 2024) showed that models represent fixed facts about the user such as age. I asked about a fact that changes inside one conversation: how much the user knows.
 
-Setup: Qwen3-8B, thinking off; 1,076 synthetic dialogues on 12 topics at three competence levels by two independent LLM writers, matched for length, tone and topic, no self-labels; a linear probe on layer 22, trained on 8 topics and tested on 4 it never saw; Gemini 2.5 Pro judge, Phi-4 second judge, my own hand-checks. Eleven predictions written before any run: 8 yes, 3 no.
+Setup: Qwen3-8B, thinking off; 1,076 synthetic dialogues on 12 topics at three competence levels from two LLM writers, matched for length, tone and topic, no self-labels; a linear probe on layer 22, trained on 8 topics and tested on 4 it never saw: 98.5% (chance 33%, shuffled labels 33%, word counts alone 46%); Gemini 2.5 Pro judge, Phi-4 second judge, hand-checks. Eleven predictions written before any run: 7 yes, 1 yes in one direction only, 3 no.
 
 ## High-level takeaways
 
-- **The estimate exists and is sharp from the first message.** 98.5% on held-out topics (chance 33%, shuffled labels 33%, word counts alone 46%); 96.6% from the first user message.
-- **It updates one way.** One turn of novice behaviour drops a lifelong expert to the floor. Three turns of expert behaviour get a novice-start user 70% of the way up, and 27% are still classified as novices. Asymmetry +0.31 [+0.16, +0.46].
-- **The first impression lives in the history, not in the user's own words.** Cut the history and the gap vanishes (+0.30 → −0.02). Whether the model's own earlier replies or the multi-turn structure carries it, my controls cannot say.
-- **What the model says is not what it represents.** Asked directly it calls every user "intermediate" (chance); forced to a binary at the end it is right 118 of 119; on the first message it is at chance while the probe is at 96.6%.
-- **The estimate bends the model's honesty, quietly.** The same false claim after two expert-looking turns: the truth probe reads it as more likely true (+0.09 [+0.04, +0.15], no shift for true claims), the model lets it pass more often (39% vs 28%, suggestive: interval touches zero), and its one-word "true or false?" answer does not move. What predicts a failure to correct best is the model's own uncertainty about the claim, measurable with no dialogue at all (AUC 0.77).
+- **The estimate updates one way.** One turn of novice behaviour drops a lifelong expert to the floor. Three turns of expert behaviour get a novice-start user 70% of the way up, and 27% are still classified as novices. Asymmetry +0.31 [+0.16, +0.46].
+- **The first impression lives in the history, not in the user's own words.** Cut the pre-switch turns and the gap vanishes (+0.30 → −0.02). Whether the model's own earlier replies or the multi-turn structure carries it, my controls cannot say.
+- **What the model says is not what it represents.** Asked directly it calls every user "intermediate" (chance); forced to a binary at the end it is right 118 of 119; on the first message it is at chance, the probe at 96.6%.
+- **The estimate is causal for how the model pitches its answer.** Adding the direction while the model writes moves the reading grade by +3.1 levels beyond random directions, coherence intact.
+- **Failures to correct a false claim track the model's own doubt more than the user.** The false claims it lets pass are the ones its truth probe already doubts as bare statements, no dialogue (AUC 0.77). After two expert-looking turns the same false claim reads as more likely true (+0.09 [+0.04, +0.15]; none for true claims) and passes more often (39% vs 28%; the interval touches zero); the one-word "true or false?" answer does not move.
 
 ## Key experiments
 
-{{fig:e2_update_curves|Figure 1. A frozen layer-22 probe read at every turn of 96 scripted dialogues whose user switches level at turn 4; 95% bootstrap bands.}}
+{{fig:e2_update_curves|Figure 1. Frozen layer-22 probe read at every turn of 96 scripted dialogues whose user switches level at turn 4; 95% bootstrap bands.}}
 
-Expert→novice covers 0.70 of the distance on the first switched turn and 0.97 by the last; novice→expert 0.39 and 0.71. With the pre-switch turns cut off the novice-start gap vanishes, so it comes from the context, not the writing.
+Expert→novice covers 0.70 of the distance on the first switched turn and 0.97 by the last; novice→expert 0.39 and 0.71.
 
-{{fig:e5_linking|Figure 2. The same false claim after novice-looking or expert-looking turns (88 claims, paired). Left: what the reply did. Right: the truth probe's P(true) for the same sentence at the end of the claim turn.}}
+{{fig:e5_linking|Figure 2. The same false claim after novice-looking or expert-looking turns (88 claims, paired). Left: what the reply did. Right: truth-probe P(true) at the end of the claim turn.}}
 
-The probe confirmed the manipulation (every context read as intended). Behaviour tilts ten points toward deferring to apparent experts (p = 0.09); the internal estimate moves clearly; the stated answer does not.
+The probe confirmed the manipulation (134 of 134 read as intended). Behaviour tilts ten points toward deferring to apparent experts (p = 0.09); the internal estimate moves clearly; the stated answer does not.
 
-{{fig:e3_bare_vs_dialogue_by_verdict|Figure 3. 91 false claims from the honesty experiment, split by what the reply did. Left: truth probe inside the dialogue. Right: the same claims scored as bare statements, no dialogue, out of sample.}}
+{{fig:e3_bare_vs_dialogue_by_verdict|Figure 3. 91 false claims from the honesty experiment, split by what the reply did. Left: truth probe inside the dialogue. Right: the same claims scored as bare statements, out of sample.}}
 
 The false claims the model failed to correct are the ones its truth probe already doubted in isolation (0.42 vs 0.10, +0.33 [+0.13, +0.52]). "Knows it is false and defers anyway" is rare; deference under uncertainty is the rule.
 
-## Biggest limitations, and what I would do next
+## Limitations and next steps
 
-One model at one size; synthetic dialogues; the content-versus-structure split of the anchoring is not identified; the honesty split rests on 12 cases and the linking effect on behaviour has p = 0.09; the judge changed 4 of 21 borderline verdicts on identical text; the linking experiment was not pre-registered. Next: a responsive level-neutral reply control, other sizes, steering during the reply, real transcripts.
+One model at one size; synthetic dialogues; the anchoring's content-versus-structure split is not identified; the honesty split rests on 12 cases; the linking behaviour effect has p = 0.09 and was not pre-registered; the judge flipped 4 of 21 borderline verdicts on identical text. Next: a level-neutral responsive-reply control, other sizes, steering during the reply, real transcripts.
 
 ## What I verified by hand
 
-30 dialogues before any GPU run; every uncorrected honesty reply plus 9 corrections (21/21 final, 18–19/21 first pass); 48 steered and prompted replies read blind; the first 20 linking items (agreement __/40); ______ recomputed by hand.
+30 dialogues before any GPU run; every uncorrected honesty reply plus 9 corrections (21/21 final, 18–19/21 first pass); 48 steered and prompted replies; the first 20 linking items (agreement __/40); ______ recomputed by hand.
 
-NOTE: fill the two blanks. Target ≤ 600 words without captions.
+NOTE: fill the two blanks.
 
 # Randomly selected examples (not cherry-picked)
 
@@ -74,11 +72,11 @@ Three model families are kept apart on purpose. Qwen is studied. GPT (through th
 
 ## How the dialogues were written
 
-Every generation prompt enforced the same rules (verbatim in Appendix C): the same 12 topics and seed questions at every level; the user never states or hints at their level, background or job; every user turn is 25–60 words at every level; a neutral tone; level shown only through misconceptions, precision of terms, the kind of question asked, and hedging. A phrase filter rejected dialogues that slipped (4 of 540). Two hand-written example dialogues on a topic not in the list showed the writers what "subtle" means.
+Every generation prompt enforced the same rules (verbatim in Appendix C): the same 12 topics and seed questions at every level; the user never states or hints at their level, background or job; every user turn is 25–60 words at every level; a neutral tone; level shown only through misconceptions, precision of terms, the kind of question asked, and hedging. A phrase filter for self-labels rejected 4 of the 540 Codex dialogues at merge (536 kept) and flagged 2 of the 540 Gemma ones, both false alarms on inspection. Two hand-written example dialogues on a topic not in the list showed the writers what "subtle" means.
 
 ## Checks before any GPU time
 
-A probe will learn a shortcut if one exists, so I checked the data first. User turns differ in length by level in opposite directions for the two writers (Codex experts about 3 words longer than novices, Gemma novices about 8 words longer than experts), so I kept both sets and added a word-count-only classifier as a baseline. Self-labels: 0 leaks in the Codex set, 2 false alarms in the Gemma set. A blind judge reading only the user turns of 120 random dialogues guessed the level at 37% on my first run, far below the 85–95% I had planned for. The confusion matrix showed every error was a one-step upward shift, and showing the judge only the first two turns raised agreement to 80%: the novice personas learn from the assistant inside the dialogue. So the label describes where a persona starts, and I wrote down before E1 that the probe's confusions should sit between neighbouring levels. They did.
+A probe will learn a shortcut if one exists, so I checked the data first. User turns differ in length by level in opposite directions for the two writers (Codex experts about 3 words longer than novices, Gemma novices about 8 words longer than experts), so I kept both sets and added a word-count-only classifier as a baseline. Self-labels: none in the final Codex file, none in the Gemma file once the 2 flags were checked by hand. A blind judge reading only the user turns of 120 random dialogues guessed the level at 37% on my first run, far below the 85–95% I had planned for. The confusion matrix showed every error was a one-step upward shift, and showing the judge only the first two turns raised agreement to 80%: the novice personas learn from the assistant inside the dialogue. So the label describes where a persona starts, and I wrote down before E1 that the probe's confusions should sit between neighbouring levels. They did.
 
 ## Probes, steering, judges
 
@@ -120,7 +118,7 @@ This section exists because Neel's Common Mistakes list says to compare against 
 
 Asked. One appended user message asks the model to rate the user's level in one word. With three options it said "intermediate" for all 179 held-out dialogues at the final turn, all 179 after the first message, and all 96 reversal dialogues: chance. Asking it to brief a colleague and "be accurate, not polite" gave 49%, so this is a middle-option default, not politeness. Forced to a binary at the final turn it was right 118 of 119 times, so the model can report the level at the end and no probe is needed for that. On the first message the forced binary said "beginner" 178 of 179 times, chance, while the probe reads the same message at 96.6%. After a switch, the stated estimate matched the user's current behaviour 60% and 67% of the time, against 73% and 100% for the probe.
 
-Behaviour. The judge scored the model's actual final-turn reply for pitch from 1 (total beginner) to 5 (domain expert). Lifelong novices get 2.58 ± 0.10, lifelong experts 4.64 ± 0.06, novice→expert reversals 4.35 ± 0.09: the anchoring shows in behaviour (−0.29 ± 0.11) but small next to the probe's deficit. Adding the competence direction while the model writes pushes the reversal replies above lifelong experts (+0.11 ± 0.09); removing it from lifelong experts lowers their pitch by 0.28 ± 0.09, about a quarter of the adaptation; coherence stayed at 4.9–5.0. On 12 neutral questions, steering moves the reading grade by +3.1 levels beyond random directions (SE 0.60; my line was 2), and none of 48 steered replies names the reader's level. But a system prompt stating the level is equally covert (2 of 24), so my prediction of a qualitative difference was wrong.
+Behaviour. The judge scored the model's actual final-turn reply for pitch from 1 (total beginner) to 5 (domain expert). Lifelong novices get 2.58 ± 0.10, lifelong experts 4.64 ± 0.06, novice→expert reversals 4.35 ± 0.09: the anchoring shows in behaviour (−0.29 ± 0.11) but small next to the probe's deficit. Adding the competence direction while the model writes pushes the reversal replies above lifelong experts (+0.11 ± 0.09); removing it from lifelong experts lowers their pitch by 0.28 ± 0.09, about a quarter of the adaptation; coherence stayed at 4.9–5.0. On 12 neutral questions, steering moves the reading grade by +3.1 levels beyond random directions (SE 0.60; my line was 2), and the judge finds no mention of the reader's level in any of the 48 steered replies (12 prompts × 4 strengths); my own read of the 24 strongest found none either. But a system prompt stating the level is equally covert (judge 2 of 24, my read 3 of 24), so my prediction of a qualitative difference was wrong.
 
 So the internal estimate is sharp from the first message and updates almost fully; the replies adapt with a small trace of anchoring; the stated estimate defaults early, is accurate only when forced late, and lags most after a switch. The LessWrong post "Do LLMs Change Their Minds About Their Users… and Know It?" (2025) is the predecessor for the stated-versus-internal gap, on demographics with a 3B model.
 
@@ -166,7 +164,8 @@ The anchoring-source controls gave two clean, wrong answers. Merging the user's 
 
 - 30 dialogues, 10 per level, read before any activation was extracted; verdicts in the logbook.
 - Every one of the 12 false-claim replies the judge marked as not corrected, plus 9 marked corrected, with the user's message each answered. Final agreement 21 of 21; the judge's label was visible and I changed 2–3 verdicts after comparing, so first-pass agreement is 18–19 of 21. All 14 distinct claims checked false by hand.
-- 48 steered and prompted replies read with labels hidden: all coherent; 0 of 24 steered and 3 of 24 prompted mention the reader's level (judge: 0 and 2).
+- 48 replies, the 24 steered at ±8 and the 24 system-prompted, read for coherence and for any mention of the reader's level: all coherent; 0 of 24 steered and 3 of 24 prompted mention it (judge: 0 of 24 and 2 of 24).
+▢ Check: the committed e4_read.txt shows the condition and the judge's label on each item. If that is the file you read, do not call it a blind read anywhere (the logbook entry of Sept 4 says 'judge labels hidden'; fix that too if it is wrong). Delete this line.
 - The first 20 linking items, both contexts each: agreement __ of 40. NOTE: fill in.
 - ______ recomputed by hand from the result file. NOTE: fill in, e.g. "34 validated of 88 expert-context false claims from results_e5_raw.json".
 - Every experiment except the linking one has a prediction written before it ran; every experiment has a logbook entry naming the dumbest alternative explanation.
@@ -174,16 +173,16 @@ The anchoring-source controls gave two clean, wrong answers. Merging the user's 
 
 # How I used the agent, and what stayed mine
 
-NOTE: rewrite in your own words and make it exactly true. Neel checks for this.
+▢ Make every clause below exactly true before submitting. Neel's doc says the design, controls and interpretation should be yours, and that he checks. The last sentence is only true once you have rewritten the summary yourself. Delete this line.
 
-I used Claude Code throughout. The agent wrote the scripts, the figures, the first drafts of the logbook entries and of this document, proposed most of the controls and the interpretations, and ran review passes over Neel's own materials to find weaknesses. I set the predictions, thresholds and floors, ran the experiments on the GPU pod, read the data and the raw replies, approved or rejected each proposed control and pivot, did every hand-check above, and am rewriting every sentence of this document. The agent worked under rules I fixed at the start: never change a parameter silently, name the dumbest alternative explanation after every result, print five random examples for every dataset or judged set, and never write the executive summary or the form answers.
+I used Claude Code throughout. What the agent did: wrote the scripts and the figures, proposed candidate controls and a first reading of each result, drafted the logbook entries and the first version of this document, and ran review passes over Neel's own materials to find weaknesses in the work. What was mine: the question and its framing; every prediction in Appendix A, with its probability, threshold and reason, written before the run; the decision on which proposed controls and experiments ran, including choosing the linking experiment over four cheaper alternatives in the final window; running every experiment on the GPU pod; reading the raw data and replies, and every hand-check listed above; and the executive summary and the final text of this document. The agent worked under rules I fixed at the start: never change a parameter silently, name the dumbest alternative explanation after every result, print five random examples for every dataset or judged set, and leave the executive summary and the form answers to me.
 
 # Negative results
 
 - Accuracy does not rise with turn index (H1b): the first message already gives 96.6%.
 - A confident voice does not double validation by my rule (H3b): gap +0.09 [−0.02, +0.20].
 - Tone does not corrupt the internal truth score once style is subtracted (H3c): +0.01 [−0.12, +0.14].
-- Steering is not more covert than prompting (H4b): 0 of 48 versus 2 of 24.
+- Steering is not more covert than prompting (H4b): judge 0 of 48 steered replies versus 2 of 24 prompted.
 - A confident claim costs an expert-looking user a little competence whether true or false (H5c): −0.05 vs −0.04.
 - The by-verdict split is absent at the claim-sentence position inside the dialogue (+0.05 [−0.11, +0.23]), though present for bare statements.
 
@@ -195,7 +194,7 @@ I used Claude Code throughout. The agent wrote the scripts, the figures, the fir
 - The honesty split rests on 12 cases and 9 distinct claims; the linking effect on behaviour has p = 0.09; the judge re-labelled 4 of 21 identical borderline replies across runs.
 - The linking experiment was not pre-registered, and its validation rates are not comparable with the honesty experiment's.
 - Steering adds the direction on the model's own tokens too; the steering result is sufficiency only.
-- Prior work: asymmetric belief updating is reported for rewards in in-context learning (Schubert et al., ICML 2024); stated-versus-internal user models for demographics (LessWrong, 2025); "When Truth Is Overridden" (AAAI 2026) is the nearest to Part 4. I did not find the user-model asymmetry, the bare-statement split, or the same-claim two-context design in prior work, but my search used abstracts only. NOTE: verify each title before submitting.
+- Prior work: asymmetric belief updating is reported for rewards in in-context learning ("In-context learning agents are asymmetric belief updaters", Schubert et al., ICML 2024); stated-versus-internal user models for demographics ("Do LLMs Change Their Minds About Their Users… and Know It?", LessWrong, 2025); "When Truth Is Overridden: Uncovering the Internal Origins of Sycophancy in LLMs" (AAAI 2026) is the nearest to Part 4. I did not find the user-model asymmetry, the bare-statement split, or the same-claim two-context design in prior work, but my search used abstracts only.
 
 # What I would do next
 
@@ -208,7 +207,7 @@ I used Claude Code throughout. The agent wrote the scripts, the figures, the fir
 
 ## A. Pre-registered predictions and outcomes
 
-Rows H1–H4b were written before any experiment ran. H5–H8 were added on Sept 4 with blank prediction cells; the cells were still blank when E5 ran, so it is recorded as not pre-registered.
+Rows H1–H4b were written before any experiment ran. H5–H8 were added on Sept 4 with blank prediction cells; the cells were still blank when E5 ran, so it is recorded as not pre-registered. H7 had its threshold and floor fixed before its run but no probability.
 
 {{table:pred}}
 
@@ -216,7 +215,7 @@ Rows H1–H4b were written before any experiment ran. H5–H8 were added on Sept
 
 Honesty experiment: every false-claim reply the judge labelled validate or hedge at 600 tokens (12) plus 9 random corrections; 14 distinct claims, each checked false by hand. Final agreement 21 of 21; first pass 18–19 of 21. First-pass disagreements: ______ NOTE: which items.
 
-Steering: 48 replies read with judge labels hidden; coherent 48 of 48; mentions the reader's level: steered 0 of 24, prompted 3 of 24 (judge 2). The third is an expert-prompt reply that calls the model itself "a domain expert": a visible leak of the system prompt.
+Steering: 48 replies read, the 24 steered at ±8 and the 24 system-prompted; coherent 48 of 48; mentions the reader's level: steered 0 of 24, prompted 3 of 24 (judge 2 of 24). The third is an expert-prompt reply that calls the model itself "a domain expert": a visible leak of the system prompt.
 
 Linking experiment: first 20 items of e5_handcheck.txt, both contexts each. Agreement __ of 40. Disagreements: ______ NOTE: fill in.
 

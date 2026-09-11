@@ -88,6 +88,7 @@ function examples(lines) {
     if (/^\s*\d+\. /.test(l)) { out.push(new Paragraph({ children: runs(l.replace(/^\s*\d+\. /, ""), { size: 20 }), indent: { left: 500 }, spacing: { after: 30 } })); continue; }
     if (/^\*\*Qwen's actual reply/.test(l) || /^\*\*Strength/.test(l)) { inReply = true; out.push(P(l)); continue; }
     if (/^Judge \(/.test(l)) { inReply = false; out.push(P(l)); continue; }
+    if (l.startsWith("[…")) { out.push(new Paragraph({ children: runs(l, { italics: true, color: GREY, size: 19 }), indent: { left: 300 }, spacing: { after: 60 } })); continue; }
     out.push(inReply ? new Paragraph({ children: runs(l, { size: 20 }), indent: { left: 300 }, spacing: { after: 50 } }) : P(l));
   }
   return out;
@@ -132,9 +133,10 @@ for (let raw of MD) {
   if (!l.trim()) continue;
   if (l.startsWith("NOTE:")) { const m = l.match(/^NOTE:\s*\((\w)\)\s*(.*)$/); if (m) titleOpts.push(m[2]); continue; }
   if (l === "# TITLE") { add(yellow("▢ TITLE — pick one or write your own:", { bold: true, size: 30 })); continue; }
+  if (l.startsWith("TITLE: ")) { add(new Paragraph({ children: [new TextRun({ text: l.slice(7), bold: true, size: 30 })], spacing: { after: 140 } })); continue; }
   if (titleOpts.length && !l.startsWith("NOTE")) { for (const o of titleOpts) add(yellow("   " + o, { size: 26 })); titleOpts = []; }
   let m;
-  if ((m = l.match(/^\{\{fig:([^|]+)\|(.*)\}\}$/))) { add(fig(m[1].trim(), /anchoring_source|causal|linking|history|bare/.test(m[1]) ? 6.3 : 5.4)); add(caption(m[2])); continue; }
+  if ((m = l.match(/^\{\{fig:([^|]+)\|(.*)\}\}$/))) { add(fig(m[1].trim(), /linking|bare/.test(m[1]) ? 5.8 : /anchoring_source|causal|history/.test(m[1]) ? 6.3 : /update_curves/.test(m[1]) ? 5.1 : 5.4)); add(caption(m[2])); continue; }
   if ((m = l.match(/^\{\{table:(\w+)\}\}$/))) { const [rows, w, fs_] = TABLES[m[1]]; add(table(rows, w, fs_)); add(new Paragraph({ spacing: { after: 80 } })); continue; }
   if (l === "{{examples}}") { add(examples(C.ex)); continue; }
   if (l === "{{examples2}}") { add(examples(C.ex2)); continue; }
@@ -148,7 +150,8 @@ for (let raw of MD) {
   if (l.startsWith("### ")) { add(H3(l.slice(4))); continue; }
   if (/^- /.test(l)) { add(bullet(l.slice(2))); continue; }
   if (/^\d+\. /.test(l)) { add(bullet(l.replace(/^\d+\. /, ""))); continue; }
-  if (l.includes("______") || /^(Hours:|Yash Bansal)/.test(l)) { add(yellow(l)); continue; }
+  if (l.includes("______") || /^Hours:/.test(l)) { add(yellow(l)); continue; }
+  if (l.startsWith("▢ ")) { add(yellow(l)); continue; }
   if (l.startsWith("Epistemic status:")) { add(new Paragraph({ children: runs(l, { italics: true }), spacing: { after: 160 } })); continue; }
   add(P(l));
 }
